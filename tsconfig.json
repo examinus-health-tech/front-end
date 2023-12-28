@@ -1,0 +1,18 @@
+{
+  "extends": "expo/tsconfig.base",
+  "includes": ["styled-components.d.ts"],
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "./",
+    "paths": {
+      "@assets/icons": ["./src/assets/icons/index"],
+      "@assets/png/*": ["./src/assets/png/*"],
+      "@assets/svg/*": ["./src/assets/svg/*"],
+      "@components/*": ["./src/components/*"],
+      "@routes/*": ["./src/routes/*"],
+      "@screens/*": ["./src/screens/*"],
+      "@storage/*": ["./src/storage/*"],
+      "@utils/*": ["./src/utils/*"]
+    }
+  }
+}
