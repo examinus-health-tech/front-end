@@ -31,7 +31,7 @@ export function Card({
           w={16}
           h={16}
           borderRadius={12}
-          borderColor={'gray.20'}
+          borderColor={'gray.900'}
           borderWidth={warning ? 0 : 1}
           alignItems={'center'}
           justifyContent={'center'}
@@ -47,7 +47,7 @@ export function Card({
       return (
         <Text
           flex={1}
-          color={warning ? 'red.50' : 'gray.100'}
+          color={warning ? 'red.50' : 'gray.900'}
           fontSize={18}
           fontWeight={600}
           letterSpacing={-0.16}
@@ -61,7 +61,7 @@ export function Card({
       return (
         <VStack flex={1} mr={12}>
           <Text
-            color={'gray.100'}
+            color={'gray.900'}
             fontSize={18}
             fontWeight={600}
             letterSpacing={-0.16}
@@ -70,7 +70,7 @@ export function Card({
           </Text>
 
           <Text
-            color={'gray.50'}
+            color={'gray.400'}
             fontSize={12}
             fontWeight={500}
             lineHeight={19.2}
@@ -84,14 +84,14 @@ export function Card({
 
   function renderAction() {
     if (action === 'switch') {
-      return <Switch onTrackColor="ciano.40" />;
+      return <Switch onTrackColor="ciano.300" />;
     }
 
     if (action === 'value') {
       return (
         <HStack alignItems={'center'}>
           <Text
-            color={'gray.50'}
+            color={'gray.400'}
             fontSize={14}
             fontWeight={600}
             letterSpacing={-0.14}

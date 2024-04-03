@@ -16,7 +16,7 @@ export function ContactUs() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   return (
-    <VStack flex={1} bg={'gray.10'} py={24} mx={6}>
+    <VStack flex={1} bg={'gray.400'} py={24} mx={6}>
       <Header
         title="Fale Conosco"
         handleBackTo={() => navigation.navigate('myAccount')}
@@ -30,7 +30,7 @@ export function ContactUs() {
           resizeMode="stretch"
         />
         <Text
-          color="gray.100"
+          color="gray.900"
           fontSize={28}
           fontWeight={800}
           lineHeight={32}

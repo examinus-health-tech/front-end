@@ -40,6 +40,16 @@ import StarIcon from './components/star';
 import FlaskIcon from './components/flask';
 import ShareIcon from './components/share';
 import DownloadIcon from './components/download';
+import HomeIcon from './components/home';
+import ChecklistIcon from './components/checklist';
+import ChartIcon from './components/chart';
+import ExaminusIcon from './components/examinus';
+import KeyIcon from './components/key';
+import CheckCircleIcon from './components/checkCircle';
+import LocationIcon from './components/location';
+import EmailIcon from './components/email';
+import FilterIcon from './components/filter';
+import AddSquareIcon from './components/addSquare';
 
 export {
   ArrowIcon,
@@ -84,4 +94,14 @@ export {
   FlaskIcon,
   ShareIcon,
   DownloadIcon,
+  HomeIcon,
+  ChecklistIcon,
+  ChartIcon,
+  ExaminusIcon,
+  KeyIcon,
+  CheckCircleIcon,
+  LocationIcon,
+  EmailIcon,
+  FilterIcon,
+  AddSquareIcon,
 };

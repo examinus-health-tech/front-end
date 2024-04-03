@@ -7,7 +7,7 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 // assets
 import Vector from '@assets/png/vector-11.png';
 import { GearIcon } from '@assets/icons';
-import { Button } from '@components/Button/button';
+import { Button } from '@components/atoms/Button/button';
 
 export function SuccessSaved() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
@@ -25,7 +25,7 @@ export function SuccessSaved() {
 
       <VStack alignItems={'center'} space={4} mb={10} mx={6}>
         <Text
-          color={'gray.100'}
+          color={'gray.900'}
           fontSize={30}
           fontWeight={800}
           letterSpacing={-0.2}
@@ -34,7 +34,7 @@ export function SuccessSaved() {
           Conta Atualizada{'\n'}com Sucesso!
         </Text>
         <Text
-          color={'gray.50'}
+          color={'gray.400'}
           fontSize={16}
           fontWeight={500}
           lineHeight={25.6}

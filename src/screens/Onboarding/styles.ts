@@ -11,8 +11,6 @@ export const ContainerView = styled.View`
   height: 100%;
 
   padding: 4px;
-
-  background-color: ${({ theme }) => theme.COLORS.GRAY_10};
 `;
 
 export const WrapperTitle = styled.View`
@@ -39,17 +37,13 @@ export const Title = styled.Text`
   font-size: 30px;
   font-weight: 800;
   line-height: 38px;
-  color: ${({ theme }) => theme.COLORS.GRAY_100};
 `;
 
-export const Highlight = styled.Text`
-  color: ${({ theme }) => theme.COLORS.CIANO_40};
-`;
+export const Highlight = styled.Text``;
 
 export const Description = styled.Text`
   text-align: center;
 
-  color: ${({ theme }) => theme.COLORS.GRAY_70};
   font-size: 16px;
   line-height: 25.6px;
 `;
@@ -59,7 +53,6 @@ export const SingUpText = styled.Text`
 
   text-align: center;
 
-  color: ${({ theme }) => theme.COLORS.GRAY_50};
   font-size: 14;
   font-weight: 600;
   letter-spacing: -0.14px;
@@ -68,8 +61,6 @@ export const SingUpText = styled.Text`
 export const HighlightLink = styled.Text`
   font-weight: 800;
   text-decoration: underline;
-  text-decoration-color: ${({ theme }) => theme.COLORS.RED_50};
-  color: ${({ theme }) => theme.COLORS.RED_50};
 `;
 
 export const BackgroundImg = styled(ImageBackground)``;

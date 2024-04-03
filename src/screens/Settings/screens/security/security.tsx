@@ -11,7 +11,7 @@ import { LockIcon } from '@assets/icons';
 // components
 import { Header } from '../../components/header/header';
 import { Card } from '../../components/card/card';
-import { Button } from '@components/Button/button';
+import { Button } from '@components/atoms/Button/button';
 
 export function Security() {
   const scrollRef = useRef<IScrollViewProps>(null);
@@ -19,7 +19,7 @@ export function Security() {
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} bg={'gray.10'} py={24} mx={6}>
+      <VStack flex={1} bg={'gray.400'} py={24} mx={6}>
         <Header
           title="Segurança"
           handleBackTo={() => navigation.navigate('myAccount')}

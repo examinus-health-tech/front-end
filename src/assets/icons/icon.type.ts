@@ -3,4 +3,6 @@ export type IconProps = {
   sizeX?: string;
   sizeY?: string;
   color?: string;
+  solid?: boolean;
+  duotone?: boolean;
 };

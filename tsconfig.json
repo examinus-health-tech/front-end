@@ -1,18 +1,48 @@
 {
   "extends": "expo/tsconfig.base",
-  "includes": ["styled-components.d.ts"],
+  "includes": [
+    "styled-components.d.ts"
+  ],
   "compilerOptions": {
     "strict": true,
     "baseUrl": "./",
     "paths": {
-      "@assets/icons": ["./src/assets/icons/index"],
-      "@assets/png/*": ["./src/assets/png/*"],
-      "@assets/svg/*": ["./src/assets/svg/*"],
-      "@components/*": ["./src/components/*"],
-      "@routes/*": ["./src/routes/*"],
-      "@screens/*": ["./src/screens/*"],
-      "@storage/*": ["./src/storage/*"],
-      "@utils/*": ["./src/utils/*"]
+      "@assets/icons": [
+        "./src/assets/icons/index"
+      ],
+      "@assets/png/*": [
+        "./src/assets/png/*"
+      ],
+      "@assets/svg/*": [
+        "./src/assets/svg/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@routes/*": [
+        "./src/routes/*"
+      ],
+      "@screens/*": [
+        "./src/screens/*"
+      ],
+      "@atoms/*": [
+        "./src/components/atoms/*"
+      ],
+      "@molecules/*": [
+        "./src/components/molecules/*"
+      ],
+      "@organisms/*": [
+        "./src/components/organisms/*"
+      ],
+      "@pages/*": [
+        "./src/components/pages/*"
+      ],
+      "@storage/*": [
+        "./src/storage/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ]
     }
   }
 }

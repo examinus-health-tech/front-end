@@ -18,7 +18,7 @@ import { DownloadIcon, FlagIcon, MoreIcon } from '@assets/icons';
 
 // components
 import { Header } from '../../components/header/header';
-import { Progress } from '@components/Progress/progress';
+import { Progress } from '@components/molecules/Progress/progress';
 
 export function Notifications() {
   const scrollRef = useRef<IScrollViewProps>(null);
@@ -26,7 +26,7 @@ export function Notifications() {
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} bg={'gray.10'} py={24} mx={6}>
+      <VStack flex={1} bg={'gray.400'} py={24} mx={6}>
         <Header
           title="Notificações"
           handleBackTo={() => navigation.navigate('myAccount')}
@@ -38,7 +38,7 @@ export function Notifications() {
               fontSize={18}
               fontWeight={800}
               letterSpacing={-0.16}
-              color={'gray.100'}
+              color={'gray.900'}
             >
               Recentes
             </Text>
@@ -47,7 +47,7 @@ export function Notifications() {
               fontSize={16}
               fontWeight={600}
               letterSpacing={-0.14}
-              color={'gray.70'}
+              color={'gray.600'}
             >
               251 Total
             </Text>
@@ -57,7 +57,7 @@ export function Notifications() {
         <VStack space={4}>
           <Box bg={'white'} borderRadius={12} p={4}>
             <HStack space={4}>
-              <Box bg={'ciano.40'} borderRadius={10} w={16} h={16}></Box>
+              <Box bg={'ciano.300'} borderRadius={10} w={16} h={16}></Box>
 
               <VStack justifyContent={'center'} space={2}>
                 <Text fontSize={16} fontWeight={600} letterSpacing={-0.14}>
@@ -122,7 +122,7 @@ export function Notifications() {
 
                 <Progress
                   value={80}
-                  size={100}
+                  sizeW={100}
                   filledColor="blue.40"
                   bgColor="blue.20"
                 />

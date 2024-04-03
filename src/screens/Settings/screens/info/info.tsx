@@ -9,8 +9,8 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { CheckIcon, EditIcon, UserIcon } from '@assets/icons';
 
 // components
-import { Button } from '@components/Button/button';
-import { Input } from '@components/Input/input';
+import { Button } from '@components/atoms/Button/button';
+import { Input } from '@components/molecules/Input/input';
 import { SuccessSaved } from '@screens/Settings/components/successSaved/successSaved';
 import { Header } from '../../components/header/header';
 
@@ -29,12 +29,12 @@ export function Info() {
       <Box
         w={'100%'}
         h={240}
-        bg={'gray.100'}
+        bg={'gray.900'}
         borderBottomRadius={24}
         position={'absolute'}
       >
         <Box
-          bg={'gray.30'}
+          bg={'gray.200'}
           w={28}
           h={28}
           borderRadius={12}

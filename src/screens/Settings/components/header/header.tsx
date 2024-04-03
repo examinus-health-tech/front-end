@@ -22,7 +22,7 @@ export function Header({ title, bgMode, handleBackTo }: Props) {
       </TouchableOpacity>
 
       <Text
-        color={bgMode ? 'white' : 'gray.100'}
+        color={bgMode ? 'white' : 'gray.900'}
         fontSize={20}
         fontWeight={800}
         letterSpacing={-0.2}

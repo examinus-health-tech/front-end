@@ -28,7 +28,7 @@ export function Header({ title, bgMode, handleBackTo }: Props) {
 
       <Text
         flex={1}
-        color={'gray.100'}
+        color={'gray.900'}
         fontSize={20}
         fontWeight={800}
         letterSpacing={-0.2}

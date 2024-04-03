@@ -43,7 +43,7 @@ import Vector from '@assets/png/vector-9.png';
 import XLogo from '@assets/png/x-examinus.png';
 
 // components
-import { Button } from '@components/Button/button';
+import { Button } from '@components/atoms/Button/button';
 import { Header } from '../../components/header/header';
 import { Card } from '../../components/card/card';
 
@@ -59,16 +59,16 @@ export function MyAccount() {
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} bg={'gray.10'} py={24} mx={6}>
+      <VStack flex={1} bg={'gray.400'} py={24} mx={6}>
         <Header
           title="Minha Conta"
           handleBackTo={() => navigation.navigate('homepage')}
         />
 
-        <Box bg={'gray.100'} w="100%" borderRadius={16} p={4}>
+        <Box bg={'gray.900'} w="100%" borderRadius={16} p={4}>
           <HStack space={3} alignItems={'center'}>
             <Box
-              bg={'gray.30'}
+              bg={'gray.200'}
               w={20}
               h={20}
               borderRadius={12}
@@ -86,7 +86,7 @@ export function MyAccount() {
                 Ariene Queiroz
               </Text>
               <Text
-                color={'gray.30'}
+                color={'gray.200'}
                 fontSize={16}
                 fontWeight={600}
                 letterSpacing={-0.12}
@@ -107,7 +107,7 @@ export function MyAccount() {
               fontSize={16}
               fontWeight={800}
               letterSpacing={-0.16}
-              color={'gray.100'}
+              color={'gray.900'}
             >
               Configurações Gerais
             </Text>
@@ -127,7 +127,7 @@ export function MyAccount() {
             <Card
               title="Notificações"
               variant="primary"
-              goTo={() => navigation.navigate('notifications')}
+              goTo={() => navigation.navigate('configNotifications')}
               icon={<BellSecondaryIcon color="#3D4966" size="30" />}
             />
             <Card
@@ -150,7 +150,7 @@ export function MyAccount() {
               fontSize={16}
               fontWeight={800}
               letterSpacing={-0.16}
-              color={'gray.100'}
+              color={'gray.900'}
             >
               Acessibilidade
             </Text>
@@ -181,7 +181,7 @@ export function MyAccount() {
               fontSize={16}
               fontWeight={800}
               letterSpacing={-0.16}
-              color={'gray.100'}
+              color={'gray.900'}
             >
               Ajuda & Suporte
             </Text>
@@ -217,7 +217,7 @@ export function MyAccount() {
               fontSize={16}
               fontWeight={800}
               letterSpacing={-0.16}
-              color={'gray.100'}
+              color={'gray.900'}
             >
               Desconectar
             </Text>
@@ -242,7 +242,7 @@ export function MyAccount() {
               fontSize={16}
               fontWeight={800}
               letterSpacing={-0.16}
-              color={'gray.100'}
+              color={'gray.900'}
             >
               Zona Perigosa
             </Text>

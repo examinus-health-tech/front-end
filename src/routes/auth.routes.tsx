@@ -3,20 +3,23 @@ import {
   NativeStackNavigationProp,
 } from '@react-navigation/native-stack';
 
-import { SignIn } from '@screens/SingIn/singIn';
-import { SignUp } from '@screens/SingUp/singUp';
-import { StepFour } from '@screens/Welcome/components/Steps/stepFour';
-import { StepOne } from '@screens/Welcome/components/Steps/stepOne';
-import { StepThree } from '@screens/Welcome/components/Steps/stepThree';
-import { StepTwo } from '@screens/Welcome/components/Steps/stepTwo';
+import { Hello, Simplify, Health, StayCalm } from '@pages/Welcome';
+import {
+  SignIn,
+  SignUp,
+  ForgetPassword,
+  SuccessLink,
+} from '@components/pages/Login';
 
 type AuthRoutes = {
-  stepOne: undefined;
-  stepTwo: undefined;
-  stepThree: undefined;
-  stepFour: undefined;
+  hello: undefined;
+  simplify: undefined;
+  health: undefined;
+  stayCalm: undefined;
   signIn: undefined;
   signUp: undefined;
+  forgetPassword: undefined;
+  successLink: undefined;
 };
 
 export type AuthNavigatorRoutesProps = NativeStackNavigationProp<AuthRoutes>;
@@ -26,12 +29,14 @@ const { Navigator, Screen } = createNativeStackNavigator<AuthRoutes>();
 export function AuthRoutes() {
   return (
     <Navigator screenOptions={{ headerShown: false }}>
-      <Screen name="stepOne" component={StepOne} />
-      <Screen name="stepTwo" component={StepTwo} />
-      <Screen name="stepThree" component={StepThree} />
-      <Screen name="stepFour" component={StepFour} />
+      <Screen name="hello" component={Hello} />
+      <Screen name="simplify" component={Simplify} />
+      <Screen name="health" component={Health} />
+      <Screen name="stayCalm" component={StayCalm} />
       <Screen name="signIn" component={SignIn} />
       <Screen name="signUp" component={SignUp} />
+      <Screen name="forgetPassword" component={ForgetPassword} />
+      <Screen name="successLink" component={SuccessLink} />
     </Navigator>
   );
 }

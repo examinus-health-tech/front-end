@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import {
+  Box,
   HStack,
   IScrollViewProps,
   Image,
@@ -38,7 +39,7 @@ export function AboutUs() {
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} bg={'gray.10'} py={24} mx={6}>
+      <VStack flex={1} bg={'gray.400'} py={24} mx={6}>
         <Header
           title="Sobre nós"
           handleBackTo={() => navigation.navigate('myAccount')}
@@ -52,7 +53,7 @@ export function AboutUs() {
             resizeMode="stretch"
           />
           <Text
-            color="gray.100"
+            color="gray.900"
             fontSize={28}
             fontWeight={800}
             lineHeight={32}
