@@ -6,6 +6,7 @@ import {
   IInputProps,
   VStack,
   FormControl,
+  WarningOutlineIcon,
 } from 'native-base';
 
 export type Props = IInputProps & {
@@ -17,6 +18,7 @@ export type Props = IInputProps & {
     value: string;
     label: string;
   }[];
+  errorMessage?: string;
 };
 
 export interface VariantLeftIconProps {
@@ -29,17 +31,18 @@ export function Input({
   label,
   select,
   options,
+  isInvalid,
+  errorMessage,
   ...rest
 }: Props) {
   return (
-    <FormControl>
+    <FormControl isInvalid={isInvalid} mb={1}>
       <FormControl.Label>
         <Text
           color="gray.900"
           fontSize={15}
           fontWeight={800}
           letterSpacing={-0.14}
-          m={0}
         >
           {label}
         </Text>
@@ -75,6 +78,15 @@ export function Input({
           letterSpacing={-0.16}
           {...rest}
         />
+      )}
+      {!!errorMessage && (
+        <FormControl.ErrorMessage
+          leftIcon={<WarningOutlineIcon size="xs" />}
+          mb={-2}
+          mt={0.5}
+        >
+          {errorMessage}
+        </FormControl.ErrorMessage>
       )}
     </FormControl>
   );

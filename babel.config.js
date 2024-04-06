@@ -20,6 +20,7 @@ module.exports = function (api) {
             '@storage': './src/storage',
             '@utils': './src/utils',
             '@navigation': './src/navigation',
+            '@dtos': './src/dtos',
           },
         },
       ],
