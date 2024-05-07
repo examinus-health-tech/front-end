@@ -5,10 +5,10 @@
   "build": {
     "preview": {
       "android": {
-        // "distribution": "internal"
-        "buildType": "apk"
+        "distribution": "internal"
+        // "buildType": "apk"
       },
-      channel: "preview"
+      // channel: "preview"
     },
   },
 }

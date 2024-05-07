@@ -66,6 +66,7 @@ export function SignUp() {
   });
 
   async function handleSignUp({ email, password }: FormDataProps) {
+    console.log(email, password);
     try {
       const response = await api.post('/user/auth/sign-up', {
         name: 'temp',
@@ -73,8 +74,26 @@ export function SignUp() {
         password,
       });
 
+      toast.show({
+        borderRadius: '12',
+        title: 'Conta crianda com sucesso',
+        _title: {
+          textAlign: 'center',
+          mx: '4',
+        },
+        _description: {
+          textAlign: 'center',
+          mx: '4',
+        },
+        placement: 'top',
+        color: 'gray.900',
+        bgColor: 'green.500',
+      });
+
       console.log(response);
     } catch (error) {
+      console.log(error);
+
       const isAppError = error instanceof AppError;
 
       const title = isAppError

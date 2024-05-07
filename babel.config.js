@@ -22,6 +22,7 @@ module.exports = function (api) {
             '@navigation': './src/navigation',
             '@dtos': './src/dtos',
           },
+
         },
       ],
     ],

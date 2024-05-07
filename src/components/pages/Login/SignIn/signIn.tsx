@@ -1,16 +1,12 @@
 import {
   Divider,
   Flex,
-  Stack,
   Text,
   VStack,
-  Pressable,
-  Center,
   Icon,
   HStack,
   Box,
-  FormControl,
-  WarningOutlineIcon,
+  useToast,
 } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -31,6 +27,10 @@ import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
 import { TouchableOpacity } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
+import { useAuth } from '../../../../hooks/useAuth';
+import { AppError } from '@utils/AppErrors';
+import { useState } from 'react';
+
 type FormDataProps = {
   email: string;
   password: string;
@@ -42,6 +42,9 @@ const signInSchema = yup.object({
 });
 
 export function SignIn() {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const toast = useToast();
+  const { signIn } = useAuth();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
     control,
@@ -51,8 +54,41 @@ export function SignIn() {
     resolver: yupResolver(signInSchema),
   });
 
-  function handleSignIn(data: FormDataProps) {
+  async function handleSignIn(data: FormDataProps) {
     console.log(data);
+    try {
+      setIsLoading(true);
+
+      await signIn(data.email, data.password);
+    } catch (error) {
+      console.log(error);
+
+      const isAppError = error instanceof AppError;
+
+      const title = isAppError
+        ? 'Não foi possível acessar sua conta'
+        : 'Não foi possível acessar sua conta.\nTente novamente mais tarde.';
+      const description = isAppError && error.message;
+
+      toast.show({
+        borderRadius: '12',
+        title,
+        description,
+        _title: {
+          textAlign: 'center',
+          mx: '4',
+        },
+        _description: {
+          textAlign: 'center',
+          mx: '4',
+        },
+        placement: 'top',
+        color: 'gray.900',
+        bgColor: 'red.500',
+      });
+
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -163,6 +199,7 @@ export function SignIn() {
           size="full"
           title="Conecte-se"
           mt={2}
+          isLoading={isLoading}
           icon={<UserIcon />}
           onPress={handleSubmit(handleSignIn)}
         />
