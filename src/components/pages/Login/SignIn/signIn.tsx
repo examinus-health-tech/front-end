@@ -44,7 +44,7 @@ const signInSchema = yup.object({
 export function SignIn() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const toast = useToast();
-  const { signIn } = useAuth();
+  const { singIn } = useAuth();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
     control,
@@ -55,14 +55,11 @@ export function SignIn() {
   });
 
   async function handleSignIn(data: FormDataProps) {
-    console.log(data);
     try {
       setIsLoading(true);
 
-      await signIn(data.email, data.password);
+      await singIn(data.email, data.password);
     } catch (error) {
-      console.log(error);
-
       const isAppError = error instanceof AppError;
 
       const title = isAppError

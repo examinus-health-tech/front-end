@@ -1,9 +1,4 @@
-import {
-  VStack,
-  Center,
-  Box,
-  Progress as ProgressNativeBase,
-} from 'native-base';
+import { Center, Box, Progress as ProgressNativeBase } from 'native-base';
 import { IProgressProps } from 'native-base/lib/typescript/components/composites';
 
 export type Props = IProgressProps & {

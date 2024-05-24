@@ -41,6 +41,7 @@ import {
 import { Box, useDisclose, View } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 import { ActionSheetUpload } from '@components/organisms';
+import { OnboardingSteps } from '@components/pages/OnboardingInfo/onboarding';
 
 export type AppRoutes = {
   gender: undefined;
@@ -73,6 +74,7 @@ export type AppRoutes = {
   heartScore: undefined;
   examList: undefined;
   exam: undefined;
+  onboardingSteps: undefined;
 };
 
 export type AppNavigatorRoutesProps = NativeStackNavigationProp<AppRoutes>;
@@ -235,6 +237,7 @@ export function AppRoutes() {
   return (
     <Navigator screenOptions={{ headerShown: false }}>
       {/** WELCOME */}
+      <Screen name="onboardingSteps" component={OnboardingSteps} />
       {/* <Screen name="gender" component={Gender} />
       <Screen name="weight" component={Weight} />
       <Screen name="age" component={Age} />
@@ -260,7 +263,7 @@ export function AppRoutes() {
 
       {/** EXAM */}
       {/* <Screen name="examList" component={ExamList} /> */}
-      <Screen name="exam" component={Exam} />
+      {/* <Screen name="exam" component={Exam} /> */}
 
       {/* <Screen name="notifications" component={Notifications} />
       <Screen name="successSaved" component={SuccessSaved} /> */}

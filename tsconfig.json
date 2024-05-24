@@ -6,9 +6,14 @@
   "compilerOptions": {
     "strict": true,
     "baseUrl": "./",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
     "paths": {
       "@assets/icons": [
         "./src/assets/icons/index"
+      ],
+      "@fonts": [
+        "./src/assets/fonts/*"
       ],
       "@assets/png/*": [
         "./src/assets/png/*"
@@ -21,6 +26,9 @@
       ],
       "@routes/*": [
         "./src/routes/*"
+      ],
+      "@contexts/*": [
+        "./src/contexts/*"
       ],
       "@screens/*": [
         "./src/screens/*"
@@ -47,5 +55,5 @@
         "./dtos/*"
       ]
     }
-  }
+  },
 }

@@ -1,9 +1,8 @@
-import { useTheme } from 'native-base';
+import { Text, useTheme } from 'native-base';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 
 import { AppRoutes } from './app.routes';
 import { AuthRoutes } from './auth.routes';
-import { AuthContextProvider } from '../contexts/AuthContest';
 import { useAuth } from '../hooks/useAuth';
 
 export function Routes() {
@@ -16,10 +15,7 @@ export function Routes() {
 
   return (
     <NavigationContainer theme={theme}>
-      <AuthContextProvider>
-        <AuthRoutes />
-        {/* <AppRoutes /> */}
-      </AuthContextProvider>
+      {user.AuthenticationResult ? <AppRoutes /> : <AuthRoutes />}
     </NavigationContainer>
   );
 }

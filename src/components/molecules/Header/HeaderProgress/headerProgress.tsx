@@ -10,7 +10,7 @@ import { Progress } from '@components/molecules/Progress/progress';
 
 export type Props = IButtonProps & {
   progressValue: number;
-  withBackButton?: boolean;
+  withBackButton?: () => void;
   jumpTo?: () => void;
 };
 
@@ -23,7 +23,7 @@ export function HeaderProgress({
     <HStack space={8} mx={6} justifyContent="space-between" alignItems="center">
       {withBackButton && (
         <VStack py={1}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={withBackButton}>
             <ChevronLeftIcon />
           </TouchableOpacity>
         </VStack>

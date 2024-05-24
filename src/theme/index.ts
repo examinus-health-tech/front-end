@@ -127,6 +127,7 @@ export const THEME = extendTheme({
   },
   sizes: {
     12: 56,
+    14: 64,
     28: 112,
     33: 148,
     44: 176,

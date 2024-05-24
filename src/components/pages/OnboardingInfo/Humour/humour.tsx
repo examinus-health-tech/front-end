@@ -36,7 +36,7 @@ export function Humour() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   return (
-    <VStack bg={'gray.400'} flex={1} space={8} py={24}>
+    <VStack flex={1} space={8} py={24}>
       <HeaderProgress
         progressValue={33}
         withBackButton

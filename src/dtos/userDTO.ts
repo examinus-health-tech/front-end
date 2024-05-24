@@ -1,6 +1,14 @@
 export type UserDTO = {
-  id: string;
-  name: string;
   email: string;
-  avatar: string;
+  message: string;
+  ImageUserUrl: string;
+  AuthenticationResult: AuthenticationResultProps;
 };
+
+interface AuthenticationResultProps {
+  accessToken: string;
+  expiresIn: number;
+  tokenType: string;
+  refreshToken: string;
+  idToken: string;
+}

@@ -6,6 +6,11 @@ import {
   Center,
   Actionsheet,
   useDisclose,
+  Alert,
+  Box,
+  HStack,
+  IconButton,
+  CloseIcon,
 } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
@@ -83,9 +88,7 @@ export function Upload() {
     );
   } else {
     return (
-      <VStack bg={'gray.400'} flex={1} space={8} py={24}>
-        <HeaderProgress progressValue={33} withBackButton />
-
+      <VStack flex={1} space={8} py={24}>
         <Center flex={1} mx={6} alignItems="center">
           <Image
             source={Vector2}
@@ -121,11 +124,7 @@ export function Upload() {
 
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>
-            {isManual ? (
-              <UploadTypeManual setManual={setManual} />
-            ) : (
-              <UploadType setManual={setManual} />
-            )}
+            <UploadType />
           </Actionsheet.Content>
         </Actionsheet>
       </VStack>

@@ -1,33 +1,58 @@
-import { TouchableOpacity } from 'react-native';
-import { VStack, Text, Image, Center, Box, HStack } from 'native-base';
+import { Platform, TouchableOpacity } from 'react-native';
+import {
+  VStack,
+  Text,
+  Image,
+  Center,
+  Box,
+  HStack,
+  Actionsheet,
+  useDisclose,
+  Container,
+} from 'native-base';
+import * as DocumentPicker from 'expo-document-picker';
 
 // assets
 import { EditIcon, UploadIcon } from '@assets/icons';
 import Vector1 from '@assets/png/vector-9.png';
+import { useState } from 'react';
+import { UploadTypeManual } from '../UploadTypeManual/uploadTypeManual';
 
-interface IProps {
-  setManual: (flag: boolean) => void;
-}
+export function UploadType() {
+  const [file, setFile] = useState<DocumentPicker.DocumentPickerAsset[]>(
+    {} as DocumentPicker.DocumentPickerAsset[]
+  );
+  const { isOpen, onOpen, onClose } = useDisclose();
 
-export function UploadType({ setManual }: IProps) {
+  async function handleUploadFile() {
+    let result = await DocumentPicker.getDocumentAsync({
+      type: 'application/pdf',
+    });
+
+    if (result.canceled) {
+      return;
+    }
+
+    setFile(result.assets);
+  }
+
   return (
-    <>
-      <VStack w="100%" h="100%" alignItems="center" mt={24}>
+    <Container>
+      <VStack alignItems="center" mt={12}>
         <Image
           source={Vector1}
           defaultSource={Vector1}
           alt="Vetor"
           resizeMode="stretch"
-          w="70%"
-          h={200}
+          h={240}
         />
 
         <Text
+          mt={8}
           fontSize={24}
           fontWeight={800}
           letterSpacing={-0.24}
           textAlign="center"
-          mt={8}
         >
           Como você deseja{'\n'}
           importar seu exame?
@@ -37,6 +62,7 @@ export function UploadType({ setManual }: IProps) {
           fontSize={14}
           fontWeight={500}
           lineHeight={22.4}
+          color="gray.300"
           textAlign="center"
           mt={2}
         >
@@ -44,10 +70,10 @@ export function UploadType({ setManual }: IProps) {
           possamos simplificar sua saúde:
         </Text>
 
-        <HStack space={4} mt={8}>
+        <HStack space={4} mt={8} mb={40}>
           <TouchableOpacity
             onPress={() => {
-              setManual(false);
+              handleUploadFile();
             }}
           >
             <Box
@@ -59,14 +85,14 @@ export function UploadType({ setManual }: IProps) {
               rounded="2xl"
               alignItems="center"
               borderWidth={4}
-              borderColor="gray.400"
+              borderColor="gray.200"
             >
               <UploadIcon />
               <Text
                 fontSize={18}
                 fontWeight={700}
                 letterSpacing={-0.18}
-                color="ciano.400"
+                color="white"
                 mt={1}
               >
                 Importar PDF
@@ -74,9 +100,12 @@ export function UploadType({ setManual }: IProps) {
             </Box>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setManual(true)}>
+          <TouchableOpacity
+            onPress={() => {
+              onOpen();
+            }}
+          >
             <Box
-              bg="gray.400"
               w={40}
               h={20}
               py={2}
@@ -84,7 +113,7 @@ export function UploadType({ setManual }: IProps) {
               rounded="2xl"
               alignItems="center"
               borderWidth={4}
-              borderColor="gray.400"
+              borderColor="gray.50"
             >
               <EditIcon color="#052B3B" />
               <Text
@@ -99,20 +128,25 @@ export function UploadType({ setManual }: IProps) {
             </Box>
           </TouchableOpacity>
         </HStack>
-      </VStack>
 
-      <Center position="absolute" bottom={16}>
-        <TouchableOpacity>
-          <Text
-            fontSize={16}
-            fontWeight={600}
-            letterSpacing={-0.16}
-            color="gray.200"
-          >
-            fazer isso mais tarde
-          </Text>
-        </TouchableOpacity>
-      </Center>
-    </>
+        <Center mb={12}>
+          <TouchableOpacity>
+            <Text
+              fontSize={16}
+              fontWeight={600}
+              letterSpacing={-0.16}
+              color="gray.200"
+            >
+              fazer isso mais tarde
+            </Text>
+          </TouchableOpacity>
+        </Center>
+        <Actionsheet isOpen={isOpen} onClose={onClose}>
+          <Actionsheet.Content>
+            <UploadTypeManual />
+          </Actionsheet.Content>
+        </Actionsheet>
+      </VStack>
+    </Container>
   );
 }

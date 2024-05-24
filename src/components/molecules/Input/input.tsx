@@ -1,24 +1,25 @@
 import {
-  Flex,
+  Select,
   Input as InputNativeBase,
-  Select as SelectNativeBase,
-  Text,
   IInputProps,
-  VStack,
-  FormControl,
+  ISelectProps,
   WarningOutlineIcon,
+  VStack,
+  Text,
+  HStack,
 } from 'native-base';
 
-export type Props = IInputProps & {
+export type Props = (IInputProps | ISelectProps) & {
   leftIcon?: JSX.Element;
   rightIcon?: JSX.Element;
   label?: string;
-  select?: boolean;
+  selectType?: boolean;
   options?: {
     value: string;
     label: string;
   }[];
   errorMessage?: string;
+  isRequired?: boolean;
 };
 
 export interface VariantLeftIconProps {
@@ -29,44 +30,40 @@ export function Input({
   leftIcon,
   rightIcon,
   label,
-  select,
+  selectType,
   options,
-  isInvalid,
   errorMessage,
+  isRequired,
   ...rest
 }: Props) {
   return (
-    <FormControl isInvalid={isInvalid} mb={1}>
-      <FormControl.Label>
-        <Text
-          color="gray.900"
-          fontSize={15}
-          fontWeight={800}
-          letterSpacing={-0.14}
-        >
-          {label}
-        </Text>
-      </FormControl.Label>
-      {select ? (
-        <SelectNativeBase
+    <VStack mb={1} w="full">
+      <Text
+        color="gray.900"
+        fontSize={15}
+        fontWeight={800}
+        letterSpacing={-0.14}
+      >
+        {label} {isRequired && <Text color="red.400">*</Text>}
+      </Text>
+      {selectType ? (
+        <Select
           bg="white"
+          borderColor={!!errorMessage ? 'red.400' : 'gray.100'}
           h={12}
           borderRadius={12}
           color="gray.800"
           fontSize={16}
           fontWeight={600}
           letterSpacing={-0.16}
+          w="100%"
           {...rest}
         >
-          <SelectNativeBase.Item label="UX Research" value="ux" />
-          <SelectNativeBase.Item label="Web Development" value="web" />
-          <SelectNativeBase.Item
-            label="Cross Platform Development"
-            value="cross"
-          />
-          <SelectNativeBase.Item label="UI Designing" value="ui" />
-          <SelectNativeBase.Item label="Backend Development" value="backend" />
-        </SelectNativeBase>
+          {options?.length &&
+            options.map(({ label, value }) => (
+              <Select.Item label={label} value={value} />
+            ))}
+        </Select>
       ) : (
         <InputNativeBase
           bg="white"
@@ -76,18 +73,24 @@ export function Input({
           fontSize={16}
           fontWeight={600}
           letterSpacing={-0.16}
+          w="100%"
           {...rest}
         />
       )}
+
       {!!errorMessage && (
-        <FormControl.ErrorMessage
-          leftIcon={<WarningOutlineIcon size="xs" />}
-          mb={-2}
-          mt={0.5}
-        >
-          {errorMessage}
-        </FormControl.ErrorMessage>
+        <HStack mb={-2} mt={0.5} alignItems="center" space={1} color="red.400">
+          <WarningOutlineIcon size="xs" color="red.400" />
+          <Text
+            color="red.400"
+            fontSize={12}
+            fontWeight={600}
+            letterSpacing={-0.16}
+          >
+            {errorMessage}
+          </Text>
+        </HStack>
       )}
-    </FormControl>
+    </VStack>
   );
 }
