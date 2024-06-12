@@ -1,15 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import {
-  Image,
-  VStack,
-  Text,
-  Flex,
-  Box,
-  HStack,
-  Checkbox,
-  ScrollView,
-  IScrollViewProps,
-} from 'native-base';
+import { Image, VStack, Text, Flex, Box, HStack, Checkbox, ScrollView, IScrollViewProps } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 
 // routes
@@ -42,35 +32,16 @@ export function Gender() {
 
   return (
     <VStack flex={1} mx={6} space={8}>
-      <Text
-        color="gray.900"
-        fontSize={32}
-        fontWeight={800}
-        lineHeight={38}
-        letterSpacing={-1.2}
-        mt={4}
-      >
+      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual seu Gênero?
       </Text>
 
-      <Text
-        color="gray.500"
-        fontSize={16}
-        fontWeight={500}
-        lineHeight={24}
-        mt={-2}
-      >
+      <Text color="gray.500" fontSize={16} fontWeight={500} lineHeight={24} mt={-2}>
         Selecione seu gênero para uma melhor {'\n'}
         experiência de saúde personalizada.
       </Text>
 
-      <ScrollView
-        horizontal
-        ref={scrollRef}
-        mx={-6}
-        mt={-16}
-        showsHorizontalScrollIndicator={false}
-      >
+      <ScrollView horizontal ref={scrollRef} mx={-6} mt={-16} showsHorizontalScrollIndicator={false}>
         <HStack space={8} mx={4} alignItems="center">
           <TouchableOpacity
             onPress={() => {
@@ -81,27 +52,15 @@ export function Gender() {
             <Box
               bg={'red.400'}
               rounded="xl"
-              w={gender == 'F' ? 260 : 240}
-              h={gender == 'F' ? 380 : 320}
+              w={gender == 'F' ? 220 : 200}
+              h={gender == 'F' ? 340 : 280}
               shadow={gender == 'F' ? 9 : 0}
             >
-              <Flex
-                direction="row"
-                align="center"
-                my={gender == 'F' ? 5 : 4}
-                mx={-2}
-                justify="space-around"
-              >
+              <Flex direction="row" align="center" my={gender == 'F' ? 5 : 4} mx={-2} justify="space-around">
                 <Flex direction="row" align="center">
                   <FemaleIcon />
 
-                  <Text
-                    color="white"
-                    fontSize={16}
-                    fontWeight={600}
-                    letterSpacing={-0.16}
-                    ml={2}
-                  >
+                  <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16} ml={2}>
                     Eu sou Mulher
                   </Text>
                 </Flex>
@@ -143,27 +102,15 @@ export function Gender() {
             <Box
               bg={'ciano.200'}
               rounded="xl"
-              w={gender == 'M' ? 260 : 240}
-              h={gender == 'M' ? 380 : 320}
+              w={gender == 'M' ? 220 : 200}
+              h={gender == 'M' ? 340 : 280}
               shadow={gender == 'M' ? 9 : 0}
             >
-              <Flex
-                direction="row"
-                align="center"
-                my={gender == 'F' ? 5 : 4}
-                mx={-2}
-                justify="space-around"
-              >
+              <Flex direction="row" align="center" my={gender == 'F' ? 5 : 4} mx={-2} justify="space-around">
                 <Flex direction="row" align="center">
                   <MaleIcon />
 
-                  <Text
-                    color="white"
-                    fontSize={16}
-                    fontWeight={600}
-                    letterSpacing={-0.16}
-                    ml={2}
-                  >
+                  <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16} ml={2}>
                     Eu sou Homem
                   </Text>
                 </Flex>
@@ -183,6 +130,7 @@ export function Gender() {
               </Flex>
 
               <Image
+                onError={(info) => console.log('Error', info)}
                 source={Vector1}
                 defaultSource={Vector1}
                 alt="Vetor"

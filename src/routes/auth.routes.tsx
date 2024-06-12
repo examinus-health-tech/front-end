@@ -7,7 +7,7 @@ import { Hello, Simplify, Health, StayCalm } from '@pages/Welcome';
 import {
   SignIn,
   SignUp,
-  ForgetPassword,
+  ForgotPassword,
   SuccessLink,
 } from '@components/pages/Login';
 
@@ -18,7 +18,7 @@ type AuthRoutes = {
   stayCalm: undefined;
   signIn: undefined;
   signUp: undefined;
-  forgetPassword: undefined;
+  forgotPassword: undefined;
   successLink: undefined;
 };
 
@@ -35,7 +35,7 @@ export function AuthRoutes() {
       <Screen name="stayCalm" component={StayCalm} />
       <Screen name="signIn" component={SignIn} />
       <Screen name="signUp" component={SignUp} />
-      <Screen name="forgetPassword" component={ForgetPassword} />
+      <Screen name="forgotPassword" component={ForgotPassword} />
       <Screen name="successLink" component={SuccessLink} />
     </Navigator>
   );

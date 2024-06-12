@@ -16,7 +16,8 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.examinus-mobile"
+      "bundleIdentifier": "com.anonymous.examinus-mobile",
+      "jsEngine": "jsc"
     },
     "android": {
       "adaptiveIcon": {
@@ -37,6 +38,7 @@
     "updates": {
       "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
     },
+    "jsEngine": "hermes",
     "plugins": [
       [
         "expo-document-picker",

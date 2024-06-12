@@ -1,20 +1,6 @@
-import {
-  createNativeStackNavigator,
-  NativeStackNavigationProp,
-} from '@react-navigation/native-stack';
+import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 /** NEW */
-import {
-  Gender,
-  Weight,
-  Age,
-  Physical,
-  Humour,
-  Habits,
-  Upload,
-  UploadError,
-  Score,
-} from '@components/pages/OnboardingInfo';
 import {
   BiomConfig,
   EditProfile,
@@ -23,25 +9,22 @@ import {
   PasswordConfig,
   OtpSecurity,
 } from '@components/pages/OnboardingSetup';
-import { Homepage, HealthWallet, HeartScore } from '@components/pages/Homepage';
+import { Homepage, HealthWallet, HeartScore, UploadMain } from '@components/pages/Homepage';
 import { Exam, ExamList } from '@components/pages/Exam';
 
 import { Tabs } from '../navigation/tabs';
-import {
-  createBottomTabNavigator,
-  BottomTabBarButtonProps,
-} from '@react-navigation/bottom-tabs';
-import {
-  ChartIcon,
-  ChecklistIcon,
-  ExaminusIcon,
-  HomeIcon,
-  UserIcon,
-} from '@assets/icons';
+import { createBottomTabNavigator, BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
+import { ChartIcon, ChecklistIcon, ExaminusIcon, HomeIcon, UserIcon } from '@assets/icons';
 import { Box, useDisclose, View } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 import { ActionSheetUpload } from '@components/organisms';
 import { OnboardingSteps } from '@components/pages/OnboardingInfo/onboarding';
+import { MyAccount } from '@screens/Settings/screens/myAccount/myAccount';
+import { ConfigNotifications } from '@screens/Settings/screens/notifications/notifications';
+import { Info } from '@screens/Settings/screens/info/info';
+import { Security } from '@screens/Settings/screens/security/security';
+import { ContactUs } from '@screens/Settings/screens/contactUs/contactUs';
+import { WorkingInProgress } from '@components/pages/WorkingInProgress';
 
 export type AppRoutes = {
   gender: undefined;
@@ -75,6 +58,7 @@ export type AppRoutes = {
   examList: undefined;
   exam: undefined;
   onboardingSteps: undefined;
+  workingInProgress: undefined;
 };
 
 export type AppNavigatorRoutesProps = NativeStackNavigationProp<AppRoutes>;
@@ -83,14 +67,11 @@ const { Navigator, Screen } = createNativeStackNavigator<AppRoutes>();
 
 const Tab = createBottomTabNavigator<AppRoutes>();
 
-const CustomTabExaminusButton = ({
-  children,
-  onPress,
-}: BottomTabBarButtonProps) => (
+const CustomTabExaminusButton = ({ children, onPress }: BottomTabBarButtonProps) => (
   <TouchableOpacity style={{}} onPress={onPress}>
     <View
       style={{
-        top: -50,
+        top: -30,
         width: 70,
         height: 70,
         marginLeft: 12,
@@ -113,22 +94,20 @@ const CustomTabExaminusButton = ({
 );
 
 function HomeTabs() {
-  const { isOpen, onClose } = useDisclose();
-
   return (
     <Tab.Navigator
+      initialRouteName="homepage"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
         tabBarStyle: {
-          height: 100,
+          height: 86,
           position: 'absolute',
           elevation: 0,
           backgroundColor: 'white',
           borderTopEndRadius: 35,
           borderTopStartRadius: 35,
           borderTopWidth: 0,
-          paddingTop: 20,
           paddingLeft: 20,
           paddingRight: 20,
         },
@@ -178,18 +157,16 @@ function HomeTabs() {
       />
       <Tab.Screen
         name="upload"
-        component={ActionSheetUpload}
+        component={UploadMain}
         options={{
           unmountOnBlur: true,
           tabBarIcon: () => <ExaminusIcon />,
-          tabBarButton: ({ children, onPress }) => (
-            <CustomTabExaminusButton children={children} onPress={onPress} />
-          ),
+          tabBarButton: ({ children, onPress }) => <CustomTabExaminusButton children={children} onPress={onPress} />,
         }}
       />
       <Tab.Screen
-        name="Homepage3"
-        component={Homepage}
+        name="workingInProgress"
+        component={WorkingInProgress}
         options={{
           unmountOnBlur: true,
           tabBarIcon: ({ focused }) => (
@@ -209,8 +186,8 @@ function HomeTabs() {
         }}
       />
       <Tab.Screen
-        name="info"
-        component={Homepage}
+        name="workingInProgress2"
+        component={WorkingInProgress}
         options={{
           unmountOnBlur: true,
           tabBarIcon: ({ focused }) => (
@@ -238,15 +215,6 @@ export function AppRoutes() {
     <Navigator screenOptions={{ headerShown: false }}>
       {/** WELCOME */}
       <Screen name="onboardingSteps" component={OnboardingSteps} />
-      {/* <Screen name="gender" component={Gender} />
-      <Screen name="weight" component={Weight} />
-      <Screen name="age" component={Age} />
-      <Screen name="physical" component={Physical} />
-      <Screen name="humour" component={Humour} />
-      <Screen name="habits" component={Habits} />
-      <Screen name="upload" component={Upload} />
-      <Screen name="uploadError" component={UploadError} />
-      <Screen name="score" component={Score} /> */}
 
       {/** ONBOARDING */}
       {/* <Screen name="editProfile" component={EditProfile} />
@@ -257,9 +225,8 @@ export function AppRoutes() {
       <Screen name="otpSecurity" component={OtpSecurity} /> */}
 
       {/** HOMEPAGE */}
-      {/* <Screen name="homepage" component={HomeTabs} /> */}
-      {/*  <Screen name="healthWallet" component={HomeTabs} /> 
-      <Screen name="heartScore" component={HeartScore} />*/}
+      <Screen name="homepage" component={HomeTabs} />
+      <Screen name="heartScore" component={HeartScore} />
 
       {/** EXAM */}
       {/* <Screen name="examList" component={ExamList} /> */}

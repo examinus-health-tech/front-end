@@ -43,8 +43,10 @@ const signInSchema = yup.object({
 
 export function SignIn() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isTakeLook, setIsTakeLook] = useState<boolean>(false);
+
   const toast = useToast();
-  const { singIn } = useAuth();
+  const { signIn } = useAuth();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
     control,
@@ -58,7 +60,7 @@ export function SignIn() {
     try {
       setIsLoading(true);
 
-      await singIn(data.email, data.password);
+      await signIn(data.email, data.password);
     } catch (error) {
       const isAppError = error instanceof AppError;
 
@@ -169,13 +171,16 @@ export function SignIn() {
                 </Flex>
               }
               InputRightElement={
-                <TouchableOpacity onPress={() => {}}>
+                <TouchableOpacity onPress={() => setIsTakeLook(!isTakeLook)}>
                   <Flex mr={4} align="center" justify="center">
-                    <Icon as={<EyeIcon solid color="#818BA0" />} w="full" />
+                    <Icon
+                      as={<EyeIcon solid color="#818BA0" closed={isTakeLook} />}
+                      w="full"
+                    />
                   </Flex>
                 </TouchableOpacity>
               }
-              secureTextEntry
+              secureTextEntry={!isTakeLook}
               label="Senha"
               onChangeText={onChange}
               value={value}
@@ -185,7 +190,7 @@ export function SignIn() {
           )}
         />
 
-        <TouchableOpacity onPress={() => navigation.navigate('forgetPassword')}>
+        <TouchableOpacity onPress={() => navigation.navigate('forgotPassword')}>
           <Text fontSize={14} color="ciano.300" fontWeight={800} mt={4}>
             Esqueceu a senha?
           </Text>

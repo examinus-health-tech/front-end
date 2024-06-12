@@ -5,4 +5,5 @@ export type IconProps = {
   color?: string;
   solid?: boolean;
   duotone?: boolean;
+  closed?: boolean;
 };

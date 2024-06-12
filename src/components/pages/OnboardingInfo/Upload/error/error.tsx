@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { VStack, Text, Image, Center, useDisclose } from 'native-base';
+import { VStack, Text, Image, Center, useDisclose, View } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
 // routes
@@ -11,16 +10,17 @@ import Vector from '@assets/png/vector-18.png';
 
 // components
 import { Button } from '@components/atoms';
-import { HeaderProgress } from '@components/molecules';
 import { TouchableOpacity } from 'react-native';
+
+// hooks
+import { useOnboarding } from 'src/hooks/useOnboarding';
 
 export function UploadError() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const { handlePreviousStep } = useOnboarding();
 
   return (
     <VStack flex={1} space={8} py={24}>
-      <HeaderProgress progressValue={33} withBackButton />
-
       <Center flex={1} mx={6} mt={-32} alignItems="center">
         <Text
           fontSize={24}
@@ -28,7 +28,7 @@ export function UploadError() {
           lineHeight={25.6}
           textAlign="center"
           mt={40}
-          color={'red.60'}
+          color={'red.500'}
         >
           Xiii, deu ruim! :(
         </Text>
@@ -60,10 +60,9 @@ export function UploadError() {
           size="lg"
           title="Tentar novamente"
           icon={<ArrowIcon />}
+          onPress={handlePreviousStep}
         />
-      </Center>
 
-      <Center>
         <TouchableOpacity>
           <Text
             bottom={-30}

@@ -1,5 +1,5 @@
-import { VStack, Text, Image, Center, Box, HStack } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
+import { VStack, Text, Image, Center, Box, HStack, useTheme } from 'native-base';
+import { DefaultTheme, useNavigation } from '@react-navigation/native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -7,54 +7,40 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 // assets
 import { ArrowIcon } from '@assets/icons';
 import Vector from '@assets/png/vector-10.png';
-import XLogo from '@assets/png/x-logo.png';
+import Logo from '@assets/png/logo.png';
 
 // components
 import { Button } from '@components/atoms';
-
-export type ISelectedHabit = 0 | 1 | 2 | 3 | 4;
+import { useEffect } from 'react';
 
 export function Score() {
+  const { colors } = useTheme();
+
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
+  useEffect(() => {
+    const theme = DefaultTheme;
+    theme.colors.background = colors.purple[500];
+  }, []);
+
   return (
-    <VStack flex={1} bg={'purple.60'} space={8} py={24}>
-      <Image
-        source={Vector}
-        defaultSource={Vector}
-        alt="X examinus Logo"
-        resizeMode="stretch"
-        w="100%"
-        h={400}
-      />
+    <VStack flex={1} bg={'purple.500'} space={8}>
+      <Image source={Vector} defaultSource={Vector} alt="X examinus Logo" resizeMode="stretch" w="100%" h={400} />
 
       <Center flex={1} alignItems="center">
         <Box bgColor={'white'} w={'180'} h={'82'} borderRadius={12} p={2}>
           <HStack alignItems={'center'} justifyContent={'space-around'}>
-            <Box
-              bg={'purple.20'}
-              w={16}
-              h={16}
-              borderRadius={12}
-              alignItems={'center'}
-              justifyContent={'center'}
-            >
-              <Image
-                source={XLogo}
-                defaultSource={XLogo}
-                alt="X examinus Logo"
-                resizeMode="contain"
-                w={8}
-                h={10}
-              />
-            </Box>
+            <Image
+              source={Logo}
+              defaultSource={Logo}
+              alt="X examinus Logo"
+              resizeMode="contain"
+              opacity={10}
+              color={'purple.500'}
+              tintColor={'purple.500'}
+            />
 
-            <Text
-              fontSize={80}
-              fontWeight={800}
-              lineHeight={80}
-              color={'purple.60'}
-            >
+            <Text fontSize={80} fontWeight={800} lineHeight={80} color={'purple.500'}>
               88
             </Text>
           </HStack>
@@ -73,14 +59,7 @@ export function Score() {
           Seu Score X é 88.
         </Text>
 
-        <Text
-          fontSize={14}
-          fontWeight={500}
-          lineHeight={22.4}
-          color={'white'}
-          textAlign="center"
-          mt={4}
-        >
+        <Text fontSize={14} fontWeight={500} lineHeight={22.4} color={'white'} textAlign="center" mt={4}>
           Estamos redirecionando você para a tela inicial.{'\n'}
           Está pronto para ficar saudável com a Examinus?{' '}
         </Text>

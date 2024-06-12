@@ -1,5 +1,6 @@
 import { Center, Box, Progress as ProgressNativeBase } from 'native-base';
 import { IProgressProps } from 'native-base/lib/typescript/components/composites';
+import { useEffect } from 'react';
 
 export type Props = IProgressProps & {
   value: number;

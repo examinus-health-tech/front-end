@@ -5,8 +5,28 @@ export default function EyeIcon({
   size = '24',
   solid = false,
   color = '#052B3B',
+  closed = false,
 }: IconProps) {
   if (solid) {
+    if (closed) {
+      return (
+        <Svg
+          width={size}
+          height={size}
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <Path
+            fill-rule="evenodd"
+            clip-rule="evenodd"
+            d="M22 13H2V11H22V13Z"
+            fill={color}
+          />
+        </Svg>
+      );
+    }
+
     return (
       <Svg
         width={size}

@@ -1,6 +1,6 @@
 import { ReactNode, createContext, useEffect, useState } from 'react';
 
-import { api } from '../services/api';
+import { api } from 'src/services/api';
 import { OnboardingProps, stepProps } from 'src/@types/onboarding.type';
 
 export type OnboardingContextDataProps = {
@@ -10,6 +10,8 @@ export type OnboardingContextDataProps = {
   step: number;
   handleNextStep: () => void;
   handlePreviousStep: () => void;
+  showError: () => void;
+  showScoreWarning: () => void;
   stepsMap: stepProps[];
   jumpToUpload: () => void;
 };
@@ -18,16 +20,10 @@ type OnboardingContextProviderProps = {
   children: ReactNode;
 };
 
-export const OnboardingContext = createContext<OnboardingContextDataProps>(
-  {} as OnboardingContextDataProps
-);
+export const OnboardingContext = createContext<OnboardingContextDataProps>({} as OnboardingContextDataProps);
 
-export function OnboardingContextProvider({
-  children,
-}: OnboardingContextProviderProps) {
-  const [onboardingData, setOnboardingData] = useState<OnboardingProps>(
-    {} as OnboardingProps
-  );
+export function OnboardingContextProvider({ children }: OnboardingContextProviderProps) {
+  const [onboardingData, setOnboardingData] = useState<OnboardingProps>({} as OnboardingProps);
 
   const [step, setStep] = useState<number>(0);
 
@@ -58,6 +54,8 @@ export function OnboardingContextProvider({
       previousStep: 'physical',
     },
     { progress: 96, currentStep: 'upload', previousStep: 'habits' },
+    { currentStep: 'error', previousStep: 'upload' },
+    { currentStep: 'score' },
   ];
 
   function handleNextStep() {
@@ -74,6 +72,16 @@ export function OnboardingContextProvider({
 
   function jumpToUpload() {
     const newStep = stepsMap.findIndex((step) => step.currentStep === 'upload');
+    setStep(newStep);
+  }
+
+  function showError() {
+    const newStep = stepsMap.findIndex((step) => step.currentStep === 'error');
+    setStep(newStep);
+  }
+
+  function showScoreWarning() {
+    const newStep = stepsMap.findIndex((step) => step.currentStep === 'score');
     setStep(newStep);
   }
 
@@ -104,6 +112,8 @@ export function OnboardingContextProvider({
         handlePreviousStep,
         stepsMap,
         jumpToUpload,
+        showError,
+        showScoreWarning,
       }}
     >
       {children}

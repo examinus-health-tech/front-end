@@ -1,4 +1,4 @@
-import { Text, useTheme } from 'native-base';
+import { useTheme } from 'native-base';
 import { DefaultTheme, NavigationContainer } from '@react-navigation/native';
 
 import { AppRoutes } from './app.routes';

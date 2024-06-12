@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-  Image,
-  VStack,
-  Text,
-  Box,
-  HStack,
-  Divider,
-  ZStack,
-  Center,
-} from 'native-base';
+import { Image, VStack, Text, Box, HStack, Divider, ZStack, Center } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
 // routes
@@ -34,33 +25,22 @@ export const enumPhysicalLabel = {
 };
 
 export function Physical() {
-  const [selectedPhysical, setSelectedPhysical] =
-    useState<ISelectedPhysical>(0);
+  const [selectedPhysical, setSelectedPhysical] = useState<ISelectedPhysical>(0);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
 
   return (
-    <VStack flex={1} mx={6} space={8}>
-      <Text
-        color="gray.900"
-        fontSize={32}
-        fontWeight={800}
-        lineHeight={38}
-        letterSpacing={-1.2}
-        mt={4}
-      >
+    <VStack flex={1} mx={6} space={4}>
+      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual é o seu nível de atividade física atual?
       </Text>
 
-      <ZStack alignItems="center" justifyContent="center" mt={16}>
+      <ZStack alignItems="center" justifyContent="center" mt={8}>
         <Divider h={4} w="80%" bg="gray.300" borderRadius={10} />
 
         <HStack alignItems="center" space={8}>
-          <TouchableOpacity
-            onPress={() => setSelectedPhysical(1)}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity onPress={() => setSelectedPhysical(1)} activeOpacity={0.8}>
             <Box
               bg={selectedPhysical >= 1 ? 'gray.900' : 'gray.100'}
               size={16}
@@ -81,10 +61,7 @@ export function Physical() {
               </Text>
             </Box>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedPhysical(2)}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity onPress={() => setSelectedPhysical(2)} activeOpacity={0.8}>
             <Box
               bg={selectedPhysical >= 2 ? 'gray.900' : 'gray.100'}
               size={16}
@@ -105,10 +82,7 @@ export function Physical() {
               </Text>
             </Box>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedPhysical(3)}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity onPress={() => setSelectedPhysical(3)} activeOpacity={0.8}>
             <Box
               bg={selectedPhysical >= 3 ? 'gray.900' : 'gray.100'}
               size={16}
@@ -129,10 +103,7 @@ export function Physical() {
               </Text>
             </Box>
           </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedPhysical(4)}
-            activeOpacity={0.8}
-          >
+          <TouchableOpacity onPress={() => setSelectedPhysical(4)} activeOpacity={0.8}>
             <Box
               bg={selectedPhysical >= 4 ? 'gray.900' : 'gray.100'}
               size={16}
@@ -157,20 +128,12 @@ export function Physical() {
       </ZStack>
 
       <Center>
-        <Text fontSize={16} fontWeight={500} lineHeight={25.6} mt={5} h={10}>
-          {!!selectedPhysical &&
-            `${selectedPhysical} (${enumPhysicalLabel[selectedPhysical]})`}
+        <Text fontSize={16} fontWeight={500} lineHeight={25.6} h={10} mt={8}>
+          {!!selectedPhysical && `${selectedPhysical} (${enumPhysicalLabel[selectedPhysical]})`}
         </Text>
       </Center>
 
-      <Image
-        source={Vector}
-        defaultSource={Vector}
-        alt="Vetor"
-        resizeMode="stretch"
-        w={96}
-        h={72}
-      />
+      <Image source={Vector} defaultSource={Vector} alt="Vetor" resizeMode="stretch" w={96} h={72} />
 
       <Button
         position="absolute"

@@ -1,11 +1,13 @@
-import { StatusBar, Text } from 'react-native';
+import { ActivityIndicator, StatusBar, Text } from 'react-native';
 import { useFonts } from 'expo-font';
-import { Center, NativeBaseProvider } from 'native-base';
+import { Center, Flex, NativeBaseProvider } from 'native-base';
 
 import { THEME } from './src/theme';
 import { Routes } from '@routes/index';
 import { AuthContextProvider } from '@contexts/AuthContext';
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
+import { UploadContextProvider } from '@contexts/UploadContext';
+import { HomeContextProvider } from '@contexts/HomeContext';
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -21,20 +23,20 @@ export default function App() {
 
   return (
     <NativeBaseProvider theme={THEME}>
-      <StatusBar
-        barStyle="dark-content"
-        backgroundColor="transparent"
-        translucent
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <AuthContextProvider>
         <OnboardingContextProvider>
-          {fontsLoaded ? (
-            <Routes />
-          ) : (
-            <Center pt={24} alignItems="center">
-              <Text>Loading</Text>
-            </Center>
-          )}
+          <UploadContextProvider>
+            <HomeContextProvider>
+              {fontsLoaded ? (
+                <Routes />
+              ) : (
+                <Flex align="center" justify="center" h="100%">
+                  <ActivityIndicator size="large" color="#00B39D" />
+                </Flex>
+              )}
+            </HomeContextProvider>
+          </UploadContextProvider>
         </OnboardingContextProvider>
       </AuthContextProvider>
     </NativeBaseProvider>

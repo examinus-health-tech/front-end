@@ -9,7 +9,7 @@ import {
   HighlightLink,
   Description,
   IconRobot,
-  SingUpText,
+  SignUpText,
   BackgroundImg,
 } from './styles';
 import logoImg from '@assets/logo.png';
@@ -36,9 +36,9 @@ export function Welcome() {
 
       <IconRobot source={Robot} />
 
-      <SingUpText>
+      <SignUpText>
         Já tem uma conta? <HighlightLink>Conecte-se.</HighlightLink>
-      </SingUpText>
+      </SignUpText>
       {/* </BackgroundImg> */}
     </ContainerView>
   );

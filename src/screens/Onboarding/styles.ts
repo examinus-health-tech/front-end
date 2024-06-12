@@ -48,7 +48,7 @@ export const Description = styled.Text`
   line-height: 25.6px;
 `;
 
-export const SingUpText = styled.Text`
+export const SignUpText = styled.Text`
   padding-top: 80px;
 
   text-align: center;

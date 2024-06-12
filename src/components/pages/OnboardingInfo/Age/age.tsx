@@ -97,105 +97,40 @@ export function Age() {
 
   return (
     <VStack flex={1} mx={6} space={8}>
-      <Text
-        color="gray.900"
-        fontSize={32}
-        fontWeight={800}
-        lineHeight={38}
-        letterSpacing={-1.2}
-        mt={4}
-      >
+      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual é sua idade?
       </Text>
 
-      <VStack mt={16} alignItems="center" space={16}>
-        {selectedAge <= 10 && (
-          <Image
-            source={Babe}
-            alt={'Babe'}
-            resizeMode="stretch"
-            w={360}
-            h={280}
-          />
+      <VStack alignItems="center" space={4}>
+        {selectedAge <= 10 && <Image source={Babe} alt={'Babe'} resizeMode="stretch" w={360} h={280} />}
+
+        {(onboardingData.gender == 'M' || !onboardingData.gender) && selectedAge > 10 && selectedAge <= 24 && (
+          <Image source={MaleTeenage} alt={'MaleTeenage'} resizeMode="stretch" h={280} />
         )}
 
-        {(onboardingData.gender == 'M' || !onboardingData.gender) &&
-          selectedAge > 10 &&
-          selectedAge <= 24 && (
-            <Image
-              source={MaleTeenage}
-              alt={'MaleTeenage'}
-              resizeMode="stretch"
-              h={280}
-            />
-          )}
+        {(onboardingData.gender == 'M' || !onboardingData.gender) && selectedAge > 24 && selectedAge <= 48 && (
+          <Image source={MaleAdult} alt={'MaleAdult'} resizeMode="stretch" w={360} h={280} />
+        )}
 
-        {(onboardingData.gender == 'M' || !onboardingData.gender) &&
-          selectedAge > 24 &&
-          selectedAge <= 48 && (
-            <Image
-              source={MaleAdult}
-              alt={'MaleAdult'}
-              resizeMode="stretch"
-              w={360}
-              h={280}
-            />
-          )}
+        {(onboardingData.gender == 'M' || !onboardingData.gender) && selectedAge > 48 && (
+          <Image source={MaleElderly} alt={'MaleElderly'} resizeMode="stretch" w={360} h={280} />
+        )}
 
-        {(onboardingData.gender == 'M' || !onboardingData.gender) &&
-          selectedAge > 48 && (
-            <Image
-              source={MaleElderly}
-              alt={'MaleElderly'}
-              resizeMode="stretch"
-              w={360}
-              h={280}
-            />
-          )}
+        {onboardingData.gender == 'F' && selectedAge > 10 && selectedAge <= 24 && (
+          <Image source={FameTeenage} alt={'FameTeenage'} resizeMode="stretch" w={360} h={280} />
+        )}
 
-        {onboardingData.gender == 'F' &&
-          selectedAge > 10 &&
-          selectedAge <= 24 && (
-            <Image
-              source={FameTeenage}
-              alt={'FameTeenage'}
-              resizeMode="stretch"
-              w={360}
-              h={280}
-            />
-          )}
-
-        {onboardingData.gender == 'F' &&
-          selectedAge > 24 &&
-          selectedAge <= 48 && (
-            <Image
-              source={FameAdult}
-              alt={'FameAdult'}
-              resizeMode="stretch"
-              w={360}
-              h={280}
-            />
-          )}
+        {onboardingData.gender == 'F' && selectedAge > 24 && selectedAge <= 48 && (
+          <Image source={FameAdult} alt={'FameAdult'} resizeMode="stretch" w={360} h={280} />
+        )}
 
         {onboardingData.gender == 'F' && selectedAge > 48 && (
-          <Image
-            source={FemaElderly}
-            alt={'FemaElderly'}
-            resizeMode="stretch"
-            w={360}
-            h={280}
-          />
+          <Image source={FemaElderly} alt={'FemaElderly'} resizeMode="stretch" w={360} h={280} />
         )}
 
         {handleRulerAge()}
 
-        <Text
-          fontSize={16}
-          fontWeight={500}
-          lineHeight={25.6}
-          mt={-12}
-          color="gray.600"
-        >
+        <Text fontSize={16} fontWeight={500} lineHeight={25.6} color="gray.600">
           Eu tenho {selectedAge} anos
         </Text>
       </VStack>

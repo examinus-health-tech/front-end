@@ -23,9 +23,7 @@ module.exports = function (api) {
             '@utils': './src/utils',
             '@navigation': './src/navigation',
             '@dtos': './src/dtos',
-
           },
-
         },
       ],
     ],

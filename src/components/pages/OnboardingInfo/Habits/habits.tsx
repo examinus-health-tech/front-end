@@ -4,13 +4,7 @@ import { VStack, Text, Box, HStack, View, useToast } from 'native-base';
 // routes
 
 // assets
-import {
-  ArrowIcon,
-  AppleIcon,
-  CoffeIcon,
-  DinnerIcon,
-  BoneIcon,
-} from '@assets/icons';
+import { ArrowIcon, AppleIcon, CoffeIcon, DinnerIcon, BoneIcon } from '@assets/icons';
 
 // components
 import { Button } from '@components/atoms';
@@ -31,14 +25,12 @@ export function Habits() {
   async function handleSaveOnboarding() {
     try {
       const data = { ...onboardingData, eatingHabits: selectedHabit };
-      console.log('!@# 🚀 ~ handleSaveOnboarding ~ data:', data);
       const payload = { ...data, email: user.email };
 
       setIsLoading(true);
       setOnboardingData(data);
       await saveOnboarding(payload);
     } catch (error) {
-      console.log('!@# 🚀 ~ handleSaveOnboarding ~ error:', error);
       const title = 'Não foi possível salvar seus dados';
 
       toast.show({
@@ -62,24 +54,18 @@ export function Habits() {
   }
 
   return (
-    <VStack flex={1} mx={6} space={8}>
-      <Text
-        color="gray.900"
-        fontSize={32}
-        fontWeight={800}
-        lineHeight={38}
-        letterSpacing={-1.2}
-        mt={4}
-      >
+    <VStack flex={1} mx={6}>
+      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Como são seus hábitos alimentares?
       </Text>
 
-      <HStack flex={1} alignItems="center" space={6} justifyContent="center">
+      <HStack flex={1} alignItems="center" space={4} justifyContent="center">
         <TouchableOpacity onPress={() => setSelectedHabit(1)}>
           <Box
             bg={selectedHabit == 1 ? 'ciano.300' : 'white'}
             w={180}
-            h={210}
+            flex={1}
+            my={4}
             rounded="2xl"
             alignItems="center"
             borderWidth={selectedHabit == 1 ? 4 : 0}
@@ -106,7 +92,8 @@ export function Habits() {
           <Box
             bg={selectedHabit == 2 ? 'ciano.300' : 'white'}
             w={180}
-            h={210}
+            flex={1}
+            my={4}
             rounded="2xl"
             alignItems="center"
             borderWidth={selectedHabit == 2 ? 4 : 0}
@@ -130,18 +117,13 @@ export function Habits() {
         </TouchableOpacity>
       </HStack>
 
-      <HStack
-        flex={1}
-        alignItems="center"
-        space={6}
-        justifyContent="center"
-        mt={-20}
-      >
+      <HStack flex={1} alignItems="center" space={4} justifyContent="center" mb={8}>
         <TouchableOpacity onPress={() => setSelectedHabit(3)}>
           <Box
             bg={selectedHabit == 3 ? 'ciano.300' : 'white'}
             w={180}
-            h={210}
+            flex={1}
+            my={4}
             rounded="2xl"
             alignItems="center"
             borderWidth={selectedHabit == 3 ? 4 : 0}
@@ -168,7 +150,8 @@ export function Habits() {
           <Box
             bg={selectedHabit == 4 ? 'ciano.300' : 'white'}
             w={180}
-            h={210}
+            flex={1}
+            my={4}
             rounded="2xl"
             alignItems="center"
             borderWidth={selectedHabit == 4 ? 4 : 0}

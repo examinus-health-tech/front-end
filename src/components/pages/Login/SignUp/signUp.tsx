@@ -3,8 +3,6 @@ import {
   Stack,
   Text,
   Flex,
-  Pressable,
-  Center,
   Checkbox,
   Icon,
   HStack,
@@ -30,9 +28,9 @@ import { useNavigation } from '@react-navigation/native';
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
 import { TouchableOpacity } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
-import axios from 'axios';
-import { api } from '../../../../services/api';
 import { AppError } from '@utils/AppErrors';
+import { useState } from 'react';
+import { useAuth } from 'src/hooks/useAuth';
 
 type FormDataProps = {
   email: string;
@@ -51,10 +49,17 @@ const signUpSchema = yup.object({
     .string()
     .required('Confirme a senha.')
     .oneOf([yup.ref('password')], 'A confirmação da senha não confere'),
-  confirm_rules: yup.boolean().isTrue('Confirme que concorda com os termos.'),
+  confirm_rules: yup
+    .boolean()
+    .required('Confirme que concorda com os termos.')
+    .isTrue('Confirme que concorda com os termos.'),
 });
 
 export function SignUp() {
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isTakeLook, setIsTakeLook] = useState<boolean>(false);
+  const [isTakeLookConfirm, setIsTakeLookConfirm] = useState<boolean>(false);
+  const { signUp } = useAuth();
   const toast = useToast();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
@@ -65,17 +70,18 @@ export function SignUp() {
     resolver: yupResolver(signUpSchema),
   });
 
-  async function handleSignUp({ email, password }: FormDataProps) {
+  async function handleSignUp({
+    email,
+    password,
+    confirm_rules,
+  }: FormDataProps) {
     try {
-      const response = await api.post('/user/auth/sign-up', {
-        name: 'temp',
-        email,
-        password,
-      });
+      setIsLoading(true);
+      await signUp(email, password, confirm_rules);
 
       toast.show({
         borderRadius: '12',
-        title: 'Conta crianda com sucesso',
+        title: 'Conta criada com sucesso',
         _title: {
           textAlign: 'center',
           mx: '4',
@@ -88,6 +94,7 @@ export function SignUp() {
         color: 'gray.900',
         bgColor: 'green.500',
       });
+      navigation.navigate('signIn');
     } catch (error) {
       const isAppError = error instanceof AppError;
 
@@ -112,6 +119,8 @@ export function SignUp() {
         color: 'gray.900',
         bgColor: 'red.500',
       });
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -185,13 +194,16 @@ export function SignUp() {
                 </Flex>
               }
               InputRightElement={
-                <TouchableOpacity onPress={() => {}}>
+                <TouchableOpacity onPress={() => setIsTakeLook(!isTakeLook)}>
                   <Flex mr={4} align="center" justify="center">
-                    <Icon as={<EyeIcon solid color="#818BA0" />} w="full" />
+                    <Icon
+                      as={<EyeIcon solid color="#818BA0" closed={isTakeLook} />}
+                      w="full"
+                    />
                   </Flex>
                 </TouchableOpacity>
               }
-              secureTextEntry
+              secureTextEntry={!isTakeLook}
               label="Senha"
               onChangeText={onChange}
               value={value}
@@ -222,13 +234,24 @@ export function SignUp() {
                 </Flex>
               }
               InputRightElement={
-                <TouchableOpacity onPress={() => {}}>
+                <TouchableOpacity
+                  onPress={() => setIsTakeLookConfirm(!isTakeLookConfirm)}
+                >
                   <Flex mr={4} align="center" justify="center">
-                    <Icon as={<EyeIcon solid color="#818BA0" />} w="full" />
+                    <Icon
+                      as={
+                        <EyeIcon
+                          solid
+                          color="#818BA0"
+                          closed={isTakeLookConfirm}
+                        />
+                      }
+                      w="full"
+                    />
                   </Flex>
                 </TouchableOpacity>
               }
-              secureTextEntry
+              secureTextEntry={!isTakeLookConfirm}
               label="Confirme sua senha"
               onChangeText={onChange}
               value={value}
@@ -287,6 +310,7 @@ export function SignUp() {
         title="Cadastrar"
         marginTop={8}
         onPress={handleSubmit(handleSignUp)}
+        isLoading={isLoading}
       />
 
       <Flex

@@ -50,6 +50,12 @@ import LocationIcon from './components/location';
 import EmailIcon from './components/email';
 import FilterIcon from './components/filter';
 import AddSquareIcon from './components/addSquare';
+import FigIcon from './components/fig';
+import ImuIcon from './components/imu';
+import MusIcon from './components/mus';
+import PanIcon from './components/pan';
+import RinIcon from './components/rin';
+import SanIcon from './components/san';
 
 export {
   ArrowIcon,
@@ -104,4 +110,10 @@ export {
   EmailIcon,
   FilterIcon,
   AddSquareIcon,
+  FigIcon,
+  ImuIcon,
+  MusIcon,
+  PanIcon,
+  RinIcon,
+  SanIcon,
 };

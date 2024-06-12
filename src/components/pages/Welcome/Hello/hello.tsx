@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
 
-import Vector from '@assets/png/vector.png';
+import Vector from '@assets/png/vector-34.png';
 import RobotSvg from '@assets/svg/robot.svg';
 import LogoSvg from '@assets/svg/logo.svg';
 import { ArrowIcon } from '@assets/icons';
@@ -16,17 +16,8 @@ export function Hello() {
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
 
   return (
-    <Flex justify="space-evenly" h="100%" mt={10}>
-      <Image
-        source={Vector}
-        defaultSource={Vector}
-        alt="Vetor"
-        resizeMode="stretch"
-        position="absolute"
-        bottom={140}
-        w="100%"
-        h="60%"
-      />
+    <Flex justify="space-evenly" h="100%" mt={8}>
+      <Image source={Vector} alt="Vetor" resizeMode="stretch" position="absolute" bottom={210} w="100%" h="35%" />
 
       <Center>
         <LogoSvg />
@@ -44,55 +35,33 @@ export function Hello() {
           <Text color="ciano.300">examinus.</Text>
         </Text>
 
-        <Text
-          textAlign="center"
-          fontSize={16}
-          color="gray.600"
-          lineHeight={24}
-          fontWeight={500}
-          paddingTop={6}
-        >
-          A 1ª IA que cuida da sua saúde e{'\n'}interpreta seus exames
-          laboratoriais!
+        <Text textAlign="center" fontSize={16} color="gray.600" lineHeight={24} fontWeight={500} paddingTop={8}>
+          O app que cuida da sua saúde e{'\n'}interpreta seus exames laboratoriais{'\n'}de forma extraordinária!
         </Text>
       </Center>
 
-      <Center>
-        <RobotSvg />
+      <Center mt={64}>
         <Button
           title="Iniciar"
           icon={<ArrowIcon size="32" />}
           variant="primary"
           size="md"
-          marginTop={8}
           onPress={() => navigation.navigate('simplify')}
         />
-      </Center>
 
-      <HStack alignItems="center" justifyContent="center">
-        <Text
-          fontSize={14}
-          color="gray.400"
-          fontWeight={600}
-          letterSpacing={-0.14}
-        >
-          Já tem uma conta?
-        </Text>
-
-        <TouchableOpacity onPress={() => navigation.navigate('signIn')}>
-          <Text
-            fontSize={16}
-            color="purple.600"
-            fontWeight={800}
-            lineHeight={38}
-            underline
-            letterSpacing={-0.14}
-          >
-            {' '}
-            Conecte-se.
+        <HStack alignItems="center" justifyContent="center" mt={4}>
+          <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
+            Já tem uma conta?
           </Text>
-        </TouchableOpacity>
-      </HStack>
+
+          <TouchableOpacity onPress={() => navigation.navigate('signIn')}>
+            <Text fontSize={16} color="purple.600" fontWeight={800} lineHeight={38} underline letterSpacing={-0.14}>
+              {' '}
+              Conecte-se.
+            </Text>
+          </TouchableOpacity>
+        </HStack>
+      </Center>
     </Flex>
   );
 }

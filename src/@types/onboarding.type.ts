@@ -8,16 +8,10 @@ export interface OnboardingProps {
   email: string;
 }
 
-export type stepListProps =
-  | 'gender'
-  | 'weight'
-  | 'age'
-  | 'physical'
-  | 'habits'
-  | 'upload';
+export type stepListProps = 'gender' | 'weight' | 'age' | 'physical' | 'habits' | 'upload' | 'error' | 'score';
 
 export interface stepProps {
-  progress: number;
+  progress?: number;
   currentStep: stepListProps;
   nextStep?: stepListProps;
   previousStep?: stepListProps;

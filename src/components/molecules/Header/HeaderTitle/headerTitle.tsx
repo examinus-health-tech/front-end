@@ -9,11 +9,11 @@ import { ChevronLeftIcon, FilterIcon, MoreIcon } from '@assets/icons';
 import { Progress } from '@components/molecules/Progress/progress';
 
 export type Props = IButtonProps & {
-  withBackButton?: boolean;
+  withBackButton?: () => void;
   withMoreButton?: boolean;
   withFilterButton?: boolean;
   title?: string;
-  badgeVariant?: 'warning' | 'normal' | 'good';
+  badgeVariant?: 'risco alto' | 'risco normal' | 'excelente';
   filterButtonAction?: () => void;
 };
 
@@ -27,26 +27,26 @@ export function HeaderTitle({
 }: Props) {
   function renderBadge() {
     switch (badgeVariant) {
-      case 'warning': {
+      case 'risco alto': {
         return (
           <Badge
-            bg="red.20"
+            bg="red.100"
             borderRadius={6}
             _text={{
               textTransform: 'uppercase',
-              color: 'red.50',
+              color: 'red.400',
               fontSize: 12,
             }}
           >
-            risco alto
+            {badgeVariant}
           </Badge>
         );
       }
 
-      case 'warning': {
+      case 'risco normal': {
         return (
           <Badge
-            bg="ciano.400"
+            bg="ciano.100"
             borderRadius={6}
             _text={{
               textTransform: 'uppercase',
@@ -54,23 +54,23 @@ export function HeaderTitle({
               fontSize: 10,
             }}
           >
-            risco alto
+            {badgeVariant}
           </Badge>
         );
       }
 
-      case 'warning': {
+      case 'excelente': {
         return (
           <Badge
-            bg="ciano.400"
+            bg="purple.100"
             borderRadius={6}
             _text={{
               textTransform: 'uppercase',
-              color: 'ciano.400',
+              color: 'purple.400',
               fontSize: 10,
             }}
           >
-            risco alto
+            {badgeVariant}
           </Badge>
         );
       }
@@ -81,7 +81,7 @@ export function HeaderTitle({
     <HStack space={8} mx={6} alignItems="center" pb={4}>
       {withBackButton && (
         <VStack py={1}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={withBackButton}>
             <ChevronLeftIcon />
           </TouchableOpacity>
         </VStack>

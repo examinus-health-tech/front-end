@@ -1,4 +1,4 @@
-import { Image, VStack, Text, Container } from 'native-base';
+import { VStack, Text, Container, Image } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
@@ -21,13 +21,12 @@ export function Simplify() {
 
       <Image
         source={Vector}
-        defaultSource={Vector}
-        alt="Vetor"
+        alt="Vector"
         resizeMode="stretch"
         position="absolute"
         bottom={0}
         w="100%"
-        h="80%"
+        h="75%"
       />
 
       <Container mx={6}>

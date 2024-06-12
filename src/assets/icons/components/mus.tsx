@@ -1,0 +1,16 @@
+import { Svg, Path } from 'react-native-svg';
+import { IconProps } from '../icon.type';
+
+export default function MusIcon({ size = '24', color = '#BEC5D2' }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <Path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M5 6C5 3.79086 6.79086 2 9 2H15C17.2091 2 19 3.79086 19 6V16H5V6ZM11 9V7H13V9H15V11H13V13H11V11H9V9H11Z"
+        fill={color}
+      />
+      <Path d="M19 18H5C5 20.2091 6.79086 22 9 22H15C17.2091 22 19 20.2091 19 18Z" fill={color} />
+    </Svg>
+  );
+}

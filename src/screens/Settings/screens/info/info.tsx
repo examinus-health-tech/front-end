@@ -26,13 +26,7 @@ export function Info() {
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <Box
-        w={'100%'}
-        h={240}
-        bg={'gray.900'}
-        borderBottomRadius={24}
-        position={'absolute'}
-      >
+      <Box w={'100%'} h={240} bg={'gray.900'} borderBottomRadius={24} position={'absolute'}>
         <Box
           bg={'gray.200'}
           w={28}
@@ -46,11 +40,7 @@ export function Info() {
         />
       </Box>
       <VStack flex={1} py={24} mx={6} zIndex={1}>
-        <Header
-          title="Informações Pessoais"
-          bgMode
-          handleBackTo={() => navigation.navigate('myAccount')}
-        />
+        <Header title="Informações Pessoais" bgMode handleBackTo={() => navigation.navigate('myAccount')} />
 
         <VStack mt={48} space={5}>
           <Input
@@ -59,7 +49,6 @@ export function Info() {
             keyboardType="email-address"
             autoCapitalize="none"
             label="Nome Completo"
-            isDisabled={true}
           />
 
           <Input
@@ -68,7 +57,6 @@ export function Info() {
             keyboardType="email-address"
             autoCapitalize="none"
             label="Endereço de E-mail"
-            isDisabled={true}
           />
 
           <Input
@@ -77,7 +65,6 @@ export function Info() {
             keyboardType="email-address"
             autoCapitalize="none"
             label="Telefone"
-            isDisabled={true}
           />
 
           <Input
@@ -86,7 +73,6 @@ export function Info() {
             keyboardType="email-address"
             autoCapitalize="none"
             label="Data de Nascimento"
-            isDisabled={true}
           />
 
           <Input
@@ -95,7 +81,6 @@ export function Info() {
             keyboardType="email-address"
             autoCapitalize="none"
             label="Endereço"
-            isDisabled={true}
           />
 
           <Input
@@ -104,7 +89,6 @@ export function Info() {
             keyboardType="email-address"
             autoCapitalize="none"
             label="País"
-            isDisabled={true}
           />
 
           <Button

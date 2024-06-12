@@ -9,16 +9,12 @@ import { ChevronLeftIcon } from '@assets/icons';
 import { Progress } from '@components/molecules/Progress/progress';
 
 export type Props = IButtonProps & {
-  progressValue: number;
+  progressValue?: number;
   withBackButton?: () => void;
   jumpTo?: () => void;
 };
 
-export function HeaderProgress({
-  progressValue,
-  jumpTo,
-  withBackButton,
-}: Props) {
+export function HeaderProgress({ progressValue, jumpTo, withBackButton }: Props) {
   return (
     <HStack space={8} mx={6} justifyContent="space-between" alignItems="center">
       {withBackButton && (
@@ -29,22 +25,14 @@ export function HeaderProgress({
         </VStack>
       )}
 
-      <Progress
-        value={progressValue}
-        sizeW={withBackButton ? 50 : 60}
-        filledColor="gray.900"
-        bgColor="gray.100"
-      />
+      {!!progressValue && (
+        <Progress value={progressValue} sizeW={withBackButton ? 50 : 60} filledColor="gray.900" bgColor="gray.100" />
+      )}
 
       <VStack py={1}>
         {jumpTo && (
           <TouchableOpacity onPress={jumpTo}>
-            <Text
-              fontSize={16}
-              color="gray.900"
-              lineHeight={25.6}
-              fontWeight={500}
-            >
+            <Text fontSize={16} color="gray.900" lineHeight={25.6} fontWeight={500}>
               Pular
             </Text>
           </TouchableOpacity>
