@@ -8,6 +8,7 @@ import { AuthContextProvider } from '@contexts/AuthContext';
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
 import { UploadContextProvider } from '@contexts/UploadContext';
 import { HomeContextProvider } from '@contexts/HomeContext';
+import { Splash } from '@components/pages/Splash/splash';
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -24,6 +25,7 @@ export default function App() {
   return (
     <NativeBaseProvider theme={THEME}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <Splash />
       <AuthContextProvider>
         <OnboardingContextProvider>
           <UploadContextProvider>

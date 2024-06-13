@@ -5,11 +5,19 @@ import { useState } from 'react';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useHome } from 'src/hooks/useHome';
 
-export function StatusCards() {
+export function StatusCards(userTrackerData: boolean) {
   const { trackerData } = useHome();
 
-  function renderHydration(hydration) {
-    if (hydration) {
+  function renderHydration() {
+    if (userTrackerData) {
+      const cards = Array.from({ length: 6 }, (_, i) => {
+        return i + 1;
+      });
+
+      return cards.map(() => {
+        return <Box bg={'gray.300'} h={2} borderRadius={10} flex={1} />;
+      });
+    } else if (trackerData?.hydration[0]) {
       const cards = Array.from({ length: hydration.hydration_goal }, (_, i) => {
         return i + 1;
       });
@@ -43,20 +51,16 @@ export function StatusCards() {
             Calorias Perdidas
           </Text>
 
-          {trackerData?.kcal[0]?.kcal_completed && (
-            <Progress
-              value={
-                trackerData?.kcal[0]?.kcal_completed ? Math.round((trackerData.kcal[0].kcal_completed / 2000) * 100) : 0
-              }
-              sizeW={100}
-              filledColor="red.400"
-              bgColor="red.100"
-            />
-          )}
+          <Progress
+            value={userTrackerData ? 0 : Math.round((trackerData.kcal[0].kcal_completed / 2000) * 100)}
+            sizeW={100}
+            filledColor="red.400"
+            bgColor={userTrackerData ? 'gray.100' : 'red.100'}
+          />
 
           <HStack justifyContent={'space-between'} mt={2}>
             <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
-              {trackerData.kcal[0].kcal_completed}kcal
+              {userTrackerData ? 0 : `${trackerData.kcal[0].kcal_completed}`}kcal
             </Text>
             <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
               2000kcal
@@ -83,14 +87,22 @@ export function StatusCards() {
             Passos
           </Text>
 
-          <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
-            Você deu {trackerData.step[0].step_completed} passos
-          </Text>
+          {userTrackerData || !!trackerData?.step[0]?.step_completed ? (
+            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+              Você deu não andou hoje. Se movimente!
+            </Text>
+          ) : (
+            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+              Você deu {trackerData.step[0].step_completed} passos
+            </Text>
+          )}
         </VStack>
 
-        <Box bg="ciano.50" w={12} h={12} borderRadius={8} alignItems={'center'} justifyContent={'center'}>
-          <CheckIcon size="36" />
-        </Box>
+        {!userTrackerData && (
+          <Box bg="ciano.50" w={12} h={12} borderRadius={8} alignItems={'center'} justifyContent={'center'}>
+            <CheckIcon size="36" />
+          </Box>
+        )}
       </Box>
 
       <Box
@@ -111,40 +123,46 @@ export function StatusCards() {
             Nutrição
           </Text>
 
-          <HStack space={2}>
-            {trackerData.nutrition[0].nutrition_completed.map((nutr, i) => {
-              if (i === 0) {
+          {userTrackerData ? (
+            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+              Você há dados sobre sua alimentação
+            </Text>
+          ) : (
+            <HStack space={2}>
+              {trackerData.nutrition[0].nutrition_completed.map((nutr, i) => {
+                if (i === 0) {
+                  return (
+                    <Badge
+                      borderRadius={6}
+                      bg={'dark_blue.200'}
+                      _text={{
+                        fontSize: 16,
+                        fontWeight: 600,
+                        letterSpacing: -0.12,
+                        color: 'dark_blue.50',
+                      }}
+                    >
+                      {nutr}
+                    </Badge>
+                  );
+                }
                 return (
                   <Badge
                     borderRadius={6}
-                    bg={'dark_blue.200'}
+                    bg={'dark_blue.50'}
                     _text={{
                       fontSize: 16,
                       fontWeight: 600,
                       letterSpacing: -0.12,
-                      color: 'dark_blue.50',
+                      color: 'dark_blue.300',
                     }}
                   >
                     {nutr}
                   </Badge>
                 );
-              }
-              return (
-                <Badge
-                  borderRadius={6}
-                  bg={'dark_blue.50'}
-                  _text={{
-                    fontSize: 16,
-                    fontWeight: 600,
-                    letterSpacing: -0.12,
-                    color: 'dark_blue.300',
-                  }}
-                >
-                  {nutr}
-                </Badge>
-              );
-            })}
-          </HStack>
+              })}
+            </HStack>
+          )}
         </VStack>
       </Box>
 
@@ -166,32 +184,38 @@ export function StatusCards() {
             Sono
           </Text>
 
-          <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
-            {Math.round(trackerData.sleep[0].sleep_completed)}/{Math.round(trackerData.sleep[0].sleep_goal)} {'\n'}
-            Circadiano Mensal
-          </Text>
+          {userTrackerData ? (
+            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+              Sem registro do seu ciclo
+            </Text>
+          ) : (
+            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+              {Math.round(trackerData.sleep[0].sleep_completed)}/{Math.round(trackerData.sleep[0].sleep_goal)} {'\n'}
+              Circadiano Mensal
+            </Text>
+          )}
         </VStack>
 
-        {trackerData?.sleep[0]?.sleep_completed && (
-          <AnimatedCircularProgress
-            size={68}
-            lineCap="round"
-            width={5}
-            fill={
-              trackerData?.sleep[0]?.sleep_completed
-                ? Math.round((trackerData.sleep[0].sleep_completed / trackerData.sleep[0].sleep_goal) * 100)
-                : 0
-            }
-            children={() => (
-              <Text fontSize={14} fontWeight={800} letterSpacing={1}>
-                {Math.round((trackerData.sleep[0].sleep_completed / trackerData.sleep[0].sleep_goal) * 100)}%
-              </Text>
-            )}
-            rotation={10}
-            tintColor="#8A3FFC"
-            backgroundColor="#DCE1E8"
-          />
-        )}
+        <AnimatedCircularProgress
+          size={68}
+          lineCap="round"
+          width={5}
+          fill={
+            userTrackerData
+              ? 0
+              : Math.round((trackerData.sleep[0].sleep_completed / trackerData.sleep[0].sleep_goal) * 100)
+          }
+          children={() => (
+            <Text fontSize={14} fontWeight={800} letterSpacing={1}>
+              {userTrackerData
+                ? '0%'
+                : `${(Math.round(trackerData.sleep[0].sleep_completed) / trackerData.sleep[0].sleep_goal) * 100}%`}
+            </Text>
+          )}
+          rotation={10}
+          tintColor="#8A3FFC"
+          backgroundColor="#DCE1E8"
+        />
       </Box>
 
       <Box
@@ -212,14 +236,14 @@ export function StatusCards() {
             Hidratação
           </Text>
 
-          <HStack space={1}>{renderHydration(trackerData.hydration[0])}</HStack>
+          <HStack space={1}>{renderHydration()}</HStack>
 
           <HStack justifyContent={'space-between'} mt={1}>
             <Text color={'gray.600'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
-              {trackerData.hydration[0].hydration_completed}
+              {userTrackerData ? 0 : trackerData.hydration[0].hydration_completed}
             </Text>
             <Text color={'gray.600'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
-              {trackerData.hydration[0].hydration_goal}
+              {userTrackerData ? 12 : trackerData.hydration[0].hydration_goal}
             </Text>
           </HStack>
         </VStack>

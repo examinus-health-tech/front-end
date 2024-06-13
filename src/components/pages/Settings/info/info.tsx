@@ -11,8 +11,8 @@ import { CheckIcon, EditIcon, UserIcon } from '@assets/icons';
 // components
 import { Button } from '@components/atoms/Button/button';
 import { Input } from '@components/molecules/Input/input';
-import { SuccessSaved } from '@screens/Settings/components/successSaved/successSaved';
-import { Header } from '../../components/header/header';
+import { SuccessSaved } from '@components/pages/Settings/components/successSaved/successSaved';
+import { Header } from '../components/header/header';
 
 export function Info() {
   const [isSuccess, setSuccess] = useState<boolean>(false);

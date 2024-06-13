@@ -6,6 +6,9 @@
     "preview": {
       "android": {
         "distribution": "internal"
+      },
+      "ios": {
+        "distribution": "internal"
       }
     },
     "development": {

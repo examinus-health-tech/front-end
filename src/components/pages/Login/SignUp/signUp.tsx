@@ -14,14 +14,7 @@ import {
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import {
-  EyeIcon,
-  FacebookIcon,
-  GmailIcon,
-  InstagramIcon,
-  KeyIcon,
-  MailIcon,
-} from '@assets/icons';
+import { EyeIcon, FacebookIcon, GmailIcon, InstagramIcon, KeyIcon, MailIcon } from '@assets/icons';
 import { Input } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
@@ -41,10 +34,7 @@ type FormDataProps = {
 
 const signUpSchema = yup.object({
   email: yup.string().required('Informar o e-mail.').email('E-mail inválido.'),
-  password: yup
-    .string()
-    .required('Informar a senha.')
-    .min(8, 'Senha inválida.'),
+  password: yup.string().required('Informar a senha.').min(8, 'Senha deve ter pelo menos 8 caracteres.'),
   confirm_password: yup
     .string()
     .required('Confirme a senha.')
@@ -70,11 +60,7 @@ export function SignUp() {
     resolver: yupResolver(signUpSchema),
   });
 
-  async function handleSignUp({
-    email,
-    password,
-    confirm_rules,
-  }: FormDataProps) {
+  async function handleSignUp({ email, password, confirm_rules }: FormDataProps) {
     try {
       setIsLoading(true);
       await signUp(email, password, confirm_rules);
@@ -134,14 +120,7 @@ export function SignUp() {
         py: 16,
       }}
     >
-      <Text
-        color="gray.900"
-        fontSize={32}
-        fontWeight={800}
-        lineHeight={38}
-        letterSpacing={-1.2}
-        mb={2}
-      >
+      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={2}>
         Cadastre-se
       </Text>
 
@@ -153,15 +132,7 @@ export function SignUp() {
             <Input
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
-                  <Icon
-                    as={
-                      <MailIcon
-                        solid
-                        color={!!errors.email?.message ? 'red' : 'black'}
-                      />
-                    }
-                    w="full"
-                  />
+                  <Icon as={<MailIcon solid color={!!errors.email?.message ? 'red' : 'black'} />} w="full" />
                 </Flex>
               }
               keyboardType="email-address"
@@ -182,24 +153,13 @@ export function SignUp() {
             <Input
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
-                  <Icon
-                    as={
-                      <KeyIcon
-                        solid
-                        color={!!errors.password?.message ? 'red' : 'black'}
-                      />
-                    }
-                    w="full"
-                  />
+                  <Icon as={<KeyIcon solid color={!!errors.password?.message ? 'red' : 'black'} />} w="full" />
                 </Flex>
               }
               InputRightElement={
                 <TouchableOpacity onPress={() => setIsTakeLook(!isTakeLook)}>
                   <Flex mr={4} align="center" justify="center">
-                    <Icon
-                      as={<EyeIcon solid color="#818BA0" closed={isTakeLook} />}
-                      w="full"
-                    />
+                    <Icon as={<EyeIcon solid color="#818BA0" closed={isTakeLook} />} w="full" />
                   </Flex>
                 </TouchableOpacity>
               }
@@ -220,34 +180,13 @@ export function SignUp() {
             <Input
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
-                  <Icon
-                    as={
-                      <KeyIcon
-                        solid
-                        color={
-                          !!errors.confirm_password?.message ? 'red' : 'black'
-                        }
-                      />
-                    }
-                    w="full"
-                  />
+                  <Icon as={<KeyIcon solid color={!!errors.confirm_password?.message ? 'red' : 'black'} />} w="full" />
                 </Flex>
               }
               InputRightElement={
-                <TouchableOpacity
-                  onPress={() => setIsTakeLookConfirm(!isTakeLookConfirm)}
-                >
+                <TouchableOpacity onPress={() => setIsTakeLookConfirm(!isTakeLookConfirm)}>
                   <Flex mr={4} align="center" justify="center">
-                    <Icon
-                      as={
-                        <EyeIcon
-                          solid
-                          color="#818BA0"
-                          closed={isTakeLookConfirm}
-                        />
-                      }
-                      w="full"
-                    />
+                    <Icon as={<EyeIcon solid color="#818BA0" closed={isTakeLookConfirm} />} w="full" />
                   </Flex>
                 </TouchableOpacity>
               }
@@ -279,15 +218,8 @@ export function SignUp() {
                 bgColor: 'gray.50',
               }}
             >
-              <Text
-                color="gray.400"
-                fontSize={14}
-                fontWeight={600}
-                letterSpacing={-0.12}
-                ml={2}
-              >
-                Ao continuar você concorda com os Termos de Uso e a Politica de
-                Privacidade
+              <Text color="gray.400" fontSize={14} fontWeight={600} letterSpacing={-0.12} ml={2} mr={8}>
+                Ao continuar você concorda com os Termos de Uso e a Politica de Privacidade
               </Text>
             </Checkbox>
             <FormControl.ErrorMessage
@@ -322,12 +254,7 @@ export function SignUp() {
         }}
       >
         <Divider my={2} mx={2} w={160} />
-        <Text
-          color="gray.900"
-          fontSize={12}
-          fontWeight={600}
-          letterSpacing={-0.12}
-        >
+        <Text color="gray.900" fontSize={12} fontWeight={600} letterSpacing={-0.12}>
           Ou
         </Text>
         <Divider my={2} mx={2} w={160} />
@@ -375,24 +302,12 @@ export function SignUp() {
       </HStack>
 
       <HStack alignItems="center" justifyContent="center" mt={6}>
-        <Text
-          fontSize={14}
-          color="gray.400"
-          fontWeight={600}
-          letterSpacing={-0.14}
-        >
+        <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
           Já tem uma conta?
         </Text>
 
         <TouchableOpacity onPress={() => navigation.navigate('signIn')}>
-          <Text
-            fontSize={16}
-            color="purple.600"
-            fontWeight={600}
-            lineHeight={38}
-            underline
-            letterSpacing={-0.14}
-          >
+          <Text fontSize={16} color="purple.600" fontWeight={600} lineHeight={38} underline letterSpacing={-0.14}>
             {' '}
             Conecte-se.
           </Text>

@@ -13,25 +13,16 @@ export type Props = {
   variant: 'primary' | 'description' | 'value' | 'checkbox' | 'switch';
 };
 
-export function Card({
-  title,
-  subTitle,
-  icon,
-  warning,
-  action,
-  goTo,
-  variant,
-  value,
-}: Props) {
+export function Card({ title, subTitle, icon, warning, action, goTo, variant, value }: Props) {
   function renderLeftBox() {
     if (variant === 'primary') {
       return (
         <Box
-          bg={warning ? 'red.50' : 'white'}
+          bg={warning ? 'red.400' : 'white'}
           w={16}
           h={16}
           borderRadius={12}
-          borderColor={'gray.900'}
+          borderColor={'gray.100'}
           borderWidth={warning ? 0 : 1}
           alignItems={'center'}
           justifyContent={'center'}
@@ -45,13 +36,7 @@ export function Card({
   function renderDescription() {
     if (variant === 'primary' || variant === 'value') {
       return (
-        <Text
-          flex={1}
-          color={warning ? 'red.50' : 'gray.900'}
-          fontSize={18}
-          fontWeight={600}
-          letterSpacing={-0.16}
-        >
+        <Text flex={1} color={warning ? 'red.400' : 'gray.900'} fontSize={18} fontWeight={600} letterSpacing={-0.16}>
           {title}
         </Text>
       );
@@ -60,21 +45,11 @@ export function Card({
     if (variant === 'description') {
       return (
         <VStack flex={1} mr={12}>
-          <Text
-            color={'gray.900'}
-            fontSize={18}
-            fontWeight={600}
-            letterSpacing={-0.16}
-          >
+          <Text color={'gray.900'} fontSize={18} fontWeight={600} letterSpacing={-0.16}>
             {title}
           </Text>
 
-          <Text
-            color={'gray.400'}
-            fontSize={12}
-            fontWeight={500}
-            lineHeight={19.2}
-          >
+          <Text color={'gray.400'} fontSize={12} fontWeight={500} lineHeight={19.2}>
             {subTitle}
           </Text>
         </VStack>
@@ -84,18 +59,13 @@ export function Card({
 
   function renderAction() {
     if (action === 'switch') {
-      return <Switch onTrackColor="ciano.300" />;
+      return <Switch size="lg" onTrackColor="ciano.300" />;
     }
 
     if (action === 'value') {
       return (
         <HStack alignItems={'center'}>
-          <Text
-            color={'gray.400'}
-            fontSize={14}
-            fontWeight={600}
-            letterSpacing={-0.14}
-          >
+          <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.14}>
             {value}
           </Text>
           <ChevronRightIcon size="30" color={'#BEC5D2'} />
@@ -104,15 +74,13 @@ export function Card({
     }
 
     if (action === 'chevron') {
-      return (
-        <ChevronRightIcon size="30" color={warning ? '#FA4D5E' : '#BEC5D2'} />
-      );
+      return <ChevronRightIcon size="30" color={warning ? '#FA4D5E' : '#BEC5D2'} />;
     }
   }
 
   return (
     <TouchableOpacity onPress={goTo}>
-      <Box bg={warning ? 'red.20' : 'white'} w="100%" borderRadius={16} p={3}>
+      <Box bg={warning ? 'red.100' : 'white'} w="100%" borderRadius={16} p={3}>
         <HStack space={5} alignItems={'center'}>
           {renderLeftBox()}
 

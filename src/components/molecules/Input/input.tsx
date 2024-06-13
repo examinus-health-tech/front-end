@@ -26,24 +26,10 @@ export interface VariantLeftIconProps {
   mail: JSX.Element;
 }
 
-export function Input({
-  leftIcon,
-  rightIcon,
-  label,
-  selectType,
-  options,
-  errorMessage,
-  isRequired,
-  ...rest
-}: Props) {
+export function Input({ leftIcon, rightIcon, label, selectType, options, errorMessage, isRequired, ...rest }: Props) {
   return (
     <VStack mb={1} w="full">
-      <Text
-        color="gray.900"
-        fontSize={15}
-        fontWeight={800}
-        letterSpacing={-0.14}
-      >
+      <Text color="gray.900" fontSize={15} fontWeight={800} letterSpacing={-0.14}>
         {label} {isRequired && <Text color="red.400">*</Text>}
       </Text>
       {selectType ? (
@@ -59,14 +45,11 @@ export function Input({
           w="100%"
           {...rest}
         >
-          {options?.length &&
-            options.map(({ label, value }) => (
-              <Select.Item label={label} value={value} />
-            ))}
+          {options?.length && options.map(({ label, value }) => <Select.Item label={label} value={value} />)}
         </Select>
       ) : (
         <InputNativeBase
-          bg="white"
+          selectionColor={'white'}
           h={12}
           borderRadius={12}
           color="gray.800"
@@ -81,12 +64,7 @@ export function Input({
       {!!errorMessage && (
         <HStack mb={-2} mt={0.5} alignItems="center" space={1} color="red.400">
           <WarningOutlineIcon size="xs" color="red.400" />
-          <Text
-            color="red.400"
-            fontSize={12}
-            fontWeight={600}
-            letterSpacing={-0.16}
-          >
+          <Text color="red.400" fontSize={12} fontWeight={600} letterSpacing={-0.16}>
             {errorMessage}
           </Text>
         </HStack>

@@ -76,6 +76,8 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   }
 
   async function signIn(email: string, password: string) {
+    console.log('!@# 🚀 ~ signIn ~ password:', password);
+    console.log('!@# 🚀 ~ signIn ~ email:', email);
     try {
       api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
 
@@ -83,6 +85,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
         email,
         password,
       });
+      console.log('!@# 🚀 ~ signIn ~ response:', response);
 
       const data = response.data.data;
 
@@ -98,6 +101,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
         userAndTokenUpdate(data, AccessToken);
       }
     } catch (error) {
+      console.log('!@# 🚀 ~ signIn ~ error:', error);
       throw error;
     } finally {
       setIsLoadingUserStorageData(false);
@@ -106,11 +110,15 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   async function signUp(email: string, password: string, confirm_rules: boolean) {
     try {
+      api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
+
+      console.log('!@# 🚀 ~ signUp ~ email:', email);
+      console.log('!@# 🚀 ~ signUp ~ password:', password);
+
       await api.post('/user/auth/sign-up', {
-        name: 'temp',
+        name: 'Usuário Teste',
         email,
         password,
-        confirm_rules,
       });
     } catch (error) {
       throw error;
@@ -118,23 +126,6 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
       setIsLoadingUserStorageData(false);
     }
   }
-
-  // 200
-  //   {
-  //     "data": {
-  //         "email": "hmnonato1@uol.com.br",
-  //         "message": "Usuário criado com sucesso. Utilize o código enviado por e-mail para confirmar o acesso.",
-  //         "code": 200
-  //     }
-  // }
-
-  // {
-  //   "error": {
-  //       "code": 403,
-  //       "type": "/errors/bad-request",
-  //       "message": "Já existe um cadastro com esse e-mail (hmnonato@uol.com.br)."
-  //   }
-  // }
 
   async function signOut() {
     try {

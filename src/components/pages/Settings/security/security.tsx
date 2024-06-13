@@ -9,8 +9,8 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { LockIcon } from '@assets/icons';
 
 // components
-import { Header } from '../../components/header/header';
-import { Card } from '../../components/card/card';
+import { Header } from '../components/header/header';
+import { Card } from '../components/card/card';
 import { Button } from '@components/atoms/Button/button';
 
 export function Security() {
@@ -19,11 +19,8 @@ export function Security() {
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} bg={'gray.400'} py={24} mx={6}>
-        <Header
-          title="Segurança"
-          handleBackTo={() => navigation.navigate('myAccount')}
-        />
+      <VStack flex={1} py={24} mx={6}>
+        <Header title="Segurança" handleBackTo={() => navigation.navigate('myAccount')} />
 
         <VStack mt={4} space={3}>
           <Card title="Lembrar Senha" variant="value" action="switch" />
@@ -35,12 +32,7 @@ export function Security() {
             action="switch"
           />
 
-          <Card
-            title="Google Authenticator"
-            subTitle="Google Authenticator"
-            variant="description"
-            action="switch"
-          />
+          <Card title="Google Authenticator" subTitle="Google Authenticator" variant="description" action="switch" />
 
           <Card
             title="Meus Dispositivos"

@@ -10,6 +10,8 @@ import {
   OtpSecurity,
 } from '@components/pages/OnboardingSetup';
 import { Homepage, HealthWallet, HeartScore, UploadMain } from '@components/pages/Homepage';
+import { AboutUs, ConfigNotifications, ContactUs, Info, MyAccount, Security } from '@components/pages/Settings';
+
 import { Exam, ExamList } from '@components/pages/Exam';
 
 import { Tabs } from '../navigation/tabs';
@@ -19,11 +21,7 @@ import { Box, useDisclose, View } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 import { ActionSheetUpload } from '@components/organisms';
 import { OnboardingSteps } from '@components/pages/OnboardingInfo/onboarding';
-import { MyAccount } from '@screens/Settings/screens/myAccount/myAccount';
-import { ConfigNotifications } from '@screens/Settings/screens/notifications/notifications';
-import { Info } from '@screens/Settings/screens/info/info';
-import { Security } from '@screens/Settings/screens/security/security';
-import { ContactUs } from '@screens/Settings/screens/contactUs/contactUs';
+
 import { WorkingInProgress } from '@components/pages/WorkingInProgress';
 
 export type AppRoutes = {
@@ -135,8 +133,8 @@ function HomeTabs() {
         }}
       />
       <Tab.Screen
-        name="healthWallet"
-        component={HealthWallet}
+        name="workingInProgress"
+        component={WorkingInProgress}
         options={{
           unmountOnBlur: true,
           tabBarIcon: ({ focused }) => (
@@ -165,8 +163,8 @@ function HomeTabs() {
         }}
       />
       <Tab.Screen
-        name="workingInProgress"
-        component={WorkingInProgress}
+        name="healthWallet"
+        component={HealthWallet}
         options={{
           unmountOnBlur: true,
           tabBarIcon: ({ focused }) => (
@@ -186,8 +184,8 @@ function HomeTabs() {
         }}
       />
       <Tab.Screen
-        name="workingInProgress2"
-        component={WorkingInProgress}
+        name="myAccount"
+        component={MyAccount}
         options={{
           unmountOnBlur: true,
           tabBarIcon: ({ focused }) => (
@@ -235,12 +233,12 @@ export function AppRoutes() {
       {/* <Screen name="notifications" component={Notifications} />
       <Screen name="successSaved" component={SuccessSaved} /> */}
 
-      {/* <Screen name="myAccount" component={MyAccount} />
+      <Screen name="myAccount" component={MyAccount} />
       <Screen name="configNotifications" component={ConfigNotifications} />
       <Screen name="info" component={Info} />
       <Screen name="security" component={Security} />
-      <Screen name="contactUs" component={ContactUs} /> */}
-      {/* <Screen name="aboutUs" component={AboutUs} /> */}
+      <Screen name="contactUs" component={ContactUs} />
+      <Screen name="aboutUs" component={AboutUs} />
       {/* <Screen name="tracker" component={Tracker} /> */}
       {/* <Screen name="weightTracker" component={WeightTracker} /> */}
     </Navigator>

@@ -2,6 +2,7 @@ import { extendTheme } from 'native-base';
 
 export const THEME = extendTheme({
   colors: {
+    selectionColor: '#FFFFFF',
     white: '#FFFFFF',
     ciano: {
       50: '#DDF4F2',
@@ -76,6 +77,7 @@ export const THEME = extendTheme({
       900: '#1C0F30',
     },
   },
+
   fontConfig: {
     // nao importei nenhuma font italic ainda, mas se precisar temos o arquivo
     Poligon: {

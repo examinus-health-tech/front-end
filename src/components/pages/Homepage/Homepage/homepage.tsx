@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity, useWindowDimensions, TouchableHighlight } from 'react-native';
-import { VStack, Text, useDisclose, Box, HStack, ScrollView, IScrollViewProps, View, Image, Center } from 'native-base';
+import { TouchableOpacity, useWindowDimensions } from 'react-native';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Image, Badge } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
-import ContentLoader, { Circle, Rect } from 'react-content-loader/native';
+import ContentLoader, { Rect } from 'react-content-loader/native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -11,8 +11,12 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { BellIcon, CalendarIcon, MoreIcon } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 import Vector2 from '@assets/png/vector-30.png';
-import Vector3 from '@assets/png/vector-31.png';
+import Vector3 from '@assets/png/vector-39.png';
 import Vector4 from '@assets/png/vector-32.png';
+import Vector5 from '@assets/png/vector-37b.png';
+import Vector6 from '@assets/png/vector-38.png';
+import Vector7 from '@assets/png/vector-39.png';
+import Vector8 from '@assets/png/vector-40.png';
 
 // components
 import { StatusCards } from '@components/molecules';
@@ -21,6 +25,8 @@ import { useHome } from 'src/hooks/useHome';
 
 export function Homepage() {
   const [withNotification, setWithNotification] = useState<boolean>(false);
+  const [userWithoutData, setUserWithoutData] = useState<boolean>(false);
+  const [userTrackerData, setUserTrackerData] = useState<boolean>(false);
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
@@ -37,6 +43,25 @@ export function Homepage() {
   async function handleGetHeathData() {
     await getHomeData();
   }
+
+  useEffect(() => {
+    if (!homeData.score && homeData.systems?.length == 0) {
+      setUserWithoutData(true);
+    } else setUserWithoutData(false);
+  }, [homeData]);
+
+  useEffect(() => {
+    if (
+      !trackerData.kcal ||
+      !trackerData.step ||
+      !trackerData.weight ||
+      !trackerData.hydration ||
+      !trackerData.nutrition ||
+      !trackerData.sleep
+    ) {
+      setUserTrackerData(true);
+    } else setUserTrackerData(false);
+  }, [homeData]);
 
   function renderCardSystems() {
     if (homeData.systems?.length) {
@@ -87,12 +112,12 @@ export function Homepage() {
           <Rect x="24" y="130" rx="8" ry="8" width={220} height={50} />
           <Rect x="24" y="190" rx="8" ry="8" width={160} height={20} />
           <Rect x="24" y="214" rx="8" ry="8" width={140} height={20} />
-          <Rect x="310" y="120" rx="16" ry="16" width={75} height={75} />
+          <Rect x="320" y="120" rx="16" ry="16" width={65} height={65} />
           <Rect x="36" y="280" rx="12" ry="12" width={340} height={120} />
           <Rect x="24" y="430" rx="8" ry="8" width={100} height={20} />
-          <Rect x="24" y="490" rx="16" ry="16" width={170} height={200} />
-          <Rect x="208" y="490" rx="16" ry="16" width={170} height={200} />
-          <Rect x="392" y="490" rx="16" ry="16" width={170} height={200} />
+          <Rect x="24" y="475" rx="16" ry="16" width={170} height={200} />
+          <Rect x="208" y="475" rx="16" ry="16" width={170} height={200} />
+          <Rect x="392" y="475" rx="16" ry="16" width={170} height={200} />
         </ContentLoader>
       ) : (
         <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
@@ -134,7 +159,7 @@ export function Homepage() {
                     </Text>
                   </Box>
                 )}
-                <Box w={20} h={20} bg={'white'} borderRadius={16} alignItems={'center'} justifyContent={'center'}>
+                <Box size={16} bg={'white'} borderRadius={16} alignItems={'center'} justifyContent={'center'}>
                   <BellIcon size={'40'} />
                 </Box>
               </TouchableOpacity>
@@ -144,7 +169,7 @@ export function Homepage() {
               <HStack space={4} alignItems={'center'}>
                 <Box
                   size={24}
-                  bg={homeData ? 'purple.600' : 'gray.300'}
+                  bg={userWithoutData ? 'gray.300' : 'purple.600'}
                   borderRadius={14}
                   alignItems={'center'}
                   justifyContent={'center'}
@@ -170,18 +195,33 @@ export function Homepage() {
                     Score X
                   </Text>
 
-                  <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
-                    Com base nos seus exames, o seu{'\n'}Score de saúde está acima da média
-                  </Text>
+                  {userWithoutData ? (
+                    <View>
+                      <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
+                        Você não possui dados de exames{'\n'}a serem analisados.
+                      </Text>
 
-                  {!!homeData.score ? (
-                    <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="purple.700">
-                      Monitorar saúde {'>'}
-                    </Text>
+                      <Text
+                        fontSize={12}
+                        fontWeight={500}
+                        lineHeight={19.2}
+                        mt={1}
+                        color="ciano.400"
+                        onPress={() => navigation.navigate('upload')}
+                      >
+                        Clique aqui e importe seu exame {'>'}
+                      </Text>
+                    </View>
                   ) : (
-                    <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="ciano.400">
-                      Clique aqui e importe seu exame {'>'}
-                    </Text>
+                    <View>
+                      <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
+                        Com base nos seus exames, o seu{'\n'}Score de saúde está acima da média
+                      </Text>
+
+                      <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="purple.700">
+                        Monitorar saúde {'>'}
+                      </Text>
+                    </View>
                   )}
                 </VStack>
               </HStack>
@@ -192,16 +232,50 @@ export function Homepage() {
                 Health Wallet
               </Text>
 
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
                 <MoreIcon />
               </TouchableOpacity>
             </HStack>
 
-            <HStack mt={2} h={265}>
+            <HStack h={265}>
               <ScrollView horizontal ref={scrollRef} mx={-6} showsHorizontalScrollIndicator={false}>
-                <HStack space={3} mx={6} alignItems="center">
-                  {renderCardSystems()}
-                </HStack>
+                {userWithoutData ? (
+                  <HStack space={3} mx={6} alignItems="center">
+                    <Box bg={'gray.300'} rounded="2xl" w={170} shadow={4} p={4}>
+                      <VStack space={4}>
+                        <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+                          Hormônios
+                        </Text>
+
+                        <Image source={Vector6} alt="Vetor" resizeMode="contain" size={24} ml={4} mb={4} />
+                      </VStack>
+                    </Box>
+
+                    <Box bg={'gray.300'} rounded="2xl" w={170} shadow={4} p={4}>
+                      <VStack space={4}>
+                        <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+                          Imunidade
+                        </Text>
+
+                        <Image source={Vector7} alt="Vetor" resizeMode="contain" size={24} ml={4} mb={4} />
+                      </VStack>
+                    </Box>
+
+                    <Box bg={'gray.300'} rounded="2xl" w={170} shadow={4} p={4}>
+                      <VStack space={4}>
+                        <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+                          Coração
+                        </Text>
+
+                        <Image source={Vector8} alt="Vetor" resizeMode="contain" size={24} ml={4} mb={4} />
+                      </VStack>
+                    </Box>
+                  </HStack>
+                ) : (
+                  <HStack space={3} mx={6} alignItems="center">
+                    {renderCardSystems()}
+                  </HStack>
+                )}
               </ScrollView>
             </HStack>
 
@@ -215,12 +289,40 @@ export function Homepage() {
               </TouchableOpacity>
             </HStack>
 
-            {(trackerData.kcal ||
-              trackerData.step ||
-              trackerData.weight ||
-              trackerData.hydration ||
-              trackerData.nutrition ||
-              trackerData.sleep) && <StatusCards />}
+            {<StatusCards userTrackerData={userTrackerData} />}
+
+            <HStack mt={8} justifyContent={'space-between'}>
+              <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                Fale com o Doutor X
+              </Text>
+
+              <TouchableOpacity>
+                <MoreIcon />
+              </TouchableOpacity>
+            </HStack>
+
+            <Box w="100%" h="auto" bg={'white'} borderRadius={12} mt={4}>
+              <HStack justifyItems="space-between" width="100%">
+                <VStack py={6} px={4} width={200}>
+                  <Badge
+                    width={24}
+                    bg="gray.400"
+                    borderRadius={6}
+                    _text={{
+                      color: 'white',
+                    }}
+                  >
+                    EM BREVE
+                  </Badge>
+
+                  <Text fontSize={16} fontWeight={500} lineHeight={19.2} mt={8}>
+                    Chatbot sobre Saúde Conversations
+                  </Text>
+                </VStack>
+
+                <Image source={Vector5} defaultSource={Vector5} alt="Vetor" resizeMode="cover" h={150} w={163} />
+              </HStack>
+            </Box>
           </VStack>
         </ScrollView>
       )}

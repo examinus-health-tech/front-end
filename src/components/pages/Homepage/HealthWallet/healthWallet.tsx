@@ -129,6 +129,14 @@ export function HealthWallet() {
           </Box>
         </TouchableOpacity>
       ));
+    } else {
+      return (
+        <Flex align="center" mt={12}>
+          <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
+            Você não possui dados de exames.
+          </Text>
+        </Flex>
+      );
     }
   }
 
