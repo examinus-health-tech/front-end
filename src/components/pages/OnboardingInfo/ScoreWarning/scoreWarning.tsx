@@ -29,12 +29,14 @@ export function ScoreWarning() {
           textAlign="center"
           mt={8}
         >
-          Lendo os seus exames,{'\n'} enquanto isso...
+          Yeaaaah! Seu Score X{'\n'}
+          está sendo processado!
         </Text>
 
         <Text fontSize={14} fontWeight={500} lineHeight={22.4} color={'white'} textAlign="center" mt={4}>
-          Estamos redirecionando você para a tela inicial.{'\n'}
-          Está pronto para ficar saudável com a Examinus?{' '}
+          Fique tranquilo! Você receberá uma notificação{'\n'}
+          assim que estiver pronto. Enquanto cuidamos de{'\n'}
+          você, aproveite o melhor app de saúde!
         </Text>
 
         <Button

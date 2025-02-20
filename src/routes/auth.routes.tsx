@@ -1,15 +1,7 @@
-import {
-  createNativeStackNavigator,
-  NativeStackNavigationProp,
-} from '@react-navigation/native-stack';
+import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Hello, Simplify, Health, StayCalm } from '@pages/Welcome';
-import {
-  SignIn,
-  SignUp,
-  ForgotPassword,
-  SuccessLink,
-} from '@components/pages/Login';
+import { SignIn, SignUp, ForgotPassword, SuccessLink, Code, PasswordConfig, SuccessPasswordChange } from '@pages/Login';
 
 type AuthRoutes = {
   hello: undefined;
@@ -20,6 +12,9 @@ type AuthRoutes = {
   signUp: undefined;
   forgotPassword: undefined;
   successLink: undefined;
+  code: undefined;
+  passwordConfig: undefined;
+  successPasswordChange: undefined;
 };
 
 export type AuthNavigatorRoutesProps = NativeStackNavigationProp<AuthRoutes>;
@@ -37,6 +32,9 @@ export function AuthRoutes() {
       <Screen name="signUp" component={SignUp} />
       <Screen name="forgotPassword" component={ForgotPassword} />
       <Screen name="successLink" component={SuccessLink} />
+      <Screen name="code" component={Code} />
+      <Screen name="passwordConfig" component={PasswordConfig} />
+      <Screen name="successPasswordChange" component={SuccessPasswordChange} />
     </Navigator>
   );
 }

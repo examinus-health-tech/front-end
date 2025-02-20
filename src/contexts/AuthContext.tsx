@@ -18,10 +18,13 @@ type UserDataProps = {
 
 export type AuthContextDataProps = {
   user: UserDTO;
+  emailTemp: string;
   userData: UserDataProps;
   getUserData: () => void;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, confirm_rules: boolean) => Promise<void>;
+  signUp: (name: string, email: string, password: string, confirm_rules: boolean) => Promise<void>;
+  confirmationCode: (email: string, code: string) => Promise<void>;
+  resendConfirmationCode: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
   isLoadingUserStorageData: boolean;
@@ -36,6 +39,7 @@ export const AuthContext = createContext<AuthContextDataProps>({} as AuthContext
 
 export function AuthContextProvider({ children }: AuthContextProviderProps) {
   const [user, setUser] = useState<UserDTO>({} as UserDTO);
+  const [emailTemp, setEmailTemp] = useState<string>('');
   const [userData, setUserData] = useState<UserDataProps>({} as UserDataProps);
   const [isLoadingUserData, setIsLoadingUserData] = useState<boolean>(false);
 
@@ -66,6 +70,40 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
       const response = await api.post('/user/auth/forgot-password', {
         email,
       });
+      setEmailTemp(email);
+
+      const data = response.data.data;
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoadingUserStorageData(false);
+    }
+  }
+
+  async function confirmationCode(email: string, code: string) {
+    try {
+      api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
+
+      const response = await api.post('/user/auth/confirmation-code', {
+        email,
+        confirmation_code: code,
+      });
+
+      const data = response.data.data;
+    } catch (error) {
+      throw error;
+    } finally {
+      setIsLoadingUserStorageData(false);
+    }
+  }
+
+  async function resendConfirmationCode(email: string) {
+    try {
+      api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
+
+      const response = await api.post('/user/auth/resend-confirmation-code', {
+        email,
+      });
 
       const data = response.data.data;
     } catch (error) {
@@ -76,8 +114,6 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   }
 
   async function signIn(email: string, password: string) {
-    console.log('!@# 🚀 ~ signIn ~ password:', password);
-    console.log('!@# 🚀 ~ signIn ~ email:', email);
     try {
       api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
 
@@ -85,7 +121,6 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
         email,
         password,
       });
-      console.log('!@# 🚀 ~ signIn ~ response:', response);
 
       const data = response.data.data;
 
@@ -101,22 +136,18 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
         userAndTokenUpdate(data, AccessToken);
       }
     } catch (error) {
-      console.log('!@# 🚀 ~ signIn ~ error:', error);
       throw error;
     } finally {
       setIsLoadingUserStorageData(false);
     }
   }
 
-  async function signUp(email: string, password: string, confirm_rules: boolean) {
+  async function signUp(name: string, email: string, password: string, confirm_rules: boolean) {
     try {
       api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
 
-      console.log('!@# 🚀 ~ signUp ~ email:', email);
-      console.log('!@# 🚀 ~ signUp ~ password:', password);
-
       await api.post('/user/auth/sign-up', {
-        name: 'Usuário Teste',
+        name,
         email,
         password,
       });
@@ -193,9 +224,12 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     <AuthContext.Provider
       value={{
         user,
+        emailTemp,
         signIn,
         signUp,
         signOut,
+        confirmationCode,
+        resendConfirmationCode,
         forgotPassword,
         isLoadingUserStorageData,
         getUserData,

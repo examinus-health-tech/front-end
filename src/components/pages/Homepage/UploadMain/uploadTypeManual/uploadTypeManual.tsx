@@ -56,7 +56,7 @@ type OptionProps = {
 const uploadFormSchema = yup.object({
   lab: yup.string(),
   medico: yup.string(),
-  data: yup.string().datetime(),
+  data: yup.string().datetime().required(),
   code_exam: yup.string(),
   value: yup.string(),
   reference_unit: yup.string(),
@@ -101,7 +101,7 @@ export function UploadTypeManual() {
   function handleBlurOpenModal() {
     const { lab, medico, data, code_exam } = getValues();
 
-    if (lab && medico && data && code_exam) {
+    if (data && code_exam) {
       setShowModal(true);
     }
   }
@@ -109,7 +109,6 @@ export function UploadTypeManual() {
   function adicionaExame() {
     const formData = { ...getValues(), code_exam: selectedExam.code_exam, exam_id: selectedExam.exam_id };
     const tempExamesManuais = [...examManual, formData];
-    console.log('!@# 🚀 ~ adicionaExame ~ tempExamesManuais:', tempExamesManuais);
 
     setExamManual(tempExamesManuais);
     setShowModal(false);
@@ -155,8 +154,8 @@ export function UploadTypeManual() {
 
       const payload = {
         email: user.email,
-        doctor_name: examManual[0].medico,
-        labor_name: examManual[0].lab,
+        doctor_name: examManual[0].medico || 'Desconhecido',
+        labor_name: examManual[0].lab || 'Desconhecido',
         exam_date: examManual[0].data
           .toLocaleString('en-US', {
             year: 'numeric',
@@ -170,7 +169,6 @@ export function UploadTypeManual() {
           .join('-'),
         detail: [...detail],
       };
-      console.log('!@# 🚀 ~ handleUploadManual ~ payload:', payload);
 
       await handleManualUploadFile(payload);
     } catch (error) {
@@ -275,6 +273,7 @@ export function UploadTypeManual() {
                 <Pressable onPress={() => setShow(true)} w="100%">
                   <Input
                     label="Data do Exame"
+                    isRequired
                     keyboardType="numbers-and-punctuation"
                     h={10}
                     w={124}

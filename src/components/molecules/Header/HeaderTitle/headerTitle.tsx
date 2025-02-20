@@ -15,6 +15,7 @@ export type Props = IButtonProps & {
   title?: string;
   badgeVariant?: 'risco alto' | 'risco normal' | 'excelente';
   filterButtonAction?: () => void;
+  color?: string;
 };
 
 export function HeaderTitle({
@@ -24,6 +25,7 @@ export function HeaderTitle({
   title,
   badgeVariant,
   filterButtonAction,
+  color = 'gray.900',
 }: Props) {
   function renderBadge() {
     switch (badgeVariant) {
@@ -82,13 +84,13 @@ export function HeaderTitle({
       {withBackButton && (
         <VStack py={1}>
           <TouchableOpacity onPress={withBackButton}>
-            <ChevronLeftIcon />
+            <ChevronLeftIcon color={color === 'white' ? '#ffffff' : '#090E1D'} />
           </TouchableOpacity>
         </VStack>
       )}
 
       {title && (
-        <Text flex={1} color="gray.900" fontWeight={800} fontSize={20}>
+        <Text flex={1} color={color} fontWeight={800} fontSize={20}>
           {title}
         </Text>
       )}
@@ -101,7 +103,7 @@ export function HeaderTitle({
 
       {withFilterButton && (
         <TouchableOpacity onPress={filterButtonAction}>
-          <FilterIcon />
+          <FilterIcon color={color === 'white' ? '#ffffff' : '#818BA0'} />
         </TouchableOpacity>
       )}
 

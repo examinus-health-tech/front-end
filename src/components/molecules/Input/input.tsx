@@ -20,16 +20,28 @@ export type Props = (IInputProps | ISelectProps) & {
   }[];
   errorMessage?: string;
   isRequired?: boolean;
+  wContainer?: string;
 };
 
 export interface VariantLeftIconProps {
   mail: JSX.Element;
 }
 
-export function Input({ leftIcon, rightIcon, label, selectType, options, errorMessage, isRequired, ...rest }: Props) {
+export function Input({
+  leftIcon,
+  rightIcon,
+  label,
+  selectType,
+  options,
+  errorMessage,
+  isRequired,
+  wContainer = 'full',
+  ref,
+  ...rest
+}: Props) {
   return (
-    <VStack mb={1} w="full">
-      <Text color="gray.900" fontSize={15} fontWeight={800} letterSpacing={-0.14}>
+    <VStack mb={1} w={wContainer}>
+      <Text color="gray.900" fontSize={15} fontWeight={800} letterSpacing={-0.14} mb={2}>
         {label} {isRequired && <Text color="red.400">*</Text>}
       </Text>
       {selectType ? (
@@ -53,6 +65,7 @@ export function Input({ leftIcon, rightIcon, label, selectType, options, errorMe
           h={12}
           borderRadius={12}
           color="gray.800"
+          bgColor="white"
           fontSize={16}
           fontWeight={600}
           letterSpacing={-0.16}
@@ -62,7 +75,7 @@ export function Input({ leftIcon, rightIcon, label, selectType, options, errorMe
       )}
 
       {!!errorMessage && (
-        <HStack mb={-2} mt={0.5} alignItems="center" space={1} color="red.400">
+        <HStack mb={-5} mt={0.5} alignItems="center" space={1} color="red.400">
           <WarningOutlineIcon size="xs" color="red.400" />
           <Text color="red.400" fontSize={12} fontWeight={600} letterSpacing={-0.16}>
             {errorMessage}

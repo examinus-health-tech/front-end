@@ -1,6 +1,6 @@
-import { ActivityIndicator, StatusBar, Text } from 'react-native';
+import { ActivityIndicator, StatusBar, StatusBarProps, StatusBarStyle, Text } from 'react-native';
 import { useFonts } from 'expo-font';
-import { Center, Flex, NativeBaseProvider } from 'native-base';
+import { Center, Flex, Image, NativeBaseProvider } from 'native-base';
 
 import { THEME } from './src/theme';
 import { Routes } from '@routes/index';
@@ -9,6 +9,11 @@ import { OnboardingContextProvider } from '@contexts/OnboardingContext';
 import { UploadContextProvider } from '@contexts/UploadContext';
 import { HomeContextProvider } from '@contexts/HomeContext';
 import { Splash } from '@components/pages/Splash/splash';
+import Vector from '@assets/png/logo-animado-2.gif';
+import SplashImg from './assets/splash 2.png';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { ExamContextProvider } from '@contexts/ExamContext';
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({
@@ -25,19 +30,28 @@ export default function App() {
   return (
     <NativeBaseProvider theme={THEME}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <Splash />
+
       <AuthContextProvider>
         <OnboardingContextProvider>
           <UploadContextProvider>
-            <HomeContextProvider>
-              {fontsLoaded ? (
-                <Routes />
-              ) : (
-                <Flex align="center" justify="center" h="100%">
-                  <ActivityIndicator size="large" color="#00B39D" />
-                </Flex>
-              )}
-            </HomeContextProvider>
+            <ExamContextProvider>
+              <GestureHandlerRootView>
+                <BottomSheetModalProvider>
+                  <HomeContextProvider>
+                    {fontsLoaded ? (
+                      <Routes />
+                    ) : (
+                      // <Splash />
+                      <Image source={SplashImg} alt="Vector" resizeMode="cover" height="100%" />
+                      // <Flex align="center" justify="center" h="100%" bgColor="white">
+                      //   {/* <ActivityIndicator size="large" color="#00B39D" /> */}
+                      //   <Image source={Vector} style={{ width: 80, height: 80 }} alt="Vector" />
+                      // </Flex>
+                    )}
+                  </HomeContextProvider>
+                </BottomSheetModalProvider>
+              </GestureHandlerRootView>
+            </ExamContextProvider>
           </UploadContextProvider>
         </OnboardingContextProvider>
       </AuthContextProvider>

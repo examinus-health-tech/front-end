@@ -77,7 +77,6 @@ export const THEME = extendTheme({
       900: '#1C0F30',
     },
   },
-
   fontConfig: {
     // nao importei nenhuma font italic ainda, mas se precisar temos o arquivo
     Poligon: {
@@ -128,10 +127,12 @@ export const THEME = extendTheme({
     xl: 20,
   },
   sizes: {
+    11: 52,
     12: 56,
     14: 64,
     28: 112,
     33: 148,
     44: 176,
+    68: 272,
   },
 });

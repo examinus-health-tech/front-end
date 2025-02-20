@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { Box, IScrollViewProps, ScrollView, VStack } from 'native-base';
+import { Box, IScrollViewProps, Image, ScrollView, StatusBar, VStack } from 'native-base';
 import { useRef, useState } from 'react';
 
 // routes
@@ -13,6 +13,7 @@ import { Button } from '@components/atoms/Button/button';
 import { Input } from '@components/molecules/Input/input';
 import { SuccessSaved } from '@components/pages/Settings/components/successSaved/successSaved';
 import { Header } from '../components/header/header';
+import { useAuth } from 'src/hooks/useAuth';
 
 export function Info() {
   const [isSuccess, setSuccess] = useState<boolean>(false);
@@ -20,27 +21,33 @@ export function Info() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
+  const { user } = useAuth();
+
   if (isSuccess) {
     return <SuccessSaved />;
   }
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <Box w={'100%'} h={240} bg={'gray.900'} borderBottomRadius={24} position={'absolute'}>
-        <Box
-          bg={'gray.200'}
-          w={28}
-          h={28}
-          borderRadius={12}
-          borderColor={'white'}
+      <StatusBar barStyle="default" backgroundColor="transparent" translucent />
+
+      <Box w={'100%'} h={240} borderBottomRadius={24} position={'absolute'} bgColor={'gray.900'}>
+        <Image
+          source={{
+            uri: user.ImageUserUrl,
+          }}
+          size={28}
           borderWidth={1}
+          borderColor="white"
+          rounded={12}
           position={'absolute'}
           bottom={-56}
           right={'37%'}
         />
       </Box>
-      <VStack flex={1} py={24} mx={6} zIndex={1}>
-        <Header title="Informações Pessoais" bgMode handleBackTo={() => navigation.navigate('myAccount')} />
+
+      <VStack flex={1} py={16} mx={6} zIndex={1}>
+        <Header title="Informações Pessoais" bgMode handleBackTo={() => navigation.navigate('homepage')} />
 
         <VStack mt={48} space={5}>
           <Input

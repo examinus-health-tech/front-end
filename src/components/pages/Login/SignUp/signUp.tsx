@@ -26,6 +26,7 @@ import { useState } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 
 type FormDataProps = {
+  name: string;
   email: string;
   password: string;
   confirm_password: string;
@@ -33,6 +34,7 @@ type FormDataProps = {
 };
 
 const signUpSchema = yup.object({
+  name: yup.string().required('Informar o nome'),
   email: yup.string().required('Informar o e-mail.').email('E-mail inválido.'),
   password: yup.string().required('Informar a senha.').min(8, 'Senha deve ter pelo menos 8 caracteres.'),
   confirm_password: yup
@@ -60,10 +62,10 @@ export function SignUp() {
     resolver: yupResolver(signUpSchema),
   });
 
-  async function handleSignUp({ email, password, confirm_rules }: FormDataProps) {
+  async function handleSignUp({ name, email, password, confirm_rules }: FormDataProps) {
     try {
       setIsLoading(true);
-      await signUp(email, password, confirm_rules);
+      await signUp(name, email, password, confirm_rules);
 
       toast.show({
         borderRadius: '12',
@@ -124,7 +126,22 @@ export function SignUp() {
         Cadastre-se
       </Text>
 
-      <Stack mt={4} space={4}>
+      <Stack mt={2} space={4}>
+        <Controller
+          control={control}
+          name="name"
+          render={({ field: { onChange, value } }) => (
+            <Input
+              autoCapitalize="none"
+              label="Nome"
+              onChangeText={onChange}
+              value={value}
+              isInvalid={!!errors.name?.message}
+              errorMessage={errors.name?.message}
+            />
+          )}
+        />
+
         <Controller
           control={control}
           name="email"
@@ -240,7 +257,7 @@ export function SignUp() {
         variant="primary"
         size="full"
         title="Cadastrar"
-        marginTop={8}
+        marginTop={4}
         onPress={handleSubmit(handleSignUp)}
         isLoading={isLoading}
       />
@@ -248,7 +265,7 @@ export function SignUp() {
       <Flex
         direction="row"
         justify="space-between"
-        py={6}
+        py={4}
         _ios={{
           py: 6,
         }}
@@ -301,7 +318,7 @@ export function SignUp() {
         </TouchableOpacity>
       </HStack>
 
-      <HStack alignItems="center" justifyContent="center" mt={6}>
+      <HStack alignItems="center" justifyContent="center" mt={2}>
         <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
           Já tem uma conta?
         </Text>

@@ -34,6 +34,7 @@ export function UploadMain() {
   } else if (withError) {
     return <UploadError />;
   }
+
   return (
     <VStack flex={1} space={8} py={24}>
       <Center flex={1} mx={6} alignItems="center">

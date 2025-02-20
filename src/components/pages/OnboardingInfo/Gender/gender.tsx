@@ -100,7 +100,7 @@ export function Gender() {
             }}
           >
             <Box
-              bg={'ciano.200'}
+              bg={'ciano.300'}
               rounded="xl"
               w={gender == 'M' ? 220 : 200}
               h={gender == 'M' ? 340 : 280}

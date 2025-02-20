@@ -6,9 +6,10 @@
     "preview": {
       "android": {
         "distribution": "internal"
+        // "buildType": "apk"
       },
       "ios": {
-        "distribution": "internal"
+        "simulator": true
       }
     },
     "development": {

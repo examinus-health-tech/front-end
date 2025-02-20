@@ -6,4 +6,5 @@ export type IconProps = {
   solid?: boolean;
   duotone?: boolean;
   closed?: boolean;
+  variant?: 'monotone' | 'duotone' | 'solid';
 };

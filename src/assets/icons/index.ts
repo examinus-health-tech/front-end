@@ -56,6 +56,8 @@ import MusIcon from './components/mus';
 import PanIcon from './components/pan';
 import RinIcon from './components/rin';
 import SanIcon from './components/san';
+import CheckSquareIcon from './components/checkSquare';
+import CloseIcon from './components/close';
 
 export {
   ArrowIcon,
@@ -116,4 +118,6 @@ export {
   PanIcon,
   RinIcon,
   SanIcon,
+  CheckSquareIcon,
+  CloseIcon,
 };

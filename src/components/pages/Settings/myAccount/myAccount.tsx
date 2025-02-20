@@ -1,6 +1,6 @@
 import { useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, Image, View } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, Image, View, StatusBar } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
 // routes
@@ -37,34 +37,22 @@ export function MyAccount() {
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} py={24} mx={6} mb={12}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+      <VStack flex={1} py={16} mx={6} mb={12}>
         <Header title="Minha Conta" handleBackTo={() => navigation.navigate('homepage')} />
 
-        <Box bg={'gray.900'} w="100%" borderRadius={16} p={4}>
+        <Box bg={'gray.800'} w="100%" borderRadius={16} p={4}>
           <HStack space={3} alignItems={'center'}>
-            <Box
-              bg={'tranparent'}
-              w={20}
-              h={20}
-              borderRadius={12}
-              borderColor={'white'}
-              borderWidth={1}
-              alignItems={'center'}
-              justifyContent={'center'}
-            >
-              {/* <View>
-                <Image
-                  source={{
-                    uri: user.ImageUserUrl,
-                  }}
-                  alt="X examinus Logo"
-                  resizeMode="cover"
-                  borderWidth={2}
-                  w={20}
-                  h={20}
-                />
-              </View> */}
-            </Box>
+            <Image
+              source={{
+                uri: user.ImageUserUrl,
+              }}
+              size={20}
+              borderWidth={2}
+              borderColor="white"
+              rounded={10}
+            />
 
             <VStack flex={1} space={2}>
               <Text color={'white'} fontSize={22} fontWeight={800} letterSpacing={-0.36}>

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { TouchableOpacity, useWindowDimensions } from 'react-native';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Image, Badge } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Image, Badge, Center } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import ContentLoader, { Rect } from 'react-content-loader/native';
 
@@ -8,7 +8,7 @@ import ContentLoader, { Rect } from 'react-content-loader/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
-import { BellIcon, CalendarIcon, MoreIcon } from '@assets/icons';
+import { BellIcon, CalendarIcon, ChevronRightIcon, MoreIcon } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 import Vector2 from '@assets/png/vector-30.png';
 import Vector3 from '@assets/png/vector-39.png';
@@ -73,29 +73,34 @@ export function Homepage() {
         red: { title: 'risco alto', bgColor: 'red.100', icon: Vector4 },
       };
 
-      return systems.map((system) => (
-        <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
-          <Box bg={healthWalletStyleMap[system.color].bgColor} rounded="2xl" w={170} shadow={4} p={4}>
-            <VStack space={4}>
-              <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
-                {system.description}
-              </Text>
+      return systems.map((system, index) => {
+        if (index <= 3) {
+          return (
+            <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
+              <Box bg={healthWalletStyleMap[system.color].bgColor} rounded="2xl" w={170} shadow={4} p={4}>
+                <VStack space={4}>
+                  <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+                    {system.description}
+                  </Text>
 
-              <Image
-                source={healthWalletStyleMap[system.color].icon}
-                alt="Vetor"
-                resizeMode="contain"
-                size={24}
-                ml={4}
-              />
+                  <Image
+                    source={healthWalletStyleMap[system.color].icon}
+                    alt="Vetor"
+                    resizeMode="contain"
+                    size={24}
+                    ml={4}
+                  />
 
-              <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
-                {healthWalletStyleMap[system.color].title}
-              </Text>
-            </VStack>
-          </Box>
-        </TouchableOpacity>
-      ));
+                  <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
+                    {healthWalletStyleMap[system.color].title}
+                  </Text>
+                </VStack>
+              </Box>
+            </TouchableOpacity>
+          );
+        }
+        return null;
+      });
     }
   }
 
@@ -118,6 +123,9 @@ export function Homepage() {
           <Rect x="24" y="475" rx="16" ry="16" width={170} height={200} />
           <Rect x="208" y="475" rx="16" ry="16" width={170} height={200} />
           <Rect x="392" y="475" rx="16" ry="16" width={170} height={200} />
+          <Rect x="24" y="720" rx="8" ry="8" width={120} height={20} />
+          <Rect x="24" y="760" rx="8" ry="8" width={360} height={100} />
+          <Rect x="24" y="870" rx="8" ry="8" width={360} height={100} />
         </ContentLoader>
       ) : (
         <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
@@ -276,6 +284,19 @@ export function Homepage() {
                     {renderCardSystems()}
                   </HStack>
                 )}
+
+                {homeData?.systems?.length > 3 && (
+                  <VStack alignItems="center" justifyContent="center">
+                    <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
+                      <Center>
+                        <Text fontSize={16} fontWeight={500} letterSpacing={-0.16}>
+                          ver mais
+                        </Text>
+                        <ChevronRightIcon size="32" color="#0CC1AF" />
+                      </Center>
+                    </TouchableOpacity>
+                  </VStack>
+                )}
               </ScrollView>
             </HStack>
 
@@ -284,7 +305,7 @@ export function Homepage() {
                 Rastreador Fitness
               </Text>
 
-              <TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.navigate('tracker')}>
                 <MoreIcon />
               </TouchableOpacity>
             </HStack>

@@ -74,7 +74,6 @@ export function HealthWallet() {
 
       useEffect(() => {
         if (currentSystem?.nivel && currentSystem?.sistema) {
-          console.log('!@# 🚀 ~ useEffect ~ currentSystem:', currentSystem);
           navigation.navigate('heartScore');
         }
       }, [currentSystem]);

@@ -60,7 +60,6 @@ export function UploadContextProvider({ children }: UploudContextProviderProps) 
       });
 
       const data = response.data.data;
-      console.log('!@# 🚀 ~ handleUploadFile ~ data:', data);
 
       if (data.presigned_url) {
         const presigned_url = data.presigned_url;
@@ -108,7 +107,6 @@ export function UploadContextProvider({ children }: UploudContextProviderProps) 
     exame_date: string;
     detail: { exam_id: number; code_exam: string; value: string; reference_unit: string };
   }) {
-    console.log('!@# 🚀 ~ UploadContextProvider ~ payload:', payload);
     setIsLoading(true);
 
     try {

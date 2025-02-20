@@ -16,7 +16,7 @@ import { useEffect } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { useNavigation } from '@react-navigation/native';
-import { ActivityIndicator } from 'react-native';
+import Vector from '@assets/png/logo-animado-2.gif';
 
 export function OnboardingSteps() {
   const { step, handlePreviousStep, jumpToUpload, stepsMap, onboardingData } = useOnboarding();
@@ -71,8 +71,8 @@ export function OnboardingSteps() {
 
   if (isLoadingUserData) {
     return (
-      <Flex align="center" justify="center" h="100%">
-        <ActivityIndicator size="large" color="#00B39D" />
+      <Flex align="center" justify="center" h="100%" bgColor="gray.100">
+        <Image source={Vector} style={{ width: 80, height: 80 }} alt="Vector" />
       </Flex>
     );
   } else if (isLoading) {

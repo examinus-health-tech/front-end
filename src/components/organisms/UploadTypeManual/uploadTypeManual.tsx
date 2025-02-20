@@ -109,7 +109,6 @@ export function UploadTypeManual() {
   function adicionaExame() {
     const formData = { ...getValues(), code_exam: selectedExam.code_exam, exam_id: selectedExam.exam_id };
     const tempExamesManuais = [...examManual, formData];
-    console.log('!@# 🚀 ~ adicionaExame ~ tempExamesManuais:', tempExamesManuais);
 
     setExamManual(tempExamesManuais);
     setShowModal(false);
@@ -274,6 +273,7 @@ export function UploadTypeManual() {
                 <Pressable onPress={() => setShow(true)} w="100%">
                   <Input
                     label="Data do Exame"
+                    isRequired
                     keyboardType="numbers-and-punctuation"
                     h={10}
                     w={124}

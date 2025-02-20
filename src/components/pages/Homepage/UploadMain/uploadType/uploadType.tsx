@@ -5,7 +5,6 @@ import * as DocumentPicker from 'expo-document-picker';
 // assets
 import { EditIcon, UploadIcon } from '@assets/icons';
 import Vector1 from '@assets/png/vector-9.png';
-import { useState } from 'react';
 import { UploadTypeManual } from '../uploadTypeManual/uploadTypeManual';
 import { useUpload } from 'src/hooks/useUpload';
 import { useAuth } from 'src/hooks/useAuth';
@@ -108,12 +107,6 @@ export function UploadType() {
             </Box>
           </TouchableOpacity>
         </HStack>
-
-        <TouchableOpacity onPress={() => navigation.navigate('homepage')}>
-          <Text fontSize={16} fontWeight={600} letterSpacing={-0.16} color="gray.200" my={12}>
-            fazer isso mais tarde
-          </Text>
-        </TouchableOpacity>
 
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>

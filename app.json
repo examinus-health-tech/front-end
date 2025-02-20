@@ -7,9 +7,9 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "./assets/splash.mp4",
       "resizeMode": "contain",
-      "backgroundColor": "#0CC1AF"
+      "backgroundColor": "#0CC1AF",
     },
     "assetBundlePatterns": [
       "**/*"
@@ -46,6 +46,23 @@
           "iCloudContainerEnvironment": "Production"
         }
       ],
+      [
+        "expo-av"
+      ],
+      [
+        "react-native-video",
+        {
+          // ...
+          "enableNotificationControls": true,
+          "androidExtensions": {
+            "useExoplayerRtsp": false,
+            "useExoplayerSmoothStreaming": false,
+            "useExoplayerHls": false,
+            "useExoplayerDash": false
+          }
+          // ...
+        }
+      ]
       // [
       //   "expo-font",
       //   {
