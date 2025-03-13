@@ -1,0 +1,76 @@
+{
+  "expo": {
+    "name": "examinus-mobile",
+    "slug": "examinus-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.mp4",
+      "resizeMode": "contain",
+      "backgroundColor": "#0CC1AF",
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.examinus-mobile",
+      "jsEngine": "jsc"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anonymous.examinusmobile"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ee20a194-8f4e-4255-8661-d2ada754f33b"
+      }
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
+    },
+    "jsEngine": "hermes",
+    "plugins": [
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
+      [
+        "expo-av"
+      ],
+      [
+        "react-native-video",
+        {
+          // ...
+          "enableNotificationControls": true,
+          "androidExtensions": {
+            "useExoplayerRtsp": false,
+            "useExoplayerSmoothStreaming": false,
+            "useExoplayerHls": false,
+            "useExoplayerDash": false
+          }
+          // ...
+        }
+      ]
+      // [
+      //   "expo-font",
+      //   {
+      //     "fonts": [
+      //       "./src/assets/fonts/Poligon-Regular.ttf"
+      //     ]
+      //   }
+      // ]
+    ]
+  }
+}

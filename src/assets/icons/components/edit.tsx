@@ -1,0 +1,30 @@
+import { Svg, Path } from 'react-native-svg';
+import { IconProps } from '../icon.type';
+
+export default function EditIcon({ size = '24', color = 'white' }: IconProps) {
+  return (
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <Path
+        d="M12.5333 4H7C5.34314 4 4 5.34315 4 7V17C4 18.6569 5.34315 20 7 20H17C18.6569 20 20 18.6569 20 17V11.4667"
+        stroke={color}
+        stroke-width="2"
+      />
+      <Path
+        d="M16 5L17.9393 3.06066C18.5251 2.47487 19.4749 2.47487 20.0607 3.06066L20.9393 3.93934C21.5251 4.52513 21.5251 5.47487 20.9393 6.06066L19 8"
+        stroke={color}
+        stroke-width="2"
+      />
+      <Path
+        d="M10.4393 10.5607L16 5L19 8L13.4393 13.5607C13.158 13.842 12.7765 14 12.3787 14H10V11.6213C10 11.2235 10.158 10.842 10.4393 10.5607Z"
+        stroke={color}
+        stroke-width="2"
+      />
+    </Svg>
+  );
+}

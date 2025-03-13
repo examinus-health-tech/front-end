@@ -1,0 +1,59 @@
+{
+  "extends": "expo/tsconfig.base",
+  "includes": [
+    "styled-components.d.ts"
+  ],
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "./",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "paths": {
+      "@assets/icons": [
+        "./src/assets/icons/index"
+      ],
+      "@fonts": [
+        "./src/assets/fonts/*"
+      ],
+      "@assets/png/*": [
+        "./src/assets/png/*"
+      ],
+      "@assets/svg/*": [
+        "./src/assets/svg/*"
+      ],
+      "@components/*": [
+        "./src/components/*"
+      ],
+      "@routes/*": [
+        "./src/routes/*"
+      ],
+      "@contexts/*": [
+        "./src/contexts/*"
+      ],
+      "@screens/*": [
+        "./src/screens/*"
+      ],
+      "@atoms/*": [
+        "./src/components/atoms/*"
+      ],
+      "@molecules/*": [
+        "./src/components/molecules/*"
+      ],
+      "@organisms/*": [
+        "./src/components/organisms/*"
+      ],
+      "@pages/*": [
+        "./src/components/pages/*"
+      ],
+      "@storage/*": [
+        "./src/storage/*"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ],
+      "@dtos/*": [
+        "./dtos/*"
+      ]
+    }
+  },
+}
