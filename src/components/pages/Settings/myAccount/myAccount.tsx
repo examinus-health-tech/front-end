@@ -59,7 +59,7 @@ export function MyAccount() {
                 {userData.name} {userData.lastname}
               </Text>
               <Text color={'gray.200'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-                {user.email}
+                {user?.email}
               </Text>
             </VStack>
 

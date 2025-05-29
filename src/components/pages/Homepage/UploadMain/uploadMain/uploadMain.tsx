@@ -56,11 +56,11 @@ export function UploadMain() {
         </Text>
       </Center>
 
-      <Actionsheet isOpen={isOpen} onClose={onClose}>
+      {/* <Actionsheet isOpen={isOpen} onClose={onClose}>
         <Actionsheet.Content>
           <UploadType />
         </Actionsheet.Content>
-      </Actionsheet>
+      </Actionsheet> */}
     </VStack>
   );
 }

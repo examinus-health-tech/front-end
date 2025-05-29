@@ -6,3 +6,4 @@ export { Humour } from './Humour/humour';
 export { Habits } from './Habits/habits';
 export { Upload, UploadError } from './Upload';
 export { Score } from './Score/score';
+export { Height } from './Height/height';

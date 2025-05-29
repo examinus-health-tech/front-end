@@ -12,10 +12,10 @@ import { TouchableOpacity } from 'react-native';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useAuth } from 'src/hooks/useAuth';
 
-export type ISelectedHabit = 0 | 1 | 2 | 3 | 4;
+export type ISelectedHabit = 'X' | 'B' | 'V' | 'N' | '';
 
 export function Habits() {
-  const [selectedHabit, setSelectedHabit] = useState<ISelectedHabit>(1);
+  const [selectedHabit, setSelectedHabit] = useState<ISelectedHabit>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const toast = useToast();
 
@@ -24,30 +24,37 @@ export function Habits() {
 
   async function handleSaveOnboarding() {
     try {
-      const data = { ...onboardingData, eatingHabits: selectedHabit };
-      const payload = { ...data, email: user.email };
+      const payload = {
+        gender: onboardingData.gender,
+        weight: onboardingData.weight,
+        height: 0,
+        age: onboardingData.age,
+        workoutLevel: onboardingData.physicalLevel,
+        eatingHabits: selectedHabit,
+        email: user?.email,
+      };
 
       setIsLoading(true);
-      setOnboardingData(data);
+      setOnboardingData(payload);
       await saveOnboarding(payload);
     } catch (error) {
       const title = 'Não foi possível salvar seus dados';
 
-      toast.show({
-        borderRadius: '12',
-        title,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
-      });
+      // toast.show({
+      //   borderRadius: '12',
+      //   title,
+      //   _title: {
+      //     textAlign: 'center',
+      //     mx: '4',
+      //   },
+      //   _description: {
+      //     textAlign: 'center',
+      //     mx: '4',
+      //   },
+      //   placement: 'top',
+      //   color: 'gray.900',
+      //   bgColor: 'red.500',
+      // });
 
       setIsLoading(false);
     }
@@ -60,19 +67,19 @@ export function Habits() {
       </Text>
 
       <HStack flex={1} alignItems="center" space={4} justifyContent="center">
-        <TouchableOpacity onPress={() => setSelectedHabit(1)}>
+        <TouchableOpacity onPress={() => setSelectedHabit('X')}>
           <Box
-            bg={selectedHabit == 1 ? 'ciano.300' : 'white'}
+            bg={selectedHabit == 'X' ? 'ciano.300' : 'white'}
             w={180}
             flex={1}
             my={4}
             rounded="2xl"
             alignItems="center"
-            borderWidth={selectedHabit == 1 ? 4 : 0}
+            borderWidth={selectedHabit == 'X' ? 4 : 0}
             borderColor="gray.200"
           >
             <View position="absolute" right={3} top={3}>
-              <AppleIcon color={selectedHabit == 1 ? 'white' : '#444444'} />
+              <AppleIcon color={selectedHabit == 'X' ? 'white' : '#444444'} />
             </View>
             <Text
               position="absolute"
@@ -81,26 +88,26 @@ export function Habits() {
               fontSize={16}
               fontWeight={600}
               letterSpacing={-0.16}
-              color={selectedHabit == 1 ? 'white' : 'gray.900'}
+              color={selectedHabit == 'X' ? 'white' : 'gray.900'}
             >
-              Dieta{'\n'}Balanceada
+              Não faço dieta
             </Text>
           </Box>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setSelectedHabit(2)}>
+        <TouchableOpacity onPress={() => setSelectedHabit('B')}>
           <Box
-            bg={selectedHabit == 2 ? 'ciano.300' : 'white'}
+            bg={selectedHabit == 'B' ? 'ciano.300' : 'white'}
             w={180}
             flex={1}
             my={4}
             rounded="2xl"
             alignItems="center"
-            borderWidth={selectedHabit == 2 ? 4 : 0}
+            borderWidth={selectedHabit == 'B' ? 4 : 0}
             borderColor="gray.200"
           >
             <View position="absolute" right={3} top={3}>
-              <CoffeIcon color={selectedHabit == 2 ? 'white' : '#444444'} />
+              <CoffeIcon color={selectedHabit == 'B' ? 'white' : '#444444'} />
             </View>
             <Text
               position="absolute"
@@ -109,28 +116,28 @@ export function Habits() {
               fontSize={16}
               fontWeight={600}
               letterSpacing={-0.16}
-              color={selectedHabit == 2 ? 'white' : 'gray.900'}
+              color={selectedHabit == 'B' ? 'white' : 'gray.900'}
             >
-              Vegetariano
+              Dieta{'\n'}Balanceada
             </Text>
           </Box>
         </TouchableOpacity>
       </HStack>
 
       <HStack flex={1} alignItems="center" space={4} justifyContent="center" mb={8}>
-        <TouchableOpacity onPress={() => setSelectedHabit(3)}>
+        <TouchableOpacity onPress={() => setSelectedHabit('V')}>
           <Box
-            bg={selectedHabit == 3 ? 'ciano.300' : 'white'}
+            bg={selectedHabit == 'V' ? 'ciano.300' : 'white'}
             w={180}
             flex={1}
             my={4}
             rounded="2xl"
             alignItems="center"
-            borderWidth={selectedHabit == 3 ? 4 : 0}
+            borderWidth={selectedHabit == 'V' ? 4 : 0}
             borderColor="gray.200"
           >
             <View position="absolute" right={3} top={3}>
-              <DinnerIcon color={selectedHabit == 3 ? 'white' : '#444444'} />
+              <DinnerIcon color={selectedHabit == 'V' ? 'white' : '#444444'} />
             </View>
             <Text
               position="absolute"
@@ -139,26 +146,26 @@ export function Habits() {
               fontSize={16}
               fontWeight={600}
               letterSpacing={-0.16}
-              color={selectedHabit == 3 ? 'white' : 'gray.900'}
+              color={selectedHabit == 'V' ? 'white' : 'gray.900'}
             >
-              Low Carb
+              Vegetariano
             </Text>
           </Box>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setSelectedHabit(4)}>
+        <TouchableOpacity onPress={() => setSelectedHabit('N')}>
           <Box
-            bg={selectedHabit == 4 ? 'ciano.300' : 'white'}
+            bg={selectedHabit == 'N' ? 'ciano.300' : 'white'}
             w={180}
             flex={1}
             my={4}
             rounded="2xl"
             alignItems="center"
-            borderWidth={selectedHabit == 4 ? 4 : 0}
+            borderWidth={selectedHabit == 'N' ? 4 : 0}
             borderColor="gray.200"
           >
             <View position="absolute" right={3} top={3}>
-              <BoneIcon color={selectedHabit == 4 ? 'white' : '#444444'} />
+              <BoneIcon color={selectedHabit == 'N' ? 'white' : '#444444'} />
             </View>
             <Text
               position="absolute"
@@ -167,9 +174,9 @@ export function Habits() {
               fontSize={16}
               fontWeight={600}
               letterSpacing={-0.16}
-              color={selectedHabit == 4 ? 'white' : 'gray.900'}
+              color={selectedHabit == 'N' ? 'white' : 'gray.900'}
             >
-              Gluten Free
+              Nenhuma dessas
             </Text>
           </Box>
         </TouchableOpacity>

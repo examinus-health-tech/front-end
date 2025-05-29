@@ -1,8 +1,6 @@
 export type UserDTO = {
   email: string;
-  message: string;
-  ImageUserUrl: string;
-  AuthenticationResult: AuthenticationResultProps;
+  userId: string;
 };
 
 interface AuthenticationResultProps {

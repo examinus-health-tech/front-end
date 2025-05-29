@@ -82,7 +82,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   async function getHomeData() {
     setIsLoading(true);
     try {
-      const responseScore = await api.get('/health-wallet/list', { headers: { email: user.email } });
+      const responseScore = await api.get('/health-wallet/list', { headers: { email: user?.email } });
 
       const dataScore = responseScore.data.data;
 
@@ -91,7 +91,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       }
 
       const responseTracker = await api.get('/fitness-tracker/list', {
-        headers: { email: user.email, start_date: '2023-11-19', end_date: '2023-11-21' },
+        headers: { email: user?.email, start_date: '2023-11-19', end_date: '2023-11-21' },
       });
 
       const dataTracker = responseTracker.data.data;

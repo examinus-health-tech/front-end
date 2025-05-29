@@ -85,7 +85,7 @@ export function ExamList() {
   async function handleExamList() {
     try {
       setIsLoading(true);
-      await getExamList(user.email);
+      await getExamList(user?.email);
 
       setIsLoading(false);
     } catch (error) {

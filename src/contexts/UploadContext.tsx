@@ -15,7 +15,7 @@ type ExamProps = {
 
 export type UploadContextDataProps = {
   file: DocumentPickerAsset;
-  handleUploadFile: (email: string, filename: DocumentPickerAsset) => Promise<void>;
+  handleUploadFile: (file: DocumentPickerAsset) => Promise<void>;
   isLoading: boolean;
   setIsLoading: (state: boolean) => void;
   examList: ExamProps[];
@@ -34,13 +34,13 @@ export type UploadContextDataProps = {
   }) => void;
 };
 
-type UploudContextProviderProps = {
+type UploadContextProviderProps = {
   children: ReactNode;
 };
 
 export const UploadContext = createContext<UploadContextDataProps>({} as UploadContextDataProps);
 
-export function UploadContextProvider({ children }: UploudContextProviderProps) {
+export function UploadContextProvider({ children }: UploadContextProviderProps) {
   const [file, setFile] = useState<DocumentPickerAsset>({} as DocumentPickerAsset);
   const [withError, setWithError] = useState<boolean>(false);
   const [withSuccess, setWithSuccess] = useState<boolean>(false);
@@ -50,47 +50,41 @@ export function UploadContextProvider({ children }: UploudContextProviderProps) 
   const { showError } = useOnboarding();
   const toast = useToast();
 
-  async function handleUploadFile(email: string, file: DocumentPickerAsset) {
+  async function handleUploadFile(file: DocumentPickerAsset) {
+    console.log('!@# 🚀 ~ handleUploadFile ~ file:', file);
     setIsLoading(true);
 
     try {
-      const response = await api.post('/file/upload-exam-presigned', {
-        email,
-        filename: file.name,
-      });
+      const tempFile = {
+        name: file.name,
+        // size: file.size,
+        uri: file.uri,
+        type: file.mimeType,
+      } as any;
 
-      const data = response.data.data;
+      const bodyFormData = new FormData();
 
-      if (data.presigned_url) {
-        const presigned_url = data.presigned_url;
+      bodyFormData.append('file', tempFile);
 
-        const tempFile = {
-          name: file.name,
-          size: file.size,
-          uri: file.uri,
-          type: file.mimeType,
-        } as any;
+      let response;
 
-        const form = new FormData();
-        form.append('key', presigned_url.fields.key);
-        form.append('AWSAccessKeyId', presigned_url.fields.AWSAccessKeyId);
-        form.append('policy', presigned_url.fields.policy);
-        form.append('signature', presigned_url.fields.signature);
-        form.append('file', tempFile);
+      // const response = await api.post('medical-exam/form', bodyFormData, {
+      //   headers: {
+      //     'Content-type': 'multipart/form-data',
+      //   },
+      // });
+      console.log('!@# 🚀 ~ handleUploadFile ~ response:', response);
 
-        const response = api.post(presigned_url.url, form, {
-          headers: {
-            'Content-type': 'multipart/form-data',
-          },
-        });
-
+      setTimeout(() => {
+        console.log('!@# 🚀 ~ setTimeout ~ setTimeout:');
         setFile(tempFile);
         setIsLoading(false);
         setWithError(false);
         setScoreWarning(true);
         setWithSuccess(true);
-      }
+      }, 5000);
     } catch (error) {
+      console.log('!@# 🚀 ~ handleUploadFile ~ error:', error);
       showError();
       setWithError(true);
       setWithSuccess(false);

@@ -36,9 +36,7 @@ export function Physical() {
         Qual é o seu nível de atividade física atual?
       </Text>
 
-      <ZStack alignItems="center" justifyContent="center" mt={8}>
-        <Divider h={4} w="80%" bg="gray.300" borderRadius={10} />
-
+      <ZStack alignItems="center" justifyContent="center" mt={8} zIndex={1}>
         <HStack alignItems="center" space={8}>
           <TouchableOpacity onPress={() => setSelectedPhysical(1)} activeOpacity={0.8}>
             <Box
@@ -125,6 +123,8 @@ export function Physical() {
             </Box>
           </TouchableOpacity>
         </HStack>
+
+        <Divider h={4} w="80%" bg="gray.300" borderRadius={10} zIndex={-1} />
       </ZStack>
 
       <Center>

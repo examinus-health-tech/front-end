@@ -22,7 +22,7 @@ export type AuthContextDataProps = {
   userData: UserDataProps;
   getUserData: () => void;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (name: string, email: string, password: string, confirm_rules: boolean) => Promise<void>;
+  signUp: (name: string, email: string, password: string, confirm_password: string) => Promise<void>;
   confirmationCode: (email: string, code: string) => Promise<void>;
   resendConfirmationCode: (email: string) => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -45,17 +45,21 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   const [isLoadingUserStorageData, setIsLoadingUserStorageData] = useState<boolean>(false);
 
+  setTimeout(() => {
+    storageUserRemove();
+  }, 1000);
+
   async function userAndTokenUpdate(userData: UserDTO, token: string) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     setUser(userData);
   }
 
-  async function storageUserAndTokenSave(userData: UserDTO, token: string, refreshToken: string, idToken: string) {
+  async function storageUserAndTokenSave(userId: string, name: string, token: string) {
     try {
       setIsLoadingUserStorageData(true);
 
-      await storageUserSave(userData);
-      await storageAuthToken({ token, refreshToken, idToken });
+      await storageUserSave({ email: name, userId });
+      await storageAuthToken({ token });
     } catch (error) {
       throw error;
     } finally {
@@ -65,15 +69,15 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   async function forgotPassword(email: string) {
     try {
-      api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
-
-      const response = await api.post('/user/auth/forgot-password', {
+      const response = await api.post('password-reset', {
         email,
       });
       setEmailTemp(email);
 
       const data = response.data.data;
+      console.log('!@# 🚀 ~ forgotPassword ~ data:', data);
     } catch (error) {
+      console.log('!@# 🚀 ~ forgotPassword ~ error:', error);
       throw error;
     } finally {
       setIsLoadingUserStorageData(false);
@@ -82,11 +86,9 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   async function confirmationCode(email: string, code: string) {
     try {
-      api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
-
-      const response = await api.post('/user/auth/confirmation-code', {
+      const response = await api.post('password-reset/verify', {
         email,
-        confirmation_code: code,
+        code,
       });
 
       const data = response.data.data;
@@ -99,10 +101,11 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
 
   async function resendConfirmationCode(email: string) {
     try {
-      api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
-
-      const response = await api.post('/user/auth/resend-confirmation-code', {
+      const response = await api.post('password-reset/password-confirm-reset', {
+        fullName: name,
         email,
+        password,
+        confirmationPassword: confirm_password,
       });
 
       const data = response.data.data;
@@ -114,26 +117,23 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
   }
 
   async function signIn(email: string, password: string) {
-    try {
-      api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
+    api.defaults.headers.common['Content-Type'] = 'application/json';
 
-      const response = await api.post('/user/auth/start-sign', {
-        email,
+    try {
+      const response = await api.post('authentication', {
+        userName: email,
         password,
       });
 
       const data = response.data.data;
 
-      if (
-        data.email &&
-        data.AuthenticationResult?.AccessToken &&
-        data.AuthenticationResult?.RefreshToken &&
-        data.AuthenticationResult?.IdToken
-      ) {
-        const { AccessToken, RefreshToken, IdToken } = data.AuthenticationResult;
+      console.log('!@#', data);
 
-        await storageUserAndTokenSave(data, AccessToken, RefreshToken, IdToken);
-        userAndTokenUpdate(data, AccessToken);
+      if (data.userId && data.name && data.token) {
+        const { userId, name, token } = data;
+
+        await storageUserAndTokenSave(userId, name, token);
+        userAndTokenUpdate({ email: name, userId }, token);
       }
     } catch (error) {
       throw error;
@@ -142,14 +142,15 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     }
   }
 
-  async function signUp(name: string, email: string, password: string, confirm_rules: boolean) {
-    try {
-      api.defaults.headers.common['Authorization'] = 'Bearer tC4eivUAg3dEfhbYTTdpyIXWtC5xf78u';
+  async function signUp(name: string, email: string, password: string, confirm_password: string) {
+    api.defaults.headers.common['Content-Type'] = 'application/json';
 
-      await api.post('/user/auth/sign-up', {
-        name,
+    try {
+      const response = await api.post('users', {
+        fullName: name,
         email,
         password,
+        confirmationPassword: confirm_password,
       });
     } catch (error) {
       throw error;
@@ -193,7 +194,7 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     setIsLoadingUserData(true);
 
     try {
-      const response = await api.get('/user/list', { headers: { email: user.email } });
+      const response = await api.get('/user/list', { headers: { email: user?.email } });
 
       const data = response.data.data;
 
@@ -212,13 +213,13 @@ export function AuthContextProvider({ children }: AuthContextProviderProps) {
     loadUserData();
   }, []);
 
-  useEffect(() => {
-    const subscribe = api.registerInterceptTokenManager(signOut);
+  // useEffect(() => {
+  //   const subscribe = api.registerInterceptTokenManager(signOut);
 
-    return () => {
-      subscribe;
-    };
-  }, [signOut]);
+  //   return () => {
+  //     subscribe;
+  //   };
+  // }, [signOut]);
 
   return (
     <AuthContext.Provider

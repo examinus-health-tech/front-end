@@ -153,7 +153,7 @@ export function UploadTypeManual() {
       });
 
       const payload = {
-        email: user.email,
+        email: user?.email,
         doctor_name: examManual[0].medico,
         labor_name: examManual[0].lab,
         exam_date: examManual[0].data
@@ -200,17 +200,17 @@ export function UploadTypeManual() {
     }
   }
 
-  useEffect(() => {
-    getExamTypes(user.email);
-  }, []);
+  // useEffect(() => {
+  //   getExamTypes(user?.email);
+  // }, []);
 
-  useEffect(() => {
-    const tempExamOptions = examList.map(({ exam_id, code_exam }) => {
-      return { value: exam_id.toString(), label: code_exam };
-    });
+  // useEffect(() => {
+  //   const tempExamOptions = examList.map(({ exam_id, code_exam }) => {
+  //     return { value: exam_id.toString(), label: code_exam };
+  //   });
 
-    setExamOptions(tempExamOptions || []);
-  }, [examList]);
+  //   setExamOptions(tempExamOptions || []);
+  // }, [examList]);
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

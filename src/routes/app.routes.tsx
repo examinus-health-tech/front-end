@@ -21,6 +21,7 @@ import {
   OtpSecurity,
   PasswordConfig,
 } from '@components/pages/OnboardingSetup';
+import { UploadType } from '@components/organisms';
 
 export type AppRoutes = {
   gender: undefined;
@@ -229,7 +230,7 @@ export function AppRoutes() {
 
       {/** HOMEPAGE */}
       <Screen name="homepage" component={HomeTabs} />
-      <Screen name="upload" component={UploadMain} />
+      {/* <Screen name="upload" component={UploadMain} /> */}
       <Screen name="heartScore" component={HeartScore} />
 
       {/** EXAM */}

@@ -31,7 +31,12 @@ export function HeaderProgress({ progressValue, jumpTo, withBackButton }: Props)
 
       <VStack py={1}>
         {jumpTo && (
-          <TouchableOpacity onPress={jumpTo}>
+          <TouchableOpacity
+            onPress={() => {
+              console.log('!@#!@#');
+              jumpTo();
+            }}
+          >
             <Text fontSize={16} color="gray.900" lineHeight={25.6} fontWeight={500}>
               Pular
             </Text>

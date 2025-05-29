@@ -30,7 +30,7 @@ type FormDataProps = {
   email: string;
   password: string;
   confirm_password: string;
-  confirm_rules: boolean;
+  confirm_rules?: boolean;
 };
 
 const signUpSchema = yup.object({
@@ -62,10 +62,10 @@ export function SignUp() {
     resolver: yupResolver(signUpSchema),
   });
 
-  async function handleSignUp({ name, email, password, confirm_rules }: FormDataProps) {
+  async function handleSignUp({ name, email, password, confirm_password }: FormDataProps) {
     try {
       setIsLoading(true);
-      await signUp(name, email, password, confirm_rules);
+      await signUp(name, email, password, confirm_password);
 
       toast.show({
         borderRadius: '12',
@@ -83,13 +83,13 @@ export function SignUp() {
         bgColor: 'green.500',
       });
       navigation.navigate('signIn');
-    } catch (error) {
+    } catch (error: any) {
       const isAppError = error instanceof AppError;
 
       const title = isAppError
         ? 'Não foi possível criar sua conta'
         : 'Não foi possível criar sua conta.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
+      const description = error.response?.data?.message;
 
       toast.show({
         borderRadius: '12',

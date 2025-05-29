@@ -32,7 +32,7 @@ export function UploadType() {
 
       const tempFile = result.assets[0];
 
-      await handleUploadFile(user.email, tempFile);
+      await handleUploadFile(user?.email, tempFile);
     } catch (error) {
       const isAppError = error instanceof AppError;
 

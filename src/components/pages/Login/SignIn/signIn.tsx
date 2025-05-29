@@ -1,25 +1,8 @@
-import {
-  Divider,
-  Flex,
-  Text,
-  VStack,
-  Icon,
-  HStack,
-  Box,
-  useToast,
-} from 'native-base';
+import { Divider, Flex, Text, VStack, Icon, HStack, Box, useToast } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import {
-  EyeIcon,
-  FacebookIcon,
-  GmailIcon,
-  InstagramIcon,
-  LockIcon,
-  MailIcon,
-  UserIcon,
-} from '@assets/icons';
+import { EyeIcon, FacebookIcon, GmailIcon, InstagramIcon, LockIcon, MailIcon, UserIcon } from '@assets/icons';
 import { Input } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
@@ -61,13 +44,13 @@ export function SignIn() {
       setIsLoading(true);
 
       await signIn(data.email, data.password);
-    } catch (error) {
+    } catch (error: any) {
       const isAppError = error instanceof AppError;
 
       const title = isAppError
-        ? 'Não foi possível acessar sua conta'
-        : 'Não foi possível acessar sua conta.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
+        ? 'Não foi possível criar sua conta'
+        : 'Não foi possível criar sua conta.\nTente novamente mais tarde.';
+      const description = error.response?.data?.message;
 
       toast.show({
         borderRadius: '12',
@@ -100,26 +83,12 @@ export function SignIn() {
         py: 16,
       }}
     >
-      <Text
-        color="gray.900"
-        fontSize={32}
-        fontWeight={800}
-        lineHeight={38}
-        letterSpacing={-1.2}
-        mb={3}
-      >
+      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
         Entre
       </Text>
 
-      <Text
-        color="gray.500"
-        fontSize={16}
-        fontWeight={500}
-        lineHeight={24}
-        mb={4}
-      >
-        Faça login e simplifique sua saúde com nossa tecnologia de Inteligência
-        Artificial.
+      <Text color="gray.500" fontSize={16} fontWeight={500} lineHeight={24} mb={4}>
+        Faça login e simplifique sua saúde com nossa tecnologia de Inteligência Artificial.
       </Text>
 
       <VStack flex={1} space={2} mt={4}>
@@ -130,15 +99,7 @@ export function SignIn() {
             <Input
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
-                  <Icon
-                    as={
-                      <MailIcon
-                        solid
-                        color={!!errors.email?.message ? 'red' : 'black'}
-                      />
-                    }
-                    w="full"
-                  />
+                  <Icon as={<MailIcon solid color={!!errors.email?.message ? 'red' : 'black'} />} w="full" />
                 </Flex>
               }
               keyboardType="email-address"
@@ -159,24 +120,13 @@ export function SignIn() {
             <Input
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
-                  <Icon
-                    as={
-                      <LockIcon
-                        solid
-                        color={!!errors.password?.message ? 'red' : 'black'}
-                      />
-                    }
-                    w="full"
-                  />
+                  <Icon as={<LockIcon solid color={!!errors.password?.message ? 'red' : 'black'} />} w="full" />
                 </Flex>
               }
               InputRightElement={
                 <TouchableOpacity onPress={() => setIsTakeLook(!isTakeLook)}>
                   <Flex mr={4} align="center" justify="center">
-                    <Icon
-                      as={<EyeIcon solid color="#818BA0" closed={isTakeLook} />}
-                      w="full"
-                    />
+                    <Icon as={<EyeIcon solid color="#818BA0" closed={isTakeLook} />} w="full" />
                   </Flex>
                 </TouchableOpacity>
               }
@@ -215,12 +165,7 @@ export function SignIn() {
           }}
         >
           <Divider my={2} mx={2} w={160} />
-          <Text
-            color="gray.900"
-            fontSize={12}
-            fontWeight={600}
-            letterSpacing={-0.12}
-          >
+          <Text color="gray.900" fontSize={12} fontWeight={600} letterSpacing={-0.12}>
             Ou
           </Text>
           <Divider my={2} mx={2} w={160} />
@@ -268,24 +213,12 @@ export function SignIn() {
         </HStack>
 
         <HStack alignItems="center" justifyContent="center">
-          <Text
-            fontSize={14}
-            color="gray.400"
-            fontWeight={600}
-            letterSpacing={-0.14}
-          >
+          <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
             Não tem uma conta?
           </Text>
 
           <TouchableOpacity onPress={() => navigation.navigate('signUp')}>
-            <Text
-              fontSize={16}
-              color="purple.600"
-              fontWeight={600}
-              lineHeight={38}
-              underline
-              letterSpacing={-0.14}
-            >
+            <Text fontSize={16} color="purple.600" fontWeight={600} lineHeight={38} underline letterSpacing={-0.14}>
               {' '}
               Cadastre-se.
             </Text>

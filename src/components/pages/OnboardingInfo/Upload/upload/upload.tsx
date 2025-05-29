@@ -13,6 +13,8 @@ import Vector2 from '@assets/png/vector-17.png';
 import { Button } from '@components/atoms';
 import { UploadType } from '@components/organisms/UploadType/uploadType';
 import { useAuth } from 'src/hooks/useAuth';
+import { UploadContextProvider } from '@contexts/UploadContext';
+import { OnboardingContextProvider } from '@contexts/OnboardingContext';
 
 export function Upload() {
   const [isManual, setManual] = useState<boolean>(false);
@@ -43,9 +45,15 @@ export function Upload() {
       </Center>
 
       <Actionsheet isOpen={isOpen} onClose={onClose}>
-        <Actionsheet.Content>
-          <UploadType />
-        </Actionsheet.Content>
+        <UploadContextProvider>
+          <OnboardingContextProvider>
+            <UploadContextProvider>
+              <Actionsheet.Content>
+                <UploadType />
+              </Actionsheet.Content>
+            </UploadContextProvider>
+          </OnboardingContextProvider>
+        </UploadContextProvider>
       </Actionsheet>
     </VStack>
   );

@@ -12,13 +12,14 @@ import { useAuth } from 'src/hooks/useAuth';
 import { AppError } from '@utils/AppErrors';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
+import { useOnboarding } from 'src/hooks/useOnboarding';
 
 export function UploadType() {
   const { isOpen, onOpen, onClose } = useDisclose();
-  const { handleUploadFile } = useUpload();
+  const { handleUploadFile, setIsLoading } = useUpload();
   const { user } = useAuth();
   const toast = useToast();
-  const navigation = useNavigation<AppNavigatorRoutesProps>();
+  // const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   async function handleSelectFile() {
     try {
@@ -33,19 +34,22 @@ export function UploadType() {
 
       const tempFile = result.assets[0];
 
-      await handleUploadFile(user.email, tempFile);
+      console.log('!@# 🚀 ~ handleSelectFile ~ tempFile:', tempFile);
+
+      setIsLoading(true);
+
+      // await handleUploadFile(tempFile);
     } catch (error) {
+      console.log('!@# 🚀 ~ handleSelectFile ~ error:', error);
       const isAppError = error instanceof AppError;
 
       const title = isAppError
         ? 'Não foi possível fazer o upload'
         : 'Não foi possível fazer o upload.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
 
       toast.show({
         borderRadius: '12',
         title,
-        description,
         _title: {
           textAlign: 'center',
           mx: '4',
@@ -90,7 +94,7 @@ export function UploadType() {
             >
               <UploadIcon />
               <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="white" mt={1}>
-                Importar PDF
+                PDF
               </Text>
             </Box>
           </TouchableOpacity>
@@ -102,14 +106,14 @@ export function UploadType() {
           >
             <Box w={40} h={20} py={2} px={4} rounded="2xl" alignItems="center" borderWidth={4} borderColor="gray.50">
               <EditIcon color="#052B3B" />
-              <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="gray.400" mt={1}>
-                Inserir manual
+              <Text fontSize={17} fontWeight={700} letterSpacing={-0.18} color="gray.400" mt={1}>
+                Imagem
               </Text>
             </Box>
           </TouchableOpacity>
         </HStack>
 
-        <TouchableOpacity onPress={() => navigation.navigate('homepage')}>
+        <TouchableOpacity>
           <Text fontSize={16} fontWeight={600} letterSpacing={-0.16} color="gray.200" my={12}>
             fazer isso mais tarde
           </Text>

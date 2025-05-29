@@ -1,4 +1,4 @@
-import { Center, Flex, Image, Text, VStack } from 'native-base';
+import { Center, Container, Flex, Image, Text, VStack, View } from 'native-base';
 import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
 
 // routes
@@ -8,7 +8,7 @@ import XLogo from '@assets/png/x-examinus.png';
 
 // components
 import { HeaderProgress } from '@components/molecules';
-import { Gender, Weight, Age, Physical, Habits, Upload, UploadError } from '@components/pages/OnboardingInfo';
+import { Gender, Weight, Age, Physical, Habits, Upload, UploadError, Height } from '@components/pages/OnboardingInfo';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useUpload } from 'src/hooks/useUpload';
 import { ScoreWarning } from './ScoreWarning/scoreWarning';
@@ -40,6 +40,9 @@ export function OnboardingSteps() {
       }
       case 'weight': {
         return <Weight />;
+      }
+      case 'height': {
+        return <Height />;
       }
       case 'age': {
         return <Age />;

@@ -16,7 +16,7 @@ export function Routes() {
 
   return (
     <NavigationContainer theme={theme} ref={navigationRef}>
-      {user.AuthenticationResult ? <AppRoutes /> : <AuthRoutes />}
+      {user.userId ? <AppRoutes /> : <AuthRoutes />}
     </NavigationContainer>
   );
 }

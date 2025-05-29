@@ -153,7 +153,7 @@ export function UploadTypeManual() {
       });
 
       const payload = {
-        email: user.email,
+        email: user?.email,
         doctor_name: examManual[0].medico || 'Desconhecido',
         labor_name: examManual[0].lab || 'Desconhecido',
         exam_date: examManual[0].data
@@ -201,7 +201,7 @@ export function UploadTypeManual() {
   }
 
   useEffect(() => {
-    getExamTypes(user.email);
+    getExamTypes(user?.email);
   }, []);
 
   useEffect(() => {

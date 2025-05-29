@@ -2,6 +2,7 @@ import { ReactNode, createContext, useEffect, useState } from 'react';
 
 import { api } from 'src/services/api';
 import { OnboardingProps, stepProps } from 'src/@types/onboarding.type';
+import { DocumentPickerAsset } from 'expo-document-picker';
 
 export type OnboardingContextDataProps = {
   onboardingData: OnboardingProps;
@@ -14,6 +15,7 @@ export type OnboardingContextDataProps = {
   showScoreWarning: () => void;
   stepsMap: stepProps[];
   jumpToUpload: () => void;
+  handleUploadFile: (file: DocumentPickerAsset) => Promise<void>;
 };
 
 type OnboardingContextProviderProps = {
@@ -28,12 +30,18 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
   const [step, setStep] = useState<number>(0);
 
   const stepsMap: stepProps[] = [
-    { progress: 16, currentStep: 'gender', nextStep: 'weight' },
+    { progress: 12, currentStep: 'gender', nextStep: 'weight' },
     {
-      progress: 32,
+      progress: 24,
       currentStep: 'weight',
-      nextStep: 'age',
+      nextStep: 'height',
       previousStep: 'gender',
+    },
+    {
+      progress: 36,
+      currentStep: 'height',
+      nextStep: 'age',
+      previousStep: 'weight',
     },
     {
       progress: 48,
@@ -42,18 +50,18 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
       previousStep: 'weight',
     },
     {
-      progress: 64,
+      progress: 60,
       currentStep: 'physical',
       nextStep: 'habits',
       previousStep: 'age',
     },
     {
-      progress: 80,
+      progress: 72,
       currentStep: 'habits',
       nextStep: 'upload',
       previousStep: 'physical',
     },
-    { progress: 96, currentStep: 'upload', previousStep: 'habits' },
+    { progress: 84, currentStep: 'upload', previousStep: 'habits' },
     { currentStep: 'error', previousStep: 'upload' },
     { currentStep: 'score' },
   ];
@@ -86,16 +94,61 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
   }
 
   async function saveOnboarding(payload: OnboardingProps) {
+    console.log('!@# 🚀 ~ saveOnboarding ~ payload:', payload);
     try {
-      const response = await api.post('/user/change-attribute', payload);
+      const response = await api.post('user-personal-data', payload);
+      console.log('!@# 🚀 ~ saveOnboarding ~ payload:', payload);
+      console.log('!@# 🚀 ~ saveOnboarding ~ response:', response);
 
       const data = response.data.data;
+      console.log('!@# 🚀 ~ saveOnboarding ~ data:', data);
 
       if (data.code == 200) {
         setOnboardingData(payload);
         jumpToUpload();
       }
     } catch (error) {
+      console.log('!@# 🚀 ~ saveOnboarding ~ error:', error);
+
+      setOnboardingData(payload);
+      jumpToUpload();
+
+      throw error;
+    } finally {
+    }
+  }
+
+  async function handleUploadFile(file: DocumentPickerAsset) {
+    console.log('!@# 🚀 ~ handleUploadFile ~ file:', file);
+
+    try {
+      const tempFile = {
+        name: file.name,
+        size: file.size,
+        uri: file.uri,
+        type: file.mimeType,
+      } as any;
+
+      const form = new FormData();
+
+      form.append('file', tempFile);
+
+      const response = await api.post(
+        'medical-exam/form',
+        {
+          filename: file.name,
+        },
+        {
+          headers: {
+            'Content-type': 'multipart/form-data',
+          },
+        }
+      );
+      console.log('!@# 🚀 ~ handleUploadFile ~ response:', response);
+    } catch (error) {
+      console.log('!@# 🚀 ~ handleUploadFile ~ error:', error);
+      showError();
+
       throw error;
     } finally {
     }
@@ -114,6 +167,7 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
         jumpToUpload,
         showError,
         showScoreWarning,
+        handleUploadFile,
       }}
     >
       {children}

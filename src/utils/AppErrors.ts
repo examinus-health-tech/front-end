@@ -1,7 +1,7 @@
 export class AppError {
-  message: string;
+  response: { data: { data: string | null | object; message: string[]; success: boolean } };
 
-  constructor(message: string) {
-    this.message = message;
+  constructor(response: { data: { data: string | null; message: string[]; success: boolean } }) {
+    this.response = response;
   }
 }

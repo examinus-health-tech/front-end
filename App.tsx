@@ -32,8 +32,8 @@ export default function App() {
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <AuthContextProvider>
-        <OnboardingContextProvider>
-          <UploadContextProvider>
+        <UploadContextProvider>
+          <OnboardingContextProvider>
             <ExamContextProvider>
               <GestureHandlerRootView>
                 <BottomSheetModalProvider>
@@ -52,8 +52,8 @@ export default function App() {
                 </BottomSheetModalProvider>
               </GestureHandlerRootView>
             </ExamContextProvider>
-          </UploadContextProvider>
-        </OnboardingContextProvider>
+          </OnboardingContextProvider>
+        </UploadContextProvider>
       </AuthContextProvider>
     </NativeBaseProvider>
   );
