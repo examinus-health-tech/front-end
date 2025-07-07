@@ -1,5 +1,5 @@
 import { Image, Text, Center, Flex, HStack } from 'native-base';
-import { TouchableOpacity, TouchableOpacityBase } from 'react-native';
+import { TouchableOpacity } from 'react-native';
 
 import { useNavigation } from '@react-navigation/native';
 
@@ -17,7 +17,7 @@ export function Hello() {
 
   return (
     <Flex justify="space-evenly" h="100%" mt={8}>
-      <Image source={Vector} alt="Vetor" resizeMode="stretch" position="absolute" bottom={210} w="100%" h="35%" />
+      <Image source={Vector} alt="Vetor" resizeMode="stretch" position="absolute" bottom={230} w="100%" h="35%" />
 
       <Center>
         <LogoSvg />

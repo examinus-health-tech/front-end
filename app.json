@@ -6,11 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/splash.mp4",
-      "resizeMode": "contain",
-      "backgroundColor": "#0CC1AF",
-    },
+    "newArchEnabled": true,
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -52,7 +48,6 @@
       [
         "react-native-video",
         {
-          // ...
           "enableNotificationControls": true,
           "androidExtensions": {
             "useExoplayerRtsp": false,
@@ -60,17 +55,9 @@
             "useExoplayerHls": false,
             "useExoplayerDash": false
           }
-          // ...
         }
-      ]
-      // [
-      //   "expo-font",
-      //   {
-      //     "fonts": [
-      //       "./src/assets/fonts/Poligon-Regular.ttf"
-      //     ]
-      //   }
-      // ]
+      ],
+      "expo-font"
     ]
   }
 }

@@ -63,13 +63,13 @@ export function OnboardingSteps() {
   }
 
   useEffect(() => {
-    getUserData();
+    // getUserData();
   }, []);
 
   useEffect(() => {
-    if (userData.gender) {
-      navigation.navigate('homepage');
-    }
+    // if (userData.gender) {
+    //   navigation.navigate('homepage');
+    // }
   }, [userData]);
 
   if (isLoadingUserData) {

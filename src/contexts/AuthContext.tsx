@@ -1,241 +1,196 @@
-import { ReactNode, createContext, useEffect, useState } from 'react';
-
-import { storageUserGet, storageUserRemove, storageUserSave } from '@storage/storageUser';
-import { storageAuthToken, storageAuthTokenGet, storageAuthTokenRemove } from '@storage/storageAuthToken';
-import { UserDTO } from 'src/dtos/userDTO';
+import { createContext, useState, useEffect, type ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from 'src/services/api';
 
-type UserDataProps = {
-  name: string;
-  lastname: string;
-  phone: string;
-  birthdate: string;
-  gender: string;
-  weight: number;
-  height: number;
-  occupation: string;
-};
+interface User {
+  userId?: string;
+  name?: string;
+  token?: string;
+}
 
-export type AuthContextDataProps = {
-  user: UserDTO;
-  emailTemp: string;
-  userData: UserDataProps;
-  getUserData: () => void;
+interface AuthContextData {
+  user?: User | null;
+  isLoading: boolean;
+  error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (name: string, email: string, password: string, confirm_password: string) => Promise<void>;
-  confirmationCode: (email: string, code: string) => Promise<void>;
-  resendConfirmationCode: (email: string) => Promise<void>;
-  forgotPassword: (email: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string, confirmationPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
-  isLoadingUserStorageData: boolean;
-  isLoadingUserData: boolean;
-};
+  forgotPassword: (email: string) => Promise<void>;
+  verifyCode: (code: string) => Promise<void>;
+  resetPassword: (newPassword: string, confirmationPassword: string) => Promise<void>;
+  clearError: () => void;
+}
 
-type AuthContextProviderProps = {
+interface AuthProviderProps {
   children: ReactNode;
-};
+}
 
-export const AuthContext = createContext<AuthContextDataProps>({} as AuthContextDataProps);
+export const AuthContext = createContext<AuthContextData>({} as AuthContextData);
 
-export function AuthContextProvider({ children }: AuthContextProviderProps) {
-  const [user, setUser] = useState<UserDTO>({} as UserDTO);
-  const [emailTemp, setEmailTemp] = useState<string>('');
-  const [userData, setUserData] = useState<UserDataProps>({} as UserDataProps);
-  const [isLoadingUserData, setIsLoadingUserData] = useState<boolean>(false);
+export function AuthProvider({ children }: AuthProviderProps) {
+  const [user, setUser] = useState<User | null>(null);
+  const [resetCode, setResetCode] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [isLoadingUserStorageData, setIsLoadingUserStorageData] = useState<boolean>(false);
+  useEffect(() => {
+    loadStoredUser();
+  }, []);
 
-  setTimeout(() => {
-    storageUserRemove();
-  }, 1000);
-
-  async function userAndTokenUpdate(userData: UserDTO, token: string) {
-    api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    setUser(userData);
-  }
-
-  async function storageUserAndTokenSave(userId: string, name: string, token: string) {
+  async function loadStoredUser() {
     try {
-      setIsLoadingUserStorageData(true);
-
-      await storageUserSave({ email: name, userId });
-      await storageAuthToken({ token });
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoadingUserStorageData(false);
-    }
-  }
-
-  async function forgotPassword(email: string) {
-    try {
-      const response = await api.post('password-reset', {
-        email,
-      });
-      setEmailTemp(email);
-
-      const data = response.data.data;
-      console.log('!@# 🚀 ~ forgotPassword ~ data:', data);
-    } catch (error) {
-      console.log('!@# 🚀 ~ forgotPassword ~ error:', error);
-      throw error;
-    } finally {
-      setIsLoadingUserStorageData(false);
-    }
-  }
-
-  async function confirmationCode(email: string, code: string) {
-    try {
-      const response = await api.post('password-reset/verify', {
-        email,
-        code,
-      });
-
-      const data = response.data.data;
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoadingUserStorageData(false);
-    }
-  }
-
-  async function resendConfirmationCode(email: string) {
-    try {
-      const response = await api.post('password-reset/password-confirm-reset', {
-        fullName: name,
-        email,
-        password,
-        confirmationPassword: confirm_password,
-      });
-
-      const data = response.data.data;
-    } catch (error) {
-      throw error;
-    } finally {
-      setIsLoadingUserStorageData(false);
-    }
-  }
-
-  async function signIn(email: string, password: string) {
-    api.defaults.headers.common['Content-Type'] = 'application/json';
-
-    try {
-      const response = await api.post('authentication', {
-        userName: email,
-        password,
-      });
-
-      const data = response.data.data;
-
-      console.log('!@#', data);
-
-      if (data.userId && data.name && data.token) {
-        const { userId, name, token } = data;
-
-        await storageUserAndTokenSave(userId, name, token);
-        userAndTokenUpdate({ email: name, userId }, token);
+      const storedUser = await AsyncStorage.getItem('@app:user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
       }
     } catch (error) {
-      throw error;
+      console.error('Error loading user:', error);
     } finally {
-      setIsLoadingUserStorageData(false);
+      setIsLoading(false);
     }
   }
 
-  async function signUp(name: string, email: string, password: string, confirm_password: string) {
-    api.defaults.headers.common['Content-Type'] = 'application/json';
-
+  async function signIn(userName: string, password: string) {
     try {
-      const response = await api.post('users', {
-        fullName: name,
-        email,
+      setIsLoading(true);
+
+      const response = await api.post('authentication', {
+        userName,
         password,
-        confirmationPassword: confirm_password,
       });
-    } catch (error) {
+
+      const { data } = response;
+      const userData = data.data;
+
+      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
+
+      setUser(userData);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setError(errorMessage);
       throw error;
     } finally {
-      setIsLoadingUserStorageData(false);
+      setIsLoading(false);
+    }
+  }
+
+  async function signUp(fullname: string, email: string, password: string, confirmationPassword: string) {
+    try {
+      setIsLoading(true);
+
+      const response = await api.post('users', {
+        fullname,
+        email,
+        password,
+        confirmationPassword,
+      });
+
+      const { data } = response;
+
+      if (!response) {
+        throw new Error(data.message || 'Erro ao fazer login');
+      }
+
+      const userData = data.data;
+
+      console.log('!@# 🚀 ~ signUp ~ data:', data);
+
+      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
+
+      setUser(userData);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   }
 
   async function signOut() {
     try {
-      setIsLoadingUserStorageData(true);
-
-      setUser({} as UserDTO);
-      await storageUserRemove();
-      await storageAuthTokenRemove();
+      await AsyncStorage.removeItem('@app:user');
+      setUser(null);
     } catch (error) {
-      throw error;
-    } finally {
-      setIsLoadingUserStorageData(false);
+      console.error('Error signing out:', error);
     }
   }
 
-  async function loadUserData() {
+  async function forgotPassword(email: string) {
     try {
-      setIsLoadingUserStorageData(true);
+      setIsLoading(true);
 
-      const userLogged = await storageUserGet();
-      const { token } = await storageAuthTokenGet();
+      await api.post('password-reset/request', {
+        email,
+      });
 
-      if (token && userLogged) {
-        userAndTokenUpdate(userLogged, token);
-      }
-    } catch (error) {
+      const userData = { name: email };
+
+      setUser(userData);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setError(errorMessage);
       throw error;
     } finally {
-      setIsLoadingUserStorageData(false);
+      setIsLoading(false);
     }
   }
 
-  async function getUserData() {
-    setIsLoadingUserData(true);
-
+  async function verifyCode(code: string) {
     try {
-      const response = await api.get('/user/list', { headers: { email: user?.email } });
+      setIsLoading(true);
 
-      const data = response.data.data;
+      await api.post('password-reset/verify', {
+        email: user?.name,
+        code,
+      });
 
-      if (data.detail) {
-        setUserData(data.detail);
-        setIsLoadingUserData(false);
-      }
-    } catch (error) {
-      setIsLoadingUserData(false);
+      setResetCode(code);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setError(errorMessage);
       throw error;
     } finally {
+      setIsLoading(false);
     }
   }
 
-  useEffect(() => {
-    loadUserData();
-  }, []);
+  async function resetPassword(newPassword: string, confirmationPassword: string) {
+    try {
+      setIsLoading(true);
 
-  // useEffect(() => {
-  //   const subscribe = api.registerInterceptTokenManager(signOut);
+      await api.post('password-reset/password-confirm-reset', {
+        email: user?.name,
+        code: resetCode,
+        newPassword,
+        confirmationPassword,
+      });
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-  //   return () => {
-  //     subscribe;
-  //   };
-  // }, [signOut]);
+  function clearError() {
+    setError(null);
+  }
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        emailTemp,
+        error,
+        clearError,
+        isLoading,
         signIn,
         signUp,
         signOut,
-        confirmationCode,
-        resendConfirmationCode,
         forgotPassword,
-        isLoadingUserStorageData,
-        getUserData,
-        userData,
-        isLoadingUserData,
+        verifyCode,
+        resetPassword,
       }}
     >
       {children}

@@ -54,28 +54,22 @@ export function Code() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const toast = useToast();
 
-  const { confirmationCode, resendConfirmationCode, emailTemp } = useAuth();
+  const { verifyCode } = useAuth();
 
   async function handleConfirmationCode({ one, two, three, four, five, six }: FormDataProps) {
     try {
       setIsLoading(true);
       const code = one + two + three + four + five + six;
 
-      console.log(code, emailTemp);
-      await confirmationCode(emailTemp, code);
+      await verifyCode(code);
 
       navigation.navigate('passwordConfig');
-    } catch (error) {
-      const isAppError = error instanceof AppError;
-
-      const title = isAppError
-        ? 'Não foi possível encontrar sua conta.'
-        : 'Não foi possível encontrar sua conta.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
+    } catch (error: any) {
+      const description = error?.response?.data?.message;
 
       toast.show({
         borderRadius: '12',
-        title,
+        title: 'Não foi verificar o código',
         description,
         _title: {
           textAlign: 'center',
@@ -134,18 +128,20 @@ export function Code() {
     <VStack flex={1} py={20} mb={16}>
       <HeaderTitle title="Esqueci minha senha" withBackButton={() => navigation.navigate('forgotPassword')} />
 
-      <Text
-        color="gray.500"
-        fontSize={16}
-        fontWeight={500}
-        lineHeight={24}
-        m={8}
-        mt={32}
-        textAlign={'center'}
-        width={80}
-      >
-        Por favor, digite o código de 6 dígitos que você recebeu no seu e-mail! 🙏
-      </Text>
+      <Center>
+        <Text
+          color="gray.500"
+          fontSize={16}
+          fontWeight={500}
+          lineHeight={24}
+          m={8}
+          mt={32}
+          textAlign={'center'}
+          width={80}
+        >
+          Por favor, digite o código de 6 dígitos que você recebeu no seu e-mail! 🙏
+        </Text>
+      </Center>
 
       <HStack space={2} w="100%" justifyContent="center" pointerEvents="auto">
         <Controller

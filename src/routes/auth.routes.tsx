@@ -1,6 +1,6 @@
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import { Hello, Simplify, Health, StayCalm } from '@pages/Welcome';
+import { Simplify, Health, StayCalm, Hello } from '@pages/Welcome';
 import { SignIn, SignUp, ForgotPassword, SuccessLink, Code, PasswordConfig, SuccessPasswordChange } from '@pages/Login';
 
 type AuthRoutes = {

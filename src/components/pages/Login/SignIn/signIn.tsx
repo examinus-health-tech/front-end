@@ -45,16 +45,11 @@ export function SignIn() {
 
       await signIn(data.email, data.password);
     } catch (error: any) {
-      const isAppError = error instanceof AppError;
-
-      const title = isAppError
-        ? 'Não foi possível criar sua conta'
-        : 'Não foi possível criar sua conta.\nTente novamente mais tarde.';
-      const description = error.response?.data?.message;
+      const description = error?.response?.data?.message;
 
       toast.show({
         borderRadius: '12',
-        title,
+        title: 'Não foi possível criar sua conta',
         description,
         _title: {
           textAlign: 'center',

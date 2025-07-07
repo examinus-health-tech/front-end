@@ -4,12 +4,12 @@ import { Center, Flex, Image, NativeBaseProvider } from 'native-base';
 
 import { THEME } from './src/theme';
 import { Routes } from '@routes/index';
-import { AuthContextProvider } from '@contexts/AuthContext';
+import { AuthProvider } from '@contexts/AuthContext';
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
 import { UploadContextProvider } from '@contexts/UploadContext';
 import { HomeContextProvider } from '@contexts/HomeContext';
-import { Splash } from '@components/pages/Splash/splash';
-import Vector from '@assets/png/logo-animado-2.gif';
+// import { Splash } from '@components/pages/Splash/splash';
+// import Vector from '@assets/png/logo-animado-2.gif';
 import SplashImg from './assets/splash 2.png';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -31,7 +31,7 @@ export default function App() {
     <NativeBaseProvider theme={THEME}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <AuthContextProvider>
+      <AuthProvider>
         <UploadContextProvider>
           <OnboardingContextProvider>
             <ExamContextProvider>
@@ -42,11 +42,11 @@ export default function App() {
                       <Routes />
                     ) : (
                       // <Splash />
-                      <Image source={SplashImg} alt="Vector" resizeMode="cover" height="100%" />
-                      // <Flex align="center" justify="center" h="100%" bgColor="white">
-                      //   {/* <ActivityIndicator size="large" color="#00B39D" /> */}
-                      //   <Image source={Vector} style={{ width: 80, height: 80 }} alt="Vector" />
-                      // </Flex>
+                      // <Image source={SplashImg} alt="Vector" resizeMode="cover" height="100%" />
+                      <Flex align="center" justify="center" h="100%" bgColor="white">
+                        <ActivityIndicator size="large" color="#00B39D" />
+                        {/* <Image source={Vector} style={{ width: 80, height: 80 }} alt="Vector" /> */}
+                      </Flex>
                     )}
                   </HomeContextProvider>
                 </BottomSheetModalProvider>
@@ -54,7 +54,7 @@ export default function App() {
             </ExamContextProvider>
           </OnboardingContextProvider>
         </UploadContextProvider>
-      </AuthContextProvider>
+      </AuthProvider>
     </NativeBaseProvider>
   );
 }

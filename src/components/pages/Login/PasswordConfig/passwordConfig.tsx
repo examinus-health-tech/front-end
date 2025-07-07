@@ -69,26 +69,23 @@ export function PasswordConfig() {
   } = useForm<FormDataProps>({
     resolver: yupResolver(forgetSchema),
   });
-  const { forgotPassword } = useAuth();
+  const { resetPassword } = useAuth();
   const toast = useToast();
 
-  async function handleForgotPassword({ password }: FormDataProps) {
+  async function handleResetPassword({ password, confirm_password }: FormDataProps) {
+    console.log('!@# 🚀 ~ handleResetPassword ~ confirm_password:', confirm_password);
+    console.log('!@# 🚀 ~ handleResetPassword ~ password:', password);
     try {
       setIsLoading(true);
-      await forgotPassword(email);
+      await resetPassword(password, confirm_password);
 
-      navigation.navigate('successLink');
-    } catch (error) {
-      const isAppError = error instanceof AppError;
-
-      const title = isAppError
-        ? 'Não foi possível encontrar sua conta.'
-        : 'Não foi possível encontrar sua conta.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
+      navigation.navigate('successPasswordChange');
+    } catch (error: any) {
+      const description = error?.response?.data?.message;
 
       toast.show({
         borderRadius: '12',
-        title,
+        title: 'Não foi possivel salvar nova senha',
         description,
         _title: {
           textAlign: 'center',
@@ -177,8 +174,9 @@ export function PasswordConfig() {
                   </TouchableOpacity>
                 }
                 h={16}
-                fontSize={24}
-                letterSpacing={4}
+                fontSize={20}
+                paddingLeft={4}
+                letterSpacing={1}
                 borderRadius={12}
                 secureTextEntry={!isTakeLook}
                 label="Nava Senha"
@@ -207,8 +205,9 @@ export function PasswordConfig() {
                   </TouchableOpacity>
                 }
                 h={16}
-                fontSize={24}
-                letterSpacing={4}
+                fontSize={20}
+                paddingLeft={4}
+                letterSpacing={1}
                 borderRadius={12}
                 secureTextEntry={!isTakeLook}
                 label="Confirmar Senha"
@@ -341,7 +340,8 @@ export function PasswordConfig() {
             size="full"
             title="Continuar"
             icon={<ArrowIcon />}
-            onPress={handleSubmit(handleForgotPassword)}
+            isLoading={isLoading}
+            onPress={handleSubmit(handleResetPassword)}
           />
         </HStack>
       </VStack>

@@ -16,7 +16,9 @@ export function Routes() {
 
   return (
     <NavigationContainer theme={theme} ref={navigationRef}>
-      {user.userId ? <AppRoutes /> : <AuthRoutes />}
+      {/* {user?.userId ? <AppRoutes /> : <AuthRoutes />} */}
+
+      <AuthRoutes />
     </NavigationContainer>
   );
 }

@@ -58,17 +58,12 @@ export function ForgotPassword() {
       await forgotPassword(email);
 
       navigation.navigate('successLink');
-    } catch (error) {
-      const isAppError = error instanceof AppError;
-
-      const title = isAppError
-        ? 'Não foi possível encontrar sua conta.'
-        : 'Não foi possível encontrar sua conta.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
+    } catch (error: any) {
+      const description = error?.response?.data?.message;
 
       toast.show({
         borderRadius: '12',
-        title,
+        title: 'Não foi possível encontrar seu email',
         description,
         _title: {
           textAlign: 'center',

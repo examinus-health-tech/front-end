@@ -1,5 +1,5 @@
 import { TextInput } from 'react-native';
-import styled from 'styled-components';
+import styled from 'styled-components/native';
 
 export const InputStyled = styled(TextInput).attrs((props) => ({
   placeholderTextColor: props.focused ? 'transparent' : '#BEC5D2',
