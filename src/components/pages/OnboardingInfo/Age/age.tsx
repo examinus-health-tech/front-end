@@ -1,5 +1,5 @@
 import { Box, HStack, Image, ScrollView, Text, VStack } from 'native-base';
-import { useEffect, useState } from 'react';
+import React, { Ref, useEffect, useState, useRef } from 'react';
 
 // routes
 
@@ -21,7 +21,8 @@ import { useOnboarding } from 'src/hooks/useOnboarding';
 export function Age() {
   const [selectedAge, setSelectedAge] = useState<number>(20);
   const [coordinate, setCoordinate] = useState<number[]>([]);
-  const [ref, setRef] = useState<string>('');
+  const scrollView = useRef(null);
+  const ref = React.useRef(0);
 
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
 
@@ -71,9 +72,7 @@ export function Age() {
     return (
       <ScrollView
         horizontal
-        ref={(ref: string) => {
-          setRef(ref);
-        }}
+        ref={scrollView}
         mx={-6}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
@@ -85,15 +84,21 @@ export function Age() {
     );
   }
 
-  useEffect(() => {
-    if (coordinate.length > selectedAge) {
-      ref?.scrollTo({
-        x: 0,
-        y: coordinate[selectedAge - 3] + 120,
-        animated: true,
-      });
+  function scrollToCord() {
+    const newCord = selectedAge * 96;
+
+    if (scrollView.current) {
+      scrollView.current.scrollTo({ x: newCord - 234, y: 0, animated: true });
     }
-  }, []);
+  }
+
+  useEffect(() => {
+    if (!!selectedAge) {
+      setTimeout(() => {
+        scrollToCord();
+      }, 50);
+    }
+  }, [selectedAge]);
 
   return (
     <VStack flex={1} mx={6} space={8}>

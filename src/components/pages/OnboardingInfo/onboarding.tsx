@@ -19,10 +19,18 @@ import { useNavigation } from '@react-navigation/native';
 import Vector from '@assets/png/logo-animado-2.gif';
 
 export function OnboardingSteps() {
-  const { step, handlePreviousStep, jumpToUpload, stepsMap, onboardingData } = useOnboarding();
-  const { isLoading, scoreWarning } = useUpload();
+  const {
+    step,
+    handlePreviousStep,
+    jumpToUpload,
+    stepsMap,
+    getPersonalData,
+    personalData,
+    isLoadingOnboardingContext,
+    isLoadingUpload,
+    scoreWarning,
+  } = useOnboarding();
   const shake = useSharedValue(0);
-  const { userData, getUserData, isLoadingUserData } = useAuth();
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const shakeStyle = useAnimatedStyle(() => {
@@ -63,22 +71,24 @@ export function OnboardingSteps() {
   }
 
   useEffect(() => {
-    // getUserData();
+    getPersonalData();
   }, []);
 
   useEffect(() => {
-    // if (userData.gender) {
-    //   navigation.navigate('homepage');
-    // }
-  }, [userData]);
+    console.log('!@# 🚀 ~ personalData:', personalData);
 
-  if (isLoadingUserData) {
+    if (personalData) navigation.navigate('homepage');
+  }, [personalData]);
+
+  console.log('!@# 🚀 ~ OnboardingSteps ~ isLoadingUpload:', isLoadingUpload);
+
+  if (isLoadingOnboardingContext) {
     return (
       <Flex align="center" justify="center" h="100%" bgColor="gray.100">
         <Image source={Vector} style={{ width: 80, height: 80 }} alt="Vector" />
       </Flex>
     );
-  } else if (isLoading) {
+  } else if (isLoadingUpload) {
     return (
       <VStack flex={1} bg={'gray.800'} space={8} py={24} px={6} justifyContent={'center'}>
         <Center>

@@ -11,7 +11,7 @@ import {
   ScrollView,
   IScrollViewProps,
 } from 'native-base';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Platform, KeyboardAvoidingView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -46,7 +46,7 @@ export function ForgotPassword() {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormDataProps>({
+  } = useForm({
     resolver: yupResolver(forgetSchema),
   });
   const { forgotPassword } = useAuth();
@@ -83,59 +83,61 @@ export function ForgotPassword() {
   }
 
   return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} mb={4}>
-      <VStack flex={1} py={20} mb={16}>
-        <HeaderTitle title="Esqueci minha senha" withBackButton={() => navigation.navigate('signIn')} />
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }} keyboardVerticalOffset={0} enabled>
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+        <VStack flex={1} py={20} pb={16}>
+          <HeaderTitle title="Esqueci minha senha" withBackButton={() => navigation.navigate('signIn')} />
 
-        <Image source={Vector} alt="Vetor" resizeMode="stretch" h={80} mt={4} />
+          <Image source={Vector} alt="Vetor" resizeMode="stretch" h={80} mt={4} />
 
-        <Flex mx={6}>
-          <Stack mt={6} space={6}>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  InputLeftElement={
-                    <Flex ml={4} align="center" justify="center">
-                      <Icon as={<MailIcon solid color={!!errors.email?.message ? 'red' : 'black'} />} w="full" />
-                    </Flex>
-                  }
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  label="Confirme seu e-mail para continuar"
-                  onChangeText={onChange}
-                  value={value}
-                  isInvalid={!!errors.email?.message}
-                  errorMessage={errors.email?.message}
-                />
-              )}
+          <Flex mx={6}>
+            <Stack mt={6} space={6}>
+              <Controller
+                control={control}
+                name="email"
+                render={({ field: { onChange, value } }) => (
+                  <Input
+                    InputLeftElement={
+                      <Flex ml={4} align="center" justify="center">
+                        <Icon as={<MailIcon solid color={!!errors.email?.message ? 'red' : 'black'} />} w="full" />
+                      </Flex>
+                    }
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    label="Confirme seu e-mail para continuar"
+                    onChangeText={onChange}
+                    value={value}
+                    isInvalid={!!errors.email?.message}
+                    errorMessage={errors.email?.message}
+                  />
+                )}
+              />
+            </Stack>
+
+            <Button
+              variant="primary"
+              size="full"
+              title="Enviar"
+              mt={6}
+              onPress={handleSubmit(handleForgotPassword)}
+              isLoading={isLoading}
             />
-          </Stack>
 
-          <Button
-            variant="primary"
-            size="full"
-            title="Enviar"
-            mt={6}
-            onPress={handleSubmit(handleForgotPassword)}
-            isLoading={isLoading}
-          />
-
-          <HStack alignItems="center" justifyContent="center" mt={2}>
-            <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
-              Já tem uma conta?
-            </Text>
-
-            <TouchableOpacity onPress={() => navigation.navigate('signIn')}>
-              <Text fontSize={16} color="purple.600" fontWeight={600} lineHeight={38} underline letterSpacing={-0.14}>
-                {' '}
-                Conecte-se.
+            <HStack alignItems="center" justifyContent="center" mt={2}>
+              <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
+                Já tem uma conta?
               </Text>
-            </TouchableOpacity>
-          </HStack>
-        </Flex>
-      </VStack>
-    </ScrollView>
+
+              <TouchableOpacity onPress={() => navigation.navigate('signIn')}>
+                <Text fontSize={16} color="purple.600" fontWeight={600} lineHeight={38} underline letterSpacing={-0.14}>
+                  {' '}
+                  Conecte-se.
+                </Text>
+              </TouchableOpacity>
+            </HStack>
+          </Flex>
+        </VStack>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

@@ -1,29 +1,25 @@
-import { Platform, TouchableOpacity } from 'react-native';
-import { VStack, Text, Image, Center, Box, HStack, Actionsheet, useDisclose, Container, useToast } from 'native-base';
-import * as DocumentPicker from 'expo-document-picker';
+import { TouchableOpacity } from 'react-native';
+import { VStack, Text, Image, Center, Box, HStack } from 'native-base';
+import { DocumentPickerAsset, getDocumentAsync } from 'expo-document-picker';
 
 // assets
 import { EditIcon, UploadIcon } from '@assets/icons';
 import Vector1 from '@assets/png/vector-9.png';
-import { useState } from 'react';
-import { UploadTypeManual } from '../UploadTypeManual/uploadTypeManual';
-import { useUpload } from 'src/hooks/useUpload';
-import { useAuth } from 'src/hooks/useAuth';
-import { AppError } from '@utils/AppErrors';
-import { useNavigation } from '@react-navigation/native';
-import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 
-export function UploadType() {
-  const { isOpen, onOpen, onClose } = useDisclose();
-  const { handleUploadFile, setIsLoading } = useUpload();
-  const { user } = useAuth();
-  const toast = useToast();
-  // const navigation = useNavigation<AppNavigatorRoutesProps>();
-
+export function UploadType({
+  setIsCameraOpen,
+  navigation,
+  handleUploadFileFromOnboarding,
+}: {
+  setIsCameraOpen: (data: boolean) => void;
+  handleUploadFileFromOnboarding: (file: DocumentPickerAsset) => void;
+  navigation: object;
+}) {
   async function handleSelectFile() {
+    console.log('!@# 🚀 ~ handleSelectFile ~ handleSelectFile:');
     try {
-      const result = await DocumentPicker.getDocumentAsync({
+      const result = await getDocumentAsync({
         type: 'application/pdf',
         multiple: false,
       });
@@ -32,53 +28,23 @@ export function UploadType() {
         return;
       }
 
-      const tempFile = result.assets[0];
+      const file = result.assets[0];
 
-      console.log('!@# 🚀 ~ handleSelectFile ~ tempFile:', tempFile);
-
-      setIsLoading(true);
-
-      // await handleUploadFile(tempFile);
-    } catch (error) {
-      console.log('!@# 🚀 ~ handleSelectFile ~ error:', error);
-      const isAppError = error instanceof AppError;
-
-      const title = isAppError
-        ? 'Não foi possível fazer o upload'
-        : 'Não foi possível fazer o upload.\nTente novamente mais tarde.';
-
-      toast.show({
-        borderRadius: '12',
-        title,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
-      });
-    }
+      await handleUploadFileFromOnboarding(file);
+    } catch (error) {}
   }
 
   return (
     <Center>
       <VStack alignItems="center" mt={12} mx={4}>
         <Image source={Vector1} defaultSource={Vector1} alt="Vetor" resizeMode="stretch" h={56} />
-
         <Text mt={8} fontSize={24} fontWeight={800} letterSpacing={-0.24} textAlign="center">
           Como você deseja{'\n'}importar seu exame?
         </Text>
-
         <Text fontSize={14} fontWeight={500} lineHeight={22.4} color="gray.300" textAlign="center" mt={2}>
           Selecione a opção abaixo para que{'\n'}
           possamos simplificar sua saúde:
         </Text>
-
         <HStack space={4} mt={8}>
           <TouchableOpacity onPress={handleSelectFile}>
             <Box
@@ -99,11 +65,7 @@ export function UploadType() {
             </Box>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => {
-              onOpen();
-            }}
-          >
+          <TouchableOpacity onPress={() => setIsCameraOpen(true)}>
             <Box w={40} h={20} py={2} px={4} rounded="2xl" alignItems="center" borderWidth={4} borderColor="gray.50">
               <EditIcon color="#052B3B" />
               <Text fontSize={17} fontWeight={700} letterSpacing={-0.18} color="gray.400" mt={1}>
@@ -112,18 +74,11 @@ export function UploadType() {
             </Box>
           </TouchableOpacity>
         </HStack>
-
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => navigation.navigate('homepage')}>
           <Text fontSize={16} fontWeight={600} letterSpacing={-0.16} color="gray.200" my={12}>
             fazer isso mais tarde
           </Text>
         </TouchableOpacity>
-
-        <Actionsheet isOpen={isOpen} onClose={onClose}>
-          <Actionsheet.Content>
-            <UploadTypeManual />
-          </Actionsheet.Content>
-        </Actionsheet>
       </VStack>
     </Center>
   );

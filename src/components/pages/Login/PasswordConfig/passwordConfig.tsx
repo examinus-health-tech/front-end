@@ -1,17 +1,5 @@
-import {
-  Stack,
-  Text,
-  Flex,
-  Center,
-  Icon,
-  HStack,
-  useToast,
-  VStack,
-  Image,
-  Box,
-  KeyboardAvoidingView,
-} from 'native-base';
-import { Platform, TouchableOpacity } from 'react-native';
+import { Text, Flex, Icon, HStack, useToast, VStack, Box } from 'native-base';
+import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -25,9 +13,6 @@ import { HeaderTitle, Input } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useEffect, useState } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
-import { AppError } from '@utils/AppErrors';
-
-import Vector from '@assets/png/vector-42.png';
 
 type FormDataProps = {
   password: string;
@@ -66,15 +51,13 @@ export function PasswordConfig() {
     handleSubmit,
     getValues,
     formState: { errors },
-  } = useForm<FormDataProps>({
+  } = useForm({
     resolver: yupResolver(forgetSchema),
   });
   const { resetPassword } = useAuth();
   const toast = useToast();
 
   async function handleResetPassword({ password, confirm_password }: FormDataProps) {
-    console.log('!@# 🚀 ~ handleResetPassword ~ confirm_password:', confirm_password);
-    console.log('!@# 🚀 ~ handleResetPassword ~ password:', password);
     try {
       setIsLoading(true);
       await resetPassword(password, confirm_password);
@@ -156,7 +139,7 @@ export function PasswordConfig() {
       <HeaderTitle withBackButton={() => navigation.navigate('code')} />
 
       <VStack mx={6}>
-        <Text fontSize={32} fontWeight={600} letterSpacing={-1.4}>
+        <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2}>
           Configuração de senha
         </Text>
 

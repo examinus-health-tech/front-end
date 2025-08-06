@@ -6,6 +6,7 @@ interface User {
   userId?: string;
   name?: string;
   token?: string;
+  fullName?: string;
 }
 
 interface AuthContextData {
@@ -19,6 +20,7 @@ interface AuthContextData {
   verifyCode: (code: string) => Promise<void>;
   resetPassword: (newPassword: string, confirmationPassword: string) => Promise<void>;
   clearError: () => void;
+  getUserInfo: () => void;
 }
 
 interface AuthProviderProps {
@@ -40,8 +42,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   async function loadStoredUser() {
     try {
       const storedUser = await AsyncStorage.getItem('@app:user');
+      console.log('!@# storedUser', storedUser);
       if (storedUser) {
         setUser(JSON.parse(storedUser));
+      } else {
+        setUser(null);
       }
     } catch (error) {
       console.error('Error loading user:', error);
@@ -66,6 +71,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setUser(userData);
     } catch (error: any) {
+      console.log('error', error.message);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setError(errorMessage);
       throw error;
@@ -92,8 +98,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       const userData = data.data;
-
-      console.log('!@# 🚀 ~ signUp ~ data:', data);
 
       await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
 
@@ -174,6 +178,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
+  async function getUserInfo() {
+    try {
+      setIsLoading(true);
+
+      const response = await api.get('/users/' + user?.userId);
+
+      const newUserContent = {
+        ...user,
+        ...response.data.data,
+      };
+
+      setUser(newUserContent);
+    } catch (error: any) {
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      setError(errorMessage);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   function clearError() {
     setError(null);
   }
@@ -191,6 +216,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         forgotPassword,
         verifyCode,
         resetPassword,
+        getUserInfo,
       }}
     >
       {children}

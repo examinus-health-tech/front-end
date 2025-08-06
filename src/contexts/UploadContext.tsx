@@ -1,7 +1,6 @@
-import { ReactNode, createContext, useState } from 'react';
+import { ReactNode, createContext, useEffect, useState } from 'react';
 import { DocumentPickerAsset } from 'expo-document-picker';
 import { api } from 'src/services/api';
-import { useOnboarding } from 'src/hooks/useOnboarding';
 import { AppError } from '@utils/AppErrors';
 import { useToast } from 'native-base';
 
@@ -16,7 +15,7 @@ type ExamProps = {
 export type UploadContextDataProps = {
   file: DocumentPickerAsset;
   handleUploadFile: (file: DocumentPickerAsset) => Promise<void>;
-  isLoading: boolean;
+  isLoadingUploadContext: boolean;
   setIsLoading: (state: boolean) => void;
   examList: ExamProps[];
   getExamTypes: (email: string) => void;
@@ -44,52 +43,41 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   const [file, setFile] = useState<DocumentPickerAsset>({} as DocumentPickerAsset);
   const [withError, setWithError] = useState<boolean>(false);
   const [withSuccess, setWithSuccess] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingUploadContext, setIsLoading] = useState<boolean>(false);
   const [scoreWarning, setScoreWarning] = useState<boolean>(false);
   const [examList, setExamList] = useState([]);
-  const { showError } = useOnboarding();
   const toast = useToast();
 
-  async function handleUploadFile(file: DocumentPickerAsset) {
-    console.log('!@# 🚀 ~ handleUploadFile ~ file:', file);
+  async function handleUploadFile({ name, mimeType, uri }: DocumentPickerAsset) {
+    console.log('!@# 🚀 ~ handleUploadFile ~ handleUploadFile:');
     setIsLoading(true);
-
     try {
-      const tempFile = {
-        name: file.name,
-        // size: file.size,
-        uri: file.uri,
-        type: file.mimeType,
+      const file = {
+        name: name,
+        type: mimeType || 'application/pdf',
+        uri: uri,
       } as any;
 
       const bodyFormData = new FormData();
+      bodyFormData.append('File', file);
 
-      bodyFormData.append('file', tempFile);
+      await api.post('medical-exam/form', bodyFormData, {
+        headers: {
+          'Content-type': 'multipart/form-data',
+          Accept: 'application/octet-stream',
+        },
+      });
 
-      let response;
-
-      // const response = await api.post('medical-exam/form', bodyFormData, {
-      //   headers: {
-      //     'Content-type': 'multipart/form-data',
-      //   },
-      // });
-      console.log('!@# 🚀 ~ handleUploadFile ~ response:', response);
-
-      setTimeout(() => {
-        console.log('!@# 🚀 ~ setTimeout ~ setTimeout:');
-        setFile(tempFile);
-        setIsLoading(false);
-        setWithError(false);
-        setScoreWarning(true);
-        setWithSuccess(true);
-      }, 5000);
+      setFile(file);
+      setWithSuccess(true);
+      setWithError(false);
     } catch (error) {
       console.log('!@# 🚀 ~ handleUploadFile ~ error:', error);
-      showError();
-      setWithError(true);
       setWithSuccess(false);
+      setWithError(true);
       throw error;
     } finally {
+      console.log('!@# 🚀 ~ handleUploadFile ~ finally:');
       setIsLoading(false);
     }
   }
@@ -167,7 +155,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
       value={{
         file,
         handleUploadFile,
-        isLoading,
+        isLoadingUploadContext,
         setIsLoading,
         examList,
         getExamTypes,

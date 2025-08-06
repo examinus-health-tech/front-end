@@ -60,7 +60,7 @@ export function ExamList() {
     reset,
     resetField,
     formState: { errors },
-  } = useForm<FormDataProps>({
+  } = useForm({
     defaultValues: {},
     resolver: yupResolver(uploadFormSchema),
   });
@@ -85,7 +85,7 @@ export function ExamList() {
   async function handleExamList() {
     try {
       setIsLoading(true);
-      await getExamList(user?.email);
+      await getExamList();
 
       setIsLoading(false);
     } catch (error) {
@@ -97,7 +97,7 @@ export function ExamList() {
     return (
       <TouchableOpacity onPress={() => navigation.navigate('exam')}>
         <HStack justifyContent="space-between" alignItems="center" space={6} flex={1}>
-          <Box bg="gray.200" borderRadius={16} w={20} h={16} alignItems="center" justifyContent="center">
+          <Box bg="gray.100" borderRadius={16} w={20} h={16} alignItems="center" justifyContent="center">
             <FlaskIcon size="36" variant="duotone" />
           </Box>
 
@@ -122,7 +122,6 @@ export function ExamList() {
   }
 
   useEffect(() => {
-    console.log('!@# useEffect');
     handleExamList();
   }, []);
 
@@ -148,16 +147,18 @@ export function ExamList() {
         />
 
         {isLoading ? (
-          <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#d5d5d5" foregroundColor="#ebebeb">
-            <Rect y="20" rx="12" ry="12" width={410} height={100} />
-            <Rect y="140" rx="12" ry="12" width={410} height={100} />
-            <Rect y="260" rx="12" ry="12" width={410} height={100} />
-            <Rect y="380" rx="12" ry="12" width={410} height={100} />
-            <Rect y="500" rx="12" ry="12" width={410} height={100} />
-            <Rect y="620" rx="12" ry="12" width={410} height={100} />
-            <Rect y="740" rx="12" ry="12" width={410} height={100} />
-            <Rect y="860" rx="12" ry="12" width={410} height={100} />
-          </ContentLoader>
+          <View maxW="100%" w="100%">
+            <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#d5d5d5" foregroundColor="#ebebeb">
+              <Rect y="20" rx="12" ry="12" width="85%" height={100} />
+              <Rect y="140" rx="12" ry="12" width="85%" height={100} />
+              <Rect y="260" rx="12" ry="12" width="85%" height={100} />
+              <Rect y="380" rx="12" ry="12" width="85%" height={100} />
+              <Rect y="500" rx="12" ry="12" width="85%" height={100} />
+              <Rect y="620" rx="12" ry="12" width="85%" height={100} />
+              <Rect y="740" rx="12" ry="12" width="85%" height={100} />
+              <Rect y="860" rx="12" ry="12" width="85%" height={100} />
+            </ContentLoader>
+          </View>
         ) : (
           <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
             <VStack flex={1} space={8} pt={2} pb={32}>

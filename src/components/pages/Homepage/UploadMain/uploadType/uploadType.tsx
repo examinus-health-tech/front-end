@@ -1,6 +1,6 @@
 import { Platform, TouchableOpacity } from 'react-native';
 import { VStack, Text, Image, Center, Box, HStack, Actionsheet, useDisclose, Container, useToast } from 'native-base';
-import * as DocumentPicker from 'expo-document-picker';
+import { DocumentPickerAsset, getDocumentAsync } from 'expo-document-picker';
 
 // assets
 import { EditIcon, UploadIcon } from '@assets/icons';
@@ -14,14 +14,14 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 export function UploadType() {
   const { isOpen, onOpen, onClose } = useDisclose();
-  const { handleUploadFile } = useUpload();
+  const { handleUploadFile, isLoadingUploadContext } = useUpload();
   const { user } = useAuth();
   const toast = useToast();
-  const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   async function handleSelectFile() {
+    console.log('!@# 🚀 ~ handleSelectFile ~ handleSelectFile:');
     try {
-      const result = await DocumentPicker.getDocumentAsync({
+      const result = await getDocumentAsync({
         type: 'application/pdf',
         multiple: false,
       });
@@ -30,35 +30,52 @@ export function UploadType() {
         return;
       }
 
-      const tempFile = result.assets[0];
+      const file = result.assets[0];
 
-      await handleUploadFile(user?.email, tempFile);
-    } catch (error) {
-      const isAppError = error instanceof AppError;
-
-      const title = isAppError
-        ? 'Não foi possível fazer o upload'
-        : 'Não foi possível fazer o upload.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
-
-      toast.show({
-        borderRadius: '12',
-        title,
-        description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
-      });
-    }
+      await handleUploadFile(file);
+    } catch (error) {}
   }
+
+  // async function handleSelectFile() {
+  //   try {
+  //     const result = await DocumentPicker.getDocumentAsync({
+  //       type: 'application/pdf',
+  //       multiple: false,
+  //     });
+
+  //     if (result.canceled) {
+  //       return;
+  //     }
+
+  //     const tempFile = result.assets[0];
+
+  //     await handleUploadFile(user?.email, tempFile);
+  //   } catch (error) {
+  //     const isAppError = error instanceof AppError;
+
+  //     const title = isAppError
+  //       ? 'Não foi possível fazer o upload'
+  //       : 'Não foi possível fazer o upload.\nTente novamente mais tarde.';
+  //     const description = isAppError && error.message;
+
+  //     toast.show({
+  //       borderRadius: '12',
+  //       title,
+  //       description,
+  //       _title: {
+  //         textAlign: 'center',
+  //         mx: '4',
+  //       },
+  //       _description: {
+  //         textAlign: 'center',
+  //         mx: '4',
+  //       },
+  //       placement: 'top',
+  //       color: 'gray.900',
+  //       bgColor: 'red.500',
+  //     });
+  //   }
+  // }
 
   return (
     <Center>
@@ -89,7 +106,7 @@ export function UploadType() {
             >
               <UploadIcon />
               <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="white" mt={1}>
-                Importar PDF
+                PDF
               </Text>
             </Box>
           </TouchableOpacity>
@@ -102,7 +119,7 @@ export function UploadType() {
             <Box w={40} h={20} py={2} px={4} rounded="2xl" alignItems="center" borderWidth={4} borderColor="gray.50">
               <EditIcon color="#052B3B" />
               <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="gray.400" mt={1}>
-                Inserir manual
+                Imagem
               </Text>
             </Box>
           </TouchableOpacity>

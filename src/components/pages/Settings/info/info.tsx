@@ -33,9 +33,11 @@ export function Info() {
 
       <Box w={'100%'} h={240} borderBottomRadius={24} position={'absolute'} bgColor={'gray.900'}>
         <Image
-          source={{
-            uri: user.ImageUserUrl,
-          }}
+          source={
+            {
+              // uri: user.ImageUserUrl,
+            }
+          }
           size={28}
           borderWidth={1}
           borderColor="white"

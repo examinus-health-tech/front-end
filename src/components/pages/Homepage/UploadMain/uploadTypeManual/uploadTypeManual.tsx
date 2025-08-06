@@ -83,7 +83,7 @@ export function UploadTypeManual() {
     reset,
     resetField,
     formState: { errors },
-  } = useForm<FormDataProps>({
+  } = useForm({
     defaultValues: { code_exam: '' },
     resolver: yupResolver(uploadFormSchema),
   });

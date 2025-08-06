@@ -7,7 +7,6 @@ export interface OnboardingProps {
   workoutLevel?: number;
   humor?: number;
   eatingHabits?: string;
-  email: string;
 }
 
 export type stepListProps =

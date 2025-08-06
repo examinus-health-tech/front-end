@@ -33,7 +33,7 @@ export function MyAccount() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
-  const { userData, user, signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
@@ -45,9 +45,11 @@ export function MyAccount() {
         <Box bg={'gray.800'} w="100%" borderRadius={16} p={4}>
           <HStack space={3} alignItems={'center'}>
             <Image
-              source={{
-                uri: user.ImageUserUrl,
-              }}
+              source={
+                {
+                  // uri: user.ImageUserUrl,
+                }
+              }
               size={20}
               borderWidth={2}
               borderColor="white"
@@ -56,10 +58,10 @@ export function MyAccount() {
 
             <VStack flex={1} space={2}>
               <Text color={'white'} fontSize={22} fontWeight={800} letterSpacing={-0.36}>
-                {userData.name} {userData.lastname}
+                {user?.fullName}
               </Text>
               <Text color={'gray.200'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-                {user?.email}
+                {user?.name}
               </Text>
             </VStack>
 

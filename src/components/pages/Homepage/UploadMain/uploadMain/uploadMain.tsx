@@ -13,10 +13,11 @@ import { Loading } from '../loading/loading';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
+import { ScoreWarning } from '../ScoreWarning/scoreWarning';
 
 export function UploadMain() {
   const { isOpen, onOpen, onClose } = useDisclose();
-  const { isLoading, withError, withSuccess, setWithSuccess } = useUpload();
+  const { isLoadingUploadContext, withError, withSuccess, setWithSuccess } = useUpload();
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   useEffect(() => {
@@ -29,12 +30,15 @@ export function UploadMain() {
     };
   }, []);
 
-  if (isLoading) {
+  console.log('!@# !@# !@#', isLoadingUploadContext, withError, withSuccess);
+
+  if (isLoadingUploadContext) {
     return <Loading />;
   } else if (withError) {
     return <UploadError />;
+  } else if (withSuccess) {
+    return <ScoreWarning />;
   }
-
   return (
     <VStack flex={1} space={8} py={24}>
       <Center flex={1} mx={6} alignItems="center">
@@ -56,11 +60,11 @@ export function UploadMain() {
         </Text>
       </Center>
 
-      {/* <Actionsheet isOpen={isOpen} onClose={onClose}>
+      <Actionsheet isOpen={isOpen} onClose={onClose}>
         <Actionsheet.Content>
           <UploadType />
         </Actionsheet.Content>
-      </Actionsheet> */}
+      </Actionsheet>
     </VStack>
   );
 }

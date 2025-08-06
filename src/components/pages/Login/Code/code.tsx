@@ -1,4 +1,4 @@
-import { Text, Center, VStack, HStack, useToast } from 'native-base';
+import { Text, Center, VStack, HStack, useToast, KeyboardAvoidingView } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -12,7 +12,7 @@ import { HeaderTitle } from '@components/molecules';
 import { useRef, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { InputStyled } from './styles';
-import { TextInput, TouchableOpacity } from 'react-native';
+import { TextInput, TouchableOpacity, Platform } from 'react-native';
 import { useAuth } from 'src/hooks/useAuth';
 import { AppError } from '@utils/AppErrors';
 
@@ -40,7 +40,7 @@ export function Code() {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormDataProps>({
+  } = useForm({
     resolver: yupResolver(codeSchema),
     mode: 'onTouched',
   });
@@ -125,208 +125,210 @@ export function Code() {
   }
 
   return (
-    <VStack flex={1} py={20} mb={16}>
-      <HeaderTitle title="Esqueci minha senha" withBackButton={() => navigation.navigate('forgotPassword')} />
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <VStack flex={1} py={20}>
+        <HeaderTitle title="Esqueci minha senha" withBackButton={() => navigation.navigate('forgotPassword')} />
 
-      <Center>
-        <Text
-          color="gray.500"
-          fontSize={16}
-          fontWeight={500}
-          lineHeight={24}
-          m={8}
-          mt={32}
-          textAlign={'center'}
-          width={80}
-        >
-          Por favor, digite o código de 6 dígitos que você recebeu no seu e-mail! 🙏
-        </Text>
-      </Center>
-
-      <HStack space={2} w="100%" justifyContent="center" pointerEvents="auto">
-        <Controller
-          control={control}
-          name="one"
-          render={({ field: { onChange, value }, fieldState: {} }) => (
-            <InputStyled
-              placeholder="0"
-              ref={refOne}
-              maxLength={1}
-              onFocus={() => {
-                setFocusInput(1);
-                onChange('');
-              }}
-              keyboardType="numeric"
-              onBlur={() => setFocusInput(null)}
-              autoFocus={focusInput == 1}
-              value={value}
-              onChangeText={(value) => {
-                onChange(value);
-
-                if (!value) return;
-                refTwo.current?.focus();
-              }}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="two"
-          render={({ field: { onChange, value } }) => (
-            <InputStyled
-              placeholder="0"
-              clearTextOnFocus={true}
-              maxLength={1}
-              onFocus={() => {
-                setFocusInput(2);
-                onChange('');
-              }}
-              keyboardType="numeric"
-              onBlur={() => setFocusInput(null)}
-              autoFocus={focusInput == 2}
-              ref={refTwo}
-              value={value}
-              onChangeText={(value) => {
-                onChange(value);
-
-                if (!value) return;
-                refThree.current?.focus();
-              }}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="three"
-          render={({ field: { onChange, value } }) => (
-            <InputStyled
-              placeholder="0"
-              selectTextOnFocus={true}
-              maxLength={1}
-              onFocus={() => {
-                setFocusInput(3);
-                onChange('');
-              }}
-              keyboardType="numeric"
-              onBlur={() => setFocusInput(null)}
-              autoFocus={focusInput == 3}
-              ref={refThree}
-              value={value}
-              onChangeText={(value) => {
-                onChange(value);
-
-                if (!value) return;
-                refFour.current?.focus();
-              }}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="four"
-          render={({ field: { onChange, value } }) => (
-            <InputStyled
-              placeholder="0"
-              selectTextOnFocus={true}
-              maxLength={1}
-              onFocus={() => {
-                setFocusInput(4);
-                onChange('');
-              }}
-              keyboardType="numeric"
-              onBlur={() => setFocusInput(null)}
-              autoFocus={focusInput == 4}
-              ref={refFour}
-              value={value}
-              onChangeText={(value) => {
-                onChange(value);
-
-                if (!value) return;
-                refFive.current?.focus();
-              }}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="five"
-          render={({ field: { onChange, value } }) => (
-            <InputStyled
-              placeholder="0"
-              maxLength={1}
-              onFocus={() => {
-                setFocusInput(5);
-                onChange('');
-              }}
-              keyboardType="numeric"
-              onBlur={() => setFocusInput(null)}
-              autoFocus={focusInput == 5}
-              ref={refFive}
-              value={value}
-              onChangeText={(value) => {
-                onChange(value);
-
-                if (!value) return;
-                refSix.current?.focus();
-              }}
-            />
-          )}
-        />
-
-        <Controller
-          control={control}
-          name="six"
-          render={({ field: { onChange, value, onBlur } }) => (
-            <InputStyled
-              placeholder="0"
-              selectTextOnFocus={true}
-              maxLength={1}
-              onFocus={() => {
-                setFocusInput(6);
-                onChange('');
-              }}
-              keyboardType="numeric"
-              onBlur={() => setFocusInput(null)}
-              autoFocus={focusInput == 6}
-              ref={refSix}
-              value={value}
-              onChangeText={(value) => {
-                onChange(value);
-
-                if (!value) return;
-                refSix.current?.blur();
-              }}
-            />
-          )}
-        />
-      </HStack>
-
-      <Center mx={6}>
-        <Button
-          variant="primary"
-          size="full"
-          title="Continuar"
-          mt={4}
-          onPress={handleSubmit(handleConfirmationCode)}
-          icon={<ArrowIcon />}
-          isLoading={isLoading}
-        />
-
-        <HStack mt={8} space={1}>
-          <Text color="gray.500" fontSize={14} fontWeight={500} lineHeight={24}>
-            Não recebeu nenhum código?
+        <Center>
+          <Text
+            color="gray.500"
+            fontSize={16}
+            fontWeight={500}
+            lineHeight={24}
+            m={8}
+            mt={32}
+            textAlign={'center'}
+            width={80}
+          >
+            Por favor, digite o código de 6 dígitos que você recebeu no seu e-mail! 🙏
           </Text>
-          <TouchableOpacity onPress={() => handleResendConfirmationCode()}>
-            <Text color="ciano.500" fontSize={14} fontWeight={600} lineHeight={24}>
-              Reenviar.
-            </Text>
-          </TouchableOpacity>
+        </Center>
+
+        <HStack space={2} w="100%" justifyContent="center" pointerEvents="auto">
+          <Controller
+            control={control}
+            name="one"
+            render={({ field: { onChange, value }, fieldState: {} }) => (
+              <InputStyled
+                placeholder="0"
+                ref={refOne}
+                maxLength={1}
+                onFocus={() => {
+                  setFocusInput(1);
+                  onChange('');
+                }}
+                keyboardType="numeric"
+                onBlur={() => setFocusInput(null)}
+                autoFocus={focusInput == 1}
+                value={value}
+                onChangeText={(value) => {
+                  onChange(value);
+
+                  if (!value) return;
+                  refTwo.current?.focus();
+                }}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="two"
+            render={({ field: { onChange, value } }) => (
+              <InputStyled
+                placeholder="0"
+                clearTextOnFocus={true}
+                maxLength={1}
+                onFocus={() => {
+                  setFocusInput(2);
+                  onChange('');
+                }}
+                keyboardType="numeric"
+                onBlur={() => setFocusInput(null)}
+                autoFocus={focusInput == 2}
+                ref={refTwo}
+                value={value}
+                onChangeText={(value) => {
+                  onChange(value);
+
+                  if (!value) return;
+                  refThree.current?.focus();
+                }}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="three"
+            render={({ field: { onChange, value } }) => (
+              <InputStyled
+                placeholder="0"
+                selectTextOnFocus={true}
+                maxLength={1}
+                onFocus={() => {
+                  setFocusInput(3);
+                  onChange('');
+                }}
+                keyboardType="numeric"
+                onBlur={() => setFocusInput(null)}
+                autoFocus={focusInput == 3}
+                ref={refThree}
+                value={value}
+                onChangeText={(value) => {
+                  onChange(value);
+
+                  if (!value) return;
+                  refFour.current?.focus();
+                }}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="four"
+            render={({ field: { onChange, value } }) => (
+              <InputStyled
+                placeholder="0"
+                selectTextOnFocus={true}
+                maxLength={1}
+                onFocus={() => {
+                  setFocusInput(4);
+                  onChange('');
+                }}
+                keyboardType="numeric"
+                onBlur={() => setFocusInput(null)}
+                autoFocus={focusInput == 4}
+                ref={refFour}
+                value={value}
+                onChangeText={(value) => {
+                  onChange(value);
+
+                  if (!value) return;
+                  refFive.current?.focus();
+                }}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="five"
+            render={({ field: { onChange, value } }) => (
+              <InputStyled
+                placeholder="0"
+                maxLength={1}
+                onFocus={() => {
+                  setFocusInput(5);
+                  onChange('');
+                }}
+                keyboardType="numeric"
+                onBlur={() => setFocusInput(null)}
+                autoFocus={focusInput == 5}
+                ref={refFive}
+                value={value}
+                onChangeText={(value) => {
+                  onChange(value);
+
+                  if (!value) return;
+                  refSix.current?.focus();
+                }}
+              />
+            )}
+          />
+
+          <Controller
+            control={control}
+            name="six"
+            render={({ field: { onChange, value, onBlur } }) => (
+              <InputStyled
+                placeholder="0"
+                selectTextOnFocus={true}
+                maxLength={1}
+                onFocus={() => {
+                  setFocusInput(6);
+                  onChange('');
+                }}
+                keyboardType="numeric"
+                onBlur={() => setFocusInput(null)}
+                autoFocus={focusInput == 6}
+                ref={refSix}
+                value={value}
+                onChangeText={(value) => {
+                  onChange(value);
+
+                  if (!value) return;
+                  refSix.current?.blur();
+                }}
+              />
+            )}
+          />
         </HStack>
-      </Center>
-    </VStack>
+
+        <Center mx={6}>
+          <Button
+            variant="primary"
+            size="full"
+            title="Continuar"
+            mt={4}
+            onPress={handleSubmit(handleConfirmationCode)}
+            icon={<ArrowIcon />}
+            isLoading={isLoading}
+          />
+
+          <HStack mt={8} space={1}>
+            <Text color="gray.500" fontSize={14} fontWeight={500} lineHeight={24}>
+              Não recebeu nenhum código?
+            </Text>
+            <TouchableOpacity onPress={() => handleResendConfirmationCode()}>
+              <Text color="ciano.500" fontSize={14} fontWeight={600} lineHeight={24}>
+                Reenviar.
+              </Text>
+            </TouchableOpacity>
+          </HStack>
+        </Center>
+      </VStack>
+    </KeyboardAvoidingView>
   );
 }

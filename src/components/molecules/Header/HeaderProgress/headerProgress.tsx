@@ -33,7 +33,6 @@ export function HeaderProgress({ progressValue, jumpTo, withBackButton }: Props)
         {jumpTo && (
           <TouchableOpacity
             onPress={() => {
-              console.log('!@#!@#');
               jumpTo();
             }}
           >

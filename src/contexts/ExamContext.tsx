@@ -11,7 +11,7 @@ type ExamDataProps = {
 
 export type ExamContextDataProps = {
   examData: ExamDataProps[];
-  getExamList: (email: string) => Promise<void>;
+  getExamList: () => void;
 };
 
 type ExamContextProviderProps = {
@@ -23,15 +23,11 @@ export const ExamContext = createContext<ExamContextDataProps>({} as ExamContext
 export function ExamContextProvider({ children }: ExamContextProviderProps) {
   const [examData, setExamData] = useState<ExamDataProps[]>([]);
 
-  async function getExamList(email: string) {
+  async function getExamList() {
     try {
-      const response = await api.get('/exam-results/list', {
-        headers: { email },
-      });
+      const response = await api.get('/medical-exam/get-all-exams-upload-by-logged-user');
 
-      setExamData(response.data.data.detail);
-
-      return response.data.data.detail;
+      setExamData(response.data.data);
     } catch (error) {
       throw error;
     } finally {

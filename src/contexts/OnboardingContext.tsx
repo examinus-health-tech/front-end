@@ -1,5 +1,6 @@
-import { ReactNode, createContext, useEffect, useState } from 'react';
+import { ReactNode, createContext, useState } from 'react';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from 'src/services/api';
 import { OnboardingProps, stepProps } from 'src/@types/onboarding.type';
 import { DocumentPickerAsset } from 'expo-document-picker';
@@ -15,7 +16,12 @@ export type OnboardingContextDataProps = {
   showScoreWarning: () => void;
   stepsMap: stepProps[];
   jumpToUpload: () => void;
-  handleUploadFile: (file: DocumentPickerAsset) => Promise<void>;
+  getPersonalData: () => void;
+  isLoadingOnboardingContext: boolean;
+  personalData: object | undefined;
+  isLoadingUpload: boolean;
+  handleUploadFileFromOnboarding: (file: DocumentPickerAsset) => Promise<void>;
+  scoreWarning: boolean;
 };
 
 type OnboardingContextProviderProps = {
@@ -26,6 +32,10 @@ export const OnboardingContext = createContext<OnboardingContextDataProps>({} as
 
 export function OnboardingContextProvider({ children }: OnboardingContextProviderProps) {
   const [onboardingData, setOnboardingData] = useState<OnboardingProps>({} as OnboardingProps);
+  const [personalData, setPersonalData] = useState();
+  const [isLoadingOnboardingContext, setisLoadingOnboardingContext] = useState<boolean>(false);
+  const [isLoadingUpload, setIsLoadingUpload] = useState<boolean>(false);
+  const [scoreWarning, setScoreWarning] = useState<boolean>(false);
 
   const [step, setStep] = useState<number>(0);
 
@@ -93,23 +103,40 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
     setStep(newStep);
   }
 
-  async function saveOnboarding(payload: OnboardingProps) {
-    console.log('!@# 🚀 ~ saveOnboarding ~ payload:', payload);
+  async function getPersonalData() {
     try {
-      const response = await api.post('user-personal-data', payload);
-      console.log('!@# 🚀 ~ saveOnboarding ~ payload:', payload);
-      console.log('!@# 🚀 ~ saveOnboarding ~ response:', response);
+      setisLoadingOnboardingContext(true);
+
+      const response = await api.get('/user-personal-data');
+
+      const { data } = response;
+      const personalData = data.data;
+
+      await AsyncStorage.setItem('@app:personalData', JSON.stringify(personalData));
+
+      setPersonalData(personalData);
+    } catch (error: any) {
+      throw error;
+    } finally {
+      setisLoadingOnboardingContext(false);
+    }
+  }
+
+  async function saveOnboarding(payload: OnboardingProps) {
+    try {
+      const personalData = await AsyncStorage.getItem('@app:personalData');
+
+      const response = personalData
+        ? await api.put('user-personal-data', payload)
+        : await api.post('user-personal-data', payload);
 
       const data = response.data.data;
-      console.log('!@# 🚀 ~ saveOnboarding ~ data:', data);
 
-      if (data.code == 200) {
+      if (data) {
         setOnboardingData(payload);
         jumpToUpload();
       }
     } catch (error) {
-      console.log('!@# 🚀 ~ saveOnboarding ~ error:', error);
-
       setOnboardingData(payload);
       jumpToUpload();
 
@@ -118,39 +145,37 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
     }
   }
 
-  async function handleUploadFile(file: DocumentPickerAsset) {
-    console.log('!@# 🚀 ~ handleUploadFile ~ file:', file);
+  async function handleUploadFileFromOnboarding({ name, mimeType, uri }: DocumentPickerAsset) {
+    setIsLoadingUpload(true);
 
     try {
-      const tempFile = {
-        name: file.name,
-        size: file.size,
-        uri: file.uri,
-        type: file.mimeType,
+      const file = {
+        name: name,
+        type: mimeType || 'application/pdf',
+        uri: uri,
       } as any;
 
-      const form = new FormData();
+      const bodyFormData = new FormData();
+      bodyFormData.append('File', file);
 
-      form.append('file', tempFile);
-
-      const response = await api.post(
-        'medical-exam/form',
-        {
-          filename: file.name,
+      const response = await api.post('medical-exam/form', bodyFormData, {
+        headers: {
+          'Content-type': 'multipart/form-data',
+          Accept: 'application/octet-stream',
         },
-        {
-          headers: {
-            'Content-type': 'multipart/form-data',
-          },
-        }
-      );
-      console.log('!@# 🚀 ~ handleUploadFile ~ response:', response);
-    } catch (error) {
-      console.log('!@# 🚀 ~ handleUploadFile ~ error:', error);
-      showError();
+      });
 
+      console.log('!@# 🚀 ~ handleUploadFileFromOnboarding ~ response:', response);
+    } catch (error) {
+      console.log('!@# 🚀 ~ handleUploadFileFromOnboarding ~ error:', error);
+      showError();
+      setIsLoadingUpload(false);
       throw error;
     } finally {
+      console.log('!@# 🚀 ~ handleUploadFileFromOnboarding ~ finally:');
+      showScoreWarning();
+      setScoreWarning(true);
+      setIsLoadingUpload(false);
     }
   }
 
@@ -167,7 +192,12 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
         jumpToUpload,
         showError,
         showScoreWarning,
-        handleUploadFile,
+        getPersonalData,
+        isLoadingOnboardingContext,
+        personalData,
+        isLoadingUpload,
+        scoreWarning,
+        handleUploadFileFromOnboarding,
       }}
     >
       {children}

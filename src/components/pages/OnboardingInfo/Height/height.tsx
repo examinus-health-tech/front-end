@@ -12,7 +12,7 @@ import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useEffect, useState } from 'react';
 
 export function Height() {
-  const [height, setHeight] = useState<number>(1.45 as number);
+  const [height, setHeight] = useState<number>(parseFloat('1.45'));
 
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
 
@@ -35,8 +35,8 @@ export function Height() {
           step={0.01}
           fractionDigits={2}
           initialValue={height}
-          onValueChangeEnd={(number) => setHeight(parseInt(number))}
-          unit="mt"
+          onValueChangeEnd={(number) => setHeight(parseFloat(number))}
+          unit="m"
           stepWidth={4}
           gapBetweenSteps={10}
           shortStepHeight={20}
@@ -66,6 +66,7 @@ export function Height() {
         title="Continuar"
         onPress={() => {
           const data = { ...onboardingData, height };
+
           setOnboardingData(data);
           handleNextStep();
         }}

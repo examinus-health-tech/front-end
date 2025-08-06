@@ -1,4 +1,5 @@
 import { Divider, Flex, Text, VStack, Icon, HStack, Box, useToast } from 'native-base';
+import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -35,7 +36,7 @@ export function SignIn() {
     control,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormDataProps>({
+  } = useForm({
     resolver: yupResolver(signInSchema),
   });
 
@@ -47,21 +48,19 @@ export function SignIn() {
     } catch (error: any) {
       const description = error?.response?.data?.message;
 
-      toast.show({
-        borderRadius: '12',
-        title: 'Não foi possível criar sua conta',
-        description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
+      Toast.show({
+        type: 'error',
+        text1: 'Não foi possivel acessar sua conta',
+        text2: `${description} 😔`,
+        topOffset: 60,
+        text1Style: {
+          fontSize: 14,
+          paddingBottom: 2,
         },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
+        text2Style: {
+          fontSize: 13,
+          fontWeight: 600,
         },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
       });
 
       setIsLoading(false);
@@ -78,6 +77,8 @@ export function SignIn() {
         py: 16,
       }}
     >
+      <Toast />
+
       <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
         Entre
       </Text>
@@ -86,7 +87,7 @@ export function SignIn() {
         Faça login e simplifique sua saúde com nossa tecnologia de Inteligência Artificial.
       </Text>
 
-      <VStack flex={1} space={2} mt={4}>
+      <VStack flex={1} space={4} mt={4}>
         <Controller
           control={control}
           name="email"
@@ -145,28 +146,20 @@ export function SignIn() {
           variant="primary"
           size="full"
           title="Conecte-se"
-          mt={2}
           isLoading={isLoading}
           icon={<UserIcon />}
           onPress={handleSubmit(handleSignIn)}
         />
 
-        <Flex
-          direction="row"
-          justifyContent="space-between"
-          py={4}
-          _ios={{
-            py: 4,
-          }}
-        >
-          <Divider my={2} mx={2} w={160} />
+        <Flex direction="row" justifyContent="space-between" py={4}>
+          <Divider my={2} mx={2} w="40%" />
           <Text color="gray.900" fontSize={12} fontWeight={600} letterSpacing={-0.12}>
             Ou
           </Text>
-          <Divider my={2} mx={2} w={160} />
+          <Divider my={2} mx={2} w="40%" />
         </Flex>
 
-        <HStack justifyContent="center" alignItems="center" my={12} space={2}>
+        <HStack justifyContent="center" alignItems="center" my={2} space={2}>
           <TouchableOpacity>
             <Box
               size={16}
@@ -214,7 +207,6 @@ export function SignIn() {
 
           <TouchableOpacity onPress={() => navigation.navigate('signUp')}>
             <Text fontSize={16} color="purple.600" fontWeight={600} lineHeight={38} underline letterSpacing={-0.14}>
-              {' '}
               Cadastre-se.
             </Text>
           </TouchableOpacity>

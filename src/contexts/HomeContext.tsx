@@ -59,7 +59,7 @@ type specificSystemProps = {
 export type HomeContextDataProps = {
   homeData: homeProps;
   getHomeData: () => void;
-  isLoading: boolean;
+  isLoadingHomeContext: boolean;
   trackerData: trackerProps;
   currentSystem: specificSystemProps;
   setCurrentSystem: (val: specificSystemProps) => void;
@@ -75,30 +75,17 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   const [homeData, setHomeData] = useState<homeProps>({} as homeProps);
   const [trackerData, setTrackerData] = useState<trackerProps>({} as trackerProps);
   const [currentSystem, setCurrentSystem] = useState<specificSystemProps>({} as specificSystemProps);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoadingHomeContext, setIsLoading] = useState<boolean>(false);
 
   const { user } = useAuth();
 
   async function getHomeData() {
     setIsLoading(true);
+
     try {
-      const responseScore = await api.get('/health-wallet/list', { headers: { email: user?.email } });
+      const response = await api.get('medical-exam-scores/get-last-final-result-by-current-user-logged');
 
-      const dataScore = responseScore.data.data;
-
-      if (dataScore.detail) {
-        setHomeData(dataScore.detail);
-      }
-
-      const responseTracker = await api.get('/fitness-tracker/list', {
-        headers: { email: user?.email, start_date: '2023-11-19', end_date: '2023-11-21' },
-      });
-
-      const dataTracker = responseTracker.data.data;
-
-      if (dataTracker.detail) {
-        setTrackerData(dataTracker.detail);
-      }
+      console.log('!@# response', response);
     } catch (error) {
       throw error;
       setIsLoading(false);
@@ -112,7 +99,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       value={{
         homeData,
         getHomeData,
-        isLoading,
+        isLoadingHomeContext,
         trackerData,
         currentSystem,
         setCurrentSystem,

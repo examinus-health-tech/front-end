@@ -1,12 +1,6 @@
 import { Button as ButtonNativeBase, Text, Row } from 'native-base';
 
-import {
-  Props,
-  ButtonSizeProps,
-  backgroundColorProps,
-  ColorVariantProps,
-  ButtonSizeHeightProps,
-} from './types';
+import { Props, ButtonSizeProps, backgroundColorProps, ColorVariantProps, ButtonSizeHeightProps } from './types';
 
 const backgroundColor: backgroundColorProps = {
   primary: 'ciano.300',
@@ -42,37 +36,39 @@ const colorVariant: ColorVariantProps = {
   outline: 'white',
 };
 
-export function Button({
-  title,
-  icon,
-  size,
-  variant,
-  fontSize,
-  ...rest
-}: Props) {
+export function Button({ title, icon, size, variant, fontSize, isLoading, ...rest }: Props) {
   return (
     <ButtonNativeBase
       w={buttonSize[size as keyof ButtonSizeProps]}
       h={buttonSizeHeight[size as keyof ButtonSizeProps]}
-      bg={backgroundColor[variant as keyof backgroundColorProps]}
+      bg={isLoading ? 'red' : backgroundColor[variant as keyof backgroundColorProps]}
       borderColor={colorVariant[variant as keyof ColorVariantProps]}
       borderWidth={variant === 'outline' ? 1 : 0}
       rounded={16}
       py={0}
       flexDirection="row"
+      isLoading={isLoading}
+      _loading={{
+        bg: 'ciano.300',
+        _text: {
+          color: 'white',
+        },
+      }}
       {...rest}
     >
-      <Row alignItems="center">
-        <Text
-          color={colorVariant[variant as keyof ColorVariantProps]}
-          paddingRight={icon && title ? 4 : 0}
-          fontWeight={700}
-          fontSize={fontSize}
-        >
-          {title}
-        </Text>
-        {icon}
-      </Row>
+      {!isLoading && (
+        <Row alignItems="center">
+          <Text
+            color={colorVariant[variant as keyof ColorVariantProps]}
+            paddingRight={icon && title ? 4 : 0}
+            fontWeight={700}
+            fontSize={fontSize}
+          >
+            {title}
+          </Text>
+          {icon}
+        </Row>
+      )}
     </ButtonNativeBase>
   );
 }

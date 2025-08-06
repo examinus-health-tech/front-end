@@ -27,11 +27,10 @@ export function Habits() {
       const payload = {
         gender: onboardingData.gender,
         weight: onboardingData.weight,
-        height: 0,
+        height: onboardingData.height,
         age: onboardingData.age,
         workoutLevel: onboardingData.physicalLevel,
         eatingHabits: selectedHabit,
-        email: user?.email,
       };
 
       setIsLoading(true);
@@ -66,11 +65,11 @@ export function Habits() {
         Como são seus hábitos alimentares?
       </Text>
 
-      <HStack flex={1} alignItems="center" space={4} justifyContent="center">
+      <HStack flex={1} space={6} justifyContent="center" px={10}>
         <TouchableOpacity onPress={() => setSelectedHabit('X')}>
           <Box
             bg={selectedHabit == 'X' ? 'ciano.300' : 'white'}
-            w={180}
+            w={160}
             flex={1}
             my={4}
             rounded="2xl"
@@ -98,7 +97,7 @@ export function Habits() {
         <TouchableOpacity onPress={() => setSelectedHabit('B')}>
           <Box
             bg={selectedHabit == 'B' ? 'ciano.300' : 'white'}
-            w={180}
+            w={160}
             flex={1}
             my={4}
             rounded="2xl"
@@ -124,11 +123,11 @@ export function Habits() {
         </TouchableOpacity>
       </HStack>
 
-      <HStack flex={1} alignItems="center" space={4} justifyContent="center" mb={8}>
+      <HStack flex={1} space={6} justifyContent="center" mb={8}>
         <TouchableOpacity onPress={() => setSelectedHabit('V')}>
           <Box
             bg={selectedHabit == 'V' ? 'ciano.300' : 'white'}
-            w={180}
+            w={160}
             flex={1}
             my={4}
             rounded="2xl"
@@ -156,7 +155,7 @@ export function Habits() {
         <TouchableOpacity onPress={() => setSelectedHabit('N')}>
           <Box
             bg={selectedHabit == 'N' ? 'ciano.300' : 'white'}
-            w={180}
+            w={160}
             flex={1}
             my={4}
             rounded="2xl"

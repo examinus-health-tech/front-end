@@ -1,35 +1,28 @@
 // import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
-import { useRef } from 'react';
-import { StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';
+import { StyleSheet, Button } from 'react-native';
 import Video, { VideoRef } from 'react-native-video';
+import { View } from 'native-base';
+
+import { useEvent } from 'expo';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 export function Splash() {
-  const videoRef = useRef<VideoRef>(null);
   const splash = require('../../../../assets/splash.mp4');
 
-  // function onPlaybackStatusUpdate(status: AVPlaybackStatus) {
-  //   console.log('!@# status splash', status);
-  // }
+  const player = useVideoPlayer(splash, (player) => {
+    player.play();
+  });
 
-  // return <Video source={require('../../../../assets/splash.mp4')} ref={videoRef} />;
   return (
-    // <Video
-    //   style={StyleSheet.absoluteFill}
-    //   resizeMode={ResizeMode.COVER}
-    //   source={require('../../../../assets/splash.mp4')}
-    //   isLooping={false}
-    //   onPlaybackStatusUpdate={onPlaybackStatusUpdate}
-    //   shouldPlay={true}
-    // />
-    <Video
-      // Can be a URL or a local file.
-      source={splash}
-      // Store reference
-      ref={videoRef}
-      // Callback when remote video is buffering
-      // onBuffer={onBuffer}
-      // Callback when video cannot be loaded
-      onError={(error) => console.log(error)}
-    />
+    <View flex={1}>
+      <VideoView
+        style={{ width: '100%', height: '100%' }}
+        player={player}
+        allowsFullscreen
+        allowsPictureInPicture
+        nativeControls={false}
+      />
+    </View>
   );
 }
