@@ -1,7 +1,8 @@
 import { StatusBar } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NativeBaseProvider } from 'native-base';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import * as Font from 'expo-font';
 
 import { THEME } from './src/theme';
 import { Routes } from '@routes/index';
@@ -16,20 +17,37 @@ import { ExamContextProvider } from '@contexts/ExamContext';
 
 export default function App() {
   const [splashVideoFinish, setSplashVideoFinish] = useState<boolean>(false);
+  const [additionalFontsLoaded, setAdditionalFontsLoaded] = useState<boolean>(false);
+  
+  // Load essential fonts first
   const [fontsLoaded] = useFonts({
-    PoligonBlack: require('@assets/fonts/Poligon-Regular.ttf'),
-    PoligonBold: require('@assets/fonts/Poligon-Bold.ttf'),
-    PoligonExtraBold: require('@assets/fonts/Poligon-ExtraBold.ttf'),
-    PoligonSemiBold: require('@assets/fonts/Poligon-SemiBold.ttf'),
-    PoligonMedium: require('@assets/fonts/Poligon-Medium.ttf'),
     PoligonRegular: require('@assets/fonts/Poligon-Regular.ttf'),
-    PoligonLight: require('@assets/fonts/Poligon-Light.ttf'),
-    PoligonThin: require('@assets/fonts/Poligon-Thin.ttf'),
+    PoligonBold: require('@assets/fonts/Poligon-Bold.ttf'),
+    PoligonMedium: require('@assets/fonts/Poligon-Medium.ttf'),
   });
 
-  setTimeout(() => {
-    setSplashVideoFinish(true);
-  }, 6000);
+  // Load additional fonts after app is ready
+  useEffect(() => {
+    if (fontsLoaded) {
+      Font.loadAsync({
+        PoligonBlack: require('@assets/fonts/Poligon-Regular.ttf'),
+        PoligonExtraBold: require('@assets/fonts/Poligon-ExtraBold.ttf'),
+        PoligonSemiBold: require('@assets/fonts/Poligon-SemiBold.ttf'),
+        PoligonLight: require('@assets/fonts/Poligon-Light.ttf'),
+        PoligonThin: require('@assets/fonts/Poligon-Thin.ttf'),
+      }).then(() => {
+        setAdditionalFontsLoaded(true);
+      });
+    }
+  }, [fontsLoaded]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSplashVideoFinish(true);
+    }, 6000);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <NativeBaseProvider theme={THEME}>

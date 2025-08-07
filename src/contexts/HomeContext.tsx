@@ -6,12 +6,28 @@ import { useAuth } from 'src/hooks/useAuth';
 import { api } from 'src/services/api';
 
 type homeProps = {
-  score: number;
-  systems: {
-    hwal_id: number;
-    code: string;
-    description: string;
-    color: string;
+  medicalExamId: string;
+  createdDate: string;
+  generalScore: number;
+  generalScoreActionRecommendation: string;
+  medicalExamGender: string;
+  medicalExamStatus: string;
+  medicalExamItems: {
+    examItemDescription: string;
+    medicalExamItemReferenceValue: string;
+    medicalExamItemMeasureUnit: string;
+    medicalExamItemScore: number;
+    medicalExamItemWeightSummaryExplanation: string;
+    medicalExamItemWeightActionRecommendation: string;
+    medicalExamItemWeightColor: string;
+    medicalExamItemWeightDescription: string;
+  }[];
+  medicalExamOrganicSystemsScore: {
+    examOrganicSystemId: string;
+    examOrganicSystemDescription: string;
+    organicSystemScore: number;
+    organicSystemScoreSummaryExplanation: string;
+    organicSystemScoreActionRecommendation: string;
   }[];
 };
 
@@ -73,6 +89,7 @@ export const HomeContext = createContext<HomeContextDataProps>({} as HomeContext
 
 export function HomeContextProvider({ children }: HomeContextProviderProps) {
   const [homeData, setHomeData] = useState<homeProps>({} as homeProps);
+  const [examListData, setExamListData] = useState<homeProps>({} as homeProps);
   const [trackerData, setTrackerData] = useState<trackerProps>({} as trackerProps);
   const [currentSystem, setCurrentSystem] = useState<specificSystemProps>({} as specificSystemProps);
   const [isLoadingHomeContext, setIsLoading] = useState<boolean>(false);
@@ -85,7 +102,9 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
     try {
       const response = await api.get('medical-exam-scores/get-last-final-result-by-current-user-logged');
 
-      console.log('!@# response', response);
+      const { data } = response;
+
+      setHomeData(data.data);
     } catch (error) {
       throw error;
       setIsLoading(false);

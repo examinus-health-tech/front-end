@@ -75,12 +75,8 @@ export function OnboardingSteps() {
   }, []);
 
   useEffect(() => {
-    console.log('!@# 🚀 ~ personalData:', personalData);
-
     if (personalData) navigation.navigate('homepage');
   }, [personalData]);
-
-  console.log('!@# 🚀 ~ OnboardingSteps ~ isLoadingUpload:', isLoadingUpload);
 
   if (isLoadingOnboardingContext) {
     return (

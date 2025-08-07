@@ -36,7 +36,6 @@ export function Input({
   errorMessage,
   isRequired,
   wContainer = 'full',
-  ref,
   ...rest
 }: Props) {
   return (

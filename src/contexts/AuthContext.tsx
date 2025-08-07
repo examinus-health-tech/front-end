@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from 'src/services/api';
 
@@ -42,7 +42,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   async function loadStoredUser() {
     try {
       const storedUser = await AsyncStorage.getItem('@app:user');
-      console.log('!@# storedUser', storedUser);
       if (storedUser) {
         setUser(JSON.parse(storedUser));
       } else {
@@ -71,7 +70,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setUser(userData);
     } catch (error: any) {
-      console.log('error', error.message);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setError(errorMessage);
       throw error;
@@ -199,26 +197,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  function clearError() {
+  const clearError = useCallback(() => {
     setError(null);
-  }
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    user,
+    error,
+    clearError,
+    isLoading,
+    signIn,
+    signUp,
+    signOut,
+    forgotPassword,
+    verifyCode,
+    resetPassword,
+    getUserInfo,
+  }), [user, error, isLoading, clearError, signIn, signUp, signOut, forgotPassword, verifyCode, resetPassword, getUserInfo]);
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        error,
-        clearError,
-        isLoading,
-        signIn,
-        signUp,
-        signOut,
-        forgotPassword,
-        verifyCode,
-        resetPassword,
-        getUserInfo,
-      }}
-    >
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

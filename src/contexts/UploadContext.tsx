@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useEffect, useState } from 'react';
+import { ReactNode, createContext, useEffect, useState, useMemo, useCallback } from 'react';
 import { DocumentPickerAsset } from 'expo-document-picker';
 import { api } from 'src/services/api';
 import { AppError } from '@utils/AppErrors';
@@ -49,7 +49,6 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   const toast = useToast();
 
   async function handleUploadFile({ name, mimeType, uri }: DocumentPickerAsset) {
-    console.log('!@# 🚀 ~ handleUploadFile ~ handleUploadFile:');
     setIsLoading(true);
     try {
       const file = {
@@ -72,12 +71,10 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
       setWithSuccess(true);
       setWithError(false);
     } catch (error) {
-      console.log('!@# 🚀 ~ handleUploadFile ~ error:', error);
       setWithSuccess(false);
       setWithError(true);
       throw error;
     } finally {
-      console.log('!@# 🚀 ~ handleUploadFile ~ finally:');
       setIsLoading(false);
     }
   }
@@ -150,23 +147,36 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
     }
   }
 
+  const contextValue = useMemo(() => ({
+    file,
+    handleUploadFile,
+    isLoadingUploadContext,
+    setIsLoading,
+    examList,
+    getExamTypes,
+    scoreWarning,
+    withError,
+    setWithError,
+    withSuccess,
+    setWithSuccess,
+    handleManualUploadFile,
+  }), [
+    file,
+    handleUploadFile,
+    isLoadingUploadContext,
+    setIsLoading,
+    examList,
+    getExamTypes,
+    scoreWarning,
+    withError,
+    setWithError,
+    withSuccess,
+    setWithSuccess,
+    handleManualUploadFile,
+  ]);
+
   return (
-    <UploadContext.Provider
-      value={{
-        file,
-        handleUploadFile,
-        isLoadingUploadContext,
-        setIsLoading,
-        examList,
-        getExamTypes,
-        scoreWarning,
-        withError,
-        setWithError,
-        withSuccess,
-        setWithSuccess,
-        handleManualUploadFile,
-      }}
-    >
+    <UploadContext.Provider value={contextValue}>
       {children}
     </UploadContext.Provider>
   );

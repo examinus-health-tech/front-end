@@ -12,6 +12,7 @@ import {
   BellIcon,
   CalendarIcon,
   FigIcon,
+  HeartIcon,
   ImuIcon,
   MoreIcon,
   MusIcon,
@@ -35,41 +36,60 @@ export function HealthWallet() {
   const { isOpen, onOpen, onClose } = useDisclose();
 
   function renderSystems() {
-    if (homeData.systems?.length) {
-      const systems = homeData.systems;
+    if (homeData.medicalExamOrganicSystemsScore?.length) {
+      const systems = homeData.medicalExamOrganicSystemsScore;
 
-      const healthWalletMap = {
-        green: {
-          title: 'excelente',
-          bgColor: 'purple.50',
-          color: '#8A3FFC',
-          text: 'Está excelente. Mantenha o bom score fazendo um check-up clicando aqui.',
-        },
-        yellow: {
-          title: 'risco normal',
-          bgColor: 'ciano.50',
-          color: '#0CC1AF',
-          text: 'Aí sim! Seu sistema digestivo está ótimo!',
-        },
-        red: {
-          title: 'risco alto',
-          bgColor: 'red.50',
-          color: '#FA4D5E',
-          text: 'Você precisa se cuidar melhor. Clique aqui para saber como.',
-        },
+      const getColorByScore = (score: number) => {
+        if (score >= 0 && score <= 333) {
+          return {
+            title: 'risco alto',
+            bgColor: 'red.50',
+            color: '#FA4D5E',
+            text: (
+              <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+                Você precisa se cuidar melhor.<Text color={'#FA4D5E'}> Clique aqui</Text> para saber como.
+              </Text>
+            ),
+          };
+        } else if (score > 333 && score <= 666) {
+          return {
+            title: 'risco normal',
+            bgColor: 'ciano.50',
+            color: '#0CC1AF',
+            text: (
+              <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+                Aí sim! Seu sistema digestivo está ótimo!
+              </Text>
+            ),
+          };
+        } else if (score > 666 && score <= 1000) {
+          return {
+            title: 'excelente',
+            bgColor: 'purple.50',
+            color: '#8A3FFC',
+            text: (
+              <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+                Está excelente. Mantenha o bom score fazendo um
+                <Text color={'#8A3FFC'}> check-up clicando aqui.</Text>
+              </Text>
+            ),
+          };
+        }
       };
 
-      function renderIcon(code: string, color: string) {
+      function renderIcon(system: string, score: number) {
+        const color = getColorByScore(score)?.color ?? '#000';
+
         const healthWalletIconsMap = {
-          FIG: { icon: <FigIcon size="30" color={healthWalletMap[color].color} /> },
-          IMU: { icon: <ImuIcon size="30" color={healthWalletMap[color].color} /> },
-          MUS: { icon: <MusIcon size="30" color={healthWalletMap[color].color} /> },
-          PAN: { icon: <PanIcon size="30" color={healthWalletMap[color].color} /> },
-          RIN: { icon: <RinIcon size="30" color={healthWalletMap[color].color} /> },
-          SAN: { icon: <SanIcon size="30" color={healthWalletMap[color].color} /> },
+          fígado: { icon: <FigIcon size="30" color={color} /> },
+          imunidade: { icon: <ImuIcon size="30" color={color} /> },
+          pâncreas: { icon: <PanIcon size="30" color={color} /> },
+          rins: { icon: <RinIcon size="30" color={color} /> },
+          sangue: { icon: <SanIcon size="30" color={color} /> },
+          coração: { icon: <HeartIcon size="30" color={color} /> },
         };
 
-        return healthWalletIconsMap[code].icon;
+        return healthWalletIconsMap[system.toLowerCase() as keyof typeof healthWalletIconsMap]?.icon;
       }
 
       useEffect(() => {
@@ -80,13 +100,19 @@ export function HealthWallet() {
 
       return systems.map((system) => (
         <TouchableOpacity
-          onPress={() => setCurrentSystem({ sistema: system.description, nivel: healthWalletMap[system.color].title })}
+          onPress={() =>
+            setCurrentSystem({
+              sistema: system.examOrganicSystemDescription,
+              nivel: getColorByScore(system.organicSystemScore)?.title,
+              sexo: homeData.medicalExamGender,
+            })
+          }
         >
           <Box
             mt={4}
             bg={'white'}
             w={'100%'}
-            p={4}
+            p={2}
             shadow={1}
             borderRadius={16}
             flexDir={'row'}
@@ -94,36 +120,36 @@ export function HealthWallet() {
             justifyContent={'space-between'}
           >
             <Box
-              bg={healthWalletMap[system.color].bgColor}
+              bg={getColorByScore(system.organicSystemScore)?.bgColor}
               w={20}
               h={20}
               borderRadius={10}
               alignItems={'center'}
               justifyContent={'center'}
             >
-              {renderIcon(system.code, system.color)}
+              {renderIcon(system.examOrganicSystemDescription, system.organicSystemScore)}
             </Box>
 
             <VStack flex={1} ml={4}>
-              <Text fontSize={20} fontWeight={800} letterSpacing={-0.16} mb={2}>
-                {system.description}
+              <Text fontSize={20} fontWeight={800} letterSpacing={-0.16}>
+                {system.examOrganicSystemDescription}
               </Text>
 
               <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
-                {healthWalletMap[system.color].text}
+                {getColorByScore(system.organicSystemScore)?.text}
               </Text>
             </VStack>
 
             <Badge
-              bg={healthWalletMap[system.color].bgColor}
+              bg={getColorByScore(system.organicSystemScore)?.bgColor}
               borderRadius={6}
               _text={{
                 textTransform: 'uppercase',
-                color: healthWalletMap[system.color].color,
+                color: getColorByScore(system.organicSystemScore)?.color,
                 fontSize: 10,
               }}
             >
-              {healthWalletMap[system.color].title}
+              {getColorByScore(system.organicSystemScore)?.title}
             </Badge>
           </Box>
         </TouchableOpacity>
@@ -151,8 +177,8 @@ export function HealthWallet() {
                 <AnimatedCircularProgress
                   size={150}
                   lineCap="round"
-                  width={20}
-                  fill={Math.round((homeData.score / 1000) * 100)}
+                  width={18}
+                  fill={Math.round(homeData.generalScore / 10)}
                   children={() => (
                     <Box
                       mt={-4}
@@ -165,13 +191,13 @@ export function HealthWallet() {
                     ></Box>
                   )}
                   rotation={270}
-                  tintColor="#00b39d"
+                  tintColor="#8A3FFC"
                   backgroundColor="#DCE1E8"
                   arcSweepAngle={180}
                 />
 
                 <Text mt={-12} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
-                  {Math.round(homeData.score)}
+                  {homeData.generalScore}
                 </Text>
 
                 <Text fontSize={16} fontWeight={800} letterSpacing={-0.16}>
@@ -179,7 +205,7 @@ export function HealthWallet() {
                 </Text>
 
                 <Text mt={2} color="gray.600" fontSize={12} fontWeight={500} lineHeight={19.2} textAlign="center">
-                  Com base nos seus exames, o seu Score{'\n'} de saúde está acima da média. Continue assim!
+                  {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')}
                 </Text>
               </VStack>
             </Box>

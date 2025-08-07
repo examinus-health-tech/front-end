@@ -1,4 +1,4 @@
-import { Container, IInputProps, ISelectProps, VStack } from 'native-base';
+import { IInputProps, ISelectProps, VStack } from 'native-base';
 import { InputStyled } from './styles';
 import { useState } from 'react';
 
@@ -20,7 +20,7 @@ export interface VariantLeftIconProps {
   mail: JSX.Element;
 }
 
-export function InputNative({ ...rest }: Props) {
+export function InputNative({ focused: propFocused, ...rest }: Props & { focused?: boolean }) {
   const [focused, setFocused] = useState<boolean>(false);
 
   return (
@@ -30,6 +30,7 @@ export function InputNative({ ...rest }: Props) {
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         focused={focused}
+        textAlign="left"
         {...rest}
       />
     </VStack>

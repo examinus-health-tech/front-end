@@ -19,6 +19,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useAuth } from 'src/hooks/useAuth';
 import { useExam } from 'src/hooks/useExam';
 import ContentLoader, { Rect } from 'react-content-loader/native';
+import { formatDateToBrazilian } from '@utils/dateFormatter';
 
 type FormDataProps = {
   lab: string;
@@ -47,7 +48,7 @@ export function ExamList() {
   const { isOpen, onOpen, onClose } = useDisclose();
   const [shadowOpacity, setShadowOpacity] = useState<0 | 60>(0);
   const { user } = useAuth();
-  const { getExamList, examData } = useExam();
+  const { getExamList, examData, setExamSelected } = useExam();
   const { width, height } = useWindowDimensions();
 
   const snapPoints = useMemo(() => ['42%', '65%'], []);
@@ -74,8 +75,6 @@ export function ExamList() {
   // }, []);
 
   const handleSheetChanges = (value: number) => {
-    console.log('handleSheetChanges', value);
-
     if (value === 0 || value === -1) {
       return setShadowOpacity(0);
     }
@@ -93,9 +92,14 @@ export function ExamList() {
     }
   }
 
-  function renderExam(exam: ExamDataProps) {
+  function renderExam(exam: any) {
     return (
-      <TouchableOpacity onPress={() => navigation.navigate('exam')}>
+      <TouchableOpacity
+        onPress={() => {
+          setExamSelected(exam);
+          navigation.navigate('exam');
+        }}
+      >
         <HStack justifyContent="space-between" alignItems="center" space={6} flex={1}>
           <Box bg="gray.100" borderRadius={16} w={20} h={16} alignItems="center" justifyContent="center">
             <FlaskIcon size="36" variant="duotone" />
@@ -103,11 +107,11 @@ export function ExamList() {
 
           <VStack flex={1}>
             <Text mt={1} fontSize={22} fontWeight={800} letterSpacing={-0.16} lineHeight={22}>
-              {exam.labor_name}
+              Laboratório
             </Text>
 
             <Text mt={1} fontSize={16} fontWeight={400} letterSpacing={-0.16} color="gray.600">
-              {exam.exam_date}
+              {formatDateToBrazilian(exam.createdDate)}
             </Text>
 
             <Text mt={1} fontSize={14} fontWeight={400} letterSpacing={-0.16} color="gray.600">
@@ -163,7 +167,21 @@ export function ExamList() {
           <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
             <VStack flex={1} space={8} pt={2} pb={32}>
               <VStack mx={6} mt={4} space={8}>
-                {examData.map((exam) => renderExam(exam))}
+                {examData && examData.length > 0 ? (
+                  examData.map((exam) => renderExam(exam))
+                ) : (
+                  <VStack alignItems="center" justifyContent="center" py={20} space={4}>
+                    <Box bg="gray.100" borderRadius={16} w={20} h={16} alignItems="center" justifyContent="center">
+                      <FlaskIcon size="36" variant="duotone" color="gray.400" />
+                    </Box>
+                    <Text fontSize={18} fontWeight={600} letterSpacing={-0.16} color="gray.600" textAlign="center">
+                      Nenhum exame processado ainda
+                    </Text>
+                    <Text fontSize={14} fontWeight={400} letterSpacing={-0.16} color="gray.400" textAlign="center">
+                      Quando você fizer upload de exames, eles aparecerão aqui
+                    </Text>
+                  </VStack>
+                )}
               </VStack>
 
               <BottomSheetModal

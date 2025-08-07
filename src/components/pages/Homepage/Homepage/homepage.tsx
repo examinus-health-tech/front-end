@@ -44,27 +44,25 @@ export function Homepage() {
     await getHomeData();
   }
 
-  console.log('!@# user', user);
-
   useEffect(() => {
-    console.log('!@# homeData', homeData);
-
-    // if (!homeData.score && homeData.systems?.length == 0) {
-    //   setUserWithoutData(true);
-    // } else setUserWithoutData(false);
+    if (!homeData.generalScore && homeData.medicalExamOrganicSystemsScore?.length == 0) {
+      setUserWithoutData(true);
+    } else setUserWithoutData(false);
   }, [homeData]);
 
   useEffect(() => {
-    if (
-      !trackerData.kcal ||
-      !trackerData.step ||
-      !trackerData.weight ||
-      !trackerData.hydration ||
-      !trackerData.nutrition ||
-      !trackerData.sleep
-    ) {
-      setUserTrackerData(true);
-    } else setUserTrackerData(false);
+    setUserTrackerData(true);
+
+    // if (
+    //   !trackerData.kcal ||
+    //   !trackerData.step ||
+    //   !trackerData.weight ||
+    //   !trackerData.hydration ||
+    //   !trackerData.nutrition ||
+    //   !trackerData.sleep
+    // ) {
+    //   setUserTrackerData(true);
+    // } else setUserTrackerData(false);
   }, [homeData]);
 
   useEffect(() => {
@@ -72,35 +70,36 @@ export function Homepage() {
   }, []);
 
   function renderCardSystems() {
-    if (homeData.systems?.length) {
-      const systems = homeData.systems;
+    if (homeData.medicalExamOrganicSystemsScore?.length) {
+      const systems = homeData.medicalExamOrganicSystemsScore;
 
-      const healthWalletStyleMap = {
-        green: { title: 'excelente', bgColor: 'ciano.300', icon: Vector2 },
-        yellow: { title: 'risco normal', bgColor: 'dark_blue.200', icon: Vector3 },
-        red: { title: 'risco alto', bgColor: 'red.100', icon: Vector4 },
+      const getColorByScore = (score: number) => {
+        if (score >= 0 && score <= 333) {
+          return { title: 'risco alto', bgColor: 'red.100', icon: Vector4 };
+        } else if (score > 333 && score <= 666) {
+          return { title: 'risco normal', bgColor: 'dark_blue.200', icon: Vector3 };
+        } else if (score > 666 && score <= 1000) {
+          return { title: 'excelente', bgColor: 'ciano.300', icon: Vector2 };
+        }
+        return { title: 'risco normal', bgColor: 'dark_blue.200', icon: Vector3 };
       };
 
       return systems.map((system, index) => {
-        if (index <= 3) {
+        if (index <= 2) {
+          const colorStyle = getColorByScore(system.organicSystemScore);
+
           return (
             <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
-              <Box bg={healthWalletStyleMap[system.color].bgColor} rounded="2xl" w={170} shadow={4} p={4}>
+              <Box bg={colorStyle.bgColor} rounded="2xl" w={170} shadow={4} p={4}>
                 <VStack space={4}>
                   <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
-                    {system.description}
+                    {system.examOrganicSystemDescription}
                   </Text>
 
-                  <Image
-                    source={healthWalletStyleMap[system.color].icon}
-                    alt="Vetor"
-                    resizeMode="contain"
-                    size={24}
-                    ml={4}
-                  />
+                  <Image source={colorStyle.icon} alt="Vetor" resizeMode="contain" size={24} ml={4} />
 
                   <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
-                    {healthWalletStyleMap[system.color].title}
+                    {colorStyle.title}
                   </Text>
                 </VStack>
               </Box>
@@ -113,8 +112,6 @@ export function Homepage() {
   }
 
   useEffect(() => {
-    // getUserData();
-    // handleGetHeathData();
     getHomeData();
   }, []);
 
@@ -186,7 +183,7 @@ export function Homepage() {
               <HStack space={4} alignItems={'center'}>
                 <Box
                   size={24}
-                  bg={true ? 'gray.300' : 'purple.600'}
+                  bg={userWithoutData ? 'gray.300' : 'purple.600'}
                   borderRadius={14}
                   alignItems={'center'}
                   justifyContent={'center'}
@@ -203,7 +200,7 @@ export function Homepage() {
                   />
 
                   <Text color={'white'} fontSize={44} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
-                    {Math.round(homeData.score) || '?'}
+                    {homeData.generalScore || '?'}
                   </Text>
                 </Box>
 
@@ -212,8 +209,7 @@ export function Homepage() {
                     Score X
                   </Text>
 
-                  {console.log('!@# userWithoutData', userWithoutData)}
-                  {true ? (
+                  {userWithoutData ? (
                     <View>
                       <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
                         Você não possui dados de exames{'\n'}a serem analisados.
@@ -231,9 +227,9 @@ export function Homepage() {
                       </Text>
                     </View>
                   ) : (
-                    <View>
-                      <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
-                        Com base nos seus exames, o seu{'\n'}Score de saúde está acima da média
+                    <View flex={1} display="flex">
+                      <Text fontSize={12} fontWeight={500} lineHeight={18} mt={2} width="30%">
+                        {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')}
                       </Text>
 
                       <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="purple.700">
@@ -257,7 +253,7 @@ export function Homepage() {
 
             <HStack h={265}>
               <ScrollView horizontal ref={scrollRef} mx={-6} showsHorizontalScrollIndicator={false}>
-                {true ? (
+                {userWithoutData ? (
                   <HStack space={3} mx={6} alignItems="center">
                     <Box bg={'gray.300'} rounded="2xl" w={170} shadow={4} p={4}>
                       <VStack space={4}>
@@ -295,7 +291,7 @@ export function Homepage() {
                   </HStack>
                 )}
 
-                {homeData?.systems?.length > 3 && (
+                {homeData?.medicalExamOrganicSystemsScore?.length > 3 && (
                   <VStack alignItems="center" justifyContent="center">
                     <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
                       <Center>

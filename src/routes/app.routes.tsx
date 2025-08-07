@@ -3,7 +3,7 @@ import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-na
 import { Homepage, HealthWallet, HeartScore, UploadMain } from '@components/pages/Homepage';
 import { AboutUs, ConfigNotifications, ContactUs, Info, MyAccount, Security } from '@components/pages/Settings';
 
-import { ExamList } from '@components/pages/Exam';
+import { ExamList, Exam } from '@components/pages/Exam';
 
 import { createBottomTabNavigator, BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { ChartIcon, ChecklistIcon, ExaminusIcon, HomeIcon, UserIcon } from '@assets/icons';
@@ -235,7 +235,7 @@ export function AppRoutes() {
 
       {/** EXAM */}
       <Screen name="examList" component={ExamList} />
-      {/* <Screen name="exam" component={Exam} /> */}
+      <Screen name="exam" component={Exam} />
 
       {/* <Screen name="notifications" component={Notifications} />
       <Screen name="successSaved" component={SuccessSaved} /> */}

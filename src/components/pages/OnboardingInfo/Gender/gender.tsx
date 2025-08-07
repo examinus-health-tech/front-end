@@ -130,7 +130,7 @@ export function Gender() {
               </Flex>
 
               <Image
-                onError={(info) => console.log('Error', info)}
+                onError={(info) => {}}
                 source={Vector1}
                 defaultSource={Vector1}
                 alt="Vetor"

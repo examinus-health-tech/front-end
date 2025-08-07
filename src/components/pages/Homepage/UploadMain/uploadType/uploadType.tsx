@@ -19,7 +19,6 @@ export function UploadType() {
   const toast = useToast();
 
   async function handleSelectFile() {
-    console.log('!@# 🚀 ~ handleSelectFile ~ handleSelectFile:');
     try {
       const result = await getDocumentAsync({
         type: 'application/pdf',

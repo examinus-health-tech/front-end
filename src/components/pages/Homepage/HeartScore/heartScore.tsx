@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
-import { ChevronRightIcon } from '@assets/icons';
+import { BarbellIcon, ChevronRightIcon, HeadHealtthIcon, PIllIcon, StethoscopeIcon } from '@assets/icons';
 import Vector from '@assets/png/vector-23.png';
 import Vector2 from '@assets/png/vector-33.png';
 
@@ -40,7 +40,7 @@ export function HeartScore() {
         <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
           <VStack flex={1} space={8} pt={2} pb={32}>
             <VStack flex={1} mx={6}>
-              {currentSystem.nivel == 'excelente' ? (
+              {currentSystem.nivel == 'excelente' || currentSystem.nivel == 'risco normal' ? (
                 <Box bg="ciano.200" pl={4} borderRadius={12} shadow={2}>
                   <HStack>
                     <VStack flex={1} justifyContent="center" py={4}>
@@ -76,9 +76,28 @@ export function HeartScore() {
               )}
 
               <HStack justifyContent={'space-between'} mt={2} space={4}>
-                <Box mt={4} bg={'white'} p={4} shadow={1} borderRadius={16} minH={200} flex={1}>
+                <Box mt={4} bg={'white'} p={4} shadow={1} borderRadius={16} minH={200} flex={1} position="relative">
+                  <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0,0,0,0.4)"
+                    borderRadius={16}
+                    alignItems="center"
+                    justifyContent="center"
+                    zIndex={10}
+                  >
+                    <Text fontSize={18} fontWeight={700} color="white" textAlign="center">
+                      Em breve
+                    </Text>
+                  </Box>
+
                   <HStack justifyContent="space-between">
-                    <Box bg="gray.100" borderRadius={16} size={12}></Box>
+                    <Box bg="gray.50" borderRadius={16} size={12} alignItems="center" justifyContent="center">
+                      <StethoscopeIcon />
+                    </Box>
                     <ChevronRightIcon color="#0CC1AF" size="32" />
                   </HStack>
 
@@ -91,9 +110,28 @@ export function HeartScore() {
                   </Text>
                 </Box>
 
-                <Box mt={4} bg={'white'} p={4} shadow={1} borderRadius={16} minH={200} flex={1}>
+                <Box mt={4} bg={'white'} p={4} shadow={1} borderRadius={16} minH={200} flex={1} position="relative">
+                  <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0,0,0,0.4)"
+                    borderRadius={16}
+                    alignItems="center"
+                    justifyContent="center"
+                    zIndex={10}
+                  >
+                    <Text fontSize={18} fontWeight={700} color="white" textAlign="center">
+                      Em breve
+                    </Text>
+                  </Box>
+
                   <HStack justifyContent="space-between">
-                    <Box bg="gray.100" borderRadius={16} size={12}></Box>
+                    <Box bg="gray.50" borderRadius={16} size={12} alignItems="center" justifyContent="center">
+                      <BarbellIcon />
+                    </Box>
                     <ChevronRightIcon color="#0CC1AF" size="32" />
                   </HStack>
 
@@ -108,9 +146,28 @@ export function HeartScore() {
               </HStack>
 
               <HStack justifyContent={'space-between'} space={4}>
-                <Box mt={4} bg={'white'} p={4} shadow={1} borderRadius={16} minH={200} flex={1}>
+                <Box mt={4} bg={'white'} p={4} shadow={1} borderRadius={16} minH={200} flex={1} position="relative">
+                  <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0,0,0,0.4)"
+                    borderRadius={16}
+                    alignItems="center"
+                    justifyContent="center"
+                    zIndex={10}
+                  >
+                    <Text fontSize={18} fontWeight={700} color="white" textAlign="center">
+                      Em breve
+                    </Text>
+                  </Box>
+
                   <HStack justifyContent="space-between">
-                    <Box bg="gray.100" borderRadius={16} size={12}></Box>
+                    <Box bg="gray.50" borderRadius={16} size={12} alignItems="center" justifyContent="center">
+                      <HeadHealtthIcon />
+                    </Box>
                     <ChevronRightIcon color="#0CC1AF" size="32" />
                   </HStack>
 
@@ -123,9 +180,28 @@ export function HeartScore() {
                   </Text>
                 </Box>
 
-                <Box mt={4} bg={'white'} p={4} shadow={1} borderRadius={16} minH={200} flex={1}>
+                <Box mt={4} bg={'white'} p={4} shadow={1} borderRadius={16} minH={200} flex={1} position="relative">
+                  <Box
+                    position="absolute"
+                    top={0}
+                    left={0}
+                    right={0}
+                    bottom={0}
+                    bg="rgba(0,0,0,0.4)"
+                    borderRadius={16}
+                    alignItems="center"
+                    justifyContent="center"
+                    zIndex={10}
+                  >
+                    <Text fontSize={18} fontWeight={700} color="white" textAlign="center">
+                      Em breve
+                    </Text>
+                  </Box>
+
                   <HStack justifyContent="space-between">
-                    <Box bg="gray.100" borderRadius={16} size={12}></Box>
+                    <Box bg="gray.50" borderRadius={16} size={12} alignItems="center" justifyContent="center">
+                      <PIllIcon />
+                    </Box>
                     <ChevronRightIcon color="#0CC1AF" size="32" />
                   </HStack>
 

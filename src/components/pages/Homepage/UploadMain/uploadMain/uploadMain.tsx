@@ -30,7 +30,6 @@ export function UploadMain() {
     };
   }, []);
 
-  console.log('!@# !@# !@#', isLoadingUploadContext, withError, withSuccess);
 
   if (isLoadingUploadContext) {
     return <Loading />;

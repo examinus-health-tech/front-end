@@ -12,9 +12,9 @@ import {
   SignUpText,
   BackgroundImg,
 } from './styles';
-import logoImg from '@assets/logo.png';
-import Robot from '@assets/robot.png';
-import Vector from '@assets/vector.png';
+import logoImg from '@assets/png/logo.png';
+import Robot from '@assets/png/robot.png';
+import Vector from '@assets/png/vector.png';
 
 export function Welcome() {
   return (

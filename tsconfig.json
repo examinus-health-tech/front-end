@@ -1,7 +1,8 @@
 {
   "extends": "expo/tsconfig.base",
   "includes": [
-    "styled-components.d.ts"
+    "styled-components.d.ts",
+    "src/@types/png.d.ts"
   ],
   "compilerOptions": {
     "strict": true,
@@ -9,6 +10,12 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "paths": {
+      "@assets": [
+        "./src/assets"
+      ],
+      "@assets/*": [
+        "./src/assets/*"
+      ],
       "@assets/icons": [
         "./src/assets/icons/index"
       ],
@@ -52,7 +59,7 @@
         "./src/utils/*"
       ],
       "@dtos/*": [
-        "./dtos/*"
+        "./src/dtos/*"
       ]
     }
   },

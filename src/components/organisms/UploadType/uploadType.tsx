@@ -17,7 +17,6 @@ export function UploadType({
   navigation: object;
 }) {
   async function handleSelectFile() {
-    console.log('!@# 🚀 ~ handleSelectFile ~ handleSelectFile:');
     try {
       const result = await getDocumentAsync({
         type: 'application/pdf',

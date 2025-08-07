@@ -165,14 +165,11 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
         },
       });
 
-      console.log('!@# 🚀 ~ handleUploadFileFromOnboarding ~ response:', response);
     } catch (error) {
-      console.log('!@# 🚀 ~ handleUploadFileFromOnboarding ~ error:', error);
       showError();
       setIsLoadingUpload(false);
       throw error;
     } finally {
-      console.log('!@# 🚀 ~ handleUploadFileFromOnboarding ~ finally:');
       showScoreWarning();
       setScoreWarning(true);
       setIsLoadingUpload(false);

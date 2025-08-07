@@ -58,6 +58,10 @@ import RinIcon from './components/rin';
 import SanIcon from './components/san';
 import CheckSquareIcon from './components/checkSquare';
 import CloseIcon from './components/close';
+import HeartIcon from './components/heart';
+import StethoscopeIcon from './components/stethoscope';
+import HeadHealtthIcon from './components/headHealtth';
+import PIllIcon from './components/pill';
 
 export {
   ArrowIcon,
@@ -120,4 +124,8 @@ export {
   SanIcon,
   CheckSquareIcon,
   CloseIcon,
+  HeartIcon,
+  StethoscopeIcon,
+  HeadHealtthIcon,
+  PIllIcon,
 };

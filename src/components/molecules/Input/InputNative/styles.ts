@@ -1,9 +1,11 @@
 import { TextInput } from 'react-native';
 import styled from 'styled-components/native';
 
-export const InputStyled = styled(TextInput).attrs((props) => ({
-  placeholderTextColor: props.focused ? 'transparent' : '#BEC5D2',
-}))`
+interface InputStyledProps {
+  focused?: boolean;
+}
+
+export const InputStyled = styled(TextInput)<InputStyledProps>`
   background-color: ${(props) => (props.focused ? '#0cc1af' : '#ffffff')};
   height: 60px;
   border-radius: 16px;
