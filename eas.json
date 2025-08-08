@@ -6,7 +6,10 @@
     "preview": {
       "android": {
         "distribution": "internal",
-        "buildType": "apk"
+        "buildType": "apk",
+        "env": {
+          "EXPO_USE_HERMES": "true"
+        }
       },
       "ios": {
         "simulator": true
@@ -14,9 +17,20 @@
     },
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
+      "distribution": "internal",
+      "android": {
+        "env": {
+          "EXPO_USE_HERMES": "true"
+        }
+      }
     },
-    "production": {}
+    "production": {
+      "android": {
+        "env": {
+          "EXPO_USE_HERMES": "true"
+        }
+      }
+    }
   },
   "submit": {
     "production": {}

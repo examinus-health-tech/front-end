@@ -88,18 +88,10 @@
         }
       ],
       [
-        "expo-av"
-      ],
-      [
-        "react-native-video",
+        "expo-video",
         {
-          "enableNotificationControls": true,
-          "androidExtensions": {
-            "useExoplayerRtsp": false,
-            "useExoplayerSmoothStreaming": false,
-            "useExoplayerHls": false,
-            "useExoplayerDash": false
-          }
+          "supportsBackgroundPlayback": false,
+          "supportsPictureInPicture": false
         }
       ],
       "expo-font",
@@ -109,8 +101,7 @@
           "cameraPermission": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
           "microphonePermission": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais."
         }
-      ],
-      "expo-video"
+      ]
     ]
   }
 }
