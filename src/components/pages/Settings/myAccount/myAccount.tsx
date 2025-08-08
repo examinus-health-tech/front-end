@@ -39,7 +39,7 @@ export function MyAccount() {
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <VStack flex={1} py={16} mx={6} mb={12}>
+      <VStack flex={1} py={16} mx={6} mb={20}>
         <Header title="Minha Conta" handleBackTo={() => navigation.navigate('homepage')} />
 
         <Box bg={'gray.800'} w="100%" borderRadius={16} p={4}>

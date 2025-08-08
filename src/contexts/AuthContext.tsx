@@ -315,7 +315,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  async function getUserInfo() {
+  const getUserInfo = useCallback(async () => {
+    if (!user?.userId) return;
+    
     try {
       setIsLoading(true);
 
@@ -334,7 +336,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [user?.userId]);
 
   const clearError = useCallback(() => {
     setError(null);

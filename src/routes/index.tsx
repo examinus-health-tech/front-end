@@ -8,14 +8,19 @@ import { useAuth } from '../hooks/useAuth';
 
 export function Routes() {
   const { colors } = useTheme();
-
   const { user } = useAuth();
 
   const theme = DefaultTheme;
   theme.colors.background = colors.gray[50];
 
   return (
-    <NavigationContainer theme={theme} ref={navigationRef}>
+    <NavigationContainer 
+      theme={theme} 
+      ref={navigationRef}
+      onReady={() => {
+        console.log('Navigation ready');
+      }}
+    >
       {user ? <AppRoutes /> : <AuthRoutes />}
     </NavigationContainer>
   );

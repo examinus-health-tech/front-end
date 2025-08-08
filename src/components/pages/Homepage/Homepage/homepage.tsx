@@ -45,28 +45,28 @@ export function Homepage() {
   }
 
   useEffect(() => {
-    if (!homeData.generalScore && homeData.medicalExamOrganicSystemsScore?.length == 0) {
-      setUserWithoutData(true);
-    } else setUserWithoutData(false);
-  }, [homeData]);
+    const hasNoGeneralScore = !homeData.generalScore;
+    const hasNoSystemsScore = !homeData.medicalExamOrganicSystemsScore?.length;
+    
+    setUserWithoutData(hasNoGeneralScore && hasNoSystemsScore);
+  }, [homeData.generalScore, homeData.medicalExamOrganicSystemsScore?.length]);
 
   useEffect(() => {
-    setUserTrackerData(true);
-
-    // if (
-    //   !trackerData.kcal ||
-    //   !trackerData.step ||
-    //   !trackerData.weight ||
-    //   !trackerData.hydration ||
-    //   !trackerData.nutrition ||
-    //   !trackerData.sleep
-    // ) {
-    //   setUserTrackerData(true);
-    // } else setUserTrackerData(false);
-  }, [homeData]);
+    if (
+      !trackerData.kcal ||
+      !trackerData.step ||
+      !trackerData.weight ||
+      !trackerData.hydration ||
+      !trackerData.nutrition ||
+      !trackerData.sleep
+    ) {
+      setUserTrackerData(true);
+    } else setUserTrackerData(false);
+  }, [trackerData]);
 
   useEffect(() => {
     getUserInfo();
+    getHomeData();
   }, []);
 
   function renderCardSystems() {
@@ -111,10 +111,6 @@ export function Homepage() {
     }
   }
 
-  useEffect(() => {
-    getHomeData();
-  }, []);
-
   return (
     <View>
       {isLoading || isLoadingHomeContext ? (
@@ -154,7 +150,7 @@ export function Homepage() {
                 </Text>
               </VStack>
 
-              <TouchableOpacity onPress={() => navigation.navigate('notifications')}>
+              {/* <TouchableOpacity onPress={() => navigation.navigate('notifications')}>
                 {withNotification && (
                   <Box
                     bg={'red.500'}
@@ -176,7 +172,7 @@ export function Homepage() {
                 <Box size={16} bg={'white'} borderRadius={16} alignItems={'center'} justifyContent={'center'}>
                   <BellIcon size={'40'} />
                 </Box>
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </HStack>
 
             <Box w="100%" h="auto" bg={'white'} px={4} py={5} mt={12} borderRadius={12}>

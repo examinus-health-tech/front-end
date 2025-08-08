@@ -12,6 +12,9 @@ import { TouchableOpacity } from 'react-native';
 import { OnboardingSteps } from '@components/pages/OnboardingInfo/onboarding';
 import { TabBarContextProvider } from '@contexts/TabBarContext';
 import { useTabBar } from 'src/hooks/useTabBar';
+import { useOnboarding } from 'src/hooks/useOnboarding';
+import { useState, useEffect } from 'react';
+import { Flex, Image } from 'native-base';
 
 import { Weight, Tracker, Calories } from '@components/pages/Tracker';
 import { Nutrition } from '@components/pages/Tracker/Nutrition/nutrition';
@@ -232,9 +235,50 @@ function HomeTabs() {
   );
 }
 
-export function AppRoutes() {
+import { OnboardingContextProvider } from '@contexts/OnboardingContext';
+
+function AppRoutesContent() {
+  const { isOnboardingComplete, checkOnboardingCompletion } = useOnboarding();
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+  const [isChecking, setIsChecking] = useState(true);
+
+  useEffect(() => {
+    async function determineInitialRoute() {
+      try {
+        console.log('🚀 AppRoutes: Determinando rota inicial...');
+        
+        const isComplete = await checkOnboardingCompletion();
+        console.log('📋 AppRoutes: Onboarding completo:', isComplete);
+        
+        if (isComplete) {
+          console.log('➡️ AppRoutes: Definindo homepage como inicial');
+          setInitialRoute('homepage');
+        } else {
+          console.log('➡️ AppRoutes: Definindo onboardingSteps como inicial');
+          setInitialRoute('onboardingSteps');
+        }
+      } catch (error) {
+        console.log('❌ AppRoutes: Erro, definindo onboarding como inicial:', error);
+        setInitialRoute('onboardingSteps');
+      } finally {
+        setIsChecking(false);
+      }
+    }
+
+    determineInitialRoute();
+  }, [checkOnboardingCompletion]);
+
+  // Mostrar loading enquanto determina a rota inicial
+  if (isChecking || !initialRoute) {
+    return (
+      <Flex align="center" justify="center" h="100%" bgColor="gray.100">
+        <Image source={require('@assets/png/logo-animado-2.gif')} style={{ width: 80, height: 80 }} alt="Loading" />
+      </Flex>
+    );
+  }
+
   return (
-    <Navigator screenOptions={{ headerShown: false }}>
+    <Navigator screenOptions={{ headerShown: false }} initialRouteName={initialRoute}>
       {/** WELCOME */}
       <Screen name="onboardingSteps" component={OnboardingSteps} />
 
@@ -259,7 +303,7 @@ export function AppRoutes() {
       <Screen name="successSaved" component={SuccessSaved} />
 
       {/** SETTINGS */}
-      <Screen name="myAccount" component={MyAccount} />
+      {/* <Screen name="myAccount" component={MyAccount} /> */}
       <Screen name="configNotifications" component={ConfigNotifications} />
       <Screen name="info" component={Info} />
       <Screen name="security" component={Security} />
@@ -274,5 +318,13 @@ export function AppRoutes() {
 
       {/* <Screen name="weightTracker" component={WeightTracker} /> */}
     </Navigator>
+  );
+}
+
+export function AppRoutes() {
+  return (
+    <OnboardingContextProvider>
+      <AppRoutesContent />
+    </OnboardingContextProvider>
   );
 }

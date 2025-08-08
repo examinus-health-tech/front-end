@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useState } from 'react';
+import { ReactNode, createContext, useState, useCallback } from 'react';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from 'src/services/api';
@@ -22,6 +22,9 @@ export type OnboardingContextDataProps = {
   isLoadingUpload: boolean;
   handleUploadFileFromOnboarding: (file: DocumentPickerAsset) => Promise<void>;
   scoreWarning: boolean;
+  isOnboardingComplete: boolean;
+  checkOnboardingCompletion: () => Promise<boolean>;
+  resetOnboardingState: () => void;
 };
 
 type OnboardingContextProviderProps = {
@@ -36,6 +39,7 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
   const [isLoadingOnboardingContext, setisLoadingOnboardingContext] = useState<boolean>(false);
   const [isLoadingUpload, setIsLoadingUpload] = useState<boolean>(false);
   const [scoreWarning, setScoreWarning] = useState<boolean>(false);
+  const [isOnboardingComplete, setIsOnboardingComplete] = useState<boolean>(false);
 
   const [step, setStep] = useState<number>(0);
 
@@ -103,7 +107,7 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
     setStep(newStep);
   }
 
-  async function getPersonalData() {
+  const getPersonalData = useCallback(async () => {
     try {
       setisLoadingOnboardingContext(true);
 
@@ -120,6 +124,87 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
     } finally {
       setisLoadingOnboardingContext(false);
     }
+  }, []);
+
+  const checkOnboardingCompletion = useCallback(async () => {
+    try {
+      console.log('🔍 Verificando conclusão do onboarding...');
+      
+      // Verificar se existe dados pessoais salvos localmente
+      const storedPersonalData = await AsyncStorage.getItem('@app:personalData');
+      console.log('💾 Dados locais encontrados:', !!storedPersonalData);
+      
+      if (storedPersonalData) {
+        const parsedData = JSON.parse(storedPersonalData);
+        console.log('📋 Dados locais:', { 
+          gender: !!parsedData.gender, 
+          weight: !!parsedData.weight, 
+          height: !!parsedData.height, 
+          age: !!parsedData.age 
+        });
+        
+        // Verificar se os dados essenciais estão preenchidos
+        const hasEssentialData = parsedData && 
+          parsedData.gender && 
+          parsedData.weight && 
+          parsedData.height && 
+          parsedData.age;
+        
+        console.log('✅ Dados essenciais completos:', hasEssentialData);
+        
+        setIsOnboardingComplete(hasEssentialData);
+        setPersonalData(parsedData);
+        
+        return hasEssentialData;
+      }
+      
+      console.log('🌐 Tentando buscar dados do servidor...');
+      
+      // Se não há dados locais, tentar buscar do servidor
+      try {
+        const response = await api.get('/user-personal-data');
+        const { data } = response;
+        const serverPersonalData = data.data;
+        
+        if (serverPersonalData) {
+          console.log('📡 Dados do servidor encontrados:', { 
+            gender: !!serverPersonalData.gender, 
+            weight: !!serverPersonalData.weight, 
+            height: !!serverPersonalData.height, 
+            age: !!serverPersonalData.age 
+          });
+          
+          const hasEssentialData = serverPersonalData.gender && 
+            serverPersonalData.weight && 
+            serverPersonalData.height && 
+            serverPersonalData.age;
+          
+          await AsyncStorage.setItem('@app:personalData', JSON.stringify(serverPersonalData));
+          setPersonalData(serverPersonalData);
+          setIsOnboardingComplete(hasEssentialData);
+          
+          console.log('✅ Dados do servidor - essenciais completos:', hasEssentialData);
+          return hasEssentialData;
+        }
+      } catch (serverError) {
+        console.log('❌ Erro ao buscar dados do servidor:', serverError);
+      }
+      
+      console.log('❌ Nenhum dado encontrado - onboarding incompleto');
+      setIsOnboardingComplete(false);
+      return false;
+      
+    } catch (error: any) {
+      console.log('❌ Erro geral ao verificar onboarding:', error);
+      setIsOnboardingComplete(false);
+      return false;
+    }
+  }, []);
+
+  function resetOnboardingState() {
+    setIsOnboardingComplete(false);
+    setPersonalData(undefined);
+    setStep(0);
   }
 
   async function saveOnboarding(payload: OnboardingProps) {
@@ -214,6 +299,9 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
         isLoadingUpload,
         scoreWarning,
         handleUploadFileFromOnboarding,
+        isOnboardingComplete,
+        checkOnboardingCompletion,
+        resetOnboardingState,
       }}
     >
       {children}
