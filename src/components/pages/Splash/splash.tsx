@@ -10,27 +10,28 @@ export function Splash() {
   const splashImage = require('../../../../assets/splash.png');
 
   const player = useVideoPlayer(splash, (player) => {
-    // Configurações específicas para Android
+    player.loop = true;
+    
+    // Configurações específicas por plataforma
     if (Platform.OS === 'android') {
-      // Aguardar um pouco antes de reproduzir no Android
+      player.muted = true; // Importante para autoplay no Android
       setTimeout(() => {
         player.play();
       }, 500);
     } else {
+      // iOS - reprodução imediata
       player.play();
     }
-    player.loop = true;
-    player.muted = true; // Importante para autoplay no Android
   });
 
   // Timeout de segurança para fallback
   useEffect(() => {
     const timeout = setTimeout(() => {
-      if (!isReady && Platform.OS === 'android') {
-        console.log('Video timeout on Android, using fallback');
+      if (!isReady) {
+        console.log(`Video timeout on ${Platform.OS}, using fallback`);
         setVideoError(true);
       }
-    }, 3000);
+    }, Platform.OS === 'android' ? 3000 : 5000); // iOS timeout maior
 
     return () => clearTimeout(timeout);
   }, [isReady]);
@@ -64,7 +65,9 @@ export function Splash() {
         nativeControls={false}
         contentFit="cover"
         onPlaybackStatusUpdate={(status) => {
-          if (status.isLoaded && !isReady) {
+          // Marcar como pronto quando começar a tocar ou estiver carregado
+          if ((status.isLoaded || status.isPlaying) && !isReady) {
+            console.log('Video is ready:', { isLoaded: status.isLoaded, isPlaying: status.isPlaying });
             setIsReady(true);
           }
           if (status.error) {
