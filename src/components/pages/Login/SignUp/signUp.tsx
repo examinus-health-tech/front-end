@@ -130,15 +130,7 @@ export function SignUp() {
   return (
     <KeyboardAvoidingView behavior="padding">
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-        <Flex
-          justify="space-between"
-          mx={6}
-          py={32}
-          h="100%"
-          _android={{
-            py: 16,
-          }}
-        >
+        <Flex justify="space-between" mx={6} py={32} h="100%">
           <Toast />
 
           <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={2}>

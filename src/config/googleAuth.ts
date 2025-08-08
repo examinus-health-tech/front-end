@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 // Configurações do Google OAuth para Produção
 export const GOOGLE_CLIENT_ID = {
   // Client IDs específicos por plataforma (PRODUÇÃO)
@@ -13,7 +15,6 @@ export const GOOGLE_CLIENT_ID = {
 
 // Função para obter o client ID correto baseado na plataforma
 export function getGoogleClientId() {
-  const { Platform } = require('react-native');
 
   let clientId;
   if (Platform.OS === 'ios') {

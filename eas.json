@@ -5,8 +5,8 @@
   "build": {
     "preview": {
       "android": {
-        "distribution": "internal"
-        // "buildType": "apk"
+        "distribution": "internal",
+        "buildType": "apk"
       },
       "ios": {
         "simulator": true
@@ -16,6 +16,9 @@
       "developmentClient": true,
       "distribution": "internal"
     },
+    "production": {}
+  },
+  "submit": {
     "production": {}
   }
 }

@@ -96,15 +96,7 @@ export function SignIn() {
   }
 
   return (
-    <VStack
-      justifyContent="space-between"
-      flex={1}
-      mx={6}
-      py={32}
-      _android={{
-        py: 16,
-      }}
-    >
+    <VStack justifyContent="space-between" flex={1} mx={6} py={32}>
       <Toast />
 
       <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
