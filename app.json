@@ -74,18 +74,7 @@
       "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
     },
     "plugins": [
-      [
-        "expo-video",
-        {
-          "supportsBackgroundPlayback": false,
-          "supportsPictureInPicture": false,
-          "androidExtensions": {
-            "useExoplayerHls": true,
-            "useExoplayerDash": true,
-            "useExoplayerSmoothStreaming": true
-          }
-        }
-      ],
+      "expo-video",
       [
         "expo-document-picker",
         {
