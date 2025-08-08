@@ -8,9 +8,17 @@ import { useEffect, useState } from 'react';
 export function ActionSheetUpload({
   isOpen,
   onClose,
+  navigation,
+  handleUploadFile,
+  setIsCameraOpen,
+  handleCameraPermission,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  navigation?: object;
+  handleUploadFile?: (file: any) => void;
+  setIsCameraOpen?: (state: boolean) => void;
+  handleCameraPermission?: () => void;
 }) {
   const [isManual, setManual] = useState(false);
 
@@ -20,7 +28,12 @@ export function ActionSheetUpload({
         {isManual ? (
           <UploadTypeManual setManual={setManual} />
         ) : (
-          <UploadType setManual={setManual} />
+          <UploadType 
+            setIsCameraOpen={setIsCameraOpen}
+            navigation={navigation || {}}
+            handleUploadFileFromOnboarding={handleUploadFile || (() => {})}
+            handleCameraPermission={handleCameraPermission}
+          />
         )}
       </Actionsheet.Content>
     </Actionsheet>

@@ -17,5 +17,8 @@ module.exports = (() => {
 
   config.resolver.unstable_enablePackageExports = false;
 
+  // Force JSC usage
+  config.transformer.hermesCommand = null;
+  
   return config;
 })();

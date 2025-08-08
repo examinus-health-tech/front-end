@@ -11,10 +11,12 @@ export function UploadType({
   setIsCameraOpen,
   navigation,
   handleUploadFileFromOnboarding,
+  handleCameraPermission,
 }: {
-  setIsCameraOpen: (data: boolean) => void;
+  setIsCameraOpen?: (data: boolean) => void;
   handleUploadFileFromOnboarding: (file: DocumentPickerAsset) => void;
-  navigation: object;
+  navigation: any;
+  handleCameraPermission?: () => void;
 }) {
   async function handleSelectFile() {
     try {
@@ -64,7 +66,7 @@ export function UploadType({
             </Box>
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => setIsCameraOpen(true)}>
+          <TouchableOpacity onPress={handleCameraPermission ? handleCameraPermission : () => setIsCameraOpen?.(true)}>
             <Box w={40} h={20} py={2} px={4} rounded="2xl" alignItems="center" borderWidth={4} borderColor="gray.50">
               <EditIcon color="#052B3B" />
               <Text fontSize={17} fontWeight={700} letterSpacing={-0.18} color="gray.400" mt={1}>

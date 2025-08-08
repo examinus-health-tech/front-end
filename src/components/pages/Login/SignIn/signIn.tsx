@@ -12,6 +12,7 @@ import { TouchableOpacity } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
 import { useAuth } from '../../../../hooks/useAuth';
+import { useGoogleAuth } from '../../../../hooks/useGoogleAuth';
 import { AppError } from '@utils/AppErrors';
 import { useState } from 'react';
 
@@ -31,6 +32,7 @@ export function SignIn() {
 
   const toast = useToast();
   const { signIn } = useAuth();
+  const { signInWithGoogle, isLoading: isGoogleLoading, isConfigured: isGoogleConfigured } = useGoogleAuth();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
     control,
@@ -44,14 +46,26 @@ export function SignIn() {
     try {
       setIsLoading(true);
 
+      console.log('🔐 Tentando login com:', data.email);
       await signIn(data.email, data.password);
+
+      console.log('✅ Login realizado com sucesso');
     } catch (error: any) {
-      const description = error?.response?.data?.message;
+      console.log('❌ Erro capturado na tela de login:', error);
+
+      // Pegar a mensagem de erro mais específica
+      let errorMessage = 'Erro de conexão. Verifique sua internet.';
+
+      if (error.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      }
 
       Toast.show({
         type: 'error',
-        text1: 'Não foi possivel acessar sua conta',
-        text2: `${description} 😔`,
+        text1: 'Erro no Login',
+        text2: errorMessage,
         topOffset: 60,
         text1Style: {
           fontSize: 14,
@@ -62,8 +76,22 @@ export function SignIn() {
           fontWeight: 600,
         },
       });
-
+    } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      console.log('❌ Erro no login Google:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro no Login Google',
+        text2: 'Não foi possível fazer login com Google.',
+        topOffset: 60,
+      });
     }
   }
 
@@ -160,7 +188,8 @@ export function SignIn() {
         </Flex>
 
         <HStack justifyContent="center" alignItems="center" my={2} space={2}>
-          <TouchableOpacity>
+          {/* Facebook - Comentado temporariamente */}
+          {/* <TouchableOpacity>
             <Box
               size={16}
               borderRadius={12}
@@ -171,22 +200,24 @@ export function SignIn() {
             >
               <FacebookIcon />
             </Box>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
-          <TouchableOpacity>
+          <TouchableOpacity onPress={handleGoogleSignIn} disabled={isGoogleLoading || !isGoogleConfigured}>
             <Box
               size={16}
               borderRadius={12}
               borderWidth={1}
-              borderColor="gray.100"
+              borderColor={!isGoogleConfigured ? 'red.200' : isGoogleLoading ? 'gray.300' : 'gray.100'}
               alignItems="center"
               justifyContent="center"
+              opacity={!isGoogleConfigured ? 0.4 : isGoogleLoading ? 0.6 : 1}
             >
               <GmailIcon />
             </Box>
           </TouchableOpacity>
 
-          <TouchableOpacity>
+          {/* Instagram - Comentado temporariamente */}
+          {/* <TouchableOpacity>
             <Box
               size={16}
               borderRadius={12}
@@ -197,12 +228,12 @@ export function SignIn() {
             >
               <InstagramIcon />
             </Box>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </HStack>
 
         <HStack alignItems="center" justifyContent="center">
           <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
-            Não tem uma conta?
+            Não tem uma conta?{' '}
           </Text>
 
           <TouchableOpacity onPress={() => navigation.navigate('signUp')}>

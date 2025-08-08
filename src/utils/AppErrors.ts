@@ -1,7 +1,13 @@
 export class AppError {
-  response: { data: { data: string | null | object; message: string[]; success: boolean } };
+  message: string;
+  response?: { data: { data: string | null | object; message: string[]; success: boolean } };
 
-  constructor(response: { data: { data: string | null; message: string[]; success: boolean } }) {
-    this.response = response;
+  constructor(message: string | { data: { data: string | null; message: string[]; success: boolean } }) {
+    if (typeof message === 'string') {
+      this.message = message;
+    } else {
+      this.response = message;
+      this.message = message.data.message.join(', ') || 'Erro desconhecido';
+    }
   }
 }

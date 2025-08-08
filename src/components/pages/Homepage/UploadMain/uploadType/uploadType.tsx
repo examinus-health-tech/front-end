@@ -12,7 +12,11 @@ import { AppError } from '@utils/AppErrors';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
-export function UploadType() {
+interface UploadTypeProps {
+  onCameraOpen: () => void;
+}
+
+export function UploadType({ onCameraOpen }: UploadTypeProps) {
   const { isOpen, onOpen, onClose } = useDisclose();
   const { handleUploadFile, isLoadingUploadContext } = useUpload();
   const { user } = useAuth();
@@ -77,59 +81,57 @@ export function UploadType() {
   // }
 
   return (
-    <Center>
-      <VStack alignItems="center" mt={12} mx={4}>
-        <Image source={Vector1} defaultSource={Vector1} alt="Vetor" resizeMode="stretch" h={56} />
+    <>
+      <Center>
+        <VStack alignItems="center" mt={12} mx={4}>
+          <Image source={Vector1} defaultSource={Vector1} alt="Vetor" resizeMode="stretch" h={56} />
 
-        <Text mt={8} fontSize={24} fontWeight={800} letterSpacing={-0.24} textAlign="center">
-          Como você deseja{'\n'}importar seu exame?
-        </Text>
+          <Text mt={8} fontSize={24} fontWeight={800} letterSpacing={-0.24} textAlign="center">
+            Como você deseja{'\n'}importar seu exame?
+          </Text>
 
-        <Text fontSize={14} fontWeight={500} lineHeight={22.4} color="gray.300" textAlign="center" mt={2}>
-          Selecione a opção abaixo para que{'\n'}
-          possamos simplificar sua saúde:
-        </Text>
+          <Text fontSize={14} fontWeight={500} lineHeight={22.4} color="gray.300" textAlign="center" mt={2}>
+            Selecione a opção abaixo para que{'\n'}
+            possamos simplificar sua saúde:
+          </Text>
 
-        <HStack space={4} mt={8}>
-          <TouchableOpacity onPress={handleSelectFile}>
-            <Box
-              bg="ciano.300"
-              w={40}
-              h={20}
-              py={2}
-              px={4}
-              rounded="2xl"
-              alignItems="center"
-              borderWidth={4}
-              borderColor="gray.200"
-            >
-              <UploadIcon />
-              <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="white" mt={1}>
-                PDF
-              </Text>
-            </Box>
-          </TouchableOpacity>
+          <HStack space={4} mt={8}>
+            <TouchableOpacity onPress={handleSelectFile}>
+              <Box
+                bg="ciano.300"
+                w={40}
+                h={20}
+                py={2}
+                px={4}
+                rounded="2xl"
+                alignItems="center"
+                borderWidth={4}
+                borderColor="gray.200"
+              >
+                <UploadIcon />
+                <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="white" mt={1}>
+                  PDF
+                </Text>
+              </Box>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            onPress={() => {
-              onOpen();
-            }}
-          >
-            <Box w={40} h={20} py={2} px={4} rounded="2xl" alignItems="center" borderWidth={4} borderColor="gray.50">
-              <EditIcon color="#052B3B" />
-              <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="gray.400" mt={1}>
-                Imagem
-              </Text>
-            </Box>
-          </TouchableOpacity>
-        </HStack>
+            <TouchableOpacity onPress={onCameraOpen}>
+              <Box w={40} h={20} py={2} px={4} rounded="2xl" alignItems="center" borderWidth={4} borderColor="gray.50">
+                <EditIcon color="#052B3B" />
+                <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="gray.400" mt={1}>
+                  Imagem
+                </Text>
+              </Box>
+            </TouchableOpacity>
+          </HStack>
 
-        <Actionsheet isOpen={isOpen} onClose={onClose}>
-          <Actionsheet.Content>
-            <UploadTypeManual />
-          </Actionsheet.Content>
-        </Actionsheet>
-      </VStack>
-    </Center>
+          <Actionsheet isOpen={isOpen} onClose={onClose}>
+            <Actionsheet.Content>
+              <UploadTypeManual />
+            </Actionsheet.Content>
+          </Actionsheet>
+        </VStack>
+      </Center>
+    </>
   );
 }

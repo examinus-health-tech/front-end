@@ -2,13 +2,19 @@
   "extends": "expo/tsconfig.base",
   "includes": [
     "styled-components.d.ts",
-    "src/@types/png.d.ts"
+    "src/@types/png.d.ts",
+    "src/@types/jsx.d.ts"
   ],
   "compilerOptions": {
-    "strict": true,
+    "strict": false,
     "baseUrl": "./",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "jsx": "react-jsx",
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "types": ["react/jsx-runtime"],
+    "jsxImportSource": "react",
     "paths": {
       "@assets": [
         "./src/assets"

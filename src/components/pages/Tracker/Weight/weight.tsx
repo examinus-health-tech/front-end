@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { VStack, ScrollView, IScrollViewProps, Box, Text, HStack, Flex } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
-import { VictoryLine, VictoryChart, VictoryTheme, VictoryBar } from 'victory-native';
+// import { VictoryLine, VictoryChart, VictoryTheme, VictoryBar } from 'victory-native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -124,23 +124,14 @@ export function Weight() {
           </HStack>
 
           <Flex align="center">
-            <VictoryChart domainPadding={{ x: 15 }}>
-              <VictoryLine
-                // domain={{ x: [0, 100], y: [0, 1] }}
-                categories={{ x: ['dogs', 'cats', 'mice'] }}
-                animate={{
-                  duration: 2000,
-                  onLoad: { duration: 1000 },
-                }}
-                data={[
-                  { x: 1, y: 2 },
-                  { x: 2, y: 3 },
-                  { x: 3, y: 5 },
-                  { x: 4, y: 4 },
-                  { x: 5, y: 6 },
-                ]}
-              />
-            </VictoryChart>
+            <Box h={200} w="100%" bg="gray.100" borderRadius={12} justifyContent="center" alignItems="center">
+              <Text color="gray.500" fontSize={16}>
+                Gráfico temporariamente desabilitado
+              </Text>
+              <Text color="gray.400" fontSize={12} mt={2}>
+                (Será substituído por solução compatível)
+              </Text>
+            </Box>
           </Flex>
 
           <HStack mt={4} justifyContent={'space-between'}>

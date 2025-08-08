@@ -48,29 +48,37 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   const [examList, setExamList] = useState([]);
   const toast = useToast();
 
-  async function handleUploadFile({ name, mimeType, uri }: DocumentPickerAsset) {
+  async function handleUploadFile({ name, mimeType, uri, file }: DocumentPickerAsset) {
     setIsLoading(true);
+    console.log('📤 Iniciando upload:', { name, mimeType, uri });
+    
     try {
-      const file = {
-        name: name,
-        type: mimeType || 'application/pdf',
+      const uploadFile = {
+        name: name || 'upload.jpg',
+        type: mimeType || (file?.type) || 'image/jpeg',
         uri: uri,
       } as any;
 
-      const bodyFormData = new FormData();
-      bodyFormData.append('File', file);
+      console.log('📋 Arquivo preparado para upload:', uploadFile);
 
-      await api.post('medical-exam/form', bodyFormData, {
+      const bodyFormData = new FormData();
+      bodyFormData.append('File', uploadFile);
+
+      console.log('🚀 Enviando para API...');
+      const response = await api.post('medical-exam/form', bodyFormData, {
         headers: {
           'Content-type': 'multipart/form-data',
           Accept: 'application/octet-stream',
         },
       });
 
-      setFile(file);
+      console.log('✅ Upload bem-sucedido:', response.data);
+
+      setFile(uploadFile);
       setWithSuccess(true);
       setWithError(false);
     } catch (error) {
+      console.error('❌ Erro no upload:', error);
       setWithSuccess(false);
       setWithError(true);
       throw error;
@@ -100,7 +108,6 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
         setWithSuccess(true);
       }
     } catch (error) {
-      showError();
       setWithError(true);
       setWithSuccess(false);
       throw error;

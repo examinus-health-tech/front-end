@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from 'src/services/api';
+import { validateStoredToken } from '@utils/tokenValidation';
 
 interface User {
   userId?: string;
@@ -14,6 +15,8 @@ interface AuthContextData {
   isLoading: boolean;
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: (authCode: string) => Promise<void>;
+  signUpWithGoogle: (authCode: string) => Promise<void>;
   signUp: (name: string, email: string, password: string, confirmationPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -35,20 +38,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const signOut = useCallback(async () => {
+    try {
+      await AsyncStorage.removeItem('@app:user');
+      setUser(null);
+    } catch (error) {
+      // Silent fail - user will be signed out anyway
+    }
+  }, []);
+
   useEffect(() => {
     loadStoredUser();
-  }, []);
+
+    // Register token interceptor
+    const unsubscribe = api.registerInterceptTokenManager(signOut);
+
+    return () => {
+      unsubscribe();
+    };
+  }, [signOut]);
 
   async function loadStoredUser() {
     try {
-      const storedUser = await AsyncStorage.getItem('@app:user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
+      // Validate token before loading user
+      const isValidToken = await validateStoredToken();
+
+      if (isValidToken) {
+        const storedUser = await AsyncStorage.getItem('@app:user');
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+        } else {
+          setUser(null);
+        }
       } else {
+        // Token is invalid, clear user
         setUser(null);
       }
     } catch (error) {
-      console.error('Error loading user:', error);
+      setUser(null);
     } finally {
       setIsLoading(false);
     }
@@ -57,11 +84,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   async function signIn(userName: string, password: string) {
     try {
       setIsLoading(true);
+      setError(null); // Limpar erro anterior
+
+      console.log('🚀 Tentando login para:', userName);
+      console.log('🌐 URL da API:', process.env.EXPO_PUBLIC_API_URL);
 
       const response = await api.post('authentication', {
         userName,
         password,
       });
+
+      console.log('✅ Login bem-sucedido:', response.data);
 
       const { data } = response;
       const userData = data.data;
@@ -70,9 +103,124 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setUser(userData);
     } catch (error: any) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.log('❌ Erro no login:', error);
+      console.log('🔍 Detalhes do erro:', {
+        message: error?.message,
+        response: error?.response?.data,
+        status: error?.response?.status,
+      });
+
+      let errorMessage = 'Erro de conexão. Verifique sua internet.';
+
+      if (error.response) {
+        // Erro do servidor com resposta
+        if (error.response.status === 401) {
+          errorMessage = 'Credenciais inválidas. Verifique seu email e senha.';
+        } else if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || 'Dados inválidos.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Erro no servidor. Tente novamente mais tarde.';
+        } else {
+          errorMessage = error.response.data?.message || 'Erro desconhecido.';
+        }
+      } else if (error.request) {
+        // Erro de rede
+        errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
+      } else if (error.message) {
+        // Outro tipo de erro
+        errorMessage = error.message;
+      }
+
       setError(errorMessage);
-      throw error;
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function signInWithGoogle(authCode: string) {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      console.log('🔑 Fazendo login com Google...');
+
+      const response = await api.post('authentication/external', {
+        provider: 'Google',
+        idToken: authCode,
+      });
+
+      console.log('✅ Login Google bem-sucedido:', response.data);
+
+      const { data } = response;
+      const userData = data.data;
+
+      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
+      setUser(userData);
+    } catch (error: any) {
+      console.log('❌ Erro no login Google:', error);
+
+      let errorMessage = 'Erro ao fazer login com Google.';
+
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Não foi possível autenticar com Google.';
+        } else if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || 'Dados inválidos do Google.';
+        } else {
+          errorMessage = error.response.data?.message || 'Erro no servidor.';
+        }
+      } else if (error.request) {
+        errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
+      }
+
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function signUpWithGoogle(authCode: string) {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      console.log('🔑 Fazendo cadastro com Google...');
+
+      const response = await api.post('authentication/external', {
+        provider: 'Google',
+        idToken: authCode,
+      });
+
+      console.log('✅ Cadastro Google bem-sucedido:', response.data);
+
+      const { data } = response;
+      const userData = data.data;
+
+      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
+      setUser(userData);
+    } catch (error: any) {
+      console.log('❌ Erro no cadastro Google:', error);
+
+      let errorMessage = 'Erro ao fazer cadastro com Google.';
+
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Não foi possível autenticar com Google.';
+        } else if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || 'Dados inválidos do Google.';
+        } else if (error.response.status === 409) {
+          errorMessage = 'Usuário já existe. Tente fazer login.';
+        } else {
+          errorMessage = error.response.data?.message || 'Erro no servidor.';
+        }
+      } else if (error.request) {
+        errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
+      }
+
+      setError(errorMessage);
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -106,15 +254,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw error;
     } finally {
       setIsLoading(false);
-    }
-  }
-
-  async function signOut() {
-    try {
-      await AsyncStorage.removeItem('@app:user');
-      setUser(null);
-    } catch (error) {
-      console.error('Error signing out:', error);
     }
   }
 
@@ -201,23 +340,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
   }, []);
 
-  const contextValue = useMemo(() => ({
-    user,
-    error,
-    clearError,
-    isLoading,
-    signIn,
-    signUp,
-    signOut,
-    forgotPassword,
-    verifyCode,
-    resetPassword,
-    getUserInfo,
-  }), [user, error, isLoading, clearError, signIn, signUp, signOut, forgotPassword, verifyCode, resetPassword, getUserInfo]);
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
+  const contextValue = useMemo(
+    () => ({
+      user,
+      error,
+      clearError,
+      isLoading,
+      signIn,
+      signInWithGoogle,
+      signUpWithGoogle,
+      signUp,
+      signOut,
+      forgotPassword,
+      verifyCode,
+      resetPassword,
+      getUserInfo,
+    }),
+    [
+      user,
+      error,
+      isLoading,
+      clearError,
+      signIn,
+      signInWithGoogle,
+      signUpWithGoogle,
+      signUp,
+      signOut,
+      forgotPassword,
+      verifyCode,
+      resetPassword,
+      getUserInfo,
+    ]
   );
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;
 }

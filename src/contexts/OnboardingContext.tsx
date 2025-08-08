@@ -149,11 +149,31 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
     setIsLoadingUpload(true);
 
     try {
+      // Determinar o tipo MIME correto baseado na extensão do arquivo ou mimeType fornecido
+      let fileType = mimeType;
+
+      if (!fileType) {
+        // Se não há mimeType, tentar determinar pelo nome do arquivo
+        const fileName = name.toLowerCase();
+        if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg')) {
+          fileType = 'image/jpeg';
+        } else if (fileName.endsWith('.png')) {
+          fileType = 'image/png';
+        } else if (fileName.endsWith('.pdf')) {
+          fileType = 'application/pdf';
+        } else {
+          // Fallback para PDF se não conseguir determinar
+          fileType = 'application/pdf';
+        }
+      }
+
       const file = {
         name: name,
-        type: mimeType || 'application/pdf',
+        type: fileType,
         uri: uri,
       } as any;
+
+      console.log('!@# 🚀 ~ handleUploadFileFromOnboarding ~ file:', file);
 
       const bodyFormData = new FormData();
       bodyFormData.append('File', file);
@@ -164,7 +184,6 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
           Accept: 'application/octet-stream',
         },
       });
-
     } catch (error) {
       showError();
       setIsLoadingUpload(false);

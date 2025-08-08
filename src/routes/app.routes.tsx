@@ -10,6 +10,8 @@ import { ChartIcon, ChecklistIcon, ExaminusIcon, HomeIcon, UserIcon } from '@ass
 import { Box, View } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 import { OnboardingSteps } from '@components/pages/OnboardingInfo/onboarding';
+import { TabBarContextProvider } from '@contexts/TabBarContext';
+import { useTabBar } from 'src/hooks/useTabBar';
 
 import { Weight, Tracker, Calories } from '@components/pages/Tracker';
 import { Nutrition } from '@components/pages/Tracker/Nutrition/nutrition';
@@ -22,6 +24,8 @@ import {
   PasswordConfig,
 } from '@components/pages/OnboardingSetup';
 import { UploadType } from '@components/organisms';
+import { Notifications } from '@screens/Notifications/screens/notifications/notifications';
+import { SuccessSaved } from '@components/pages/Settings/components/successSaved/successSaved';
 
 export type AppRoutes = {
   gender: undefined;
@@ -93,25 +97,31 @@ const CustomTabExaminusButton = ({ children, onPress }: BottomTabBarButtonProps)
   </TouchableOpacity>
 );
 
-function HomeTabs() {
+function HomeTabsContent() {
+  const { isTabBarVisible } = useTabBar();
+
   return (
     <Tab.Navigator
       initialRouteName="homepage"
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {
-          height: 108,
-          position: 'absolute',
-          elevation: 0,
-          backgroundColor: 'white',
-          borderTopEndRadius: 35,
-          borderTopStartRadius: 35,
-          borderTopWidth: 0,
-          paddingLeft: 20,
-          paddingRight: 20,
-          paddingTop: 20,
-        },
+        tabBarStyle: isTabBarVisible
+          ? {
+              height: 108,
+              position: 'absolute',
+              elevation: 0,
+              backgroundColor: 'white',
+              borderTopEndRadius: 35,
+              borderTopStartRadius: 35,
+              borderTopWidth: 0,
+              paddingLeft: 20,
+              paddingRight: 20,
+              paddingTop: 20,
+            }
+          : {
+              display: 'none',
+            },
       }}
     >
       <Tab.Screen
@@ -214,6 +224,14 @@ function HomeTabs() {
   );
 }
 
+function HomeTabs() {
+  return (
+    <TabBarContextProvider>
+      <HomeTabsContent />
+    </TabBarContextProvider>
+  );
+}
+
 export function AppRoutes() {
   return (
     <Navigator screenOptions={{ headerShown: false }}>
@@ -230,15 +248,15 @@ export function AppRoutes() {
 
       {/** HOMEPAGE */}
       <Screen name="homepage" component={HomeTabs} />
-      {/* <Screen name="upload" component={UploadMain} /> */}
+      <Screen name="upload" component={UploadMain} />
       <Screen name="heartScore" component={HeartScore} />
 
       {/** EXAM */}
-      <Screen name="examList" component={ExamList} />
+      {/* <Screen name="examList" component={ExamList} /> */}
       <Screen name="exam" component={Exam} />
 
-      {/* <Screen name="notifications" component={Notifications} />
-      <Screen name="successSaved" component={SuccessSaved} /> */}
+      <Screen name="notifications" component={Notifications} />
+      <Screen name="successSaved" component={SuccessSaved} />
 
       {/** SETTINGS */}
       <Screen name="myAccount" component={MyAccount} />

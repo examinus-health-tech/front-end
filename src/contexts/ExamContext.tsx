@@ -47,7 +47,7 @@ export const ExamContext = createContext<ExamContextDataProps>({} as ExamContext
 
 export function ExamContextProvider({ children }: ExamContextProviderProps) {
   const [examData, setExamData] = useState<ExamDataProps[]>([]);
-  const [examSelected, setExamSelected] = useState<MedicalExamItemProps>({} as MedicalExamItemProps);
+  const [examSelected, setExamSelected] = useState<ExamDataProps>({} as ExamDataProps);
 
   async function getExamList() {
     try {

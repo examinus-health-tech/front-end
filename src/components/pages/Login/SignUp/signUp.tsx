@@ -26,6 +26,8 @@ import { Controller, useForm } from 'react-hook-form';
 import { AppError } from '@utils/AppErrors';
 import { useState, useRef } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
+import { useGoogleAuth } from 'src/hooks/useGoogleAuth';
+import Toast from 'react-native-toast-message';
 
 type FormDataProps = {
   name: string;
@@ -55,6 +57,7 @@ export function SignUp() {
   const [isTakeLookConfirm, setIsTakeLookConfirm] = useState<boolean>(false);
   const scrollRef = useRef<IScrollViewProps>(null);
   const { signUp } = useAuth();
+  const { signUpWithGoogle, isLoading: isGoogleLoading, isConfigured: isGoogleConfigured } = useGoogleAuth();
   const toast = useToast();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
@@ -110,6 +113,20 @@ export function SignUp() {
     }
   }
 
+  async function handleGoogleSignUp() {
+    try {
+      await signUpWithGoogle();
+    } catch (error: any) {
+      console.log('❌ Erro no cadastro Google:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro no Cadastro Google',
+        text2: 'Não foi possível cadastrar com Google.',
+        topOffset: 60,
+      });
+    }
+  }
+
   return (
     <KeyboardAvoidingView behavior="padding">
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
@@ -122,6 +139,8 @@ export function SignUp() {
             py: 16,
           }}
         >
+          <Toast />
+
           <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={2}>
             Cadastre-se
           </Text>
@@ -269,16 +288,17 @@ export function SignUp() {
             isLoading={isLoading}
           />
 
-          <Flex direction="row" justify="space-between" py={4}>
-            <Divider my={2} mx={2} w={160} />
+          <Flex direction="row" justifyContent="space-between" py={4}>
+            <Divider my={2} mx={2} w="40%" />
             <Text color="gray.900" fontSize={12} fontWeight={600} letterSpacing={-0.12}>
               Ou
             </Text>
-            <Divider my={2} mx={2} w={160} />
+            <Divider my={2} mx={2} w="40%" />
           </Flex>
 
           <HStack justifyContent="center" alignItems="center" space={2}>
-            <TouchableOpacity>
+            {/* Facebook - Comentado temporariamente */}
+            {/* <TouchableOpacity>
               <Box
                 size={16}
                 borderRadius={12}
@@ -289,22 +309,24 @@ export function SignUp() {
               >
                 <FacebookIcon />
               </Box>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleGoogleSignUp} disabled={isGoogleLoading || !isGoogleConfigured}>
               <Box
                 size={16}
                 borderRadius={12}
                 borderWidth={1}
-                borderColor="gray.100"
+                borderColor={!isGoogleConfigured ? 'red.200' : isGoogleLoading ? 'gray.300' : 'gray.100'}
                 alignItems="center"
                 justifyContent="center"
+                opacity={!isGoogleConfigured ? 0.4 : isGoogleLoading ? 0.6 : 1}
               >
                 <GmailIcon />
               </Box>
             </TouchableOpacity>
 
-            <TouchableOpacity>
+            {/* Instagram - Comentado temporariamente */}
+            {/* <TouchableOpacity>
               <Box
                 size={16}
                 borderRadius={12}
@@ -315,7 +337,7 @@ export function SignUp() {
               >
                 <InstagramIcon />
               </Box>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </HStack>
 
           <HStack alignItems="center" justifyContent="center" mt={2}>
