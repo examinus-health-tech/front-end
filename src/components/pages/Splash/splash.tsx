@@ -13,8 +13,8 @@ export function Splash() {
 
   const player = useVideoPlayer(splash, (player) => {
     console.log('Video player initialized');
-    player.loop = true;
-    
+    player.loop = false;
+
     // Configurações específicas para Android
     if (Platform.OS === 'android') {
       player.muted = true; // Crítico para Android
@@ -33,13 +33,7 @@ export function Splash() {
     console.log('Showing fallback image due to error');
     return (
       <View flex={1} bg="white" alignItems="center" justifyContent="center">
-        <Image
-          source={splashImage}
-          alt="Examinus Splash"
-          resizeMode="contain"
-          width="100%"
-          height="100%"
-        />
+        <Image source={splashImage} alt="Examinus Splash" resizeMode="contain" width="100%" height="100%" />
       </View>
     );
   }
@@ -47,10 +41,10 @@ export function Splash() {
   return (
     <View flex={1} bg={Platform.OS === 'android' ? 'black' : 'transparent'}>
       <VideoView
-        style={{ 
-          width: '100%', 
+        style={{
+          width: '100%',
           height: '100%',
-          backgroundColor: Platform.OS === 'android' ? 'black' : 'transparent'
+          backgroundColor: Platform.OS === 'android' ? 'black' : 'transparent',
         }}
         player={player}
         nativeControls={false}
@@ -61,24 +55,24 @@ export function Splash() {
           console.log(`Video status on ${Platform.OS}:`, {
             isLoaded: status.isLoaded,
             isPlaying: status.isPlaying,
-            error: status.error
+            error: status.error,
           });
-          
+
           if (status.isLoaded && !isReady) {
             console.log('Video is ready!');
             setIsReady(true);
           }
-          
+
           if (status.error) {
             console.error('Video error:', status.error);
             setHasError(true);
           }
         }}
       />
-      
+
       {/* Loading image para Android enquanto vídeo não carrega */}
       {Platform.OS === 'android' && !isReady && (
-        <View 
+        <View
           position="absolute"
           top={0}
           left={0}
@@ -88,13 +82,7 @@ export function Splash() {
           alignItems="center"
           justifyContent="center"
         >
-          <Image
-            source={splashImage}
-            alt="Loading Splash"
-            resizeMode="contain"
-            width="100%"
-            height="100%"
-          />
+          <Image source={splashImage} alt="Loading Splash" resizeMode="contain" width="100%" height="100%" />
         </View>
       )}
     </View>
