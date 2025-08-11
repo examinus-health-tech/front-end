@@ -22,6 +22,7 @@ interface AuthContextData {
   forgotPassword: (email: string) => Promise<void>;
   verifyCode: (code: string) => Promise<void>;
   resetPassword: (newPassword: string, confirmationPassword: string) => Promise<void>;
+  deleteAccount: () => Promise<void>;
   clearError: () => void;
   getUserInfo: () => void;
 }
@@ -41,6 +42,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = useCallback(async () => {
     try {
       await AsyncStorage.removeItem('@app:user');
+      // Pequeno delay para mostrar o loading
+      await new Promise(resolve => setTimeout(resolve, 800));
       setUser(null);
     } catch (error) {
       // Silent fail - user will be signed out anyway
@@ -229,6 +232,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   async function signUp(fullname: string, email: string, password: string, confirmationPassword: string) {
     try {
       setIsLoading(true);
+      setError(null);
+
+      console.log('🚀 Criando conta para:', email);
 
       const response = await api.post('users', {
         fullname,
@@ -237,21 +243,39 @@ export function AuthProvider({ children }: AuthProviderProps) {
         confirmationPassword,
       });
 
+      console.log('✅ Cadastro bem-sucedido:', response.data);
+
       const { data } = response;
-
-      if (!response) {
-        throw new Error(data.message || 'Erro ao fazer login');
-      }
-
       const userData = data.data;
 
+      // Salvar dados do usuário e fazer login automático
       await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
-
       setUser(userData);
+
+      console.log('✅ Login automático realizado após cadastro');
     } catch (error: any) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
+      console.log('❌ Erro no cadastro:', error);
+
+      let errorMessage = 'Erro ao criar conta.';
+
+      if (error.response) {
+        if (error.response.status === 400) {
+          errorMessage = error.response.data?.message || 'Dados inválidos.';
+        } else if (error.response.status === 409) {
+          errorMessage = 'Email já está em uso. Tente fazer login.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Erro no servidor. Tente novamente mais tarde.';
+        } else {
+          errorMessage = error.response.data?.message || 'Erro desconhecido.';
+        }
+      } else if (error.request) {
+        errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
       setError(errorMessage);
-      throw error;
+      throw new Error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -338,6 +362,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [user?.userId]);
 
+  const deleteAccount = useCallback(async () => {
+    if (!user?.userId) {
+      throw new Error('Usuário não encontrado');
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      await api.delete(`/users/${user.userId}`);
+      
+      // Clear user data after successful deletion
+      await AsyncStorage.removeItem('@app:user');
+      setUser(null);
+    } catch (error: any) {
+      console.log('❌ Erro ao deletar conta:', error);
+      
+      let errorMessage = 'Erro ao deletar conta.';
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Não autorizado. Faça login novamente.';
+        } else if (error.response.status === 404) {
+          errorMessage = 'Usuário não encontrado.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Erro no servidor. Tente novamente mais tarde.';
+        } else {
+          errorMessage = error.response.data?.message || 'Erro ao deletar conta.';
+        }
+      } else if (error.request) {
+        errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
+      }
+
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user?.userId]);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -356,6 +420,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       forgotPassword,
       verifyCode,
       resetPassword,
+      deleteAccount,
       getUserInfo,
     }),
     [
@@ -371,6 +436,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       forgotPassword,
       verifyCode,
       resetPassword,
+      deleteAccount,
       getUserInfo,
     ]
   );

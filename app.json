@@ -2,8 +2,7 @@
   "expo": {
     "name": "examinus-mobile",
     "slug": "examinus-mobile",
-    "version": "1.1.4",
-    "sdkVersion": "52.0.0",
+    "version": "1.1.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

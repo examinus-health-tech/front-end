@@ -11,9 +11,10 @@ export type Props = {
   action?: 'switch' | 'value' | 'chevron';
   goTo?: () => void;
   variant: 'primary' | 'description' | 'value' | 'checkbox' | 'switch';
+  comingSoon?: boolean;
 };
 
-export function Card({ title, subTitle, icon, warning, action, goTo, variant, value }: Props) {
+export function Card({ title, subTitle, icon, warning, action, goTo, variant, value, comingSoon }: Props) {
   function renderLeftBox() {
     if (variant === 'primary') {
       return (
@@ -58,6 +59,16 @@ export function Card({ title, subTitle, icon, warning, action, goTo, variant, va
   }
 
   function renderAction() {
+    if (comingSoon) {
+      return (
+        <Box bg="gray.200" px={3} py={2} borderRadius={8}>
+          <Text color="gray.500" fontSize={12} fontWeight={600}>
+            Em Breve
+          </Text>
+        </Box>
+      );
+    }
+
     if (action === 'switch') {
       return <Switch size="lg" onTrackColor="ciano.300" />;
     }
@@ -79,8 +90,14 @@ export function Card({ title, subTitle, icon, warning, action, goTo, variant, va
   }
 
   return (
-    <TouchableOpacity onPress={goTo}>
-      <Box bg={warning ? 'red.100' : 'white'} w="100%" borderRadius={16} p={3}>
+    <TouchableOpacity onPress={comingSoon ? undefined : goTo} disabled={comingSoon}>
+      <Box 
+        bg={warning ? 'red.100' : 'white'} 
+        w="100%" 
+        borderRadius={16} 
+        p={3}
+        opacity={comingSoon ? 0.6 : 1}
+      >
         <HStack space={5} alignItems={'center'}>
           {renderLeftBox()}
 

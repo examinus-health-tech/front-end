@@ -87,13 +87,13 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
     }
   }
 
-  async function handleManualUploadFile(payload: {
+  const handleManualUploadFile = useCallback(async (payload: {
     email: string;
     doctor_name: string;
     labor_name: string;
     exame_date: string;
     detail: { exam_id: number; code_exam: string; value: string; reference_unit: string };
-  }) {
+  }) => {
     setIsLoading(true);
 
     try {
@@ -114,9 +114,9 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
-  async function getExamTypes(email: string) {
+  const getExamTypes = useCallback(async (email: string) => {
     try {
       const response = await api.get('/exam-maintenance/list', {
         headers: { email },
@@ -152,7 +152,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
         bgColor: 'red.500',
       });
     }
-  }
+  }, [toast]);
 
   const contextValue = useMemo(() => ({
     file,
@@ -169,17 +169,11 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
     handleManualUploadFile,
   }), [
     file,
-    handleUploadFile,
     isLoadingUploadContext,
-    setIsLoading,
     examList,
-    getExamTypes,
     scoreWarning,
     withError,
-    setWithError,
     withSuccess,
-    setWithSuccess,
-    handleManualUploadFile,
   ]);
 
   return (

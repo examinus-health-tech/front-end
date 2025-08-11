@@ -1,8 +1,16 @@
-import { StatusBar } from 'react-native';
+import { StatusBar, BackHandler } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NativeBaseProvider } from 'native-base';
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
+
+// Polyfill for BackHandler.removeEventListener (deprecated in RN 0.79)
+if (!BackHandler.removeEventListener) {
+  BackHandler.removeEventListener = (eventType: string, listener: () => boolean) => {
+    const subscription = BackHandler.addEventListener(eventType, listener);
+    return subscription?.remove();
+  };
+}
 
 import { THEME } from './src/theme';
 import { Routes } from '@routes/index';

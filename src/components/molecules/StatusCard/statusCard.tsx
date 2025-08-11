@@ -14,19 +14,19 @@ export function StatusCards(userTrackerData: boolean) {
         return i + 1;
       });
 
-      return cards.map(() => {
-        return <Box bg={'gray.300'} h={2} borderRadius={10} flex={1} />;
+      return cards.map((_, index) => {
+        return <Box key={index} bg={'gray.300'} h={2} borderRadius={10} flex={1} />;
       });
     } else if (trackerData?.hydration[0]) {
-      const cards = Array.from({ length: hydration.hydration_goal }, (_, i) => {
+      const cards = Array.from({ length: trackerData.hydration[0].hydration_goal }, (_, i) => {
         return i + 1;
       });
 
-      return cards.map((card) => {
-        if (card <= hydration.hydration_completed) {
-          return <Box bg={'ciano.300'} h={2} borderRadius={10} flex={1} />;
+      return cards.map((card, index) => {
+        if (card <= trackerData.hydration[0].hydration_completed) {
+          return <Box key={index} bg={'ciano.300'} h={2} borderRadius={10} flex={1} />;
         }
-        return <Box bg={'gray.300'} h={2} borderRadius={10} flex={1} />;
+        return <Box key={index} bg={'gray.300'} h={2} borderRadius={10} flex={1} />;
       });
     }
   }
@@ -133,6 +133,7 @@ export function StatusCards(userTrackerData: boolean) {
                 if (i === 0) {
                   return (
                     <Badge
+                      key={i}
                       borderRadius={6}
                       bg={'dark_blue.200'}
                       _text={{
@@ -148,6 +149,7 @@ export function StatusCards(userTrackerData: boolean) {
                 }
                 return (
                   <Badge
+                    key={i}
                     borderRadius={6}
                     bg={'dark_blue.50'}
                     _text={{

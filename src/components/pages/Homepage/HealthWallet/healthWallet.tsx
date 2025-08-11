@@ -1,6 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { VStack, Text, useDisclose, Box, HStack, ScrollView, IScrollViewProps, Flex, Image, Badge } from 'native-base';
+import {
+  VStack,
+  Text,
+  useDisclose,
+  Box,
+  HStack,
+  ScrollView,
+  IScrollViewProps,
+  Flex,
+  Image,
+  Badge,
+  Avatar,
+} from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
 // routes
@@ -19,6 +31,7 @@ import {
   PanIcon,
   RinIcon,
   SanIcon,
+  UserIcon,
 } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 
@@ -26,6 +39,7 @@ import Vector from '@assets/png/vector-22.png';
 import { HeaderTitle, Progress, StatusCards } from '@components/molecules';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useHome } from 'src/hooks/useHome';
+import { useAuth } from 'src/hooks/useAuth';
 
 export function HealthWallet() {
   const [isLoading, setLoading] = useState<boolean>(false);
@@ -33,49 +47,50 @@ export function HealthWallet() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { homeData, setCurrentSystem, currentSystem } = useHome();
+  const { user } = useAuth();
   const { isOpen, onOpen, onClose } = useDisclose();
+
+  const getColorByScore = (score: number) => {
+    if (score >= 0 && score <= 333) {
+      return {
+        title: 'risco alto',
+        bgColor: 'red.50',
+        color: '#FA4D5E',
+        text: (
+          <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+            Você precisa se cuidar melhor.<Text color={'#FA4D5E'}> Clique aqui</Text> para saber como.
+          </Text>
+        ),
+      };
+    } else if (score > 333 && score <= 666) {
+      return {
+        title: 'risco normal',
+        bgColor: 'ciano.50',
+        color: '#0CC1AF',
+        text: (
+          <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+            Aí sim! Seu sistema digestivo está ótimo!
+          </Text>
+        ),
+      };
+    } else if (score > 666 && score <= 1000) {
+      return {
+        title: 'excelente',
+        bgColor: 'purple.50',
+        color: '#8A3FFC',
+        text: (
+          <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+            Está excelente. Mantenha o bom score fazendo um
+            <Text color={'#8A3FFC'}> check-up clicando aqui.</Text>
+          </Text>
+        ),
+      };
+    }
+  };
 
   function renderSystems() {
     if (homeData.medicalExamOrganicSystemsScore?.length) {
       const systems = homeData.medicalExamOrganicSystemsScore;
-
-      const getColorByScore = (score: number) => {
-        if (score >= 0 && score <= 333) {
-          return {
-            title: 'risco alto',
-            bgColor: 'red.50',
-            color: '#FA4D5E',
-            text: (
-              <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
-                Você precisa se cuidar melhor.<Text color={'#FA4D5E'}> Clique aqui</Text> para saber como.
-              </Text>
-            ),
-          };
-        } else if (score > 333 && score <= 666) {
-          return {
-            title: 'risco normal',
-            bgColor: 'ciano.50',
-            color: '#0CC1AF',
-            text: (
-              <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
-                Aí sim! Seu sistema digestivo está ótimo!
-              </Text>
-            ),
-          };
-        } else if (score > 666 && score <= 1000) {
-          return {
-            title: 'excelente',
-            bgColor: 'purple.50',
-            color: '#8A3FFC',
-            text: (
-              <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
-                Está excelente. Mantenha o bom score fazendo um
-                <Text color={'#8A3FFC'}> check-up clicando aqui.</Text>
-              </Text>
-            ),
-          };
-        }
-      };
 
       function renderIcon(system: string, score: number) {
         const color = getColorByScore(score)?.color ?? '#000';
@@ -180,23 +195,33 @@ export function HealthWallet() {
                   width={18}
                   fill={Math.round(homeData.generalScore / 10)}
                   children={() => (
-                    <Box
+                    <Avatar
+                      size="58px"
                       mt={-4}
-                      size={12}
-                      bg={'gray.500'}
-                      opacity={20}
-                      borderRadius={100}
-                      alignItems={'center'}
-                      justifyContent={'center'}
-                    ></Box>
+                      bg="gray.300"
+                      source={{
+                        uri: user?.profileImage || undefined,
+                      }}
+                    >
+                      {user?.fullName ? (
+                        user.fullName
+                          .split(' ')
+                          .map((name) => name[0])
+                          .join('')
+                          .substring(0, 2)
+                          .toUpperCase()
+                      ) : (
+                        <UserIcon color="#6B7280" size="24" />
+                      )}
+                    </Avatar>
                   )}
                   rotation={270}
-                  tintColor="#8A3FFC"
+                  tintColor={getColorByScore(homeData.generalScore)?.color ?? '#8A3FFC'}
                   backgroundColor="#DCE1E8"
                   arcSweepAngle={180}
                 />
 
-                <Text mt={-12} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
+                <Text mt={-8} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
                   {homeData.generalScore}
                 </Text>
 

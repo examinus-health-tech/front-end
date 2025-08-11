@@ -107,7 +107,7 @@ export function SignIn() {
         Faça login e simplifique sua saúde com nossa tecnologia de Inteligência Artificial.
       </Text>
 
-      <VStack flex={1} space={4} mt={4}>
+      <VStack flex={1} space={6} mt={4}>
         <Controller
           control={control}
           name="email"

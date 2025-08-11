@@ -89,7 +89,7 @@ export function Homepage() {
           const colorStyle = getColorByScore(system.organicSystemScore);
 
           return (
-            <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
+            <TouchableOpacity key={index} onPress={() => navigation.navigate('healthWallet')}>
               <Box bg={colorStyle.bgColor} rounded="2xl" w={170} shadow={4} p={4}>
                 <VStack space={4}>
                   <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>

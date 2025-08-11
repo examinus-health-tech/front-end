@@ -200,17 +200,19 @@ export function UploadTypeManual() {
     }
   }
 
-  useEffect(() => {
-    getExamTypes(user?.email);
-  }, []);
+  // useEffect(() => {
+  //   if (user?.email && getExamTypes) {
+  //     getExamTypes(user?.email);
+  //   }
+  // }, [user?.email, getExamTypes]);
 
-  useEffect(() => {
-    const tempExamOptions = examList.map(({ exam_id, code_exam }) => {
-      return { value: exam_id.toString(), label: code_exam };
-    });
+  // useEffect(() => {
+  //   const tempExamOptions = examList.map(({ exam_id, code_exam }) => {
+  //     return { value: exam_id.toString(), label: code_exam };
+  //   });
 
-    setExamOptions(tempExamOptions || []);
-  }, [examList]);
+  //   setExamOptions(tempExamOptions || []);
+  // }, [examList]);
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

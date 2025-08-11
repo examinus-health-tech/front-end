@@ -1,6 +1,5 @@
 import { IInputProps, ISelectProps, VStack } from 'native-base';
-import { InputStyled } from './styles';
-import { useState } from 'react';
+import { TextInput, Platform } from 'react-native';
 
 export type Props = (IInputProps | ISelectProps) & {
   leftIcon?: JSX.Element;
@@ -21,16 +20,23 @@ export interface VariantLeftIconProps {
 }
 
 export function InputNative({ focused: propFocused, ...rest }: Props & { focused?: boolean }) {
-  const [focused, setFocused] = useState<boolean>(false);
-
   return (
     <VStack mx={6} pointerEvents="auto">
-      <InputStyled
+      <TextInput
         placeholder="0"
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        focused={focused}
-        textAlign="left"
+        style={{
+          backgroundColor: '#ffffff',
+          height: 60,
+          borderRadius: 16,
+          borderWidth: 2,
+          borderColor: '#e5e7eb',
+          paddingHorizontal: 16,
+          textAlign: 'left',
+          fontFamily: 'Poligon-Bold',
+          fontSize: 28,
+          color: '#090E1D',
+        }}
+        selectionColor={Platform.OS === 'ios' ? '#000000' : undefined}
         {...rest}
       />
     </VStack>
