@@ -1,6 +1,7 @@
 {
   "cli": {
-    "version": ">= 7.7.0"
+    "version": ">= 7.7.0",
+    "appVersionSource": "remote"
   },
   "build": {
     "preview": {
@@ -25,10 +26,12 @@
       }
     },
     "production": {
+      "channel": "production",
+      "env": {
+        "EXPO_USE_HERMES": "true"
+      },
       "android": {
-        "env": {
-          "EXPO_USE_HERMES": "true"
-        }
+        "buildType": "app-bundle"
       }
     }
   },

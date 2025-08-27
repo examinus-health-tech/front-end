@@ -16,7 +16,7 @@ import {
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { EyeIcon, FacebookIcon, GmailIcon, InstagramIcon, KeyIcon, MailIcon } from '@assets/icons';
+import { EyeIcon, FacebookIcon, GmailIcon, InstagramIcon, KeyIcon, MailIcon, AppleFilledIcon } from '@assets/icons';
 import { Input } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
@@ -27,6 +27,7 @@ import { AppError } from '@utils/AppErrors';
 import { useState, useRef } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 import { useGoogleAuth } from 'src/hooks/useGoogleAuth';
+import { useAppleAuth } from 'src/hooks/useAppleAuth';
 import Toast from 'react-native-toast-message';
 
 type FormDataProps = {
@@ -58,6 +59,7 @@ export function SignUp() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const { signUp } = useAuth();
   const { signUpWithGoogle, isLoading: isGoogleLoading, isConfigured: isGoogleConfigured } = useGoogleAuth();
+  const { signUpWithApple, isLoading: isAppleLoading, isAvailable: isAppleAvailable } = useAppleAuth();
   const toast = useToast();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
@@ -122,6 +124,20 @@ export function SignUp() {
         type: 'error',
         text1: 'Erro no Cadastro Google',
         text2: 'Não foi possível cadastrar com Google.',
+        topOffset: 60,
+      });
+    }
+  }
+
+  async function handleAppleSignUp() {
+    try {
+      await signUpWithApple();
+    } catch (error: any) {
+      console.log('❌ Erro no cadastro Apple:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro no Cadastro Apple',
+        text2: 'Não foi possível cadastrar com Apple.',
         topOffset: 60,
       });
     }
@@ -316,6 +332,22 @@ export function SignUp() {
                 <GmailIcon />
               </Box>
             </TouchableOpacity>
+
+            {isAppleAvailable && (
+              <TouchableOpacity onPress={handleAppleSignUp} disabled={isAppleLoading}>
+                <Box
+                  size={16}
+                  borderRadius={12}
+                  borderWidth={1}
+                  borderColor={isAppleLoading ? 'gray.300' : 'gray.100'}
+                  alignItems="center"
+                  justifyContent="center"
+                  opacity={isAppleLoading ? 0.6 : 1}
+                >
+                  <AppleFilledIcon />
+                </Box>
+              </TouchableOpacity>
+            )}
 
             {/* Instagram - Comentado temporariamente */}
             {/* <TouchableOpacity>

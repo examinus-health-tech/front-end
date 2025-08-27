@@ -10,6 +10,7 @@ import ChevronLeftIcon from './components/chevronLeft';
 import MaleIcon from './components/male';
 import FemaleIcon from './components/female';
 import AppleIcon from './components/apple';
+import AppleFilledIcon from './components/appleFilled';
 import CoffeIcon from './components/coffe';
 import DinnerIcon from './components/dinner';
 import BoneIcon from './components/bone';
@@ -76,6 +77,7 @@ export {
   MaleIcon,
   FemaleIcon,
   AppleIcon,
+  AppleFilledIcon,
   CoffeIcon,
   DinnerIcon,
   BoneIcon,

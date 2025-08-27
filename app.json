@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "examinus-mobile",
+    "name": "Examinus",
     "slug": "examinus-mobile",
-    "version": "1.1.6",
+    "version": "1.2.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -11,18 +11,18 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "1",
+      "buildNumber": "3",
       "supportsTablet": true,
       "bundleIdentifier": "org.name.examinusmobile",
       "jsEngine": "jsc",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSUserTrackingUsageDescription": "Este app solicita permissão para rastrear sua atividade entre apps e sites de outras empresas para melhorar a experiência de uso e fornecer anúncios mais relevantes. Você pode negar esta permissão sem afetar o funcionamento principal do aplicativo.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "google-oauth",
             "CFBundleURLSchemes": [
-              "com.examinus.mobile"
+              "org.name.examinusmobile",
+              "com.googleusercontent.apps.477011438187-7gnqtm50ep300onpk68e1099tj0rse3v"
             ]
           }
         ]
@@ -33,7 +33,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.examinusmobile",
+      "package": "com.ozzyfernan.examinusmobile",
       "jsEngine": "jsc",
       "permissions": [
         "android.permission.CAMERA",
@@ -46,7 +46,7 @@
           "autoVerify": true,
           "data": [
             {
-              "scheme": "com.examinus.mobile"
+              "scheme": "org.name.examinusmobile"
             }
           ],
           "category": [
@@ -60,7 +60,7 @@
       "favicon": "./assets/favicon.png"
     },
     "scheme": [
-      "com.examinus.mobile",
+      "org.name.examinusmobile",
       "expo"
     ],
     "extra": {
@@ -68,7 +68,7 @@
         "projectId": "ee20a194-8f4e-4255-8661-d2ada754f33b"
       }
     },
-    "runtimeVersion": "1.0.0",
+    "runtimeVersion": "1.2.2",
     "updates": {
       "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
     },
@@ -86,6 +86,13 @@
         {
           "cameraPermission": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
           "microphonePermission": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais."
+        }
+      ],
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.477011438187-7gnqtm50ep300onpk68e1099tj0rse3v"
         }
       ]
     ]

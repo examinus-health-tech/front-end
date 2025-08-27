@@ -3,7 +3,7 @@ import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { EyeIcon, FacebookIcon, GmailIcon, InstagramIcon, LockIcon, MailIcon, UserIcon } from '@assets/icons';
+import { EyeIcon, FacebookIcon, GmailIcon, InstagramIcon, LockIcon, MailIcon, UserIcon, AppleFilledIcon } from '@assets/icons';
 import { Input } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
@@ -13,8 +13,11 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { useAuth } from '../../../../hooks/useAuth';
 import { useGoogleAuth } from '../../../../hooks/useGoogleAuth';
+import { useAppleAuth } from '../../../../hooks/useAppleAuth';
 import { AppError } from '@utils/AppErrors';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { logger } from '@utils/debugLogger';
+import NetworkDiagnosticsHelper from '@utils/networkDiagnostics';
 
 type FormDataProps = {
   email: string;
@@ -33,6 +36,7 @@ export function SignIn() {
   const toast = useToast();
   const { signIn } = useAuth();
   const { signInWithGoogle, isLoading: isGoogleLoading, isConfigured: isGoogleConfigured } = useGoogleAuth();
+  const { signInWithApple, isLoading: isAppleLoading, isAvailable: isAppleAvailable } = useAppleAuth();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
     control,
@@ -42,16 +46,46 @@ export function SignIn() {
     resolver: yupResolver(signInSchema),
   });
 
+  useEffect(() => {
+    // Log environment info and run network diagnostics on component mount
+    logger.info('SignIn screen mounted');
+    NetworkDiagnosticsHelper.logEnvironmentInfo();
+    
+    // Run network diagnostics in background
+    NetworkDiagnosticsHelper.runDiagnostics().then(diagnostics => {
+      logger.network('Initial network diagnostics', { diagnostics });
+    });
+  }, []);
+
   async function handleSignIn(data: FormDataProps) {
     try {
       setIsLoading(true);
+      logger.auth('Starting sign in from UI', { email: data.email, screen: 'SignIn' });
 
-      console.log('🔐 Tentando login com:', data.email);
+      // Run network diagnostics before attempting login
+      const diagnostics = await NetworkDiagnosticsHelper.runDiagnostics();
+      logger.network('Pre-login diagnostics', { diagnostics });
+
+      if (!diagnostics.isConnected) {
+        throw new Error('Sem conexão com a internet. Verifique sua rede.');
+      }
+
+      if (!diagnostics.apiReachable) {
+        throw new Error('Servidor indisponível. Tente novamente em alguns instantes.');
+      }
+
       await signIn(data.email, data.password);
-
-      console.log('✅ Login realizado com sucesso');
+      logger.auth('Sign in successful from UI', { email: data.email });
     } catch (error: any) {
-      console.log('❌ Erro capturado na tela de login:', error);
+      logger.error('Sign in failed from UI', {
+        screen: 'SignIn',
+        email: data.email,
+        error: {
+          message: error.message,
+          name: error.name,
+          stack: error.stack?.substring(0, 200)
+        }
+      });
 
       // Pegar a mensagem de erro mais específica
       let errorMessage = 'Erro de conexão. Verifique sua internet.';
@@ -90,6 +124,20 @@ export function SignIn() {
         type: 'error',
         text1: 'Erro no Login Google',
         text2: 'Não foi possível fazer login com Google.',
+        topOffset: 60,
+      });
+    }
+  }
+
+  async function handleAppleSignIn() {
+    try {
+      await signInWithApple();
+    } catch (error: any) {
+      console.log('❌ Erro no login Apple:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro no Login Apple',
+        text2: 'Não foi possível fazer login com Apple.',
         topOffset: 60,
       });
     }
@@ -207,6 +255,22 @@ export function SignIn() {
               <GmailIcon />
             </Box>
           </TouchableOpacity>
+
+          {isAppleAvailable && (
+            <TouchableOpacity onPress={handleAppleSignIn} disabled={isAppleLoading}>
+              <Box
+                size={16}
+                borderRadius={12}
+                borderWidth={1}
+                borderColor={isAppleLoading ? 'gray.300' : 'gray.100'}
+                alignItems="center"
+                justifyContent="center"
+                opacity={isAppleLoading ? 0.6 : 1}
+              >
+                <AppleFilledIcon />
+              </Box>
+            </TouchableOpacity>
+          )}
 
           {/* Instagram - Comentado temporariamente */}
           {/* <TouchableOpacity>
