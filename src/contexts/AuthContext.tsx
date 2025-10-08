@@ -139,9 +139,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data } = response;
       const userData = data.data;
 
-      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
+      // Ensure userData has the correct structure for app usage
+      const formattedUserData = {
+        userId: userData.userId,
+        name: userData.name,
+        token: userData.token,
+        fullName: userData.fullName || userData.name, // fallback
+      };
 
-      setUser(userData);
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+
+      setUser(formattedUserData);
     } catch (error: any) {
       logger.error('Login failed', {
         action: 'signIn',
@@ -191,39 +199,88 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔑 Fazendo login com Google...');
+      console.log('🔑 [AUTH] Iniciando login com Google...');
+      console.log('🔑 [AUTH] idToken recebido:', authCode?.substring(0, 20) + '...');
 
-      console.warn('🔍 authCode:', authCode);
-
-      const response = await api.post('authentication/external', {
-        provider: 'google',
+      const payload = {
+        provider: 'Google',
         idToken: authCode,
-      });
+      };
 
-      console.log('✅ Login Google bem-sucedido:', response.data);
+      console.log('🔑 [AUTH] Enviando payload para backend:', payload);
+
+      // Add timeout for better UX
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Tempo limite excedido. Tente novamente.')), 15000)
+      );
+
+      const loginPromise = api.post('authentication/external', payload);
+      const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
+
+      console.log('✅ [AUTH] Login Google bem-sucedido! Response:', {
+        status: response.status,
+        hasData: !!response.data,
+        userData: response.data?.data
+          ? {
+              userId: response.data.data.userId,
+              name: response.data.data.name,
+              hasToken: !!response.data.data.token,
+            }
+          : null,
+      });
 
       const { data } = response;
       const userData = data.data;
 
-      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
-      setUser(userData);
-    } catch (error: any) {
-      console.warn('🔍 authCode:', authCode);
+      // Ensure userData has the correct structure for app usage
+      const formattedUserData = {
+        userId: userData.userId,
+        name: userData.name,
+        token: userData.token,
+        fullName: userData.fullName || userData.name, // fallback
+      };
 
-      console.log('❌ Erro no login Google:', error);
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+
+      // Add small delay for smooth transition
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      setUser(formattedUserData);
+    } catch (error: any) {
+      console.error('❌ [AUTH] Erro no login Google:', {
+        message: error?.message,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        responseData: error?.response?.data,
+        hasResponse: !!error.response,
+        hasRequest: !!error.request,
+        authCode: authCode?.substring(0, 20) + '...',
+      });
 
       let errorMessage = 'Erro ao fazer login com Google.';
 
-      if (error.response) {
+      if (error.message === 'Tempo limite excedido. Tente novamente.') {
+        errorMessage = error.message;
+      } else if (error.response) {
+        console.error('❌ [AUTH] Erro de resposta do servidor:', {
+          status: error.response.status,
+          data: error.response.data,
+        });
+
         if (error.response.status === 401) {
-          errorMessage = 'Não foi possível autenticar com Google.';
+          errorMessage = 'Token Google inválido ou expirado.';
         } else if (error.response.status === 400) {
           errorMessage = error.response.data?.message || 'Dados inválidos do Google.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Erro interno do servidor. Tente novamente.';
         } else {
           errorMessage = error.response.data?.message || 'Erro no servidor.';
         }
       } else if (error.request) {
+        console.error('❌ [AUTH] Erro de conexão:', error.request);
         errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
+      } else {
+        console.error('❌ [AUTH] Erro desconhecido:', error.message);
       }
 
       setError(errorMessage);
@@ -238,32 +295,69 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔑 Fazendo cadastro com Google...');
+      console.log('🔑 [AUTH] Iniciando cadastro com Google...');
+      console.log('🔑 [AUTH] idToken recebido:', authCode?.substring(0, 20) + '...');
 
-      const response = await api.post('authentication/external', {
+      const payload = {
         provider: 'Google',
         idToken: authCode,
-      });
+      };
 
-      console.log('✅ Cadastro Google bem-sucedido:', response.data);
+      console.log('🔑 [AUTH] Enviando payload para backend:', payload);
+
+      // Add timeout for better UX
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Tempo limite excedido. Tente novamente.')), 15000)
+      );
+
+      const signupPromise = api.post('authentication/external', payload);
+      const response = (await Promise.race([signupPromise, timeoutPromise])) as any;
+
+      console.log('✅ [AUTH] Cadastro Google bem-sucedido! Response:', {
+        status: response.status,
+        hasData: !!response.data,
+        userData: response.data?.data
+          ? {
+              userId: response.data.data.userId,
+              name: response.data.data.name,
+              hasToken: !!response.data.data.token,
+            }
+          : null,
+      });
 
       const { data } = response;
       const userData = data.data;
 
-      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
-      setUser(userData);
+      // Ensure userData has the correct structure for app usage
+      const formattedUserData = {
+        userId: userData.userId,
+        name: userData.name,
+        token: userData.token,
+        fullName: userData.fullName || userData.name, // fallback
+      };
+
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+
+      // Add small delay for smooth transition
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      setUser(formattedUserData);
     } catch (error: any) {
       console.log('❌ Erro no cadastro Google:', error);
 
       let errorMessage = 'Erro ao fazer cadastro com Google.';
 
-      if (error.response) {
+      if (error.message === 'Tempo limite excedido. Tente novamente.') {
+        errorMessage = error.message;
+      } else if (error.response) {
         if (error.response.status === 401) {
           errorMessage = 'Não foi possível autenticar com Google.';
         } else if (error.response.status === 400) {
           errorMessage = error.response.data?.message || 'Dados inválidos do Google.';
         } else if (error.response.status === 409) {
           errorMessage = 'Usuário já existe. Tente fazer login.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Erro interno do servidor. Tente novamente.';
         } else {
           errorMessage = error.response.data?.message || 'Erro no servidor.';
         }
@@ -279,35 +373,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function signInWithApple(identityToken: string, fullName?: any) {
+    console.log('🍎 Fazendo login com Apple...', identityToken, fullName);
+
     try {
       setIsLoading(true);
       setError(null);
 
       console.log('🍎 Fazendo login com Apple...');
 
-      const response = await api.post('authentication/external', {
+      // Add timeout for better UX
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Tempo limite excedido. Tente novamente.')), 15000)
+      );
+
+      const loginPromise = api.post('authentication/external', {
         provider: 'Apple',
         idToken: identityToken,
         fullName: fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : undefined,
       });
+
+      const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
 
       console.log('✅ Login Apple bem-sucedido:', response.data);
 
       const { data } = response;
       const userData = data.data;
 
-      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
-      setUser(userData);
+      // Ensure userData has the correct structure for app usage
+      const formattedUserData = {
+        userId: userData.userId,
+        name: userData.name,
+        token: userData.token,
+        fullName: userData.fullName || userData.name, // fallback
+      };
+
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+
+      // Add small delay for smooth transition
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      setUser(formattedUserData);
     } catch (error: any) {
       console.log('❌ Erro no login Apple:', error);
 
       let errorMessage = 'Erro ao fazer login com Apple.';
 
-      if (error.response) {
+      if (error.message === 'Tempo limite excedido. Tente novamente.') {
+        errorMessage = error.message;
+      } else if (error.response) {
         if (error.response.status === 401) {
           errorMessage = 'Não foi possível autenticar com Apple.';
         } else if (error.response.status === 400) {
           errorMessage = error.response.data?.message || 'Dados inválidos do Apple.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Erro interno do servidor. Tente novamente.';
         } else {
           errorMessage = error.response.data?.message || 'Erro no servidor.';
         }
@@ -329,31 +448,54 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       console.log('🍎 Fazendo cadastro com Apple...');
 
-      const response = await api.post('authentication/external', {
+      // Add timeout for better UX
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Tempo limite excedido. Tente novamente.')), 15000)
+      );
+
+      const signupPromise = api.post('authentication/external', {
         provider: 'Apple',
         idToken: identityToken,
         fullName: fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : undefined,
       });
+
+      const response = (await Promise.race([signupPromise, timeoutPromise])) as any;
 
       console.log('✅ Cadastro Apple bem-sucedido:', response.data);
 
       const { data } = response;
       const userData = data.data;
 
-      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
-      setUser(userData);
+      // Ensure userData has the correct structure for app usage
+      const formattedUserData = {
+        userId: userData.userId,
+        name: userData.name,
+        token: userData.token,
+        fullName: userData.fullName || userData.name, // fallback
+      };
+
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+
+      // Add small delay for smooth transition
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      setUser(formattedUserData);
     } catch (error: any) {
       console.log('❌ Erro no cadastro Apple:', error);
 
       let errorMessage = 'Erro ao fazer cadastro com Apple.';
 
-      if (error.response) {
+      if (error.message === 'Tempo limite excedido. Tente novamente.') {
+        errorMessage = error.message;
+      } else if (error.response) {
         if (error.response.status === 401) {
           errorMessage = 'Não foi possível autenticar com Apple.';
         } else if (error.response.status === 400) {
           errorMessage = error.response.data?.message || 'Dados inválidos do Apple.';
         } else if (error.response.status === 409) {
           errorMessage = 'Usuário já existe. Tente fazer login.';
+        } else if (error.response.status >= 500) {
+          errorMessage = 'Erro interno do servidor. Tente novamente.';
         } else {
           errorMessage = error.response.data?.message || 'Erro no servidor.';
         }
@@ -382,36 +524,136 @@ export function AuthProvider({ children }: AuthProviderProps) {
         confirmationPassword,
       });
 
-      console.log('✅ Cadastro bem-sucedido:', response.data);
+      console.log('✅ Cadastro bem-sucedido:', {
+        status: response.status,
+        hasData: !!response.data,
+        dataContent: response.data
+      });
+
+      // Handle 204 No Content - signup successful but no user data returned
+      if (response.status === 204) {
+        console.log('✅ Cadastro realizado com sucesso (204 - No Content)');
+        console.log('🔄 Fazendo login automático para obter dados de sessão...');
+        
+        // Auto-login after successful signup
+        try {
+          await signIn(email, password);
+          console.log('✅ Login automático realizado após cadastro');
+          return;
+        } catch (loginError: any) {
+          console.log('❌ Erro no login automático após cadastro:', {
+            message: loginError?.message,
+            email: email
+          });
+          // Even if auto-login fails, signup was successful
+          // User can login manually later
+          throw new Error('Conta criada com sucesso, mas houve erro no login automático. Tente fazer login manualmente.');
+        }
+      }
 
       const { data } = response;
+      
+      // For other success status codes, try to process user data
+      if (!data || !data.data) {
+        console.log('⚠️ Resposta da API sem dados do usuário:', {
+          hasData: !!data,
+          dataContent: data,
+          success: data?.success,
+          message: data?.message
+        });
+        
+        // Se a API retornou sucesso mas sem dados do usuário, considere como erro
+        if (data && data.success === false) {
+          throw new Error('Erro no cadastro: ' + (Array.isArray(data.message) ? data.message.join(', ') : data.message || 'Dados insuficientes retornados'));
+        }
+        
+        throw new Error('Cadastro não retornou dados do usuário');
+      }
+
       const userData = data.data;
 
+      // Validar se userData tem os campos necessários
+      if (!userData.userId || !userData.token) {
+        console.log('⚠️ Dados do usuário incompletos:', {
+          hasUserId: !!userData.userId,
+          hasToken: !!userData.token,
+          userData: userData
+        });
+        throw new Error('Cadastro incompleto: dados do usuário insuficientes');
+      }
+
+      // Ensure userData has the correct structure for app usage
+      const formattedUserData = {
+        userId: userData.userId,
+        name: userData.name,
+        token: userData.token,
+        fullName: userData.fullName || userData.name, // fallback
+      };
+
       // Salvar dados do usuário e fazer login automático
-      await AsyncStorage.setItem('@app:user', JSON.stringify(userData));
-      setUser(userData);
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      setUser(formattedUserData);
 
       console.log('✅ Login automático realizado após cadastro');
     } catch (error: any) {
-      console.log('❌ Erro no cadastro:', error);
+      // Log detalhado do erro para debug
+      console.log('❌ Erro no cadastro:', {
+        message: error?.message,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        responseData: error?.response?.data,
+        hasResponse: !!error.response,
+        hasRequest: !!error.request,
+        fullError: error
+      });
 
       let errorMessage = 'Erro ao criar conta.';
 
       if (error.response) {
+        console.log('📊 Detalhes da resposta do erro:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers
+        });
+
         if (error.response.status === 400) {
-          errorMessage = error.response.data?.message || 'Dados inválidos.';
+          // Melhor tratamento para erro 400
+          const responseData = error.response.data;
+          if (responseData && typeof responseData === 'object') {
+            if (responseData.message) {
+              if (Array.isArray(responseData.message)) {
+                errorMessage = responseData.message.join(', ');
+              } else {
+                errorMessage = responseData.message;
+              }
+            } else if (responseData.errors && Array.isArray(responseData.errors)) {
+              errorMessage = responseData.errors.join(', ');
+            } else {
+              errorMessage = 'Dados inválidos fornecidos.';
+            }
+          } else {
+            errorMessage = 'Dados inválidos.';
+          }
         } else if (error.response.status === 409) {
           errorMessage = 'Email já está em uso. Tente fazer login.';
         } else if (error.response.status >= 500) {
           errorMessage = 'Erro no servidor. Tente novamente mais tarde.';
         } else {
-          errorMessage = error.response.data?.message || 'Erro desconhecido.';
+          // Fallback para outros status codes
+          const responseData = error.response.data;
+          if (responseData && responseData.message) {
+            errorMessage = Array.isArray(responseData.message) ? responseData.message.join(', ') : responseData.message;
+          } else {
+            errorMessage = `Erro ${error.response.status}: ${error.response.statusText || 'Erro desconhecido'}`;
+          }
         }
       } else if (error.request) {
         errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
       } else if (error.message) {
         errorMessage = error.message;
       }
+
+      console.log('🚨 Mensagem de erro final:', errorMessage);
 
       setError(errorMessage);
       throw new Error(errorMessage);

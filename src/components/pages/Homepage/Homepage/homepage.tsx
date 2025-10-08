@@ -47,7 +47,7 @@ export function Homepage() {
   useEffect(() => {
     const hasNoGeneralScore = !homeData.generalScore;
     const hasNoSystemsScore = !homeData.medicalExamOrganicSystemsScore?.length;
-    
+
     setUserWithoutData(hasNoGeneralScore && hasNoSystemsScore);
   }, [homeData.generalScore, homeData.medicalExamOrganicSystemsScore?.length]);
 
@@ -67,6 +67,7 @@ export function Homepage() {
   useEffect(() => {
     getUserInfo();
     getHomeData();
+    console.log('🚀 Homepage useEffect', user);
   }, []);
 
   function renderCardSystems() {
@@ -90,16 +91,18 @@ export function Homepage() {
 
           return (
             <TouchableOpacity key={index} onPress={() => navigation.navigate('healthWallet')}>
-              <Box bg={colorStyle.bgColor} rounded="2xl" w={170} shadow={4} p={4}>
+              <Box bg={colorStyle.bgColor} rounded="2xl" w={160} shadow={4} p={4}>
                 <VStack space={4}>
                   <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
                     {system.examOrganicSystemDescription}
                   </Text>
 
-                  <Image source={colorStyle.icon} alt="Vetor" resizeMode="contain" size={24} ml={4} />
+                  <Center>
+                    <Image source={colorStyle.icon} alt="Vetor" resizeMode="contain" size={16} />
+                  </Center>
 
                   <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
-                    {colorStyle.title}
+                    Risco: {colorStyle.title}
                   </Text>
                 </VStack>
               </Box>
@@ -200,7 +203,7 @@ export function Homepage() {
                   </Text>
                 </Box>
 
-                <VStack>
+                <VStack flex={1}>
                   <Text fontSize={16} fontWeight={800} letterSpacing={-0.16}>
                     Score X
                   </Text>
@@ -224,12 +227,16 @@ export function Homepage() {
                     </View>
                   ) : (
                     <View flex={1} display="flex">
-                      <Text fontSize={12} fontWeight={500} lineHeight={18} mt={2} width="30%">
+                      <Text fontSize={12} fontWeight={500} lineHeight={18} mt={2}>
                         {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')}
                       </Text>
 
                       <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="purple.700">
                         Monitorar saúde {'>'}
+                      </Text>
+
+                      <Text fontSize={9} fontWeight={400} color="gray.500" mt={2} lineHeight={12}>
+                        ⚠️ Apenas informativo. Consulte seu médico.
                       </Text>
                     </View>
                   )}
@@ -288,7 +295,7 @@ export function Homepage() {
                 )}
 
                 {homeData?.medicalExamOrganicSystemsScore?.length > 3 && (
-                  <VStack alignItems="center" justifyContent="center">
+                  <VStack alignItems="center" justifyContent="center" marginRight={6}>
                     <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
                       <Center>
                         <Text fontSize={16} fontWeight={500} letterSpacing={-0.16}>

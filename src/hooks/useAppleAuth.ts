@@ -14,18 +14,37 @@ export function useAppleAuth() {
   async function handleAppleAuth(isSignup: boolean = false) {
     try {
       setIsLoading(true);
-      
+
       if (!isAvailable) {
-        throw new Error('Apple authentication is only available on iOS');
+        console.log('🍎 Apple Auth não disponível - apenas iOS');
+        Alert.alert(
+          'Apple Sign In',
+          'O login com Apple está disponível apenas em dispositivos iOS.',
+          [{ text: 'OK' }]
+        );
+        return;
       }
 
       const config = getAppleConfig();
       if (!config) {
+        console.error('🍎 Apple Auth não configurado');
         throw new Error('Apple authentication not configured');
       }
 
       console.log('🍎 Iniciando processo de autenticação Apple...');
-      
+
+      // Check if Apple Sign In is supported on this device
+      const isSupported = await AppleAuthentication.isAvailableAsync();
+      if (!isSupported) {
+        console.log('🍎 Apple Sign In não suportado neste dispositivo');
+        Alert.alert(
+          'Apple Sign In',
+          'O login com Apple não está disponível neste dispositivo. Por favor, use outro método de autenticação.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -40,8 +59,18 @@ export function useAppleAuth() {
         email: credential.email
       });
 
-      if (credential.identityToken) {
-        console.log('🍎 Processando token Apple...');
+      if (!credential.identityToken) {
+        console.error('🍎 Token de identidade não recebido');
+        Alert.alert(
+          'Erro na Autenticação',
+          'Não foi possível obter o token de autenticação do Apple. Tente novamente.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      console.log('🍎 Processando token Apple...');
+      try {
         if (isSignup) {
           await authSignUpWithApple(credential.identityToken, credential.fullName);
         } else {
@@ -49,25 +78,38 @@ export function useAppleAuth() {
         }
         console.log('🍎 Autenticação Apple concluída com sucesso');
         setCurrentMode(null);
-      } else {
-        console.error('🍎 Token de identidade não recebido');
-        throw new Error('Apple authentication failed - no identity token received');
+      } catch (authError: any) {
+        console.error('🍎 Erro ao processar autenticação com backend:', authError);
+
+        // Let AuthContext handle the error display
+        throw authError;
       }
     } catch (error: any) {
-      console.error('❌ Erro no Apple Auth:', error);
+      console.error('❌ Erro no Apple Auth:', {
+        code: error.code,
+        message: error.message,
+        error: error
+      });
       setCurrentMode(null);
-      
-      if (error.code === 'ERR_CANCELED') {
+
+      // User cancelled
+      if (error.code === 'ERR_CANCELED' || error.code === 'ERR_REQUEST_CANCELED') {
         console.log('👤 Usuário cancelou o login Apple');
         return;
       }
-      
+
+      // Don't show alert for authentication errors (AuthContext handles it)
+      if (error.message?.includes('Erro ao fazer') || error.message?.includes('Token')) {
+        console.log('🔄 Erro de autenticação tratado pelo AuthContext');
+        return;
+      }
+
+      // Show alert for other errors
       Alert.alert(
         isSignup ? 'Erro no Cadastro' : 'Erro no Login',
-        `Não foi possível ${isSignup ? 'cadastrar' : 'fazer login'} com Apple. Tente novamente.`,
+        `Não foi possível ${isSignup ? 'cadastrar' : 'fazer login'} com Apple. ${error.message || 'Tente novamente.'}`,
         [{ text: 'OK' }]
       );
-      throw error;
     } finally {
       setIsLoading(false);
     }

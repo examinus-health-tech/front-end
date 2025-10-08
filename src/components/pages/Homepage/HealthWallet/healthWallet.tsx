@@ -232,6 +232,13 @@ export function HealthWallet() {
                 <Text mt={2} color="gray.600" fontSize={12} fontWeight={500} lineHeight={19.2} textAlign="center">
                   {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')}
                 </Text>
+
+                {/* Medical Disclaimer */}
+                <Box mt={4} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
+                  <Text fontSize={10} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
+                    ⚠️ Aviso Médico: Esta análise é apenas informativa e não substitui consulta médica. Sempre consulte seu médico antes de tomar decisões sobre sua saúde.
+                  </Text>
+                </Box>
               </VStack>
             </Box>
 
@@ -246,6 +253,22 @@ export function HealthWallet() {
             </HStack>
 
             {renderSystems()}
+
+            {/* Medical Information Sources */}
+            {homeData.medicalExamOrganicSystemsScore?.length > 0 && (
+              <Box mt={8} p={4} bg="gray.50" borderRadius={12}>
+                <Text fontSize={12} fontWeight={700} color="gray.700" mb={2}>
+                  📚 Fontes e Referências
+                </Text>
+                <Text fontSize={10} fontWeight={400} color="gray.600" lineHeight={16}>
+                  As análises e recomendações são baseadas em diretrizes médicas estabelecidas, incluindo:
+                  {'\n'}• Sociedade Brasileira de Patologia Clínica/Medicina Laboratorial (SBPC/ML)
+                  {'\n'}• Ministério da Saúde - Diretrizes Clínicas
+                  {'\n'}• Valores de referência laboratoriais padrão
+                  {'\n\n'}Para mais informações, consulte seu médico ou acesse: www.sbpc.org.br
+                </Text>
+              </Box>
+            )}
           </VStack>
         </VStack>
       </ScrollView>

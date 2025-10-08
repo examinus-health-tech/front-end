@@ -35,41 +35,92 @@ export function useGoogleAuth() {
     try {
       setIsLoading(true);
 
+      console.log('🔍 Verificando Google Play Services...');
+
       // Check if Google Play Services are available
-      await GoogleSignin.hasPlayServices();
+      try {
+        await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+      } catch (playServicesError: any) {
+        console.error('❌ Google Play Services não disponível:', playServicesError);
+        Alert.alert(
+          'Google Services',
+          'Os Google Play Services não estão disponíveis neste dispositivo. Por favor, use outro método de autenticação.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      console.log('🔍 Iniciando Google Sign In...');
 
       // Sign in with Google
       const userInfo = await GoogleSignin.signIn();
 
-      console.warn('🔍 userInfo:', userInfo);
+      console.log('🔍 userInfo received:', {
+        hasIdToken: !!userInfo.data?.idToken,
+        hasUser: !!userInfo.data?.user,
+        type: userInfo.type
+      });
 
-      if (userInfo.idToken) {
+      if (!userInfo.data?.idToken) {
+        console.error('❌ Token não recebido do Google');
+        Alert.alert(
+          'Erro na Autenticação',
+          'Não foi possível obter o token de autenticação do Google. Tente novamente.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      console.log(`🔍 Processing Google ${isSignup ? 'signup' : 'signin'}...`);
+
+      try {
         if (isSignup) {
-          console.warn('🔍 userInfo:', userInfo);
-
-          await authSignUpWithGoogle(userInfo.idToken);
+          await authSignUpWithGoogle(userInfo.data.idToken);
         } else {
-          console.warn('🔍 userInfo:', userInfo);
-
-          await authSignInWithGoogle(userInfo.idToken);
+          await authSignInWithGoogle(userInfo.data.idToken);
         }
-      } else {
-        throw new Error('Não foi possível obter token de autenticação do Google');
+        console.log('✅ Google auth concluída com sucesso');
+      } catch (authError: any) {
+        console.error('❌ Erro ao processar autenticação com backend:', authError);
+
+        // Let AuthContext handle the error display
+        throw authError;
       }
     } catch (error: any) {
-      console.error('❌ Erro no Google OAuth:', error);
+      console.error('❌ Erro no Google OAuth:', {
+        code: error?.code,
+        message: error?.message,
+        error: error
+      });
 
-      if (error.code === 'SIGN_IN_CANCELLED') {
+      // User cancelled
+      if (error.code === 'SIGN_IN_CANCELLED' || error.code === '-5') {
         console.log('👤 Usuário cancelou o login Google');
         return;
       }
 
+      // Network error
+      if (error.code === 'NETWORK_ERROR' || error.code === 7) {
+        Alert.alert(
+          'Erro de Rede',
+          'Não foi possível conectar ao Google. Verifique sua conexão e tente novamente.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
+      // Don't show alert for authentication errors (AuthContext handles it)
+      if (error.message?.includes('Erro ao fazer') || error.message?.includes('Request failed') || error.message?.includes('Token')) {
+        console.log('🔄 Erro de autenticação tratado pelo AuthContext');
+        return;
+      }
+
+      // Show alert for other errors
       Alert.alert(
         isSignup ? 'Erro no Cadastro' : 'Erro no Login',
-        `Não foi possível ${isSignup ? 'cadastrar' : 'fazer login'} com Google. Tente novamente.`,
+        `Não foi possível ${isSignup ? 'cadastrar' : 'fazer login'} com Google. ${error.message || 'Tente novamente.'}`,
         [{ text: 'OK' }]
       );
-      throw error;
     } finally {
       setIsLoading(false);
     }

@@ -6,8 +6,8 @@ import Vector2 from '@assets/png/vector-17.png';
 
 // components
 import { Button } from '@components/atoms';
-import { UploadType } from '@components/pages/Homepage/UploadMain';
-import { UploadCamera } from '@components/pages/Homepage/UploadMain';
+import { UploadType } from '../uploadType/uploadType';
+import { UploadCamera } from '../uploadCamera/uploadCamera';
 import { useUpload } from 'src/hooks/useUpload';
 import { useTabBar } from 'src/hooks/useTabBar';
 import { UploadError } from '../error/error';

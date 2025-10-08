@@ -2,21 +2,28 @@
   "expo": {
     "name": "Examinus",
     "slug": "examinus-mobile",
-    "version": "1.2.2",
+    "version": "1.2.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "userInterfaceStyle": "light",
     "jsEngine": "jsc",
     "assetBundlePatterns": [
       "**/*"
     ],
     "ios": {
-      "buildNumber": "3",
       "supportsTablet": true,
       "bundleIdentifier": "org.name.examinusmobile",
       "jsEngine": "jsc",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
+        "NSMicrophoneUsageDescription": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais.",
+        "NSUserTrackingUsageDescription": "Este app não rastreia usuários. Esta permissão não será solicitada.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "google-oauth",
@@ -33,12 +40,11 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.ozzyfernan.examinusmobile",
+      "package": "com.examinusapp.mobile",
       "jsEngine": "jsc",
+      "versionCode": 3,
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.WRITE_EXTERNAL_STORAGE",
-        "android.permission.READ_EXTERNAL_STORAGE"
+        "android.permission.CAMERA"
       ],
       "intentFilters": [
         {
@@ -68,7 +74,7 @@
         "projectId": "ee20a194-8f4e-4255-8661-d2ada754f33b"
       }
     },
-    "runtimeVersion": "1.2.2",
+    "runtimeVersion": "1.2.5",
     "updates": {
       "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
     },

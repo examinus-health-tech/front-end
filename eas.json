@@ -1,7 +1,7 @@
 {
   "cli": {
     "version": ">= 7.7.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "local"
   },
   "build": {
     "preview": {
@@ -27,11 +27,16 @@
     },
     "production": {
       "channel": "production",
+      "distribution": "store",
       "env": {
         "EXPO_USE_HERMES": "true"
       },
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "app-bundle",
+        "credentialsSource": "local"
+      },
+      "ios": {
+        "buildConfiguration": "Release"
       }
     }
   },
