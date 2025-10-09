@@ -3,6 +3,8 @@ import { useFonts } from 'expo-font';
 import { NativeBaseProvider } from 'native-base';
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
+import * as Updates from 'expo-updates';
+import * as SplashScreen from 'expo-splash-screen';
 
 // Polyfill for BackHandler.removeEventListener (deprecated in RN 0.79)
 if (!BackHandler.removeEventListener) {
@@ -24,15 +26,44 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ExamContextProvider } from '@contexts/ExamContext';
 
 export default function App() {
+  const [ready, setReady] = useState(false);
   const [splashVideoFinish, setSplashVideoFinish] = useState<boolean>(false);
   const [additionalFontsLoaded, setAdditionalFontsLoaded] = useState<boolean>(false);
-  
+
   // Load essential fonts first
   const [fontsLoaded] = useFonts({
     PoligonRegular: require('@assets/fonts/Poligon-Regular.ttf'),
     PoligonBold: require('@assets/fonts/Poligon-Bold.ttf'),
     PoligonMedium: require('@assets/fonts/Poligon-Medium.ttf'),
   });
+
+  // Check for updates and handle app readiness
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        if (__DEV__) {
+          if (!cancelled) setReady(true);
+          return;
+        }
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+          return;
+        }
+      } catch (e) {
+        console.warn('Update check failed:', e);
+      } finally {
+        if (!cancelled) setReady(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Load additional fonts after app is ready
   useEffect(() => {
@@ -53,9 +84,20 @@ export default function App() {
     const timer = setTimeout(() => {
       setSplashVideoFinish(true);
     }, 6000);
-    
+
     return () => clearTimeout(timer);
   }, []);
+
+  // Hide splash screen when ready and fonts are loaded
+  useEffect(() => {
+    if (ready && fontsLoaded) {
+      SplashScreen.hideAsync();
+    }
+  }, [ready, fontsLoaded]);
+
+  if (!ready || !fontsLoaded) {
+    return;
+  }
 
   return (
     <NativeBaseProvider theme={THEME}>
@@ -68,16 +110,7 @@ export default function App() {
               <GestureHandlerRootView>
                 <BottomSheetModalProvider>
                   <HomeContextProvider>
-                    {fontsLoaded && splashVideoFinish ? (
-                      <Routes />
-                    ) : (
-                      <Splash />
-                      // <Image source={SplashImg} alt="Vector" resizeMode="cover" height="100%" />
-                      // <Flex align="center" justify="center" h="100%" bgColor="white">
-                      //   <ActivityIndicator size="large" color="#00B39D" />
-                      //   {/* <Image source={Vector} style={{ width: 80, height: 80 }} alt="Vector" /> */}
-                      // </Flex>
-                    )}
+                    {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
                   </HomeContextProvider>
                 </BottomSheetModalProvider>
               </GestureHandlerRootView>

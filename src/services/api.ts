@@ -106,7 +106,8 @@ api.registerInterceptTokenManager = (signOut) => {
         hasResponse: !!requestError.response,
         hasRequest: !!requestError.request,
         message: requestError.message,
-        code: requestError.code
+        code: requestError.code,
+        responseData: requestError.response?.data
       });
 
       // Handle unauthorized access

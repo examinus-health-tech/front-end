@@ -17,7 +17,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
 import { EyeIcon, FacebookIcon, GmailIcon, InstagramIcon, KeyIcon, MailIcon, AppleFilledIcon } from '@assets/icons';
-import { Input } from '@components/molecules';
+import { Input, LegalFooter } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
@@ -375,6 +375,10 @@ export function SignUp() {
                 Conecte-se.
               </Text>
             </TouchableOpacity>
+          </HStack>
+
+          <HStack>
+            <LegalFooter />
           </HStack>
         </Flex>
       </ScrollView>

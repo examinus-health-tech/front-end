@@ -2,6 +2,11 @@
   "expo": {
     "name": "Examinus",
     "slug": "examinus-mobile",
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
+    },
     "version": "1.2.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -12,9 +17,7 @@
     },
     "userInterfaceStyle": "light",
     "jsEngine": "jsc",
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.name.examinusmobile",
@@ -40,12 +43,10 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.examinusapp.mobile",
+      "package": "org.name.examinusmobile",
       "jsEngine": "jsc",
       "versionCode": 3,
-      "permissions": [
-        "android.permission.CAMERA"
-      ],
+      "permissions": ["android.permission.CAMERA"],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -55,30 +56,21 @@
               "scheme": "org.name.examinusmobile"
             }
           ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
+          "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "scheme": [
-      "org.name.examinusmobile",
-      "expo"
-    ],
     "extra": {
       "eas": {
         "projectId": "ee20a194-8f4e-4255-8661-d2ada754f33b"
       }
     },
     "runtimeVersion": "1.2.5",
-    "updates": {
-      "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
-    },
     "plugins": [
+      ["expo-apple-authentication"],
       "expo-video",
       [
         "expo-document-picker",

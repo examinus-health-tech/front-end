@@ -1,10 +1,6 @@
 {
   "extends": "expo/tsconfig.base",
-  "includes": [
-    "styled-components.d.ts",
-    "src/@types/png.d.ts",
-    "src/@types/jsx.d.ts"
-  ],
+  "include": ["styled-components.d.ts", "src/@types/png.d.ts", "src/@types/jsx.d.ts", "src"],
   "compilerOptions": {
     "strict": false,
     "baseUrl": "./",
@@ -15,58 +11,25 @@
     "noImplicitAny": false,
     "types": ["react/jsx-runtime"],
     "jsxImportSource": "react",
+    "lib": ["es2017"],
     "paths": {
-      "@assets": [
-        "./src/assets"
-      ],
-      "@assets/*": [
-        "./src/assets/*"
-      ],
-      "@assets/icons": [
-        "./src/assets/icons/index"
-      ],
-      "@fonts": [
-        "./src/assets/fonts/*"
-      ],
-      "@assets/png/*": [
-        "./src/assets/png/*"
-      ],
-      "@assets/svg/*": [
-        "./src/assets/svg/*"
-      ],
-      "@components/*": [
-        "./src/components/*"
-      ],
-      "@routes/*": [
-        "./src/routes/*"
-      ],
-      "@contexts/*": [
-        "./src/contexts/*"
-      ],
-      "@screens/*": [
-        "./src/screens/*"
-      ],
-      "@atoms/*": [
-        "./src/components/atoms/*"
-      ],
-      "@molecules/*": [
-        "./src/components/molecules/*"
-      ],
-      "@organisms/*": [
-        "./src/components/organisms/*"
-      ],
-      "@pages/*": [
-        "./src/components/pages/*"
-      ],
-      "@storage/*": [
-        "./src/storage/*"
-      ],
-      "@utils/*": [
-        "./src/utils/*"
-      ],
-      "@dtos/*": [
-        "./src/dtos/*"
-      ]
+      "@assets": ["./src/assets"],
+      "@assets/*": ["./src/assets/*"],
+      "@assets/icons": ["./src/assets/icons/index"],
+      "@fonts": ["./src/assets/fonts/*"],
+      "@assets/png/*": ["./src/assets/png/*"],
+      "@assets/svg/*": ["./src/assets/svg/*"],
+      "@components/*": ["./src/components/*"],
+      "@routes/*": ["./src/routes/*"],
+      "@contexts/*": ["./src/contexts/*"],
+      "@screens/*": ["./src/screens/*"],
+      "@atoms/*": ["./src/components/atoms/*"],
+      "@molecules/*": ["./src/components/molecules/*"],
+      "@organisms/*": ["./src/components/organisms/*"],
+      "@pages/*": ["./src/components/pages/*"],
+      "@storage/*": ["./src/storage/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@dtos/*": ["./src/dtos/*"]
     }
-  },
+  }
 }

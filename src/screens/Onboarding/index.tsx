@@ -28,10 +28,7 @@ export function Welcome() {
           <Highlight>examinus.</Highlight>
         </Title>
 
-        <Description>
-          A 1ª IA que cuida da sua saúde e{'\n'}interpreta seus exames
-          laboratoriais!
-        </Description>
+        <Description>A 1ª IA que cuida da sua saúde e{'\n'}interpreta seus exames laboratoriais!</Description>
       </WrapperTitle>
 
       <IconRobot source={Robot} />

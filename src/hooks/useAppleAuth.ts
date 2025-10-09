@@ -72,9 +72,9 @@ export function useAppleAuth() {
       console.log('🍎 Processando token Apple...');
       try {
         if (isSignup) {
-          await authSignUpWithApple(credential.identityToken, credential.fullName);
+          await authSignUpWithApple(credential.identityToken, credential.fullName, credential.email ?? null);
         } else {
-          await authSignInWithApple(credential.identityToken, credential.fullName);
+          await authSignInWithApple(credential.identityToken, credential.fullName, credential.email ?? null);
         }
         console.log('🍎 Autenticação Apple concluída com sucesso');
         setCurrentMode(null);

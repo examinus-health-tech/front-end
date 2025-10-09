@@ -3,12 +3,21 @@ import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
-import { EyeIcon, FacebookIcon, GmailIcon, InstagramIcon, LockIcon, MailIcon, UserIcon, AppleFilledIcon } from '@assets/icons';
-import { Input } from '@components/molecules';
+import {
+  EyeIcon,
+  FacebookIcon,
+  GmailIcon,
+  InstagramIcon,
+  LockIcon,
+  MailIcon,
+  UserIcon,
+  AppleFilledIcon,
+} from '@assets/icons';
+import { Input, LegalFooter } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, View } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
 import { useAuth } from '../../../../hooks/useAuth';
@@ -50,9 +59,9 @@ export function SignIn() {
     // Log environment info and run network diagnostics on component mount
     logger.info('SignIn screen mounted');
     NetworkDiagnosticsHelper.logEnvironmentInfo();
-    
+
     // Run network diagnostics in background
-    NetworkDiagnosticsHelper.runDiagnostics().then(diagnostics => {
+    NetworkDiagnosticsHelper.runDiagnostics().then((diagnostics) => {
       logger.network('Initial network diagnostics', { diagnostics });
     });
   }, []);
@@ -83,8 +92,8 @@ export function SignIn() {
         error: {
           message: error.message,
           name: error.name,
-          stack: error.stack?.substring(0, 200)
-        }
+          stack: error.stack?.substring(0, 200),
+        },
       });
 
       // Pegar a mensagem de erro mais específica
@@ -287,16 +296,19 @@ export function SignIn() {
           </TouchableOpacity> */}
         </HStack>
 
-        <HStack alignItems="center" justifyContent="center">
+        <HStack alignItems="center" justifyContent="center" mt={-7}>
           <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
             Não tem uma conta?{' '}
           </Text>
-
           <TouchableOpacity onPress={() => navigation.navigate('signUp')}>
-            <Text fontSize={16} color="purple.600" fontWeight={600} lineHeight={38} underline letterSpacing={-0.14}>
+            <Text fontSize={14} color="purple.600" fontWeight={600} underline letterSpacing={-0.14}>
               Cadastre-se.
             </Text>
           </TouchableOpacity>
+        </HStack>
+
+        <HStack mt={-7}>
+          <LegalFooter />
         </HStack>
       </VStack>
     </VStack>

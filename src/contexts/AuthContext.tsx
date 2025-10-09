@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from 'src/services/api';
 import { validateStoredToken } from '@utils/tokenValidation';
 import { logger } from '@utils/debugLogger';
+import { decodeJwtPayload } from '@utils/jwt';
 
 interface User {
   userId?: string;
@@ -18,8 +19,8 @@ interface AuthContextData {
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: (authCode: string) => Promise<void>;
   signUpWithGoogle: (authCode: string) => Promise<void>;
-  signInWithApple: (identityToken: string, fullName?: any) => Promise<void>;
-  signUpWithApple: (identityToken: string, fullName?: any) => Promise<void>;
+  signInWithApple: (identityToken: string, fullName?: any, emailFromCredential?: string | null) => Promise<void>;
+  signUpWithApple: (identityToken: string, fullName?: any, emailFromCredential?: string | null) => Promise<void>;
   signUp: (name: string, email: string, password: string, confirmationPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
@@ -243,7 +244,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
 
       // Add small delay for smooth transition
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
 
       setUser(formattedUserData);
     } catch (error: any) {
@@ -339,7 +340,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
 
       // Add small delay for smooth transition
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
 
       setUser(formattedUserData);
     } catch (error: any) {
@@ -372,8 +373,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  async function signInWithApple(identityToken: string, fullName?: any) {
-    console.log('🍎 Fazendo login com Apple...', identityToken, fullName);
+  async function signInWithApple(identityToken: string, fullName?: any, emailFromCredential?: string | null) {
+    console.log('🍎 Fazendo login com Apple...', { hasToken: !!identityToken, fullName, emailFromCredential });
 
     try {
       setIsLoading(true);
@@ -386,13 +387,64 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setTimeout(() => reject(new Error('Tempo limite excedido. Tente novamente.')), 15000)
       );
 
-      const loginPromise = api.post('authentication/external', {
-        provider: 'Apple',
-        idToken: identityToken,
-        fullName: fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : undefined,
+      const claims = decodeJwtPayload(identityToken);
+      logger.network('Apple Claims (signIn)', {
+        apiUrl: 'local',
+        action: 'apple_claims_signin',
+        extra: { claims },
       });
 
+      const claimsEmail = claims?.email;
+      const appleUserId = claims?.sub || claims?.user_id || claims?.uid || null;
+      const resolvedEmail = emailFromCredential || claimsEmail || null;
+
+      const joinedName = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : '';
+      const formattedFullName = joinedName.length > 0 ? joinedName : undefined;
+      const fallbackFullName =
+        formattedFullName ||
+        (resolvedEmail ? resolvedEmail.split('@')[0] || undefined : undefined) ||
+        'Apple User';
+
+      logger.network('Apple resolved fields (signIn)', {
+        apiUrl: 'local',
+        action: 'apple_signin_resolved',
+        extra: { formattedFullName, fallbackFullName, resolvedEmail, appleUserId },
+      });
+
+      const urlPath = 'authentication/external';
+      const baseURL = (api as any)?.defaults?.baseURL;
+      const url = `${baseURL}${urlPath}`;
+      const startTime = Date.now();
+
+      const payload = {
+        provider: 'Apple',
+        idToken: identityToken,
+        fullName: fallbackFullName,
+        email: resolvedEmail,
+        appleUserId,
+      };
+
+      logger.network('Apple Auth request (signIn)', {
+        apiUrl: url,
+        action: 'apple_signin_request',
+        extra: { method: 'POST', headers: { authorization: 'omitted' }, payload, baseURL, urlPath },
+      });
+
+      const loginPromise = api.post(urlPath, payload);
+
       const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
+
+      const totalTime = Date.now() - startTime;
+      logger.network('Apple Auth response (signIn)', {
+        apiUrl: url,
+        action: 'apple_signin_response',
+        status: response?.status,
+        totalTime,
+        extra: {
+          headers: response?.headers,
+          data: response?.data,
+        },
+      });
 
       console.log('✅ Login Apple bem-sucedido:', response.data);
 
@@ -410,7 +462,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
 
       // Add small delay for smooth transition
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
 
       setUser(formattedUserData);
     } catch (error: any) {
@@ -441,7 +493,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }
 
-  async function signUpWithApple(identityToken: string, fullName?: any) {
+  async function signUpWithApple(identityToken: string, fullName?: any, emailFromCredential?: string | null) {
     try {
       setIsLoading(true);
       setError(null);
@@ -453,13 +505,53 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setTimeout(() => reject(new Error('Tempo limite excedido. Tente novamente.')), 15000)
       );
 
-      const signupPromise = api.post('authentication/external', {
-        provider: 'Apple',
-        idToken: identityToken,
-        fullName: fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : undefined,
+      const claims = decodeJwtPayload(identityToken);
+      const email = (claims?.email as string | undefined) || (emailFromCredential ?? undefined);
+      const appleUserId = claims?.sub || claims?.user_id || claims?.uid;
+
+      const joinedName = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : '';
+      const formattedFullName = joinedName.length > 0 ? joinedName : undefined;
+      const fallbackFullName = formattedFullName || (email ? (email.split('@')[0] || undefined) : undefined) || 'Apple User';
+
+      logger.auth('Apple claims resolved (signUp)', {
+        action: 'apple_signup_claims',
+        extra: { hasClaims: !!claims, claims, emailFromCredential, chosenEmail: email, appleUserId, formattedFullName, fallbackFullName },
       });
 
+      const urlPath = 'authentication/external';
+      const baseURL = (api as any)?.defaults?.baseURL;
+      const url = `${baseURL}${urlPath}`;
+      const startTime = Date.now();
+
+      const payload = {
+        provider: 'Apple',
+        idToken: identityToken,
+        fullName: fallbackFullName,
+        email,
+        appleUserId,
+      };
+
+      logger.network('Apple Auth request (signUp)', {
+        apiUrl: url,
+        action: 'apple_signup_request',
+        extra: { method: 'POST', headers: { authorization: 'omitted' }, payload, baseURL, urlPath },
+      });
+
+      const signupPromise = api.post(urlPath, payload);
+
       const response = (await Promise.race([signupPromise, timeoutPromise])) as any;
+
+      const totalTime = Date.now() - startTime;
+      logger.network('Apple Auth response (signUp)', {
+        apiUrl: url,
+        action: 'apple_signup_response',
+        status: response?.status,
+        totalTime,
+        extra: {
+          headers: response?.headers,
+          data: response?.data,
+        },
+      });
 
       console.log('✅ Cadastro Apple bem-sucedido:', response.data);
 
@@ -477,7 +569,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
 
       // Add small delay for smooth transition
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
 
       setUser(formattedUserData);
     } catch (error: any) {
@@ -493,7 +585,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } else if (error.response.status === 400) {
           errorMessage = error.response.data?.message || 'Dados inválidos do Apple.';
         } else if (error.response.status === 409) {
-          errorMessage = 'Usuário já existe. Tente fazer login.';
+          errorMessage = 'Conta já existe com este Apple ID.';
         } else if (error.response.status >= 500) {
           errorMessage = 'Erro interno do servidor. Tente novamente.';
         } else {
@@ -502,6 +594,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else if (error.request) {
         errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
       }
+
+      logger.network('Apple Auth failed (signUp)', {
+        action: 'apple_signup_error',
+        status: error?.response?.status,
+        extra: { data: error?.response?.data, message: errorMessage },
+      });
 
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -527,14 +625,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log('✅ Cadastro bem-sucedido:', {
         status: response.status,
         hasData: !!response.data,
-        dataContent: response.data
+        dataContent: response.data,
       });
 
       // Handle 204 No Content - signup successful but no user data returned
       if (response.status === 204) {
         console.log('✅ Cadastro realizado com sucesso (204 - No Content)');
         console.log('🔄 Fazendo login automático para obter dados de sessão...');
-        
+
         // Auto-login after successful signup
         try {
           await signIn(email, password);
@@ -543,30 +641,35 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } catch (loginError: any) {
           console.log('❌ Erro no login automático após cadastro:', {
             message: loginError?.message,
-            email: email
+            email: email,
           });
           // Even if auto-login fails, signup was successful
           // User can login manually later
-          throw new Error('Conta criada com sucesso, mas houve erro no login automático. Tente fazer login manualmente.');
+          throw new Error(
+            'Conta criada com sucesso, mas houve erro no login automático. Tente fazer login manualmente.'
+          );
         }
       }
 
       const { data } = response;
-      
+
       // For other success status codes, try to process user data
       if (!data || !data.data) {
         console.log('⚠️ Resposta da API sem dados do usuário:', {
           hasData: !!data,
           dataContent: data,
           success: data?.success,
-          message: data?.message
+          message: data?.message,
         });
-        
+
         // Se a API retornou sucesso mas sem dados do usuário, considere como erro
         if (data && data.success === false) {
-          throw new Error('Erro no cadastro: ' + (Array.isArray(data.message) ? data.message.join(', ') : data.message || 'Dados insuficientes retornados'));
+          throw new Error(
+            'Erro no cadastro: ' +
+              (Array.isArray(data.message) ? data.message.join(', ') : data.message || 'Dados insuficientes retornados')
+          );
         }
-        
+
         throw new Error('Cadastro não retornou dados do usuário');
       }
 
@@ -577,7 +680,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.log('⚠️ Dados do usuário incompletos:', {
           hasUserId: !!userData.userId,
           hasToken: !!userData.token,
-          userData: userData
+          userData: userData,
         });
         throw new Error('Cadastro incompleto: dados do usuário insuficientes');
       }
@@ -604,7 +707,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         responseData: error?.response?.data,
         hasResponse: !!error.response,
         hasRequest: !!error.request,
-        fullError: error
+        fullError: error,
       });
 
       let errorMessage = 'Erro ao criar conta.';
@@ -613,7 +716,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.log('📊 Detalhes da resposta do erro:', {
           status: error.response.status,
           data: error.response.data,
-          headers: error.response.headers
+          headers: error.response.headers,
         });
 
         if (error.response.status === 400) {
