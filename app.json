@@ -8,6 +8,9 @@
       "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
     },
     "version": "1.2.5",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "splash": {
@@ -19,6 +22,7 @@
     "jsEngine": "jsc",
     "assetBundlePatterns": ["**/*"],
     "ios": {
+      "buildNumber": "7",
       "supportsTablet": true,
       "bundleIdentifier": "org.name.examinusmobile",
       "jsEngine": "jsc",
@@ -26,7 +30,6 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
         "NSMicrophoneUsageDescription": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais.",
-        "NSUserTrackingUsageDescription": "Este app não rastreia usuários. Esta permissão não será solicitada.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "google-oauth",
@@ -36,24 +39,25 @@
             ]
           }
         ]
-      }
+      },
+      "appleTeamId": "NLLSSU23C9"
     },
     "android": {
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "org.name.examinusmobile",
+      "package": "com.examinusapp.mobile",
       "jsEngine": "jsc",
-      "versionCode": 3,
-      "permissions": ["android.permission.CAMERA"],
+      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
           "data": [
             {
-              "scheme": "org.name.examinusmobile"
+              "scheme": "com.examinusapp.mobile"
             }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
@@ -68,9 +72,7 @@
         "projectId": "ee20a194-8f4e-4255-8661-d2ada754f33b"
       }
     },
-    "runtimeVersion": "1.2.5",
     "plugins": [
-      ["expo-apple-authentication"],
       "expo-video",
       [
         "expo-document-picker",

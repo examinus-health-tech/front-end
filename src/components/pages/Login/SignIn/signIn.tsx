@@ -17,7 +17,7 @@ import { Input, LegalFooter } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, View, Platform } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
 import { useAuth } from '../../../../hooks/useAuth';
@@ -27,6 +27,7 @@ import { AppError } from '@utils/AppErrors';
 import { useState, useEffect } from 'react';
 import { logger } from '@utils/debugLogger';
 import NetworkDiagnosticsHelper from '@utils/networkDiagnostics';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 type FormDataProps = {
   email: string;

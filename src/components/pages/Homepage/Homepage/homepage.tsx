@@ -37,7 +37,7 @@ export function Homepage() {
   const weekday = new Date().toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
   const date = new Date()
     .toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })
-    .replaceAll('de', '')
+    .replace(/de/g, '')
     .replace('.', '');
 
   async function handleGetHeathData() {

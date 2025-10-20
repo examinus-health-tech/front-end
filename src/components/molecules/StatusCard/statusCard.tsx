@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useHome } from 'src/hooks/useHome';
 
-export function StatusCards(userTrackerData: boolean) {
+export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
   const { trackerData } = useHome();
 
   function renderHydration() {

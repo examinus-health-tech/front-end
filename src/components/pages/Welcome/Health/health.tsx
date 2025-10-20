@@ -14,10 +14,7 @@ export function Health() {
 
   return (
     <VStack flex={1} space={8} py={24}>
-      <HeaderProgress
-        progressValue={66}
-        jumpTo={() => navigation.navigate('signIn')}
-      />
+      <HeaderProgress progressValue={66} jumpTo={() => navigation.navigate('signIn')} />
 
       <Image
         source={Vector}
@@ -31,25 +28,12 @@ export function Health() {
       />
 
       <Container mx={6}>
-        <Text
-          fontSize={32}
-          color="gray.900"
-          lineHeight={38}
-          fontWeight={800}
-          letterSpacing={-1.4}
-        >
-          Sua saúde na {'\n'}palma da sua mão!
+        <Text fontSize={32} color="gray.900" lineHeight={38} fontWeight={800} letterSpacing={-1.4}>
+          Acompanhe sua saúde em um só lugar.
         </Text>
 
-        <Text
-          fontSize={16}
-          color="gray.600"
-          lineHeight={24}
-          fontWeight={500}
-          pt={4}
-        >
-          Você monitora em tempo real o status da sua {'\n'}saúde, e o melhor:
-          tudo em um só lugar.
+        <Text fontSize={16} color="gray.600" lineHeight={24} fontWeight={500} pt={4}>
+          Veja seus resultados, histórico e evolução de forma prática, tudo ao alcance das suas mãos.
         </Text>
       </Container>
 

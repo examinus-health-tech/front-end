@@ -14,6 +14,7 @@ import { useExam } from 'src/hooks/useExam';
 import { formatDateToBrazilian } from '@utils/dateFormatter';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
+import { Alert, Linking } from 'react-native';
 
 export function Exam() {
   const { examSelected } = useExam();
@@ -149,6 +150,31 @@ export function Exam() {
     });
   }
 
+  const openExternalLink = useCallback(async (url: string) => {
+    try {
+      if (!url) {
+        Alert.alert('Link inválido', 'Nenhuma URL foi fornecida.');
+        return;
+      }
+
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(
+          'Não foi possível abrir o link',
+          'O formato do link não é suportado neste dispositivo.'
+        );
+      }
+    } catch (e) {
+      console.warn('Falha ao abrir link externo', e);
+      Alert.alert(
+        'Erro ao abrir link',
+        'Ocorreu um problema ao abrir o link. Tente novamente.'
+      );
+    }
+  }, []);
+
   return (
     <>
       <Box
@@ -186,6 +212,41 @@ export function Exam() {
           </Badge> */}
 
             {renderExamItem()}
+
+            {/* Medical Information Sources */}
+            <VStack space={3} mt={6}>
+              <Box p={4} bg="gray.50" borderRadius={12}>
+                <Text fontSize={12} fontWeight={700} color="gray.700" mb={2}>
+                  📚 Fontes e Referências
+                </Text>
+                <VStack space={2}>
+                  <TouchableOpacity onPress={() => openExternalLink('https://www.who.int/health-topics')}>
+                    <Text fontSize={10} fontWeight={500} color="primary.600">
+                      🔗 Organização Mundial da Saúde (OMS) — https://www.who.int/health-topics
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => openExternalLink('https://www.gov.br/saude')}>
+                    <Text fontSize={10} fontWeight={500} color="primary.600">
+                      🔗 Ministério da Saúde (Brasil) — https://www.gov.br/saude
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => openExternalLink('https://www.mayocliniclabs.com')}>
+                    <Text fontSize={10} fontWeight={500} color="primary.600">
+                      🔗 Mayo Clinic Laboratories — https://www.mayocliniclabs.com
+                    </Text>
+                  </TouchableOpacity>
+                  <Text fontSize={10} fontWeight={400} color="gray.600" lineHeight={16} mt={2}>
+                    As análises e recomendações são baseadas em diretrizes médicas estabelecidas. Consulte sempre seu médico para interpretação personalizada.
+                  </Text>
+                </VStack>
+              </Box>
+
+              <Box p={4} bg="yellow.50" borderRadius={12}>
+                <Text fontSize={10} fontWeight={500} color="gray.700" lineHeight={16}>
+                  ⚠️ Aviso Médico: As informações fornecidas pelo aplicativo têm caráter informativo e não substituem a orientação, diagnóstico ou tratamento de profissionais de saúde. Sempre busque a avaliação de um médico antes de tomar qualquer decisão relacionada à sua saúde.
+                </Text>
+              </Box>
+            </VStack>
           </VStack>
         </ScrollView>
 

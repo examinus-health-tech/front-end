@@ -14,41 +14,18 @@ export function Simplify() {
 
   return (
     <VStack flex={1} space={8} py={24}>
-      <HeaderProgress
-        progressValue={33}
-        jumpTo={() => navigation.navigate('signIn')}
-      />
+      <HeaderProgress progressValue={33} jumpTo={() => navigation.navigate('signIn')} />
 
-      <Image
-        source={Vector}
-        alt="Vector"
-        resizeMode="stretch"
-        position="absolute"
-        bottom={0}
-        w="100%"
-        h="75%"
-      />
+      <Image source={Vector} alt="Vector" resizeMode="stretch" position="absolute" bottom={0} w="100%" h="75%" />
 
       <Container mx={6}>
-        <Text
-          fontSize={32}
-          color="gray.900"
-          lineHeight={38}
-          fontWeight={800}
-          letterSpacing={-1.4}
-        >
-          Simplifique seu{'\n'}exame laboratorial!
+        <Text fontSize={32} color="gray.900" lineHeight={38} fontWeight={800} letterSpacing={-1.4}>
+          Entenda seus exames com facilidade.
         </Text>
 
-        <Text
-          fontSize={16}
-          color="gray.600"
-          lineHeight={24}
-          fontWeight={500}
-          pt={4}
-        >
-          Desvendamos os resultados do seu exame de {'\n'}maneira encantadora,
-          tornando tudo mais {'\n'}claro e compreensível para você!
+        <Text fontSize={16} color="gray.600" lineHeight={24} fontWeight={500} pt={4}>
+          A Examinus transforma resultados laboratoriais em informações simples e fáceis de compreender, sem termos
+          complicados.
         </Text>
       </Container>
 

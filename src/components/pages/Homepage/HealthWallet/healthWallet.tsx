@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Linking, Alert } from 'react-native';
 import {
   VStack,
   Text,
@@ -119,7 +119,6 @@ export function HealthWallet() {
             setCurrentSystem({
               sistema: system.examOrganicSystemDescription,
               nivel: getColorByScore(system.organicSystemScore)?.title,
-              sexo: homeData.medicalExamGender,
             })
           }
         >
@@ -195,14 +194,7 @@ export function HealthWallet() {
                   width={18}
                   fill={Math.round(homeData.generalScore / 10)}
                   children={() => (
-                    <Avatar
-                      size="58px"
-                      mt={-4}
-                      bg="gray.300"
-                      source={{
-                        uri: user?.profileImage || undefined,
-                      }}
-                    >
+                    <Avatar size="58px" mt={-4} bg="gray.300">
                       {user?.fullName ? (
                         user.fullName
                           .split(' ')
@@ -236,7 +228,8 @@ export function HealthWallet() {
                 {/* Medical Disclaimer */}
                 <Box mt={4} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
                   <Text fontSize={10} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
-                    ⚠️ Aviso Médico: Esta análise é apenas informativa e não substitui consulta médica. Sempre consulte seu médico antes de tomar decisões sobre sua saúde.
+                    ⚠️ Aviso Médico: Esta análise é apenas informativa e não substitui consulta médica. Sempre consulte
+                    seu médico antes de tomar decisões sobre sua saúde.
                   </Text>
                 </Box>
               </VStack>
@@ -260,13 +253,27 @@ export function HealthWallet() {
                 <Text fontSize={12} fontWeight={700} color="gray.700" mb={2}>
                   📚 Fontes e Referências
                 </Text>
-                <Text fontSize={10} fontWeight={400} color="gray.600" lineHeight={16}>
-                  As análises e recomendações são baseadas em diretrizes médicas estabelecidas, incluindo:
-                  {'\n'}• Sociedade Brasileira de Patologia Clínica/Medicina Laboratorial (SBPC/ML)
-                  {'\n'}• Ministério da Saúde - Diretrizes Clínicas
-                  {'\n'}• Valores de referência laboratoriais padrão
-                  {'\n\n'}Para mais informações, consulte seu médico ou acesse: www.sbpc.org.br
-                </Text>
+                <VStack space={2}>
+                  <TouchableOpacity onPress={() => Linking.openURL('https://www.who.int/health-topics')}>
+                    <Text fontSize={10} fontWeight={500} color="primary.600">
+                      🔗 Organização Mundial da Saúde (OMS) — https://www.who.int/health-topics
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => Linking.openURL('https://www.gov.br/saude')}>
+                    <Text fontSize={10} fontWeight={500} color="primary.600">
+                      🔗 Ministério da Saúde (Brasil) — https://www.gov.br/saude
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => Linking.openURL('https://www.mayocliniclabs.com')}>
+                    <Text fontSize={10} fontWeight={500} color="primary.600">
+                      🔗 Mayo Clinic Laboratories — https://www.mayocliniclabs.com
+                    </Text>
+                  </TouchableOpacity>
+                  <Text fontSize={10} fontWeight={400} color="gray.600" lineHeight={16} mt={2}>
+                    As análises e recomendações são baseadas em diretrizes médicas estabelecidas. Consulte sempre seu
+                    médico para interpretação personalizada.
+                  </Text>
+                </VStack>
               </Box>
             )}
           </VStack>

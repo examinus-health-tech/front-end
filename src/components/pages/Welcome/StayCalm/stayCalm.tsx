@@ -7,17 +7,14 @@ import Vector from '@assets/png/vector-4.png';
 import { ArrowIcon } from '@assets/icons';
 
 import { Button } from '@components/atoms';
-import { HeaderProgress } from '@components/molecules';
+import { HeaderProgress, LegalFooter } from '@components/molecules';
 
 export function StayCalm() {
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
 
   return (
     <VStack flex={1} space={8} py={24}>
-      <HeaderProgress
-        progressValue={100}
-        jumpTo={() => navigation.navigate('signIn')}
-      />
+      <HeaderProgress progressValue={100} jumpTo={() => navigation.navigate('signIn')} />
 
       <Image
         source={Vector}
@@ -31,27 +28,16 @@ export function StayCalm() {
       />
 
       <Container mx={6}>
-        <Text
-          fontSize={32}
-          color="gray.900"
-          lineHeight={38}
-          fontWeight={800}
-          letterSpacing={-1.4}
-        >
+        <Text fontSize={32} color="gray.900" lineHeight={38} fontWeight={800} letterSpacing={-1.4}>
           Fique tranquilo: seus {'\n'}dados estão seguros!
         </Text>
 
-        <Text
-          fontSize={16}
-          color="gray.600"
-          lineHeight={24}
-          fontWeight={500}
-          pt={4}
-        >
-          Na Examinus garantimos a privacidade e {'\n'}segurança dos seus dados
-          pessoais.
+        <Text fontSize={16} color="gray.600" lineHeight={24} fontWeight={500} pt={4}>
+          A Examinus utiliza padrões avançados de segurança para garantir a privacidade das suas informações.
         </Text>
       </Container>
+
+      <LegalFooter />
 
       <Button
         position="absolute"

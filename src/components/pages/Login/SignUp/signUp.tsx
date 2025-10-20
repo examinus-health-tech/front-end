@@ -21,7 +21,7 @@ import { Input, LegalFooter } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Platform } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { AppError } from '@utils/AppErrors';
 import { useState, useRef } from 'react';
@@ -29,6 +29,7 @@ import { useAuth } from 'src/hooks/useAuth';
 import { useGoogleAuth } from 'src/hooks/useGoogleAuth';
 import { useAppleAuth } from 'src/hooks/useAppleAuth';
 import Toast from 'react-native-toast-message';
+import * as AppleAuthentication from 'expo-apple-authentication';
 
 type FormDataProps = {
   name: string;
