@@ -120,7 +120,10 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
 
       setPersonalData(personalData);
     } catch (error: any) {
-      throw error;
+      console.log('❌ Erro ao buscar dados pessoais:', error);
+      setPersonalData(undefined);
+      setIsOnboardingComplete(false);
+      // Evitar lançar erro para não causar crash pós-login
     } finally {
       setisLoadingOnboardingContext(false);
     }

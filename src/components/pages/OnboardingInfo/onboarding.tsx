@@ -71,11 +71,20 @@ export function OnboardingSteps() {
   }
 
   useEffect(() => {
-    getPersonalData();
+    (async () => {
+      try {
+        await getPersonalData();
+      } catch (e) {
+        // Erro já tratado no contexto, apenas evitar crash
+      }
+    })();
   }, []);
 
   useEffect(() => {
-    if (personalData) navigation.navigate('homepage');
+    // Navegar só se dados essenciais existirem
+    if (personalData) {
+      navigation.navigate('homepage');
+    }
   }, [personalData]);
 
   if (isLoadingOnboardingContext) {
