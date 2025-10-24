@@ -5,7 +5,7 @@
     "updates": {
       "enabled": true,
       "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/ee20a194-8f4e-4255-8661-d2ada754f33b"
+      "url": "https://u.expo.dev/29aa665e-a9a4-4a0b-9ead-a75ede66e041"
     },
     "version": "1.2.5",
     "runtimeVersion": {
@@ -55,11 +55,7 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [
-            {
-              "scheme": "com.examinus.app"
-            }
-          ],
+          "data": [{ "scheme": "com.examinus.app" }],
           "category": ["BROWSABLE", "DEFAULT"]
         }
       ]
@@ -69,12 +65,7 @@
     },
     "plugins": [
       "expo-video",
-      [
-        "expo-document-picker",
-        {
-          "iCloudContainerEnvironment": "Production"
-        }
-      ],
+      ["expo-document-picker", { "iCloudContainerEnvironment": "Production" }],
       "expo-font",
       [
         "expo-camera",
@@ -92,9 +83,7 @@
       ]
     ],
     "extra": {
-      "eas": {
-        "projectId": "29aa665e-a9a4-4a0b-9ead-a75ede66e041"
-      }
+      "eas": { "projectId": "29aa665e-a9a4-4a0b-9ead-a75ede66e041" }
     }
   }
 }

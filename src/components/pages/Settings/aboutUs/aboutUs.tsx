@@ -52,7 +52,8 @@ export function AboutUs() {
       [
         {
           text: 'Ver Online',
-          onPress: () => openURL('https://examinus.app/privacy-policy', 'Não foi possível abrir a Política de Privacidade.'),
+          onPress: () =>
+            openURL('https://examinus.app/privacy-policy', 'Não foi possível abrir a Política de Privacidade.'),
         },
         {
           text: 'Fechar',
@@ -64,7 +65,10 @@ export function AboutUs() {
 
   // Handle Join Team
   const handleJoinTeam = () => {
-    openURL('mailto:careers@examinus.app?subject=Quero fazer parte do Team Examinus', 'Não foi possível abrir o email.');
+    openURL(
+      'mailto:careers@examinus.app?subject=Quero fazer parte do Team Examinus',
+      'Não foi possível abrir o email.'
+    );
   };
 
   // Handle App Store Review
@@ -127,7 +131,7 @@ export function AboutUs() {
         <VStack mb={12} space={3} alignItems={'center'}>
           <Image source={Logo} defaultSource={Logo} alt="Vetor" resizeMode="stretch" />
           <Text color="gray.900" fontSize={28} fontWeight={800} lineHeight={32} letterSpacing={-0.96}>
-            Examinus v1.2.5
+            Examinus v1.2.5 - teste 24 de Outubro.
           </Text>
         </VStack>
 
