@@ -22,7 +22,7 @@
     "jsEngine": "jsc",
     "assetBundlePatterns": ["**/*"],
     "ios": {
-      "buildNumber": "8",
+      "buildNumber": "9",
       "supportsTablet": true,
       "bundleIdentifier": "com.examinus.app",
       "jsEngine": "jsc",
@@ -43,7 +43,7 @@
       "appleTeamId": "NLLSSU23C9"
     },
     "android": {
-      "versionCode": 8,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
