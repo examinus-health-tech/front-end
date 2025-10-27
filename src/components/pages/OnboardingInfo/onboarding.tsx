@@ -12,7 +12,7 @@ import { Gender, Weight, Age, Physical, Habits, Upload, UploadError, Height } fr
 import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useUpload } from 'src/hooks/useUpload';
 import { ScoreWarning } from './ScoreWarning/scoreWarning';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { useNavigation } from '@react-navigation/native';
@@ -29,9 +29,11 @@ export function OnboardingSteps() {
     isLoadingOnboardingContext,
     isLoadingUpload,
     scoreWarning,
+    checkOnboardingCompletion,
   } = useOnboarding();
   const shake = useSharedValue(0);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const hasNavigatedRef = useRef(false);
 
   const shakeStyle = useAnimatedStyle(() => {
     return {
@@ -80,12 +82,29 @@ export function OnboardingSteps() {
     })();
   }, []);
 
+  // Corrigido: navegar apenas quando o onboarding estiver completo, com guarda para evitar múltiplas navegações
   useEffect(() => {
-    // Navegar só se dados essenciais existirem
-    if (personalData) {
-      navigation.navigate('homepage');
-    }
-  }, [personalData]);
+    let isMounted = true;
+
+    (async () => {
+      try {
+        const complete = await checkOnboardingCompletion();
+        if (complete && isMounted && !hasNavigatedRef.current) {
+          hasNavigatedRef.current = true;
+          navigation.reset({ index: 0, routes: [{ name: 'homepage' }] });
+        }
+      } catch (e) {
+        // Evitar crash caso haja erro de verificação
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [checkOnboardingCompletion, navigation]);
+
+  // Removido efeito que navegava baseado apenas em personalData para evitar loop
+
 
   if (isLoadingOnboardingContext) {
     return (
