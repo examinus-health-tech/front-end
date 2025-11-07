@@ -4,10 +4,10 @@
     "slug": "examinus",
     "updates": {
       "enabled": true,
-      "fallbackToCacheTimeout": 0,
+      "fallbackToCacheTimeout": 3000,
       "url": "https://u.expo.dev/29aa665e-a9a4-4a0b-9ead-a75ede66e041"
     },
-    "version": "1.2.5",
+    "version": "1.2.6",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -20,9 +20,11 @@
     },
     "userInterfaceStyle": "light",
     "jsEngine": "jsc",
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "buildNumber": "9",
+      "buildNumber": "10",
       "supportsTablet": true,
       "bundleIdentifier": "com.examinus.app",
       "jsEngine": "jsc",
@@ -43,20 +45,30 @@
       "appleTeamId": "NLLSSU23C9"
     },
     "android": {
-      "versionCode": 9,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.examinus.app",
       "jsEngine": "jsc",
-      "permissions": ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
-          "data": [{ "scheme": "com.examinus.app" }],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "data": [
+            {
+              "scheme": "com.examinus.app"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -65,7 +77,12 @@
     },
     "plugins": [
       "expo-video",
-      ["expo-document-picker", { "iCloudContainerEnvironment": "Production" }],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
       "expo-font",
       [
         "expo-camera",
@@ -83,7 +100,9 @@
       ]
     ],
     "extra": {
-      "eas": { "projectId": "29aa665e-a9a4-4a0b-9ead-a75ede66e041" }
+      "eas": {
+        "projectId": "29aa665e-a9a4-4a0b-9ead-a75ede66e041"
+      }
     }
   }
 }

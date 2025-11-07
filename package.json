@@ -24,6 +24,7 @@
     "@react-native-community/cli": "^18.0.0",
     "@react-native-community/cli-doctor": "^13.6.5",
     "@react-native-community/datetimepicker": "8.4.1",
+    "@react-native-community/slider": "4.5.6",
     "@react-native-google-signin/google-signin": "^15.0.0",
     "@react-native/metro-babel-transformer": "^0.80.0",
     "@react-navigation/bottom-tabs": "^6.5.11",
