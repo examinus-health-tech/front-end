@@ -1,23 +1,53 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { VStack, Text, useDisclose, Box, HStack, ScrollView, IScrollViewProps, Image } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
+import { TouchableOpacity } from 'react-native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
 import { BarbellIcon, ChevronRightIcon, HeadHealtthIcon, PIllIcon, StethoscopeIcon } from '@assets/icons';
-import Vector from '@assets/png/vector-23.png';
 import Vector2 from '@assets/png/vector-33.png';
+import Vector3 from '@assets/png/vector-46.png';
+import VectorMale from '@assets/png/vector-46.png'; // Imagem para homem (saúde boa)
+import VectorFemale from '@assets/png/vector-33.png'; // Imagem para mulher (saúde boa)
+import VectorRiskMale from '@assets/png/vector-47.png'; // Imagem para homem (em risco)
+import VectorRiskFemale from '@assets/png/vector-23.png'; // Imagem para mulher (em risco)
 
 // components
 import { HeaderTitle } from '@components/molecules';
 import { useHome } from 'src/hooks/useHome';
+import { useOnboarding } from 'src/hooks/useOnboarding';
 
 export function HeartScore() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
   const { currentSystem, setCurrentSystem } = useHome();
+  const { personalData } = useOnboarding();
+
+  // Determina a imagem baseada no gênero do usuário (saúde boa)
+  const genderImage = useMemo(() => {
+    if (personalData) {
+      const gender = (personalData as any).gender?.toLowerCase();
+      if (gender === 'f') {
+        return VectorFemale;
+      }
+    }
+    return VectorMale;
+  }, [personalData]);
+
+  // Determina a imagem baseada no gênero do usuário (em risco)
+  const genderRiskImage = useMemo(() => {
+    console.log('!@# personalData', personalData);
+    if (personalData) {
+      const gender = (personalData as any).gender?.toLowerCase();
+      if (gender === 'f') {
+        return VectorRiskFemale;
+      }
+    }
+    return VectorRiskMale;
+  }, [personalData]);
 
   useEffect(() => {
     return () => {
@@ -41,38 +71,62 @@ export function HeartScore() {
           <VStack flex={1} space={8} pt={2} pb={32}>
             <VStack flex={1} mx={6}>
               {currentSystem.nivel == 'excelente' || currentSystem.nivel == 'risco normal' ? (
-                <Box bg="ciano.200" pl={4} borderRadius={12} shadow={2}>
-                  <HStack>
-                    <VStack flex={1} justifyContent="center" py={4}>
-                      <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white">
-                        Woooow! {'\n'}Sua saúde está Top!
-                      </Text>
-                      <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white">
-                        Continue melhorando seu score através desses benefícios exclusivos:
-                      </Text>
-                    </VStack>
+                <TouchableOpacity onPress={() => navigation.navigate('examList')}>
+                  <Box bg="ciano.300" pl={4} borderRadius={12} shadow={2} overflow="hidden">
+                    <HStack>
+                      <VStack flex={1} justifyContent="center" py={4}>
+                        <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white" lineHeight={22}>
+                          Woooow! {'\n'}Sua saúde está Top!
+                        </Text>
+                        <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white" mt={1}>
+                          Continue melhorando seu score através desses benefícios exclusivos:
+                        </Text>
 
-                    <Image flex={1} source={Vector2} defaultSource={Vector2} alt="Vetor" resizeMode="stretch" h={150} />
-                  </HStack>
-                </Box>
+                        <Text fontSize={14} fontWeight={700} letterSpacing={-0.16} color="white">
+                          Ver detalhes {'>'}
+                        </Text>
+                      </VStack>
+
+                      <Image
+                        flex={1}
+                        height="100%"
+                        source={genderImage}
+                        defaultSource={genderImage}
+                        alt="Vetor"
+                        resizeMode="stretch"
+                        alignSelf="stretch"
+                      />
+                    </HStack>
+                  </Box>
+                </TouchableOpacity>
               ) : (
-                <Box bg="red.100" pl={4} py={4} borderRadius={12} shadow={2}>
-                  <HStack>
-                    <VStack flex={1} justifyContent="center">
-                      <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="red.600">
-                        Sua saúde{'\n'}está em risco!
-                      </Text>
-                      <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="gray.500">
-                        Mas fique tranquilo e{'\n'}conta com a Examinus!
-                      </Text>
-                      <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="red.700">
-                        Escolha a solução abaixo:
-                      </Text>
-                    </VStack>
+                <TouchableOpacity onPress={() => navigation.navigate('examList')}>
+                  <Box bg="red.100" pl={4} borderRadius={12} shadow={2} overflow="hidden">
+                    <HStack>
+                      <VStack flex={1} justifyContent="center" py={4}>
+                        <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="red.600" lineHeight={22}>
+                          Sua saúde{'\n'}está em risco!
+                        </Text>
+                        <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="gray.500" mt={2}>
+                          Mas fique tranquilo e{'\n'}conta com a Examinus!
+                        </Text>
+                        <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="red.700">
+                          Ver detalhes {'>'}
+                        </Text>
+                      </VStack>
 
-                    <Image flex={1} source={Vector} defaultSource={Vector} alt="Vetor" resizeMode="stretch" h={130} />
-                  </HStack>
-                </Box>
+                      <Image
+                        flex={1}
+                        height="100%"
+                        source={genderRiskImage}
+                        defaultSource={genderRiskImage}
+                        alt="Vetor"
+                        resizeMode="stretch"
+                        alignSelf="stretch"
+                      />
+                    </HStack>
+                  </Box>
+                </TouchableOpacity>
               )}
 
               <HStack justifyContent={'space-between'} mt={2} space={4}>

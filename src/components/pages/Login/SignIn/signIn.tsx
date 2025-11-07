@@ -221,6 +221,7 @@ export function SignIn() {
         </TouchableOpacity>
 
         <Button
+          mt={-2}
           variant="primary"
           size="full"
           title="Conecte-se"
@@ -229,7 +230,7 @@ export function SignIn() {
           onPress={handleSubmit(handleSignIn)}
         />
 
-        <Flex direction="row" justifyContent="space-between" py={4}>
+        <Flex direction="row" justifyContent="space-between" pt={4} pb={2}>
           <Divider my={2} mx={2} w="40%" />
           <Text color="gray.900" fontSize={12} fontWeight={600} letterSpacing={-0.12}>
             Ou
@@ -237,7 +238,7 @@ export function SignIn() {
           <Divider my={2} mx={2} w="40%" />
         </Flex>
 
-        <HStack justifyContent="center" alignItems="center" my={2} space={2}>
+        <HStack justifyContent="center" alignItems="center" mb={2} space={2}>
           {/* Facebook - Comentado temporariamente */}
           {/* <TouchableOpacity>
             <Box
@@ -297,7 +298,7 @@ export function SignIn() {
           </TouchableOpacity> */}
         </HStack>
 
-        <HStack alignItems="center" justifyContent="center" mt={-7}>
+        <HStack alignItems="center" justifyContent="center" mt={-6}>
           <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
             Não tem uma conta?{' '}
           </Text>
@@ -308,7 +309,7 @@ export function SignIn() {
           </TouchableOpacity>
         </HStack>
 
-        <HStack mt={-7}>
+        <HStack mt={-4}>
           <LegalFooter />
         </HStack>
       </VStack>

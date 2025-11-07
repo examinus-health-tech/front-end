@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { VStack, Text, Box, HStack, View, useToast } from 'native-base';
 
 // routes
@@ -21,6 +21,19 @@ export function Habits() {
 
   const { onboardingData, setOnboardingData, saveOnboarding } = useOnboarding();
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (onboardingData.eatingHabits) {
+      setSelectedHabit(onboardingData.eatingHabits);
+    }
+  }, []);
+
+  // Salvar automaticamente quando o hábito mudar
+  useEffect(() => {
+    if (selectedHabit) {
+      setOnboardingData({ ...onboardingData, eatingHabits: selectedHabit });
+    }
+  }, [selectedHabit]);
 
   async function handleSaveOnboarding() {
     try {

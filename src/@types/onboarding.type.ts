@@ -15,6 +15,7 @@ export type stepListProps =
   | 'height'
   | 'age'
   | 'physical'
+  | 'humour'
   | 'habits'
   | 'upload'
   | 'error'

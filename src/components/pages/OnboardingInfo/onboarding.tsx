@@ -8,7 +8,7 @@ import XLogo from '@assets/png/x-examinus.png';
 
 // components
 import { HeaderProgress } from '@components/molecules';
-import { Gender, Weight, Age, Physical, Habits, Upload, UploadError, Height } from '@components/pages/OnboardingInfo';
+import { Gender, Weight, Age, Physical, Humour, Habits, Upload, UploadError, Height } from '@components/pages/OnboardingInfo';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useUpload } from 'src/hooks/useUpload';
 import { ScoreWarning } from './ScoreWarning/scoreWarning';
@@ -59,6 +59,9 @@ export function OnboardingSteps() {
       }
       case 'physical': {
         return <Physical />;
+      }
+      case 'humour': {
+        return <Humour />;
       }
       case 'habits': {
         return <Habits />;

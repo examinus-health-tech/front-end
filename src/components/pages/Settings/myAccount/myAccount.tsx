@@ -100,7 +100,7 @@ export function MyAccount() {
                 {user?.fullName}
               </Text>
               <Text color={'gray.200'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-                {user?.name}
+                {user?.email}
               </Text>
             </VStack>
 
@@ -205,6 +205,7 @@ export function MyAccount() {
               title="Central de Ajuda"
               variant="primary"
               action="chevron"
+              comingSoon={true}
               icon={<ChatIcon color="#3D4966" size="30" />}
             />
             <Card
@@ -286,7 +287,7 @@ export function MyAccount() {
                   flex={1}
                   variant="primary"
                   size="md"
-                  title={isSigningOut ? "Saindo..." : "Sair"}
+                  title={isSigningOut ? 'Saindo...' : 'Sair'}
                   onPress={handleSignOut}
                   bgColor="red.500"
                   _pressed={{ bgColor: 'red.600' }}

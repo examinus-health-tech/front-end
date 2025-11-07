@@ -100,14 +100,23 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
     setIsLoading(true);
 
     try {
-      const response = await api.get('medical-exam-scores/get-last-final-result-by-current-user-logged');
+      const response = await api.get('medical-exam-scores/get-last-final-result-by-current-user-logged', {
+        headers: {
+          'Accept': 'application/octet-stream'
+        }
+      });
 
       const { data } = response;
-
       setHomeData(data.data);
-    } catch (error) {
-      throw error;
-      setIsLoading(false);
+    } catch (error: any) {
+      // 404 é esperado quando o usuário não tem exames ainda
+      if (error.response?.status === 404) {
+        setHomeData({} as homeProps);
+        return;
+      }
+
+      // Para outros erros, loga e não quebra a aplicação
+      console.error('❌ [HomeContext] Erro ao buscar dados:', error.message);
     } finally {
       setIsLoading(false);
     }

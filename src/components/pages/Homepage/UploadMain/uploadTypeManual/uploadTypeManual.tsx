@@ -13,8 +13,6 @@ import {
   useToast,
   Center,
   Pressable,
-  ScrollView,
-  IScrollViewProps,
 } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -73,7 +71,6 @@ export function UploadTypeManual() {
 
   const { getExamTypes, examList, handleManualUploadFile } = useUpload();
   const { user } = useAuth();
-  const scrollRef = useRef<IScrollViewProps>(null);
 
   const {
     control,
@@ -215,9 +212,8 @@ export function UploadTypeManual() {
   // }, [examList]);
 
   return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <Center>
-        <VStack alignItems="center" mt={12} mb={24}>
+    <Center>
+      <VStack alignItems="center" mt={12} mb={24}>
           <Text fontSize={24} fontWeight={800} letterSpacing={-0.24} textAlign="center">
             Insira o exame manualmente
           </Text>
@@ -410,6 +406,5 @@ export function UploadTypeManual() {
           />
         </VStack>
       </Center>
-    </ScrollView>
   );
 }

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { TouchableOpacity, useWindowDimensions } from 'react-native';
 import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Image, Badge, Center } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import ContentLoader, { Rect } from 'react-content-loader/native';
+import { useCallback } from 'react';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -17,11 +18,24 @@ import Vector5 from '@assets/png/vector-37b.png';
 import Vector6 from '@assets/png/vector-38.png';
 import Vector7 from '@assets/png/vector-39.png';
 import Vector8 from '@assets/png/vector-40.png';
+import Vector9 from '@assets/png/vector-44.png';
+import Vector10 from '@assets/png/vector-45.png';
 
 // components
 import { StatusCards } from '@components/molecules';
 import { useAuth } from 'src/hooks/useAuth';
 import { useHome } from 'src/hooks/useHome';
+
+// Função helper para determinar o texto baseado no score
+function getScoreText(score: number): string {
+  if (score <= 500) {
+    return 'Xiii, deu ruim! O seu score de saúde tá ruim. Você precisa dar uma olhada nisso. Procure um médico e atualize os seus exames periodicamente, a revisão precisa ser mais frequente!';
+  } else if (score > 500 && score <= 800) {
+    return 'Seu score de saúde tá mais ou menos. É hora de ajustar algumas coisinhas aí por dentro do seu corpo. Nada de pânico, mas bora dar uma atenção a mais pra não deixar isso virar um problemão.';
+  } else {
+    return 'Tá mandando muito bem! O seu score de saúde tá acima da média, e isso mostra que você tá cuidando bem do seu corpo. Parabéns e continue assim!';
+  }
+}
 
 export function Homepage() {
   const [withNotification, setWithNotification] = useState<boolean>(false);
@@ -70,38 +84,58 @@ export function Homepage() {
     console.log('🚀 Homepage useEffect', user);
   }, []);
 
+  // Rola para o topo quando a tela ganhar foco
+  useFocusEffect(
+    useCallback(() => {
+      scrollRef.current?.scrollTo?.({ x: 0, y: 0, animated: false });
+    }, [])
+  );
+
   function renderCardSystems() {
     if (homeData.medicalExamOrganicSystemsScore?.length) {
       const systems = homeData.medicalExamOrganicSystemsScore;
 
+      // Array de ícones disponíveis (excluindo Vector10 que é reservado para Coração)
+      const availableIcons = [Vector9, Vector3, Vector4, Vector5, Vector6, Vector7, Vector8];
+      let availableIconIndex = 0;
+
       const getColorByScore = (score: number) => {
         if (score >= 0 && score <= 333) {
-          return { title: 'risco alto', bgColor: 'red.100', icon: Vector4 };
+          return { title: 'alto', bgColor: 'red.400' };
         } else if (score > 333 && score <= 666) {
-          return { title: 'risco normal', bgColor: 'dark_blue.200', icon: Vector3 };
+          return { title: 'normal', bgColor: 'dark_blue.200' };
         } else if (score > 666 && score <= 1000) {
-          return { title: 'excelente', bgColor: 'ciano.300', icon: Vector2 };
+          return { title: 'excelente', bgColor: 'ciano.300' };
         }
-        return { title: 'risco normal', bgColor: 'dark_blue.200', icon: Vector3 };
+        return { title: 'risco normal', bgColor: 'dark_blue.200' };
       };
 
       return systems.map((system, index) => {
         if (index <= 2) {
           const colorStyle = getColorByScore(system.organicSystemScore);
 
+          // Determinar o ícone baseado na descrição do sistema
+          let icon;
+          if (system.examOrganicSystemDescription?.toLowerCase().includes('coração')) {
+            icon = Vector10;
+          } else {
+            icon = availableIcons[availableIconIndex] || Vector3;
+            availableIconIndex++;
+          }
+
           return (
             <TouchableOpacity key={index} onPress={() => navigation.navigate('healthWallet')}>
-              <Box bg={colorStyle.bgColor} rounded="2xl" w={160} shadow={4} p={4}>
-                <VStack space={4}>
-                  <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+              <Box bg={colorStyle.bgColor} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
+                <VStack space={2}>
+                  <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                     {system.examOrganicSystemDescription}
                   </Text>
 
                   <Center>
-                    <Image source={colorStyle.icon} alt="Vetor" resizeMode="contain" size={16} />
+                    <Image source={icon} alt="Vetor" resizeMode="contain" size={14} />
                   </Center>
 
-                  <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
+                  <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
                     Risco: {colorStyle.title}
                   </Text>
                 </VStack>
@@ -124,10 +158,10 @@ export function Homepage() {
           <Rect x="24" y="214" rx="8" ry="8" width={140} height={20} />
           <Rect x="320" y="120" rx="16" ry="16" width={65} height={65} />
           <Rect x="36" y="280" rx="12" ry="12" width={340} height={120} />
-          <Rect x="24" y="430" rx="8" ry="8" width={100} height={20} />
-          <Rect x="24" y="475" rx="16" ry="16" width={170} height={200} />
-          <Rect x="208" y="475" rx="16" ry="16" width={170} height={200} />
-          <Rect x="392" y="475" rx="16" ry="16" width={170} height={200} />
+          <Rect x="24" y="420" rx="8" ry="8" width={100} height={20} />
+          <Rect x="24" y="450" rx="16" ry="16" width={144} height={144} />
+          <Rect x="208" y="450" rx="16" ry="16" width={144} height={144} />
+          <Rect x="392" y="450" rx="16" ry="16" width={144} height={144} />
           <Rect x="24" y="720" rx="8" ry="8" width={120} height={20} />
           <Rect x="24" y="760" rx="8" ry="8" width={360} height={100} />
           <Rect x="24" y="870" rx="8" ry="8" width={360} height={100} />
@@ -178,8 +212,8 @@ export function Homepage() {
               </TouchableOpacity> */}
             </HStack>
 
-            <Box w="100%" h="auto" bg={'white'} px={4} py={5} mt={12} borderRadius={12}>
-              <HStack space={4} alignItems={'center'}>
+            <Box w="100%" h="auto" bg={'white'} px={4} py={4} mt={8} borderRadius={12}>
+              <HStack space={4} alignItems={'flex-start'}>
                 <Box
                   size={24}
                   bg={userWithoutData ? 'gray.300' : 'purple.600'}
@@ -227,15 +261,17 @@ export function Homepage() {
                     </View>
                   ) : (
                     <View flex={1} display="flex">
-                      <Text fontSize={12} fontWeight={500} lineHeight={18} mt={2}>
-                        {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')}
+                      <Text fontSize={12} fontWeight={500} lineHeight={16} mt={2}>
+                        {getScoreText(homeData.generalScore || 0)}
+
+                        {/* {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')} */}
                       </Text>
 
                       <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="purple.700">
                         Monitorar saúde {'>'}
                       </Text>
 
-                      <Text fontSize={9} fontWeight={400} color="gray.500" mt={2} lineHeight={12}>
+                      <Text fontSize={10} fontWeight={400} color="gray.500" mt={2} lineHeight={12}>
                         ⚠️ Apenas informativo. Consulte seu médico.
                       </Text>
                     </View>
@@ -254,37 +290,73 @@ export function Homepage() {
               </TouchableOpacity>
             </HStack>
 
-            <HStack h={265}>
+            <HStack h={165}>
               <ScrollView horizontal ref={scrollRef} mx={-6} showsHorizontalScrollIndicator={false}>
                 {userWithoutData ? (
                   <HStack space={3} mx={6} alignItems="center">
-                    <Box bg={'gray.300'} rounded="2xl" w={170} shadow={4} p={4}>
-                      <VStack space={4}>
-                        <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
+                      <VStack space={2}>
+                        <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                           Hormônios
                         </Text>
 
-                        <Image source={Vector6} alt="Vetor" resizeMode="contain" size={24} ml={4} mb={4} />
+                        <Center>
+                          <Image source={Vector6} alt="Vetor" resizeMode="contain" size={14} />
+                        </Center>
+
+                        <Text
+                          color="white"
+                          fontSize={12}
+                          fontWeight={600}
+                          letterSpacing={-0.16}
+                          textTransform="uppercase"
+                        >
+                          Risco:
+                        </Text>
                       </VStack>
                     </Box>
 
-                    <Box bg={'gray.300'} rounded="2xl" w={170} shadow={4} p={4}>
-                      <VStack space={4}>
-                        <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
+                      <VStack space={2}>
+                        <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                           Imunidade
                         </Text>
 
-                        <Image source={Vector7} alt="Vetor" resizeMode="contain" size={24} ml={4} mb={4} />
+                        <Center>
+                          <Image source={Vector7} alt="Vetor" resizeMode="contain" size={14} />
+                        </Center>
+
+                        <Text
+                          color="white"
+                          fontSize={12}
+                          fontWeight={600}
+                          letterSpacing={-0.16}
+                          textTransform="uppercase"
+                        >
+                          Risco:
+                        </Text>
                       </VStack>
                     </Box>
 
-                    <Box bg={'gray.300'} rounded="2xl" w={170} shadow={4} p={4}>
-                      <VStack space={4}>
-                        <Text color="white" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
+                      <VStack space={2}>
+                        <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                           Coração
                         </Text>
 
-                        <Image source={Vector8} alt="Vetor" resizeMode="contain" size={24} ml={4} mb={4} />
+                        <Center>
+                          <Image source={Vector10} alt="Vetor" resizeMode="contain" size={14} />
+                        </Center>
+
+                        <Text
+                          color="white"
+                          fontSize={12}
+                          fontWeight={600}
+                          letterSpacing={-0.16}
+                          textTransform="uppercase"
+                        >
+                          Risco:
+                        </Text>
                       </VStack>
                     </Box>
                   </HStack>

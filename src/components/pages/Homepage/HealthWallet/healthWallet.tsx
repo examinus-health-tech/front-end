@@ -194,7 +194,7 @@ export function HealthWallet() {
                   width={18}
                   fill={Math.round(homeData.generalScore / 10)}
                   children={() => (
-                    <Avatar size="58px" mt={-4} bg="gray.300">
+                    <Avatar size="50px" mt={-4} bg="gray.300">
                       {user?.fullName ? (
                         user.fullName
                           .split(' ')
@@ -213,20 +213,20 @@ export function HealthWallet() {
                   arcSweepAngle={180}
                 />
 
-                <Text mt={-8} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
+                <Text mt={-12} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
                   {homeData.generalScore}
                 </Text>
 
-                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16}>
+                <Text mt={-2} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
                   Score X
                 </Text>
 
                 <Text mt={2} color="gray.600" fontSize={12} fontWeight={500} lineHeight={19.2} textAlign="center">
-                  {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')}
+                  {homeData.generalScoreActionRecommendation?.replace('\r\n', '')}
                 </Text>
 
                 {/* Medical Disclaimer */}
-                <Box mt={4} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
+                <Box mt={2} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
                   <Text fontSize={10} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
                     ⚠️ Aviso Médico: Esta análise é apenas informativa e não substitui consulta médica. Sempre consulte
                     seu médico antes de tomar decisões sobre sua saúde.
@@ -249,7 +249,7 @@ export function HealthWallet() {
 
             {/* Medical Information Sources */}
             {homeData.medicalExamOrganicSystemsScore?.length > 0 && (
-              <Box mt={8} p={4} bg="gray.50" borderRadius={12}>
+              <Box mt={8} px={4} bg="gray.50" borderRadius={12}>
                 <Text fontSize={12} fontWeight={700} color="gray.700" mb={2}>
                   📚 Fontes e Referências
                 </Text>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Image, VStack, Text, Box, HStack, Divider, ZStack, Center } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
@@ -29,6 +29,19 @@ export function Physical() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
+
+  useEffect(() => {
+    if (onboardingData.physicalLevel) {
+      setSelectedPhysical(onboardingData.physicalLevel);
+    }
+  }, []);
+
+  // Salvar automaticamente quando o nível físico mudar
+  useEffect(() => {
+    if (selectedPhysical > 0) {
+      setOnboardingData({ ...onboardingData, physicalLevel: selectedPhysical });
+    }
+  }, [selectedPhysical]);
 
   return (
     <VStack flex={1} mx={6} space={4}>

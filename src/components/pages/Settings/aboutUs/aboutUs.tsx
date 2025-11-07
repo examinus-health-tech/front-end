@@ -63,13 +63,6 @@ export function AboutUs() {
     );
   };
 
-  // Handle Join Team
-  const handleJoinTeam = () => {
-    openURL(
-      'mailto:careers@examinus.app?subject=Quero fazer parte do Team Examinus',
-      'Não foi possível abrir o email.'
-    );
-  };
 
   // Handle App Store Review
   const handleReview = () => {
@@ -102,10 +95,6 @@ export function AboutUs() {
     );
   };
 
-  // Handle Partnership
-  const handlePartnership = () => {
-    openURL('mailto:partnerships@examinus.app?subject=Proposta de Parceria', 'Não foi possível abrir o email.');
-  };
 
   // Handle Feedback
   const handleFeedback = () => {
@@ -131,7 +120,7 @@ export function AboutUs() {
         <VStack mb={12} space={3} alignItems={'center'}>
           <Image source={Logo} defaultSource={Logo} alt="Vetor" resizeMode="stretch" />
           <Text color="gray.900" fontSize={28} fontWeight={800} lineHeight={32} letterSpacing={-0.96}>
-            Examinus v1.2.5 - teste 24 de Outubro.
+            Examinus v1.2.5
           </Text>
         </VStack>
 
@@ -149,7 +138,7 @@ export function AboutUs() {
             variant="primary"
             icon={<BriefcaseIcon size="30" />}
             action="chevron"
-            goTo={handleJoinTeam}
+            comingSoon={true}
           />
 
           <Card
@@ -173,7 +162,7 @@ export function AboutUs() {
             variant="primary"
             icon={<ShareIcon size="30" />}
             action="chevron"
-            goTo={handlePartnership}
+            comingSoon={true}
           />
 
           <Card

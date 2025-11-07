@@ -1,16 +1,9 @@
-import { Linking, Text } from 'react-native';
+import { Text } from 'native-base';
+import { Linking } from 'react-native';
 
 export function LegalFooter() {
   return (
-    <Text
-      style={{
-        fontSize: 12,
-        textAlign: 'center',
-        color: '#121212',
-        marginTop: 12,
-        paddingHorizontal: 20,
-      }}
-    >
+    <Text fontSize={12} color="gray.400" fontWeight={400} letterSpacing={-0.14} flex={1} textAlign="center">
       Ao continuar, você concorda com a nossa{' '}
       <Text
         style={{ color: '#007AFF' }}
@@ -18,7 +11,6 @@ export function LegalFooter() {
       >
         Política de Privacidade
       </Text>
-      .
     </Text>
   );
 }

@@ -7,7 +7,7 @@ export class AppError {
       this.message = message;
     } else {
       this.response = message;
-      this.message = message.data.message.join(', ') || 'Erro desconhecido';
+      this.message = message?.data?.message.join(', ') || 'Erro desconhecido';
     }
   }
 }

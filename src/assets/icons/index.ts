@@ -63,6 +63,11 @@ import HeartIcon from './components/heart';
 import StethoscopeIcon from './components/stethoscope';
 import HeadHealtthIcon from './components/headHealtth';
 import PIllIcon from './components/pill';
+import EmojiHappyIcon from './components/emojiHappy';
+import EmojiNormalIcon from './components/emojiNormal';
+import EmojiSadIcon from './components/emojiSad';
+import EmojiAnxiousIcon from './components/emojiAnxious';
+import EmojiDepressedIcon from './components/emojiDepressed';
 
 export {
   ArrowIcon,
@@ -130,4 +135,9 @@ export {
   StethoscopeIcon,
   HeadHealtthIcon,
   PIllIcon,
+  EmojiHappyIcon,
+  EmojiNormalIcon,
+  EmojiSadIcon,
+  EmojiAnxiousIcon,
+  EmojiDepressedIcon,
 };

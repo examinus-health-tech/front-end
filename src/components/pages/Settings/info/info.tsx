@@ -17,6 +17,7 @@ import { Input } from '@components/molecules/Input/input';
 import { SuccessSaved } from '@components/pages/Settings/components/successSaved/successSaved';
 import { Header } from '../components/header/header';
 import { useAuth } from 'src/hooks/useAuth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type FormDataProps = {
   fullName: string;
@@ -61,11 +62,36 @@ export function Info() {
   });
 
   useEffect(() => {
-    if (user) {
-      setValue('fullName', user.fullName || '');
-      setValue('email', user.name || '');
-      setValue('country', 'Brasil');
+    async function loadUserData() {
+      try {
+        // Carregar dados do usuário autenticado
+        if (user) {
+          setValue('fullName', user.fullName || '');
+          setValue('email', user.email || user.name || '');
+        }
+
+        // Carregar dados pessoais do AsyncStorage
+        const personalDataJson = await AsyncStorage.getItem('@app:personalData');
+        if (personalDataJson) {
+          const personalData = JSON.parse(personalDataJson);
+
+          // Preencher campos com dados do onboarding se disponíveis
+          if (personalData.age) {
+            // Calcular data de nascimento aproximada baseada na idade
+            const currentYear = new Date().getFullYear();
+            const birthYear = currentYear - personalData.age;
+            setValue('birthDate', `01/01/${birthYear}`);
+          }
+        }
+
+        // Sempre definir Brasil como país padrão
+        setValue('country', 'Brasil');
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário:', error);
+      }
     }
+
+    loadUserData();
   }, [user, setValue]);
 
   async function handleSaveInfo(data: FormDataProps) {

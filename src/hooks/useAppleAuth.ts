@@ -17,11 +17,7 @@ export function useAppleAuth() {
 
       if (!isAvailable) {
         console.log('🍎 Apple Auth não disponível - apenas iOS');
-        Alert.alert(
-          'Apple Sign In',
-          'O login com Apple está disponível apenas em dispositivos iOS.',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Apple Sign In', 'O login com Apple está disponível apenas em dispositivos iOS.', [{ text: 'OK' }]);
         return;
       }
 
@@ -56,16 +52,11 @@ export function useAppleAuth() {
         user: credential.user,
         hasIdentityToken: !!credential.identityToken,
         hasFullName: !!credential.fullName,
-        email: credential.email
+        email: credential.email,
       });
 
       if (!credential.identityToken) {
         console.error('🍎 Token de identidade não recebido');
-        Alert.alert(
-          'Erro na Autenticação',
-          'Não foi possível obter o token de autenticação do Apple. Tente novamente.',
-          [{ text: 'OK' }]
-        );
         return;
       }
 
@@ -88,7 +79,7 @@ export function useAppleAuth() {
       console.error('❌ Erro no Apple Auth:', {
         code: error.code,
         message: error.message,
-        error: error
+        error: error,
       });
       setCurrentMode(null);
 

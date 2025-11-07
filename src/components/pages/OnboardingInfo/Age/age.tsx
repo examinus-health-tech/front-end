@@ -93,10 +93,23 @@ export function Age() {
   }
 
   useEffect(() => {
+    if (onboardingData.age) {
+      setSelectedAge(onboardingData.age);
+    }
+  }, []);
+
+  useEffect(() => {
     if (!!selectedAge) {
       setTimeout(() => {
         scrollToCord();
       }, 50);
+    }
+  }, [selectedAge]);
+
+  // Salvar automaticamente quando a idade mudar
+  useEffect(() => {
+    if (selectedAge > 0) {
+      setOnboardingData({ ...onboardingData, age: selectedAge });
     }
   }, [selectedAge]);
 

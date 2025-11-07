@@ -58,16 +58,11 @@ export function useGoogleAuth() {
       console.log('🔍 userInfo received:', {
         hasIdToken: !!userInfo.data?.idToken,
         hasUser: !!userInfo.data?.user,
-        type: userInfo.type
+        type: userInfo.type,
       });
 
       if (!userInfo.data?.idToken) {
         console.error('❌ Token não recebido do Google');
-        Alert.alert(
-          'Erro na Autenticação',
-          'Não foi possível obter o token de autenticação do Google. Tente novamente.',
-          [{ text: 'OK' }]
-        );
         return;
       }
 
@@ -90,7 +85,7 @@ export function useGoogleAuth() {
       console.error('❌ Erro no Google OAuth:', {
         code: error?.code,
         message: error?.message,
-        error: error
+        error: error,
       });
 
       // User cancelled
@@ -101,16 +96,18 @@ export function useGoogleAuth() {
 
       // Network error
       if (error.code === 'NETWORK_ERROR' || error.code === 7) {
-        Alert.alert(
-          'Erro de Rede',
-          'Não foi possível conectar ao Google. Verifique sua conexão e tente novamente.',
-          [{ text: 'OK' }]
-        );
+        Alert.alert('Erro de Rede', 'Não foi possível conectar ao Google. Verifique sua conexão e tente novamente.', [
+          { text: 'OK' },
+        ]);
         return;
       }
 
       // Don't show alert for authentication errors (AuthContext handles it)
-      if (error.message?.includes('Erro ao fazer') || error.message?.includes('Request failed') || error.message?.includes('Token')) {
+      if (
+        error.message?.includes('Erro ao fazer') ||
+        error.message?.includes('Request failed') ||
+        error.message?.includes('Token')
+      ) {
         console.log('🔄 Erro de autenticação tratado pelo AuthContext');
         return;
       }

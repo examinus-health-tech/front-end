@@ -17,7 +17,13 @@ import { useOnboarding } from 'src/hooks/useOnboarding';
 
 export function UploadError() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const { handlePreviousStep } = useOnboarding();
+  const { handlePreviousStep, resetOnboardingState } = useOnboarding();
+
+  const handleSkipUpload = async () => {
+    // Resetar estado do onboarding e ir para homepage
+    await resetOnboardingState();
+    navigation.reset({ index: 0, routes: [{ name: 'homepage' }] });
+  };
 
   return (
     <VStack flex={1} space={8} py={24}>
@@ -63,7 +69,7 @@ export function UploadError() {
           onPress={handlePreviousStep}
         />
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleSkipUpload}>
           <Text
             bottom={-30}
             fontSize={16}

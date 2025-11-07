@@ -9,18 +9,35 @@ import { ArrowIcon } from '@assets/icons';
 // components
 import { Button } from '@components/atoms';
 import { useOnboarding } from 'src/hooks/useOnboarding';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export function Height() {
-  const [height, setHeight] = useState<number>(parseFloat('1.45'));
-
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
 
-  useEffect(() => {
-    if (onboardingData.height) {
-      setHeight(onboardingData.height);
+  const [height, setHeight] = useState<number>(onboardingData.height || 1.45);
+
+  const handleHeightChange = (value: string) => {
+    const parsedHeight = parseFloat(value);
+
+    // Ignorar valor 0 que o RulerPicker dispara na inicialização
+    if (parsedHeight === 0) {
+      return;
     }
-  }, []);
+
+    setHeight(parsedHeight);
+  };
+
+  const handleHeightChangeEnd = (value: string) => {
+    const parsedHeight = parseFloat(value);
+
+    // Ignorar valor 0 que o RulerPicker dispara na inicialização
+    if (parsedHeight === 0) {
+      return;
+    }
+
+    setHeight(parsedHeight);
+    setOnboardingData({ ...onboardingData, height: parsedHeight });
+  };
 
   return (
     <VStack flex={1} mx={6} space={8}>
@@ -35,7 +52,8 @@ export function Height() {
           step={0.01}
           fractionDigits={2}
           initialValue={height}
-          onValueChangeEnd={(number) => setHeight(parseFloat(number))}
+          onValueChange={handleHeightChange}
+          onValueChangeEnd={handleHeightChangeEnd}
           unit="m"
           stepWidth={4}
           gapBetweenSteps={10}

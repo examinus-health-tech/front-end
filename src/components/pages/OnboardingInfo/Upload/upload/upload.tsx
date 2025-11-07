@@ -291,6 +291,7 @@ export function Upload() {
             navigation={navigation}
             handleUploadFileFromOnboarding={handleUploadFileFromOnboarding}
             handleCameraPermission={handleCameraPermission}
+            onCloseActionSheet={onClose}
           />
         </Actionsheet.Content>
       </Actionsheet>

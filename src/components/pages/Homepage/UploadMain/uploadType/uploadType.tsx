@@ -1,11 +1,10 @@
 import { Platform, TouchableOpacity } from 'react-native';
-import { VStack, Text, Image, Center, Box, HStack, Actionsheet, useDisclose, Container, useToast } from 'native-base';
+import { VStack, Text, Image, Center, Box, HStack, useToast } from 'native-base';
 import { DocumentPickerAsset, getDocumentAsync } from 'expo-document-picker';
 
 // assets
 import { EditIcon, UploadIcon } from '@assets/icons';
 import Vector1 from '@assets/png/vector-9.png';
-import { UploadTypeManual } from '../uploadTypeManual/uploadTypeManual';
 import { useUpload } from 'src/hooks/useUpload';
 import { useAuth } from 'src/hooks/useAuth';
 import { AppError } from '@utils/AppErrors';
@@ -14,10 +13,10 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 interface UploadTypeProps {
   onCameraOpen: () => void;
+  onManualOpen?: () => void;
 }
 
-export function UploadType({ onCameraOpen }: UploadTypeProps) {
-  const { isOpen, onOpen, onClose } = useDisclose();
+export function UploadType({ onCameraOpen, onManualOpen }: UploadTypeProps) {
   const { handleUploadFile, isLoadingUploadContext } = useUpload();
   const { user } = useAuth();
   const toast = useToast();
@@ -124,12 +123,6 @@ export function UploadType({ onCameraOpen }: UploadTypeProps) {
               </Box>
             </TouchableOpacity>
           </HStack>
-
-          <Actionsheet isOpen={isOpen} onClose={onClose}>
-            <Actionsheet.Content>
-              <UploadTypeManual />
-            </Actionsheet.Content>
-          </Actionsheet>
         </VStack>
       </Center>
     </>

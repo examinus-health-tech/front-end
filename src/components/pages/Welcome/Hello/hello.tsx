@@ -35,7 +35,7 @@ export function Hello() {
           <Text color="ciano.300">examinus.</Text>
         </Text>
 
-        <Text textAlign="center" fontSize={16} color="gray.600" lineHeight={24} fontWeight={500} paddingTop={8}>
+        <Text textAlign="center" fontSize={16} color="gray.600" lineHeight={24} fontWeight={500} paddingTop={8} w="60%">
           Seu assistente pessoal para organizar e entender melhor seus resultados de exames.
         </Text>
       </Center>

@@ -25,24 +25,31 @@ export function Gender() {
       setGender(onboardingData.gender);
 
       if (onboardingData.gender === 'M') {
-        scrollRef.current?.scrollToEnd({ animated: true });
+        scrollRef.current?.scrollToEnd({ animated: true, y: 2000 });
       }
     }
   }, []);
 
+  // Salvar automaticamente quando o gênero mudar
+  useEffect(() => {
+    if (gender) {
+      setOnboardingData({ ...onboardingData, gender });
+    }
+  }, [gender]);
+
   return (
-    <VStack flex={1} mx={6} space={8}>
-      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
+    <VStack flex={1} space={8}>
+      <Text color="gray.900" fontSize={32} mx={6} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual seu Gênero?
       </Text>
 
-      <Text color="gray.500" fontSize={16} fontWeight={500} lineHeight={24} mt={-2}>
+      <Text color="gray.500" fontSize={16} mx={6} fontWeight={500} lineHeight={24} mt={-2}>
         Selecione seu gênero para uma melhor {'\n'}
         experiência de saúde personalizada.
       </Text>
 
-      <ScrollView horizontal ref={scrollRef} mx={-6} mt={-16} showsHorizontalScrollIndicator={false}>
-        <HStack space={8} mx={4} alignItems="center">
+      <ScrollView horizontal ref={scrollRef} mt={-16} pr={10} showsHorizontalScrollIndicator={false}>
+        <HStack space={8} alignItems="center">
           <TouchableOpacity
             onPress={() => {
               setGender('F');
@@ -52,9 +59,10 @@ export function Gender() {
             <Box
               bg={'red.400'}
               rounded="xl"
-              w={gender == 'F' ? 220 : 200}
-              h={gender == 'F' ? 340 : 280}
+              w={gender == 'F' ? 240 : 220}
+              h={gender == 'F' ? 360 : 300}
               shadow={gender == 'F' ? 9 : 0}
+              ml={8}
             >
               <Flex direction="row" align="center" my={gender == 'F' ? 5 : 4} mx={-2} justify="space-around">
                 <Flex direction="row" align="center">
@@ -102,11 +110,12 @@ export function Gender() {
             <Box
               bg={'ciano.300'}
               rounded="xl"
-              w={gender == 'M' ? 220 : 200}
-              h={gender == 'M' ? 340 : 280}
+              w={gender == 'M' ? 240 : 220}
+              h={gender == 'M' ? 360 : 300}
               shadow={gender == 'M' ? 9 : 0}
+              mr={8}
             >
-              <Flex direction="row" align="center" my={gender == 'F' ? 5 : 4} mx={-2} justify="space-around">
+              <Flex direction="row" align="center" my={gender == 'M' ? 5 : 4} mx={-2} justify="space-around">
                 <Flex direction="row" align="center">
                   <MaleIcon />
 
@@ -146,27 +155,29 @@ export function Gender() {
         </HStack>
       </ScrollView>
 
-      <VStack position="absolute" bottom={-50} w="100%" space={2}>
-        <Button
-          variant="transparent"
-          size="full"
-          title="Prefiro pular isto"
-          onPress={() => {
-            handleNextStep();
-          }}
-          icon={<ArrowIcon color="#3D4966" />}
-        />
+      <VStack mx={6}>
+        <VStack position="absolute" bottom={-50} w="100%" space={2}>
+          <Button
+            variant="transparent"
+            size="full"
+            title="Prefiro pular isto"
+            onPress={() => {
+              handleNextStep();
+            }}
+            icon={<ArrowIcon color="#3D4966" />}
+          />
 
-        <Button
-          variant="primary"
-          size="full"
-          title="Continuar"
-          onPress={() => {
-            setOnboardingData({ gender });
-            handleNextStep();
-          }}
-          icon={<ArrowIcon />}
-        />
+          <Button
+            variant="primary"
+            size="full"
+            title="Continuar"
+            onPress={() => {
+              // Já está sendo salvo automaticamente pelo useEffect
+              handleNextStep();
+            }}
+            icon={<ArrowIcon />}
+          />
+        </VStack>
       </VStack>
     </VStack>
   );

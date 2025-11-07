@@ -132,24 +132,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
 
-      logger.auth('Login successful', {
-        userId: response.data?.data?.userId,
-        hasToken: !!response.data?.data?.token,
-      });
-
       const { data } = response;
       const userData = data.data;
 
-      // Ensure userData has the correct structure for app usage
       const formattedUserData = {
         userId: userData.userId,
         name: userData.name,
         token: userData.token,
-        fullName: userData.fullName || userData.name, // fallback
+        fullName: userData.fullName || userData.name,
       };
 
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      // Limpar dados de onboarding de outro usuário ao fazer login
+      // O checkOnboardingCompletion buscará os dados corretos do servidor
+      await AsyncStorage.removeItem('@app:personalData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+      console.log('🧹 Dados de onboarding locais removidos no login');
 
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
       setUser(formattedUserData);
     } catch (error: any) {
       logger.error('Login failed', {
@@ -200,15 +200,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔑 [AUTH] Iniciando login com Google...');
-      console.log('🔑 [AUTH] idToken recebido:', authCode?.substring(0, 20) + '...');
-
       const payload = {
         provider: 'Google',
         idToken: authCode,
       };
 
-      console.log('🔑 [AUTH] Enviando payload para backend:', payload);
+      console.log('🔐 [Google Auth] idToken enviado:', authCode);
 
       // Add timeout for better UX
       const timeoutPromise = new Promise((_, reject) =>
@@ -218,34 +215,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const loginPromise = api.post('authentication/external', payload);
       const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
 
-      console.log('✅ [AUTH] Login Google bem-sucedido! Response:', {
-        status: response.status,
-        hasData: !!response.data,
-        userData: response.data?.data
-          ? {
-              userId: response.data.data.userId,
-              name: response.data.data.name,
-              hasToken: !!response.data.data.token,
-            }
-          : null,
-      });
-
       const { data } = response;
       const userData = data.data;
 
-      // Ensure userData has the correct structure for app usage
       const formattedUserData = {
         userId: userData.userId,
         name: userData.name,
         token: userData.token,
-        fullName: userData.fullName || userData.name, // fallback
+        fullName: userData.fullName || userData.name,
       };
 
+      // Limpar dados de onboarding de outro usuário ao fazer login
+      await AsyncStorage.removeItem('@app:personalData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+      console.log('🧹 Dados de onboarding locais removidos no login Google');
+
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
-
-      // Add small delay for smooth transition
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
-
       setUser(formattedUserData);
     } catch (error: any) {
       console.error('❌ [AUTH] Erro no login Google:', {
@@ -336,6 +322,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         token: userData.token,
         fullName: userData.fullName || userData.name, // fallback
       };
+
+      // Limpar dados de onboarding antigos para novo usuário
+      await AsyncStorage.removeItem('@app:personalData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+      console.log('🧹 Dados de onboarding antigos removidos (cadastro Google)');
 
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
 
@@ -459,6 +450,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         fullName: userData.fullName || userData.name, // fallback
       };
 
+      // Limpar dados de onboarding de outro usuário ao fazer login
+      await AsyncStorage.removeItem('@app:personalData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+      console.log('🧹 Dados de onboarding locais removidos no login Apple');
+
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
 
       // Add small delay for smooth transition
@@ -566,6 +562,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         fullName: userData.fullName || userData.name, // fallback
       };
 
+      // Limpar dados de onboarding antigos para novo usuário
+      await AsyncStorage.removeItem('@app:personalData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+      console.log('🧹 Dados de onboarding antigos removidos (cadastro Apple)');
+
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
 
       // Add small delay for smooth transition
@@ -633,6 +634,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         console.log('✅ Cadastro realizado com sucesso (204 - No Content)');
         console.log('🔄 Fazendo login automático para obter dados de sessão...');
 
+        // Limpar dados de onboarding antigos para novo usuário
+        await AsyncStorage.removeItem('@app:personalData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+        console.log('🧹 Dados de onboarding antigos removidos');
+
         // Auto-login after successful signup
         try {
           await signIn(email, password);
@@ -693,6 +699,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
         fullName: userData.fullName || userData.name, // fallback
       };
 
+      // Limpar dados de onboarding antigos para novo usuário
+      await AsyncStorage.removeItem('@app:personalData');
+      await AsyncStorage.removeItem('@app:onboardingData');
+      console.log('🧹 Dados de onboarding antigos removidos');
+
       // Salvar dados do usuário e fazer login automático
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
       setUser(formattedUserData);
@@ -705,6 +716,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         status: error?.response?.status,
         statusText: error?.response?.statusText,
         responseData: error?.response?.data,
+        errorResponse: error?.response,
         hasResponse: !!error.response,
         hasRequest: !!error.request,
         fullError: error,
@@ -712,14 +724,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       let errorMessage = 'Erro ao criar conta.';
 
-      if (error.response) {
+      // Caso especial: erro com propriedade 'response' direta (não error.response)
+      if (error.response && Array.isArray(error.response) && !error.response.status) {
+        console.log('🔍 Detectado erro com response array direto');
+        errorMessage = error.response.join(', ');
+      } else if (error.response && error.response.status) {
         console.log('📊 Detalhes da resposta do erro:', {
           status: error.response.status,
           data: error.response.data,
           headers: error.response.headers,
         });
 
-        if (error.response.status === 400) {
+        // Verificar se a resposta é um array diretamente
+        if (Array.isArray(error.response.data)) {
+          errorMessage = error.response.data.join(', ');
+        } else if (error.response.status === 400) {
           // Melhor tratamento para erro 400
           const responseData = error.response.data;
           if (responseData && typeof responseData === 'object') {
@@ -731,6 +750,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
               }
             } else if (responseData.errors && Array.isArray(responseData.errors)) {
               errorMessage = responseData.errors.join(', ');
+            } else if (responseData.response && Array.isArray(responseData.response)) {
+              // Caso especial: erro dentro de response array
+              errorMessage = responseData.response.join(', ');
             } else {
               errorMessage = 'Dados inválidos fornecidos.';
             }
@@ -746,6 +768,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
           const responseData = error.response.data;
           if (responseData && responseData.message) {
             errorMessage = Array.isArray(responseData.message) ? responseData.message.join(', ') : responseData.message;
+          } else if (responseData && responseData.response && Array.isArray(responseData.response)) {
+            // Caso especial: erro dentro de response array
+            errorMessage = responseData.response.join(', ');
           } else {
             errorMessage = `Erro ${error.response.status}: ${error.response.statusText || 'Erro desconhecido'}`;
           }
@@ -757,6 +782,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       console.log('🚨 Mensagem de erro final:', errorMessage);
+      console.log('🚨 Tipo de errorMessage:', typeof errorMessage, errorMessage);
 
       setError(errorMessage);
       throw new Error(errorMessage);

@@ -22,16 +22,16 @@ export function Weight() {
     }
   }, []);
 
+  // Salvar automaticamente quando o peso mudar
+  useEffect(() => {
+    if (weight > 0) {
+      setOnboardingData({ ...onboardingData, weight });
+    }
+  }, [weight]);
+
   return (
     <VStack flex={1} mx={6} space={8}>
-      <Text
-        color="gray.900"
-        fontSize={32}
-        fontWeight={800}
-        lineHeight={38}
-        letterSpacing={-1.2}
-        mt={4}
-      >
+      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual é o seu peso?
       </Text>
 
@@ -42,6 +42,7 @@ export function Weight() {
           step={1}
           fractionDigits={0}
           initialValue={weight}
+          onValueChange={(number) => setWeight(parseInt(number))}
           onValueChangeEnd={(number) => setWeight(parseInt(number))}
           unit="kgs"
           stepWidth={4}

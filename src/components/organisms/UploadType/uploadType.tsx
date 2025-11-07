@@ -12,12 +12,16 @@ export function UploadType({
   navigation,
   handleUploadFileFromOnboarding,
   handleCameraPermission,
+  onCloseActionSheet,
 }: {
   setIsCameraOpen?: (data: boolean) => void;
   handleUploadFileFromOnboarding: (file: DocumentPickerAsset) => void;
   navigation: any;
   handleCameraPermission?: () => void;
+  onCloseActionSheet?: () => void;
 }) {
+  const { resetOnboardingState } = useOnboarding();
+
   async function handleSelectFile() {
     try {
       const result = await getDocumentAsync({
@@ -34,6 +38,20 @@ export function UploadType({
       await handleUploadFileFromOnboarding(file);
     } catch (error) {}
   }
+
+  const handleSkipUpload = async () => {
+    // Fechar ActionSheet primeiro
+    if (onCloseActionSheet) {
+      onCloseActionSheet();
+    }
+
+    // Aguardar a animação do ActionSheet fechar completamente (500ms é o padrão do Native Base)
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // Resetar estado do onboarding e ir para homepage
+    await resetOnboardingState();
+    navigation.reset({ index: 0, routes: [{ name: 'homepage' }] });
+  };
 
   return (
     <Center>
@@ -75,7 +93,7 @@ export function UploadType({
             </Box>
           </TouchableOpacity>
         </HStack>
-        <TouchableOpacity onPress={() => navigation.navigate('homepage')}>
+        <TouchableOpacity onPress={handleSkipUpload}>
           <Text fontSize={16} fontWeight={600} letterSpacing={-0.16} color="gray.200" my={12}>
             fazer isso mais tarde
           </Text>

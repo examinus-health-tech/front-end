@@ -67,6 +67,7 @@ export function SignUp() {
     control,
     handleSubmit,
     formState: { errors },
+    setError,
   } = useForm({
     resolver: yupResolver(signUpSchema),
   });
@@ -77,6 +78,7 @@ export function SignUp() {
       await signUp(name, email, password, confirm_password);
 
       toast.show({
+        marginX: '12',
         borderRadius: '12',
         title: 'Conta criada com sucesso',
         _title: {
@@ -93,9 +95,38 @@ export function SignUp() {
       });
       navigation.navigate('signIn');
     } catch (error: any) {
-      const description = error?.response?.data?.message;
+      console.log('❌ Erro capturado no SignUp:', error);
+
+      // A mensagem já vem tratada do AuthContext
+      let description = error?.message || 'Não foi possível criar sua conta';
+
+      // Detectar se o erro é relacionado a um campo específico
+      const emailPattern = /(email|login|e-mail).*?(já|sendo|utilizado|usado|existe)/i;
+      const passwordPattern = /(senha|password).*?(inválida|fraca|curta)/i;
+      const namePattern = /(nome|name).*?(inválido|obrigatório|necessário)/i;
+
+      if (emailPattern.test(description)) {
+        // Marcar o campo de email como inválido (sem mensagem)
+        setError('email', {
+          type: 'manual',
+          message: 'E-mail inválido ou já está sendo utilizado', // Não mostrar mensagem no campo
+        });
+      } else if (passwordPattern.test(description)) {
+        // Marcar o campo de senha como inválido (sem mensagem)
+        setError('password', {
+          type: 'manual',
+          message: 'Senha deve conter letra maiúscula, minúscula, caractere especial e pelo menos 8 caracteres', // Não mostrar mensagem no campo
+        });
+      } else if (namePattern.test(description)) {
+        // Marcar o campo de nome como inválido (sem mensagem)
+        setError('name', {
+          type: 'manual',
+          message: 'Nome de possuir pelo menos 5 caracteres', // Não mostrar mensagem no campo
+        });
+      }
 
       toast.show({
+        marginX: '12',
         borderRadius: '12',
         title: 'Não foi possível criar sua conta',
         description,
@@ -270,7 +301,15 @@ export function SignUp() {
                     },
                   }}
                 >
-                  <Text color="gray.400" fontSize={14} fontWeight={600} letterSpacing={-0.12} ml={2} mr={8}>
+                  <Text
+                    color="gray.400"
+                    fontSize={14}
+                    fontWeight={600}
+                    letterSpacing={-0.12}
+                    ml={1}
+                    mr={8}
+                    lineHeight={18}
+                  >
                     Ao continuar você concorda com os Termos de Uso e a Politica de Privacidade
                   </Text>
                 </Checkbox>
