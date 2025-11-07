@@ -1,10 +1,16 @@
-import { StatusBar, BackHandler } from 'react-native';
+import { StatusBar, BackHandler, LogBox } from 'react-native';
 import { useFonts } from 'expo-font';
 import { NativeBaseProvider } from 'native-base';
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
 import * as Updates from 'expo-updates';
 import * as SplashScreen from 'expo-splash-screen';
+
+// Desabilitar warnings e erros na tela (apenas em desenvolvimento)
+if (__DEV__) {
+  LogBox.ignoreAllLogs(true);
+  console.disableYellowBox = true;
+}
 
 // Polyfill for BackHandler.removeEventListener (deprecated in RN 0.79)
 if (!BackHandler.removeEventListener) {
@@ -44,17 +50,34 @@ export default function App() {
     (async () => {
       try {
         if (__DEV__) {
+          console.log('🔧 [EAS Update] Modo desenvolvimento - updates desabilitados');
           if (!cancelled) setReady(true);
           return;
         }
+
+        // Log runtime info
+        const runtimeVersion = Updates.runtimeVersion;
+        const channel = Updates.channel;
+        console.log('📱 [EAS Update] Runtime Version:', runtimeVersion);
+        console.log('📡 [EAS Update] Channel:', channel);
+
+        console.log('🔍 [EAS Update] Verificando atualizações...');
         const update = await Updates.checkForUpdateAsync();
+
         if (update.isAvailable) {
+          console.log('✅ [EAS Update] Atualização disponível! Baixando...');
+          console.log('📦 [EAS Update] Manifest:', update.manifest);
+
           await Updates.fetchUpdateAsync();
+          console.log('✅ [EAS Update] Download completo! Reiniciando app...');
+
           await Updates.reloadAsync();
           return;
+        } else {
+          console.log('ℹ️ [EAS Update] Nenhuma atualização disponível - app está atualizado');
         }
       } catch (e) {
-        console.warn('Update check failed:', e);
+        console.error('❌ [EAS Update] Erro ao verificar updates:', e);
       } finally {
         if (!cancelled) setReady(true);
       }
