@@ -209,6 +209,34 @@ export function ExamList() {
       filtered = filtered.filter((exam) => new Date(exam.createdDate) <= new Date(filters.endDate));
     }
 
+    // Ordenação: primeiro por data (mais recentes primeiro), depois por status (Analyzed/ScoreComputed primeiro)
+    filtered.sort((a, b) => {
+      // Primeiro ordenar por data (mais recente primeiro)
+      const dateA = new Date(a.createdDate).getTime();
+      const dateB = new Date(b.createdDate).getTime();
+      const dateDiff = dateB - dateA;
+
+      // Se as datas forem diferentes, usar a ordenação por data
+      if (dateDiff !== 0) {
+        return dateDiff;
+      }
+
+      // Se as datas forem iguais, priorizar status Analyzed/ScoreComputed
+      const priorityStatuses = ['Analyzed', 'ScoreComputed'];
+      const aIsPriority = priorityStatuses.includes(a.medicalExamStatus);
+      const bIsPriority = priorityStatuses.includes(b.medicalExamStatus);
+
+      if (aIsPriority && !bIsPriority) return -1;
+      if (!aIsPriority && bIsPriority) return 1;
+
+      return 0;
+    });
+
+    console.log('📋 Exames ordenados:', filtered.map(e => ({
+      date: e.createdDate,
+      status: e.medicalExamStatus
+    })));
+
     setFilteredExams(filtered);
   }
 
@@ -288,13 +316,6 @@ export function ExamList() {
   useEffect(() => {
     applyFilters();
   }, [examData, filters]);
-
-  // Inicializar filteredExams com todos os exames quando examData carregar
-  useEffect(() => {
-    if (examData && examData.length > 0) {
-      setFilteredExams(examData);
-    }
-  }, [examData]);
 
   function renderExam(exam: any) {
     const isScoreComputed = exam.medicalExamStatus === 'ScoreComputed';

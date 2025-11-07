@@ -130,9 +130,9 @@ export function Upload() {
         await handleUploadFileFromOnboarding(photoAsset);
         setPhoto(null);
         setIsCameraOpen(false);
-        onClose();
+        onClose(); // Fecha o actionsheet após upload
       } catch (error) {
-        console.error('Erro ao enviar foto:', error);
+        console.error('❌ Erro ao enviar foto:', error);
       }
     }
   }

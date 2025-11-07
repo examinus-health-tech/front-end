@@ -84,10 +84,13 @@ export function Homepage() {
     console.log('🚀 Homepage useEffect', user);
   }, []);
 
-  // Rola para o topo quando a tela ganhar foco
+  // Rola para o topo e recarrega dados quando a tela ganhar foco
   useFocusEffect(
     useCallback(() => {
       scrollRef.current?.scrollTo?.({ x: 0, y: 0, animated: false });
+      getUserInfo();
+      getHomeData();
+      console.log('🔄 Homepage recarregada ao ganhar foco');
     }, [])
   );
 

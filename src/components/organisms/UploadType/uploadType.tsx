@@ -36,7 +36,14 @@ export function UploadType({
       const file = result.assets[0];
 
       await handleUploadFileFromOnboarding(file);
-    } catch (error) {}
+
+      // Fechar o actionsheet após upload bem-sucedido
+      if (onCloseActionSheet) {
+        onCloseActionSheet();
+      }
+    } catch (error) {
+      console.error('❌ Erro ao fazer upload do arquivo:', error);
+    }
   }
 
   const handleSkipUpload = async () => {

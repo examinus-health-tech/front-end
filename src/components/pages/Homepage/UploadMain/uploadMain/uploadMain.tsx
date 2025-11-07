@@ -20,7 +20,7 @@ import { ScoreWarning } from '../ScoreWarning/scoreWarning';
 export function UploadMain() {
   const { isOpen, onOpen, onClose } = useDisclose();
   const { isOpen: isCameraOpen, onOpen: onCameraOpen, onClose: onCameraClose } = useDisclose();
-  const { isLoadingUploadContext, withError, withSuccess, setWithSuccess } = useUpload();
+  const { isLoadingUploadContext, withError, withSuccess, setWithSuccess, handleUploadFile } = useUpload();
   const { hideTabBar, showTabBar } = useTabBar();
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
@@ -91,7 +91,7 @@ export function UploadMain() {
 
         <Actionsheet isOpen={isOpen} onClose={onClose}>
           <Actionsheet.Content>
-            <UploadType onCameraOpen={handleCameraOpen} />
+            <UploadType onCameraOpen={handleCameraOpen} handleUploadFileProp={handleUploadFile} />
           </Actionsheet.Content>
         </Actionsheet>
       </VStack>

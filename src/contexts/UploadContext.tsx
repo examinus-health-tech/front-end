@@ -48,14 +48,32 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   const [examList, setExamList] = useState([]);
   const toast = useToast();
 
-  async function handleUploadFile({ name, mimeType, uri, file }: DocumentPickerAsset) {
+  const handleUploadFile = useCallback(async ({ name, mimeType, uri, file }: DocumentPickerAsset) => {
     setIsLoading(true);
-    console.log('📤 Iniciando upload:', { name, mimeType, uri });
-    
+    console.log('📤 Iniciando upload:', { name, mimeType, uri, file });
+
     try {
+      // Detectar tipo do arquivo baseado na extensão se mimeType não estiver presente
+      let detectedType = mimeType || file?.type;
+
+      if (!detectedType && name) {
+        const extension = name.split('.').pop()?.toLowerCase();
+        if (extension === 'pdf') {
+          detectedType = 'application/pdf';
+        } else if (['jpg', 'jpeg'].includes(extension || '')) {
+          detectedType = 'image/jpeg';
+        } else if (extension === 'png') {
+          detectedType = 'image/png';
+        }
+      }
+
+      // Fallback final baseado no nome do arquivo
+      const finalType = detectedType || (name?.includes('.pdf') ? 'application/pdf' : 'image/jpeg');
+      const finalName = name || (finalType === 'application/pdf' ? 'upload.pdf' : 'upload.jpg');
+
       const uploadFile = {
-        name: name || 'upload.jpg',
-        type: mimeType || (file?.type) || 'image/jpeg',
+        name: finalName,
+        type: finalType,
         uri: uri,
       } as any;
 
@@ -85,7 +103,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
     } finally {
       setIsLoading(false);
     }
-  }
+  }, []);
 
   const handleManualUploadFile = useCallback(async (payload: {
     email: string;
@@ -154,7 +172,9 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
     }
   }, [toast]);
 
-  const contextValue = useMemo(() => ({
+  // Não usar useMemo aqui - o objeto precisa ser recriado quando as props mudarem
+  // mas as funções useCallback garantem estabilidade
+  const contextValue = {
     file,
     handleUploadFile,
     isLoadingUploadContext,
@@ -167,14 +187,12 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
     withSuccess,
     setWithSuccess,
     handleManualUploadFile,
-  }), [
-    file,
-    isLoadingUploadContext,
-    examList,
-    scoreWarning,
-    withError,
-    withSuccess,
-  ]);
+  };
+
+  console.log('🔧 UploadContext renderizando, contextValue:', {
+    hasHandleUploadFile: !!contextValue.handleUploadFile,
+    handleUploadFileType: typeof contextValue.handleUploadFile,
+  });
 
   return (
     <UploadContext.Provider value={contextValue}>

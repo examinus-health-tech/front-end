@@ -1,6 +1,7 @@
 import { Platform, TouchableOpacity } from 'react-native';
 import { VStack, Text, Image, Center, Box, HStack, useToast } from 'native-base';
 import { DocumentPickerAsset, getDocumentAsync } from 'expo-document-picker';
+import { useRef, useEffect } from 'react';
 
 // assets
 import { EditIcon, UploadIcon } from '@assets/icons';
@@ -14,28 +15,61 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 interface UploadTypeProps {
   onCameraOpen: () => void;
   onManualOpen?: () => void;
+  handleUploadFileProp?: (file: DocumentPickerAsset) => Promise<void>;
 }
 
-export function UploadType({ onCameraOpen, onManualOpen }: UploadTypeProps) {
-  const { handleUploadFile, isLoadingUploadContext } = useUpload();
+export function UploadType({ onCameraOpen, onManualOpen, handleUploadFileProp }: UploadTypeProps) {
+  const uploadContext = useUpload();
   const { user } = useAuth();
   const toast = useToast();
 
+  // Usar a prop se fornecida, senão usar do contexto
+  const handleUploadFile = handleUploadFileProp || uploadContext.handleUploadFile;
+
+  console.log('🎯 UploadType renderizado:', {
+    hasProp: !!handleUploadFileProp,
+    hasContextFunction: !!uploadContext?.handleUploadFile,
+    hasFinalFunction: !!handleUploadFile,
+  });
+
+  const { isLoadingUploadContext } = uploadContext;
+
   async function handleSelectFile() {
     try {
+      console.log('📁 Abrindo seletor de documentos...');
       const result = await getDocumentAsync({
         type: 'application/pdf',
         multiple: false,
       });
 
+      console.log('📄 Resultado do seletor:', result);
+
       if (result.canceled) {
+        console.log('❌ Usuário cancelou a seleção');
         return;
       }
 
       const file = result.assets[0];
+      console.log('✅ Arquivo selecionado:', file);
+
+      console.log('📤 Chamando handleUploadFile...');
+      if (!handleUploadFile) {
+        throw new Error('handleUploadFile não está disponível');
+      }
 
       await handleUploadFile(file);
-    } catch (error) {}
+      console.log('🎉 Upload concluído com sucesso!');
+    } catch (error) {
+      console.error('💥 Erro ao selecionar/fazer upload do arquivo:', error);
+
+      toast.show({
+        borderRadius: '12',
+        title: 'Erro no upload',
+        description: error instanceof Error ? error.message : 'Erro desconhecido ao fazer upload',
+        placement: 'top',
+        bgColor: 'red.500',
+      });
+    }
   }
 
   // async function handleSelectFile() {
