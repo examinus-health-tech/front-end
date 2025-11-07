@@ -79,6 +79,7 @@ export type HomeContextDataProps = {
   trackerData: trackerProps;
   currentSystem: specificSystemProps;
   setCurrentSystem: (val: specificSystemProps) => void;
+  clearHomeData: () => void;
 };
 
 type HomeContextProviderProps = {
@@ -122,6 +123,14 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
     }
   }
 
+  function clearHomeData() {
+    console.log('🧹 [HomeContext] Limpando dados da homepage');
+    setHomeData({} as homeProps);
+    setExamListData({} as homeProps);
+    setTrackerData({} as trackerProps);
+    setCurrentSystem(null);
+  }
+
   return (
     <HomeContext.Provider
       value={{
@@ -131,6 +140,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         trackerData,
         currentSystem,
         setCurrentSystem,
+        clearHomeData,
       }}
     >
       {children}

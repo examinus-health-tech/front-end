@@ -42,6 +42,7 @@ import { Header } from '../components/header/header';
 import { Card } from '../components/card/card';
 import { Button } from '@components/atoms';
 import { useAuth } from 'src/hooks/useAuth';
+import { useHome } from 'src/hooks/useHome';
 
 export function MyAccount() {
   const { isOpen: isSignOutOpen, onOpen: onSignOutOpen, onClose: onSignOutClose } = useDisclose();
@@ -52,10 +53,14 @@ export function MyAccount() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { user, signOut, deleteAccount } = useAuth();
+  const { clearHomeData } = useHome();
 
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
+      // Limpar dados do contexto de Home
+      clearHomeData();
+      // Fazer logout (limpa AsyncStorage e user state)
       await signOut();
       onSignOutClose();
     } catch (error) {

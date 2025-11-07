@@ -45,12 +45,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = useCallback(async () => {
     try {
-      await AsyncStorage.removeItem('@app:user');
+      console.log('🚪 Iniciando logout - limpando todos os dados do usuário...');
+
+      // Limpar TODOS os dados armazenados do usuário
+      await AsyncStorage.multiRemove([
+        '@app:user',
+        '@app:personalData',
+        '@app:onboardingData',
+        '@examinus:auth-token',
+        '@examinus:user',
+      ]);
+
+      console.log('✅ Dados do AsyncStorage removidos');
+
       // Pequeno delay para mostrar o loading
       await new Promise((resolve) => setTimeout(resolve, 800));
+
       setUser(null);
+      console.log('✅ Logout concluído');
     } catch (error) {
+      console.error('❌ Erro ao fazer logout:', error);
       // Silent fail - user will be signed out anyway
+      setUser(null);
     }
   }, []);
 
