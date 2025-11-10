@@ -55,31 +55,66 @@ export default function App() {
           return;
         }
 
-        // Log runtime info
+        // Log runtime info detalhado
         const runtimeVersion = Updates.runtimeVersion;
         const channel = Updates.channel;
-        console.log('📱 [EAS Update] Runtime Version:', runtimeVersion);
-        console.log('📡 [EAS Update] Channel:', channel);
+        const updateId = Updates.updateId;
+        const createdAt = Updates.createdAt;
+
+        console.log('📱 [EAS Update] Informações do app:');
+        console.log('   - Runtime Version:', runtimeVersion);
+        console.log('   - Channel:', channel);
+        console.log('   - Update ID atual:', updateId);
+        console.log('   - Criado em:', createdAt);
 
         console.log('🔍 [EAS Update] Verificando atualizações...');
         const update = await Updates.checkForUpdateAsync();
 
+        console.log('📊 [EAS Update] Resultado da verificação:');
+        console.log('   - Update disponível:', update.isAvailable);
+
+        if (update.manifest) {
+          console.log('   - Manifest recebido:', JSON.stringify(update.manifest).substring(0, 200) + '...');
+        }
+
         if (update.isAvailable) {
           console.log('✅ [EAS Update] Atualização disponível! Baixando...');
-          console.log('📦 [EAS Update] Manifest:', update.manifest);
 
-          await Updates.fetchUpdateAsync();
-          console.log('✅ [EAS Update] Download completo! Reiniciando app...');
+          const fetchResult = await Updates.fetchUpdateAsync();
 
-          await Updates.reloadAsync();
-          return;
+          console.log('✅ [EAS Update] Download completo!');
+          console.log('   - É novo:', fetchResult.isNew);
+
+          if (fetchResult.manifest) {
+            console.log('   - Manifest baixado:', JSON.stringify(fetchResult.manifest).substring(0, 200) + '...');
+          }
+
+          if (fetchResult.isNew) {
+            console.log('🔄 [EAS Update] Reiniciando app para aplicar update...');
+            await Updates.reloadAsync();
+            return;
+          } else {
+            console.log('ℹ️ [EAS Update] Update já estava baixado anteriormente');
+          }
         } else {
           console.log('ℹ️ [EAS Update] Nenhuma atualização disponível - app está atualizado');
         }
-      } catch (e) {
-        console.error('❌ [EAS Update] Erro ao verificar updates:', e);
+      } catch (e: any) {
+        console.error('❌ [EAS Update] Erro ao verificar updates:');
+        console.error('   - Mensagem:', e?.message || 'Erro desconhecido');
+        console.error('   - Código:', e?.code || 'N/A');
+
+        if (e?.stack) {
+          console.error('   - Stack:', e.stack.substring(0, 300));
+        }
+
+        // Continuar inicialização mesmo com erro
+        console.log('⚠️ [EAS Update] Continuando inicialização do app apesar do erro');
       } finally {
-        if (!cancelled) setReady(true);
+        if (!cancelled) {
+          console.log('✅ [EAS Update] Finalizando verificação - setando ready=true');
+          setReady(true);
+        }
       }
     })();
 

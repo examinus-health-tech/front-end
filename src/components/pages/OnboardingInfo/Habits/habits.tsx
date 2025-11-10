@@ -8,9 +8,14 @@ import { ArrowIcon, AppleIcon, CoffeIcon, DinnerIcon, BoneIcon } from '@assets/i
 
 // components
 import { Button } from '@components/atoms';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Dimensions } from 'react-native';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useAuth } from 'src/hooks/useAuth';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const HORIZONTAL_MARGIN = 48; // mx={6} * 2 = 48px
+const SPACING = 24; // space={6} = 24px
+const CARD_WIDTH = (SCREEN_WIDTH - HORIZONTAL_MARGIN - SPACING) / 2;
 
 export type ISelectedHabit = 'X' | 'B' | 'V' | 'N' | '';
 
@@ -78,17 +83,17 @@ export function Habits() {
         Como são seus hábitos alimentares?
       </Text>
 
-      <HStack flex={1} space={6} justifyContent="center" px={10}>
-        <TouchableOpacity onPress={() => setSelectedHabit('X')}>
+      <HStack flex={1} space={6} justifyContent="space-between">
+        <TouchableOpacity onPress={() => setSelectedHabit('X')} style={{ flex: 1 }}>
           <Box
             bg={selectedHabit == 'X' ? 'ciano.300' : 'white'}
-            w={160}
             flex={1}
             my={4}
             rounded="2xl"
             alignItems="center"
             borderWidth={selectedHabit == 'X' ? 4 : 0}
             borderColor="gray.200"
+            minH={160}
           >
             <View position="absolute" right={3} top={3}>
               <AppleIcon color={selectedHabit == 'X' ? 'white' : '#444444'} />
@@ -107,16 +112,16 @@ export function Habits() {
           </Box>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setSelectedHabit('B')}>
+        <TouchableOpacity onPress={() => setSelectedHabit('B')} style={{ flex: 1 }}>
           <Box
             bg={selectedHabit == 'B' ? 'ciano.300' : 'white'}
-            w={160}
             flex={1}
             my={4}
             rounded="2xl"
             alignItems="center"
             borderWidth={selectedHabit == 'B' ? 4 : 0}
             borderColor="gray.200"
+            minH={160}
           >
             <View position="absolute" right={3} top={3}>
               <CoffeIcon color={selectedHabit == 'B' ? 'white' : '#444444'} />
@@ -136,17 +141,17 @@ export function Habits() {
         </TouchableOpacity>
       </HStack>
 
-      <HStack flex={1} space={6} justifyContent="center" mb={8}>
-        <TouchableOpacity onPress={() => setSelectedHabit('V')}>
+      <HStack flex={1} space={6} justifyContent="space-between" mb={8}>
+        <TouchableOpacity onPress={() => setSelectedHabit('V')} style={{ flex: 1 }}>
           <Box
             bg={selectedHabit == 'V' ? 'ciano.300' : 'white'}
-            w={160}
             flex={1}
             my={4}
             rounded="2xl"
             alignItems="center"
             borderWidth={selectedHabit == 'V' ? 4 : 0}
             borderColor="gray.200"
+            minH={160}
           >
             <View position="absolute" right={3} top={3}>
               <DinnerIcon color={selectedHabit == 'V' ? 'white' : '#444444'} />
@@ -165,16 +170,16 @@ export function Habits() {
           </Box>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => setSelectedHabit('N')}>
+        <TouchableOpacity onPress={() => setSelectedHabit('N')} style={{ flex: 1 }}>
           <Box
             bg={selectedHabit == 'N' ? 'ciano.300' : 'white'}
-            w={160}
             flex={1}
             my={4}
             rounded="2xl"
             alignItems="center"
             borderWidth={selectedHabit == 'N' ? 4 : 0}
             borderColor="gray.200"
+            minH={160}
           >
             <View position="absolute" right={3} top={3}>
               <BoneIcon color={selectedHabit == 'N' ? 'white' : '#444444'} />

@@ -1,16 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  VStack,
-  Text,
-  Box,
-  HStack,
-  ScrollView,
-  IScrollViewProps,
-  View,
-  Circle,
-  Select,
-  CheckIcon,
-} from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Select, CheckIcon } from 'native-base';
 import Toast from 'react-native-toast-message';
 import { useNavigation } from '@react-navigation/native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
@@ -132,7 +121,7 @@ export function ExamList() {
   });
   const [filteredExams, setFilteredExams] = useState<any[]>([]);
 
-  const snapPoints = useMemo(() => ['50%', '75%'], []);
+  const snapPoints = useMemo(() => ['55%', '55%'], []);
 
   const {
     control,
@@ -232,10 +221,13 @@ export function ExamList() {
       return 0;
     });
 
-    console.log('📋 Exames ordenados:', filtered.map(e => ({
-      date: e.createdDate,
-      status: e.medicalExamStatus
-    })));
+    console.log(
+      '📋 Exames ordenados:',
+      filtered.map((e) => ({
+        date: e.createdDate,
+        status: e.medicalExamStatus,
+      }))
+    );
 
     setFilteredExams(filtered);
   }
@@ -244,7 +236,7 @@ export function ExamList() {
   function applyDateMask(value: string): string {
     // Remove tudo que não é dígito
     const digits = value.replace(/\D/g, '');
-    
+
     // Aplica a máscara DD/MM/AAAA
     let maskedValue: string;
     if (digits.length <= 2) {
@@ -254,21 +246,21 @@ export function ExamList() {
     } else {
       maskedValue = `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4, 8)}`;
     }
-    
+
     // Fechar teclado quando a data estiver completa (10 caracteres: DD/MM/AAAA)
     if (maskedValue.length === 10) {
       setTimeout(() => {
         Keyboard.dismiss();
       }, 100);
     }
-    
+
     return maskedValue;
   }
 
   // Função para converter data brasileira para formato ISO
   function convertBrazilianToISO(brazilianDate: string): string {
     if (!brazilianDate || brazilianDate.length !== 10) return '';
-    
+
     const [day, month, year] = brazilianDate.split('/');
     return `${year}-${month}-${day}`;
   }
@@ -490,128 +482,164 @@ export function ExamList() {
         android_keyboardInputMode="adjustResize"
       >
         <BottomSheetView style={{ flex: 1 }}>
-          <VStack mx={6} flex={1} justifyContent="space-between" pb={6}>
-            {/* Header */}
-            <VStack>
-              <HStack justifyContent="space-between" alignItems="center" width="100%" mt={6} mb={2}>
-                <Text fontSize={26} fontWeight={600} letterSpacing={-0.16} color="gray.700">
-                  Filtrar Exames
-                </Text>
-                <FilterIcon size="24" color="#6B7280" />
-              </HStack>
+          <VStack flex={1}>
+            {/* Scrollable Content */}
+            <ScrollView showsVerticalScrollIndicator={false} flex={1}>
+              <VStack mx={6} pb={4}>
+                {/* Header */}
+                <VStack mb={6}>
+                  <HStack justifyContent="space-between" alignItems="center" width="100%" mt={4} mb={2}>
+                    <Text fontSize={24} fontWeight={700} letterSpacing={-0.24} color="gray.900">
+                      Filtrar Exames
+                    </Text>
+                    <Box bg="gray.100" p={2} borderRadius={10}>
+                      <FilterIcon size="20" color="#374151" />
+                    </Box>
+                  </HStack>
 
-              <Text fontSize={14} fontWeight={400} letterSpacing={-0.16} color="gray.500" width="100%" mb={8}>
-                Configure os filtros para encontrar exames específicos
-              </Text>
-            </VStack>
+                  <Text fontSize={14} fontWeight={400} letterSpacing={-0.14} color="gray.500" width="100%">
+                    Configure os filtros para encontrar exames específicos
+                  </Text>
+                </VStack>
 
-            {/* Form Fields */}
-            <VStack width="100%" space={4} flex={1}>
-              {/* Campos de data em linha */}
-              <VStack>
-                <HStack space={3}>
-                  {/* Data de início */}
-                  <VStack flex={1}>
+                {/* Form Fields */}
+                <VStack width="100%" space={5}>
+                  {/* Período de datas */}
+                  <VStack space={3}>
+                    <Text fontSize={14} fontWeight={600} color="gray.700" mb={1}>
+                      Período
+                    </Text>
+                    <HStack space={3}>
+                      {/* Data de início */}
+                      <VStack flex={1}>
+                        <Text fontSize={12} fontWeight={500} color="gray.500" mb={-4}>
+                          Data Início
+                        </Text>
+                        <Controller
+                          control={control}
+                          name="start_date"
+                          render={({ field: { onChange, value } }) => (
+                            <Input
+                              placeholder="DD/MM/AAAA"
+                              h={12}
+                              bgColor="white"
+                              borderWidth={1}
+                              borderColor="gray.300"
+                              onChangeText={(text) => {
+                                const maskedValue = applyDateMask(text);
+                                onChange(maskedValue);
+                              }}
+                              value={value}
+                              fontSize={14}
+                              borderRadius={10}
+                              keyboardType="numeric"
+                              maxLength={10}
+                              _focus={{
+                                borderColor: 'ciano.500',
+                                borderWidth: 2,
+                                bgColor: 'white',
+                              }}
+                            />
+                          )}
+                        />
+                      </VStack>
+
+                      {/* Data final */}
+                      <VStack flex={1}>
+                        <Text fontSize={12} fontWeight={500} color="gray.500" mb={-4}>
+                          Data Final
+                        </Text>
+                        <Controller
+                          control={control}
+                          name="final_date"
+                          render={({ field: { onChange, value } }) => (
+                            <Input
+                              placeholder="DD/MM/AAAA"
+                              h={12}
+                              bgColor="white"
+                              borderWidth={1}
+                              borderColor="gray.300"
+                              onChangeText={(text) => {
+                                const maskedValue = applyDateMask(text);
+                                onChange(maskedValue);
+                              }}
+                              value={value}
+                              fontSize={14}
+                              borderRadius={10}
+                              keyboardType="numeric"
+                              maxLength={10}
+                              _focus={{
+                                borderColor: 'ciano.500',
+                                borderWidth: 2,
+                                bgColor: 'white',
+                              }}
+                            />
+                          )}
+                        />
+                      </VStack>
+                    </HStack>
+                  </VStack>
+
+                  {/* Filtro por status */}
+                  <VStack space={3}>
+                    <Text fontSize={14} fontWeight={600} color="gray.700" mb={1}>
+                      Status do Processamento
+                    </Text>
                     <Controller
                       control={control}
-                      name="start_date"
+                      name="status"
                       render={({ field: { onChange, value } }) => (
-                        <Input
-                          placeholder="DD/MM/AAAA"
-                          h={12}
-                          bgColor="gray.50"
-                          borderColor="gray.200"
-                          onChangeText={(text) => {
-                            const maskedValue = applyDateMask(text);
-                            onChange(maskedValue);
+                        <Select
+                          selectedValue={value}
+                          minWidth="100%"
+                          accessibilityLabel="Selecione o status"
+                          placeholder="Todos os status"
+                          _selectedItem={{
+                            bg: 'ciano.100',
+                            _text: {
+                              color: 'ciano.700',
+                              fontWeight: 600,
+                            },
+                            endIcon: <CheckIcon size="5" color="ciano.700" />,
                           }}
-                          value={value}
+                          onValueChange={onChange}
                           fontSize={14}
-                          borderRadius={12}
-                          keyboardType="numeric"
-                          maxLength={10}
+                          h={12}
+                          bgColor="white"
+                          borderWidth={1}
+                          borderColor="gray.300"
+                          borderRadius={10}
                           _focus={{
                             borderColor: 'ciano.500',
-                            bgColor: 'white',
+                            borderWidth: 2,
                           }}
-                        />
+                          _actionSheetContent={{
+                            bg: 'white',
+                          }}
+                          _actionSheetBody={{
+                            pt: 4,
+                          }}
+                          _item={{
+                            _text: {
+                              fontSize: 14,
+                              color: 'gray.700',
+                            },
+                            py: 3,
+                          }}
+                        >
+                          {statusOptions.map((option) => (
+                            <Select.Item key={option.value} label={option.label} value={option.value} />
+                          ))}
+                        </Select>
                       )}
                     />
                   </VStack>
-
-                  {/* Data final */}
-                  <VStack flex={1}>
-                    <Controller
-                      control={control}
-                      name="final_date"
-                      render={({ field: { onChange, value } }) => (
-                        <Input
-                          placeholder="DD/MM/AAAA"
-                          h={12}
-                          bgColor="gray.50"
-                          borderColor="gray.200"
-                          onChangeText={(text) => {
-                            const maskedValue = applyDateMask(text);
-                            onChange(maskedValue);
-                          }}
-                          value={value}
-                          fontSize={14}
-                          borderRadius={12}
-                          keyboardType="numeric"
-                          maxLength={10}
-                          _focus={{
-                            borderColor: 'ciano.500',
-                            bgColor: 'white',
-                          }}
-                        />
-                      )}
-                    />
-                  </VStack>
-                </HStack>
-                <Text fontSize={12} color="gray.400" mt={1}>
-                  Formato: DD/MM/AAAA (ex: 15/01/2024)
-                </Text>
+                </VStack>
               </VStack>
+            </ScrollView>
 
-              {/* Filtro por status */}
-              <VStack space={2}>
-                <Text fontSize={14} fontWeight={600} color="gray.600">
-                  Status do Processamento
-                </Text>
-                <Controller
-                  control={control}
-                  name="status"
-                  render={({ field: { onChange, value } }) => (
-                    <Select
-                      selectedValue={value}
-                      minWidth="100%"
-                      accessibilityLabel="Selecione o status"
-                      placeholder="Todos os status"
-                      _selectedItem={{
-                        bg: 'ciano.500',
-                        endIcon: <CheckIcon size="5" />,
-                      }}
-                      onValueChange={onChange}
-                      fontSize={16}
-                      h={12}
-                      bgColor="gray.50"
-                      borderColor="gray.200"
-                      borderRadius={12}
-                      _actionSheetContent={{
-                        bg: 'white',
-                      }}
-                    >
-                      {statusOptions.map((option) => (
-                        <Select.Item key={option.value} label={option.label} value={option.value} />
-                      ))}
-                    </Select>
-                  )}
-                />
-              </VStack>
-            </VStack>
-
-            {/* Action Buttons */}
-            <VStack space={3} mb={6}>
+            {/* Fixed Action Buttons */}
+            <VStack borderTopWidth={1} borderTopColor="gray.200" bg="white" px={6} pt={4} pb={12}>
               <HStack width="100%" space={4}>
                 <Button
                   flex={1}

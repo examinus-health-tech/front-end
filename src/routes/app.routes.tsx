@@ -78,21 +78,22 @@ const CustomTabExaminusButton = ({ children, onPress }: BottomTabBarButtonProps)
   <TouchableOpacity style={{}} onPress={onPress}>
     <View
       style={{
-        top: -52,
-        width: 70,
-        height: 70,
-        marginLeft: 12,
-        marginRight: 12,
+        top: -40,
+        width: 68,
+        height: 68,
+        marginLeft: 10,
+        marginRight: 10,
         borderRadius: 14,
         backgroundColor: '#0CC1AF',
         position: 'relative',
-        shadowColor: '#7F5DF0',
+        shadowColor: '#0CC1AF',
         shadowOffset: {
           width: 0,
-          height: 12,
+          height: 10,
         },
-        shadowOpacity: 0.3,
-        shadowRadius: 10,
+        shadowOpacity: 0.35,
+        shadowRadius: 16,
+        elevation: 10,
       }}
     >
       {children}
@@ -111,16 +112,24 @@ function HomeTabsContent() {
         tabBarShowLabel: false,
         tabBarStyle: isTabBarVisible
           ? {
-              height: 108,
+              height: 100,
               position: 'absolute',
               elevation: 0,
               backgroundColor: 'white',
-              borderTopEndRadius: 35,
-              borderTopStartRadius: 35,
+              borderTopEndRadius: 40,
+              borderTopStartRadius: 40,
               borderTopWidth: 0,
               paddingLeft: 20,
               paddingRight: 20,
-              paddingTop: 20,
+              paddingTop: 12,
+              paddingBottom: 8,
+              shadowColor: '#000',
+              shadowOffset: {
+                width: 0,
+                height: -2,
+              },
+              shadowOpacity: 0.08,
+              shadowRadius: 12,
             }
           : {
               display: 'none',
@@ -136,12 +145,12 @@ function HomeTabsContent() {
               <Box
                 w={12}
                 height={12}
-                bg={focused ? '#DDF4F2' : 'transparent'}
-                borderRadius={10}
+                bg={focused ? '#E6F7F5' : 'transparent'}
+                borderRadius={14}
                 alignItems={'center'}
                 justifyContent={'center'}
               >
-                <HomeIcon color={focused ? '#0CC1AF' : '#BEC5D2'} />
+                <HomeIcon color={focused ? '#0CC1AF' : '#B0B8C1'} size={focused ? '28' : '26'} />
               </Box>
             </View>
           ),
@@ -157,12 +166,12 @@ function HomeTabsContent() {
               <Box
                 w={12}
                 height={12}
-                bg={focused ? '#DDF4F2' : 'transparent'}
-                borderRadius={10}
+                bg={focused ? '#E6F7F5' : 'transparent'}
+                borderRadius={14}
                 alignItems={'center'}
                 justifyContent={'center'}
               >
-                <ChecklistIcon color={focused ? '#0CC1AF' : '#BEC5D2'} />
+                <ChecklistIcon color={focused ? '#0CC1AF' : '#B0B8C1'} size={focused ? '28' : '26'} />
               </Box>
             </View>
           ),
@@ -191,12 +200,12 @@ function HomeTabsContent() {
               <Box
                 w={12}
                 height={12}
-                bg={focused ? '#DDF4F2' : 'transparent'}
-                borderRadius={10}
+                bg={focused ? '#E6F7F5' : 'transparent'}
+                borderRadius={14}
                 alignItems={'center'}
                 justifyContent={'center'}
               >
-                <ChartIcon color={focused ? '#0CC1AF' : '#BEC5D2'} />
+                <ChartIcon color={focused ? '#0CC1AF' : '#B0B8C1'} size={focused ? '28' : '26'} />
               </Box>
             </View>
           ),
@@ -212,12 +221,12 @@ function HomeTabsContent() {
               <Box
                 w={12}
                 height={12}
-                bg={focused ? '#DDF4F2' : 'transparent'}
-                borderRadius={10}
+                bg={focused ? '#E6F7F5' : 'transparent'}
+                borderRadius={14}
                 alignItems={'center'}
                 justifyContent={'center'}
               >
-                <UserIcon color={focused ? '#0CC1AF' : '#BEC5D2'} />
+                <UserIcon color={focused ? '#0CC1AF' : '#B0B8C1'} size={focused ? '28' : '26'} />
               </Box>
             </View>
           ),
@@ -245,22 +254,26 @@ function AppRoutesContent() {
   useEffect(() => {
     async function determineInitialRoute() {
       try {
-        console.log('🚀 AppRoutes: Determinando rota inicial...');
-        
+        console.log('🚀 [APP_ROUTES] Determinando rota inicial após login...');
+        console.log('📍 [APP_ROUTES] Timestamp:', new Date().toISOString());
+
         const isComplete = await checkOnboardingCompletion();
-        console.log('📋 AppRoutes: Onboarding completo:', isComplete);
-        
+        console.log('📋 [APP_ROUTES] Resultado da verificação - onboarding completo:', isComplete);
+
         if (isComplete) {
-          console.log('➡️ AppRoutes: Definindo homepage como inicial');
+          console.log('✅ [APP_ROUTES] Usuário possui dados de onboarding');
+          console.log('➡️ [APP_ROUTES] Redirecionando para homepage');
           setInitialRoute('homepage');
         } else {
-          console.log('➡️ AppRoutes: Definindo onboardingSteps como inicial');
+          console.log('⚠️ [APP_ROUTES] Usuário NÃO possui dados de onboarding');
+          console.log('➡️ [APP_ROUTES] Redirecionando para onboardingSteps');
           setInitialRoute('onboardingSteps');
         }
       } catch (error) {
-        console.log('❌ AppRoutes: Erro, definindo onboarding como inicial:', error);
+        console.log('❌ [APP_ROUTES] Erro ao determinar rota, redirecionando para onboarding:', error);
         setInitialRoute('onboardingSteps');
       } finally {
+        console.log('✅ [APP_ROUTES] Verificação concluída, exibindo tela');
         setIsChecking(false);
       }
     }

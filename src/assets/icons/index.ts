@@ -68,6 +68,7 @@ import EmojiNormalIcon from './components/emojiNormal';
 import EmojiSadIcon from './components/emojiSad';
 import EmojiAnxiousIcon from './components/emojiAnxious';
 import EmojiDepressedIcon from './components/emojiDepressed';
+import ClipboardIcon from './components/clipboard';
 
 export {
   ArrowIcon,
@@ -140,4 +141,5 @@ export {
   EmojiSadIcon,
   EmojiAnxiousIcon,
   EmojiDepressedIcon,
+  ClipboardIcon,
 };

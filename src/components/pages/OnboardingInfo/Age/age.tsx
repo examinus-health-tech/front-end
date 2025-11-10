@@ -1,5 +1,5 @@
 import { Box, HStack, Image, ScrollView, Text, VStack } from 'native-base';
-import React, { Ref, useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 // routes
 
@@ -15,14 +15,16 @@ import FameAdult from '@assets/png/vector-27.png';
 
 // components
 import { Button } from '@components/atoms';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Dimensions } from 'react-native';
 import { useOnboarding } from 'src/hooks/useOnboarding';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const CARD_WIDTH = 80; // w={20} = 80px
+const CARD_SPACING = 16; // space={4} = 16px
 
 export function Age() {
   const [selectedAge, setSelectedAge] = useState<number>(20);
-  const [coordinate, setCoordinate] = useState<number[]>([]);
-  const scrollView = useRef(null);
-  const ref = React.useRef(0);
+  const scrollView = useRef<ScrollView>(null);
 
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
 
@@ -38,11 +40,6 @@ export function Age() {
             key={i}
             onPress={() => {
               setSelectedAge(i);
-            }}
-            onLayout={(event) => {
-              const layout = event.nativeEvent.layout;
-              coordinate[i] = layout.x;
-              setCoordinate(coordinate);
             }}
           >
             <Box
@@ -75,20 +72,33 @@ export function Age() {
         ref={scrollView}
         mx={-6}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}
+        contentContainerStyle={{
+          paddingHorizontal: SCREEN_WIDTH / 2 - CARD_WIDTH / 2,
+          paddingLeft: SCREEN_WIDTH / 2 - CARD_WIDTH / 2,
+          paddingRight: SCREEN_WIDTH / 2 - CARD_WIDTH / 2,
+        }}
       >
-        <HStack space={4} mx={4} alignItems="center">
+        <HStack space={4} alignItems="center">
           {handleAges()}
         </HStack>
       </ScrollView>
     );
   }
 
-  function scrollToCord() {
-    const newCord = selectedAge * 96;
+  function scrollToCenter() {
+    if (scrollView.current && selectedAge > 0) {
+      // Calcular a posição x do card selecionado
+      // (índice - 1) porque começamos em 1, não em 0
+      const index = selectedAge - 1;
 
-    if (scrollView.current) {
-      scrollView.current.scrollTo({ x: newCord - 234, y: 0, animated: true });
+      // Posição do card = índice * (largura do card + espaçamento)
+      const cardPosition = index * (CARD_WIDTH + CARD_SPACING);
+
+      scrollView.current.scrollTo({
+        x: cardPosition,
+        y: 0,
+        animated: true
+      });
     }
   }
 
@@ -99,10 +109,11 @@ export function Age() {
   }, []);
 
   useEffect(() => {
-    if (!!selectedAge) {
+    if (selectedAge > 0) {
+      // Pequeno delay para garantir que o layout foi renderizado
       setTimeout(() => {
-        scrollToCord();
-      }, 50);
+        scrollToCenter();
+      }, 100);
     }
   }, [selectedAge]);
 

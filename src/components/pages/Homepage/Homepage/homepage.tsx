@@ -155,23 +155,45 @@ export function Homepage() {
     <View>
       {isLoading || isLoadingHomeContext ? (
         <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#d5d5d5" foregroundColor="#ebebeb">
-          <Rect x="24" y="92" rx="8" ry="8" width={140} height={20} />
-          <Rect x="24" y="130" rx="8" ry="8" width={220} height={50} />
-          <Rect x="24" y="190" rx="8" ry="8" width={160} height={20} />
-          <Rect x="24" y="214" rx="8" ry="8" width={140} height={20} />
-          <Rect x="320" y="120" rx="16" ry="16" width={65} height={65} />
-          <Rect x="36" y="280" rx="12" ry="12" width={340} height={120} />
-          <Rect x="24" y="420" rx="8" ry="8" width={100} height={20} />
-          <Rect x="24" y="450" rx="16" ry="16" width={144} height={144} />
-          <Rect x="208" y="450" rx="16" ry="16" width={144} height={144} />
-          <Rect x="392" y="450" rx="16" ry="16" width={144} height={144} />
-          <Rect x="24" y="720" rx="8" ry="8" width={120} height={20} />
-          <Rect x="24" y="760" rx="8" ry="8" width={360} height={100} />
-          <Rect x="24" y="870" rx="8" ry="8" width={360} height={100} />
+          {/* Data e Calendário */}
+          <Rect x="24" y="96" rx="8" ry="8" width={120} height={16} />
+
+          {/* Nome do usuário */}
+          <Rect x="24" y="128" rx="8" ry="8" width={200} height={32} />
+
+          {/* Subtítulo */}
+          <Rect x="24" y="170" rx="8" ry="8" width={180} height={14} />
+          <Rect x="24" y="190" rx="8" ry="8" width={150} height={14} />
+
+          {/* Card Score X */}
+          <Rect x="24" y="230" rx="12" ry="12" width={width - 48} height={120} />
+
+          {/* Título Health Wallet */}
+          <Rect x="24" y="374" rx="8" ry="8" width={120} height={20} />
+
+          {/* Cards Health Wallet - 3 cards lado a lado */}
+          <Rect x="24" y="404" rx="16" ry="16" width={144} height={144} />
+          <Rect x="180" y="404" rx="16" ry="16" width={144} height={144} />
+          <Rect x="336" y="404" rx="16" ry="16" width={144} height={144} />
+
+          {/* Título Rastreador Fitness */}
+          <Rect x="24" y="564" rx="8" ry="8" width={150} height={20} />
+
+          {/* Cards Rastreador - 2 linhas com 2 cards cada */}
+          <Rect x="24" y="594" rx="12" ry="12" width={(width - 60) / 2} height={100} />
+          <Rect x={24 + (width - 60) / 2 + 12} y="594" rx="12" ry="12" width={(width - 60) / 2} height={100} />
+          <Rect x="24" y="706" rx="12" ry="12" width={(width - 60) / 2} height={100} />
+          <Rect x={24 + (width - 60) / 2 + 12} y="706" rx="12" ry="12" width={(width - 60) / 2} height={100} />
+
+          {/* Título Fale com Doutor X */}
+          <Rect x="24" y="826" rx="8" ry="8" width={180} height={20} />
+
+          {/* Card Chatbot */}
+          <Rect x="24" y="856" rx="12" ry="12" width={width - 48} height={150} />
         </ContentLoader>
       ) : (
         <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-          <VStack flex={1} py={24} mx={6} mb={16}>
+          <VStack flex={1} pb={24} pt={20} mx={6} mb={16}>
             <HStack justifyContent={'space-between'} alignItems={'center'}>
               <VStack>
                 <HStack alignItems={'center'} mb={4}>

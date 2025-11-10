@@ -162,36 +162,22 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
 
   const checkOnboardingCompletion = useCallback(async () => {
     try {
-      console.log('🔍 checkOnboardingCompletion: Iniciando verificação...');
-      const storedPersonalData = await AsyncStorage.getItem('@app:personalData');
-      console.log('📦 checkOnboardingCompletion: Dados locais:', storedPersonalData ? 'Encontrado' : 'Não encontrado');
+      console.log('🔍 [ONBOARDING] Iniciando verificação de completude...');
 
-      if (storedPersonalData) {
-        const parsedData = JSON.parse(storedPersonalData);
-        const hasAnyData =
-          parsedData &&
-          (parsedData.gender ||
-            parsedData.weight ||
-            parsedData.height !== undefined ||
-            parsedData.age ||
-            parsedData.workoutLevel ||
-            parsedData.eatingHabits);
-
-        console.log('✅ checkOnboardingCompletion: Dados locais analisados - hasAnyData:', hasAnyData);
-        console.log('📊 checkOnboardingCompletion: parsedData:', parsedData);
-
-        setIsOnboardingComplete(hasAnyData);
-        setPersonalData(parsedData);
-        return hasAnyData;
-      }
-
-      console.log('🌐 checkOnboardingCompletion: Buscando dados do servidor...');
+      // SEMPRE buscar dados do servidor primeiro para garantir que são do usuário correto
+      console.log('🌐 [ONBOARDING] Buscando dados do servidor...');
       try {
         const response = await api.get('user-personal-data');
         const { data } = response;
         const serverPersonalData = data.data;
 
-        console.log('📥 checkOnboardingCompletion: Dados do servidor recebidos:', serverPersonalData);
+        console.log('📥 [ONBOARDING] Dados do servidor recebidos:', {
+          hasData: !!serverPersonalData,
+          gender: serverPersonalData?.gender,
+          weight: serverPersonalData?.weight,
+          height: serverPersonalData?.height,
+          age: serverPersonalData?.age,
+        });
 
         if (serverPersonalData) {
           const hasAnyData =
@@ -200,25 +186,65 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
             serverPersonalData.height !== undefined ||
             serverPersonalData.age ||
             serverPersonalData.workoutLevel ||
+            serverPersonalData.physicalLevel ||
             serverPersonalData.eatingHabits;
 
-          console.log('✅ checkOnboardingCompletion: Dados do servidor analisados - hasAnyData:', hasAnyData);
+          console.log('✅ [ONBOARDING] Análise dos dados do servidor - onboarding completo:', hasAnyData);
 
+          // Atualizar cache local com dados corretos do servidor
           await AsyncStorage.setItem('@app:personalData', JSON.stringify(serverPersonalData));
           setPersonalData(serverPersonalData);
           setIsOnboardingComplete(hasAnyData);
           return hasAnyData;
+        } else {
+          console.log('⚠️ [ONBOARDING] Servidor retornou resposta vazia');
         }
       } catch (serverError: any) {
-        console.log('⚠️ checkOnboardingCompletion: Erro ao buscar dados do servidor (esperado para usuário novo):', serverError?.response?.status);
+        console.log('⚠️ [ONBOARDING] Erro ao buscar dados do servidor:', {
+          status: serverError?.response?.status,
+          message: serverError?.message,
+        });
+
+        // Se erro 404, usuário não tem dados - onboarding não completo
+        if (serverError?.response?.status === 404) {
+          console.log('❌ [ONBOARDING] Usuário não tem dados no servidor (404) - onboarding não completo');
+          await AsyncStorage.removeItem('@app:personalData');
+          setIsOnboardingComplete(false);
+          setPersonalData(undefined);
+          return false;
+        }
+
+        // Para outros erros, verificar cache local como fallback
+        console.log('🔄 [ONBOARDING] Verificando cache local como fallback...');
+        const storedPersonalData = await AsyncStorage.getItem('@app:personalData');
+
+        if (storedPersonalData) {
+          const parsedData = JSON.parse(storedPersonalData);
+          const hasAnyData =
+            parsedData &&
+            (parsedData.gender ||
+              parsedData.weight ||
+              parsedData.height !== undefined ||
+              parsedData.age ||
+              parsedData.workoutLevel ||
+              parsedData.physicalLevel ||
+              parsedData.eatingHabits);
+
+          console.log('📦 [ONBOARDING] Usando dados do cache local - onboarding completo:', hasAnyData);
+          setPersonalData(parsedData);
+          setIsOnboardingComplete(hasAnyData);
+          return hasAnyData;
+        }
       }
 
-      console.log('❌ checkOnboardingCompletion: Nenhum dado encontrado - onboarding incompleto');
+      console.log('❌ [ONBOARDING] Nenhum dado encontrado - onboarding incompleto');
       setIsOnboardingComplete(false);
+      setPersonalData(undefined);
       return false;
     } catch (error: any) {
-      console.log('❌ checkOnboardingCompletion: Erro na verificação:', error);
+      console.log('❌ [ONBOARDING] Erro na verificação:', error);
       setIsOnboardingComplete(false);
+      setPersonalData(undefined);
       return false;
     }
   }, []);

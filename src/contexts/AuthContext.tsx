@@ -151,6 +151,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data } = response;
       const userData = data.data;
 
+      // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
+      // O checkOnboardingCompletion buscará os dados corretos do servidor
+      console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login...');
+      await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
+      console.log('✅ [AUTH] Dados de onboarding locais removidos no login');
+
       const formattedUserData = {
         userId: userData.userId,
         name: userData.name,
@@ -158,14 +164,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         fullName: userData.fullName || userData.name,
       };
 
-      // Limpar dados de onboarding de outro usuário ao fazer login
-      // O checkOnboardingCompletion buscará os dados corretos do servidor
-      await AsyncStorage.removeItem('@app:personalData');
-      await AsyncStorage.removeItem('@app:onboardingData');
-      await AsyncStorage.removeItem('@app:onboardingData');
-      console.log('🧹 Dados de onboarding locais removidos no login');
-
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      console.log('✅ [AUTH] Usuário setado:', { userId: formattedUserData.userId, name: formattedUserData.name });
       setUser(formattedUserData);
     } catch (error: any) {
       logger.error('Login failed', {
@@ -234,6 +234,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data } = response;
       const userData = data.data;
 
+      // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
+      console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login Google...');
+      await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
+      console.log('✅ [AUTH] Dados de onboarding locais removidos no login Google');
+
       const formattedUserData = {
         userId: userData.userId,
         name: userData.name,
@@ -241,13 +246,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         fullName: userData.fullName || userData.name,
       };
 
-      // Limpar dados de onboarding de outro usuário ao fazer login
-      await AsyncStorage.removeItem('@app:personalData');
-      await AsyncStorage.removeItem('@app:onboardingData');
-      await AsyncStorage.removeItem('@app:onboardingData');
-      console.log('🧹 Dados de onboarding locais removidos no login Google');
-
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      console.log('✅ [AUTH] Usuário Google setado:', { userId: formattedUserData.userId, name: formattedUserData.name });
       setUser(formattedUserData);
     } catch (error: any) {
       console.error('❌ [AUTH] Erro no login Google:', {
@@ -458,6 +458,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data } = response;
       const userData = data.data;
 
+      // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
+      console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login Apple...');
+      await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
+      console.log('✅ [AUTH] Dados de onboarding locais removidos no login Apple');
+
       // Ensure userData has the correct structure for app usage
       const formattedUserData = {
         userId: userData.userId,
@@ -466,12 +471,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         fullName: userData.fullName || userData.name, // fallback
       };
 
-      // Limpar dados de onboarding de outro usuário ao fazer login
-      await AsyncStorage.removeItem('@app:personalData');
-      await AsyncStorage.removeItem('@app:onboardingData');
-      console.log('🧹 Dados de onboarding locais removidos no login Apple');
-
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      console.log('✅ [AUTH] Usuário Apple setado:', { userId: formattedUserData.userId, name: formattedUserData.name });
 
       // Add small delay for smooth transition
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));

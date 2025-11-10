@@ -31,15 +31,24 @@ export function Physical() {
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
 
   useEffect(() => {
-    if (onboardingData.physicalLevel) {
-      setSelectedPhysical(onboardingData.physicalLevel);
+    // Verificar ambos os campos para compatibilidade
+    const level = onboardingData.workoutLevel || onboardingData.physicalLevel;
+    console.log('🏃 [PHYSICAL] Carregando dados:', {
+      workoutLevel: onboardingData.workoutLevel,
+      physicalLevel: onboardingData.physicalLevel,
+      levelSelecionado: level
+    });
+    if (level) {
+      setSelectedPhysical(level);
     }
   }, []);
 
   // Salvar automaticamente quando o nível físico mudar
   useEffect(() => {
     if (selectedPhysical > 0) {
-      setOnboardingData({ ...onboardingData, physicalLevel: selectedPhysical });
+      console.log('💾 [PHYSICAL] Salvando nível físico:', selectedPhysical);
+      // Salvar em workoutLevel (nome esperado pela API)
+      setOnboardingData({ ...onboardingData, workoutLevel: selectedPhysical, physicalLevel: selectedPhysical });
     }
   }, [selectedPhysical]);
 
@@ -155,7 +164,8 @@ export function Physical() {
         size="full"
         title="Continuar"
         onPress={() => {
-          const data = { ...onboardingData, physicalLevel: selectedPhysical };
+          // Salvar em ambos os campos para compatibilidade
+          const data = { ...onboardingData, workoutLevel: selectedPhysical, physicalLevel: selectedPhysical };
           setOnboardingData(data);
           handleNextStep();
         }}
