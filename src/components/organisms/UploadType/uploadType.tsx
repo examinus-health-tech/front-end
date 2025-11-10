@@ -5,7 +5,6 @@ import { DocumentPickerAsset, getDocumentAsync } from 'expo-document-picker';
 // assets
 import { EditIcon, UploadIcon } from '@assets/icons';
 import Vector1 from '@assets/png/vector-9.png';
-import { useOnboarding } from 'src/hooks/useOnboarding';
 
 export function UploadType({
   setIsCameraOpen,
@@ -20,7 +19,6 @@ export function UploadType({
   handleCameraPermission?: () => void;
   onCloseActionSheet?: () => void;
 }) {
-  const { resetOnboardingState } = useOnboarding();
 
   async function handleSelectFile() {
     try {
@@ -55,22 +53,18 @@ export function UploadType({
       onCloseActionSheet();
     }
 
-    // Aguardar a animação do ActionSheet fechar completamente (500ms é o padrão do Native Base)
+    // Aguardar a animação do ActionSheet fechar completamente
     await new Promise(resolve => setTimeout(resolve, 600));
 
-    console.log('🏠 [Skip Upload] Navegando para homepage ANTES de resetar...');
+    console.log('🏠 [Skip Upload] Navegando para homepage...');
 
     try {
-      // Navegar PRIMEIRO, depois resetar
+      // Apenas navegar - NÃO resetar estado pois usuário pode ter dados
       navigation.reset({
         index: 0,
         routes: [{ name: 'homepage' }],
       });
-      console.log('✅ [Skip Upload] Navegação completada');
-
-      // Resetar estado DEPOIS da navegação
-      console.log('🔄 [Skip Upload] Resetando estado do onboarding...');
-      await resetOnboardingState();
+      console.log('✅ [Skip Upload] Navegação completada - usuário pulou upload mas mantém dados');
     } catch (error) {
       console.error('❌ [Skip Upload] Erro ao navegar:', error);
       // Fallback: tentar navigate direto
