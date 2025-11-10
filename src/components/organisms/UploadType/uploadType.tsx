@@ -47,17 +47,35 @@ export function UploadType({
   }
 
   const handleSkipUpload = async () => {
+    console.log('🔄 [Skip Upload] Iniciando skip do upload...');
+
     // Fechar ActionSheet primeiro
     if (onCloseActionSheet) {
+      console.log('📤 [Skip Upload] Fechando ActionSheet...');
       onCloseActionSheet();
     }
 
     // Aguardar a animação do ActionSheet fechar completamente (500ms é o padrão do Native Base)
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 600));
 
-    // Resetar estado do onboarding e ir para homepage
-    await resetOnboardingState();
-    navigation.reset({ index: 0, routes: [{ name: 'homepage' }] });
+    console.log('🏠 [Skip Upload] Navegando para homepage ANTES de resetar...');
+
+    try {
+      // Navegar PRIMEIRO, depois resetar
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'homepage' }],
+      });
+      console.log('✅ [Skip Upload] Navegação completada');
+
+      // Resetar estado DEPOIS da navegação
+      console.log('🔄 [Skip Upload] Resetando estado do onboarding...');
+      await resetOnboardingState();
+    } catch (error) {
+      console.error('❌ [Skip Upload] Erro ao navegar:', error);
+      // Fallback: tentar navigate direto
+      navigation.navigate('homepage');
+    }
   };
 
   return (

@@ -260,11 +260,20 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
   }, []);
 
   async function resetOnboardingState() {
-    setIsOnboardingComplete(false);
-    setPersonalData(undefined);
-    setStep(0);
-    setOnboardingData({} as OnboardingProps);
-    await AsyncStorage.removeItem('@app:onboardingData');
+    console.log('🔄 [OnboardingContext] Resetando estado do onboarding...');
+    try {
+      setIsOnboardingComplete(false);
+      setPersonalData(undefined);
+      setStep(0);
+      setOnboardingData({} as OnboardingProps);
+
+      await AsyncStorage.removeItem('@app:onboardingData');
+      console.log('✅ [OnboardingContext] AsyncStorage limpo');
+      console.log('✅ [OnboardingContext] Estado resetado com sucesso');
+    } catch (error) {
+      console.error('❌ [OnboardingContext] Erro ao resetar estado:', error);
+      // Continuar mesmo com erro, pois já limpamos os states
+    }
   }
 
   async function saveOnboarding(payload: OnboardingProps) {
