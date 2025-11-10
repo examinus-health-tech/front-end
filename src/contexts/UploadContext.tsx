@@ -48,9 +48,15 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   const [examList, setExamList] = useState([]);
   const toast = useToast();
 
-  const handleUploadFile = useCallback(async ({ name, mimeType, uri, file }: DocumentPickerAsset) => {
+  const handleUploadFile = useCallback(async ({ name, mimeType, uri, file, size }: DocumentPickerAsset) => {
     setIsLoading(true);
-    console.log('📤 Iniciando upload:', { name, mimeType, uri, file });
+    console.log('📤 Iniciando upload:', {
+      name,
+      mimeType,
+      uri,
+      size: size ? `${(size / 1024 / 1024).toFixed(2)} MB` : 'Desconhecido',
+      file
+    });
 
     try {
       // Detectar tipo do arquivo baseado na extensão se mimeType não estiver presente
@@ -83,20 +89,62 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
       bodyFormData.append('File', uploadFile);
 
       console.log('🚀 Enviando para API...');
-      const response = await api.post('medical-exam/form', bodyFormData, {
-        headers: {
-          'Content-type': 'multipart/form-data',
-          Accept: 'application/octet-stream',
-        },
-      });
 
-      console.log('✅ Upload bem-sucedido:', response.data);
+      try {
+        const response = await api.post('medical-exam/form', bodyFormData, {
+          headers: {
+            'Content-type': 'multipart/form-data',
+            Accept: 'application/octet-stream',
+          },
+          timeout: 120000, // 2 minutos para upload de arquivos
+          validateStatus: () => true, // Aceitar qualquer status para capturar erro 500
+        });
 
-      setFile(uploadFile);
-      setWithSuccess(true);
-      setWithError(false);
-    } catch (error) {
-      console.error('❌ Erro no upload:', error);
+        console.log('📡 Resposta recebida da API');
+        console.log('📊 Status:', response.status);
+        console.log('📦 Dados:', JSON.stringify(response.data, null, 2));
+        console.log('🔖 Headers:', JSON.stringify(response.headers, null, 2));
+
+        // Verificar se foi sucesso (2xx)
+        if (response.status >= 200 && response.status < 300) {
+          console.log('✅ Upload bem-sucedido!');
+          setFile(uploadFile);
+          setWithSuccess(true);
+          setWithError(false);
+        } else {
+          // Erro do servidor (4xx, 5xx)
+          console.error('❌ Erro na resposta da API');
+          console.error('📛 Status HTTP:', response.status);
+          console.error('💬 Mensagem do servidor:', response.data?.message || response.data?.error || 'Sem mensagem');
+          console.error('📄 Resposta completa:', JSON.stringify(response.data, null, 2));
+
+          setWithSuccess(false);
+          setWithError(true);
+          throw new Error(response.data?.message || `Erro ${response.status} no servidor`);
+        }
+      } catch (apiError: any) {
+        // Erro de rede ou timeout
+        console.error('❌ Erro na comunicação com API');
+        console.error('📛 Tipo:', apiError?.constructor?.name);
+        console.error('💬 Mensagem:', apiError?.message);
+        console.error('🔍 Code:', apiError?.code);
+
+        if (apiError?.response) {
+          console.error('📡 Response recebido:');
+          console.error('   - Status:', apiError.response.status);
+          console.error('   - Data:', JSON.stringify(apiError.response.data, null, 2));
+        }
+
+        setWithSuccess(false);
+        setWithError(true);
+        throw apiError;
+      }
+    } catch (error: any) {
+      console.error('❌ Erro geral no upload!');
+      console.error('📛 Tipo do erro:', error?.constructor?.name);
+      console.error('💬 Mensagem:', error?.message);
+      console.error('🔍 Stack trace:', error?.stack);
+
       setWithSuccess(false);
       setWithError(true);
       throw error;
@@ -114,18 +162,41 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   }) => {
     setIsLoading(true);
 
+    console.log('📝 Iniciando upload manual:', JSON.stringify(payload, null, 2));
+
     try {
+      console.log('🚀 Enviando para API /exam-maintenance...');
       const response = await api.post('/exam-maintenance', payload);
+
+      console.log('✅ Upload manual bem-sucedido!');
+      console.log('📊 Status:', response.status);
+      console.log('📦 Resposta completa:', JSON.stringify(response.data, null, 2));
 
       const data = response.data.data;
 
       if (data) {
+        console.log('✅ Dados processados com sucesso');
         setIsLoading(false);
         setWithError(false);
         setScoreWarning(true);
         setWithSuccess(true);
+      } else {
+        console.warn('⚠️ Resposta da API não contém dados');
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ Erro no upload manual!');
+      console.error('📛 Tipo do erro:', error?.constructor?.name);
+      console.error('💬 Mensagem:', error?.message);
+
+      if (error?.response) {
+        console.error('📡 Resposta da API:');
+        console.error('   - Status:', error.response.status);
+        console.error('   - Status Text:', error.response.statusText);
+        console.error('   - Data:', JSON.stringify(error.response.data, null, 2));
+      } else if (error?.request) {
+        console.error('📤 Request enviado mas sem resposta');
+      }
+
       setWithError(true);
       setWithSuccess(false);
       throw error;

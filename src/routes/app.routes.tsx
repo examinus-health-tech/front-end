@@ -245,11 +245,15 @@ function HomeTabs() {
 }
 
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
+import { useDeepLinking } from 'src/hooks/useDeepLinking';
 
 function AppRoutesContent() {
   const { isOnboardingComplete, checkOnboardingCompletion } = useOnboarding();
   const [initialRoute, setInitialRoute] = useState<string | null>(null);
   const [isChecking, setIsChecking] = useState(true);
+
+  // Ativar deep linking apenas após o app estar pronto
+  useDeepLinking();
 
   useEffect(() => {
     async function determineInitialRoute() {
