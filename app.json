@@ -2,12 +2,13 @@
   "expo": {
     "name": "Examinus Health",
     "slug": "examinus",
+    "scheme": "examinus",
     "updates": {
       "enabled": true,
       "fallbackToCacheTimeout": 3000,
       "url": "https://u.expo.dev/29aa665e-a9a4-4a0b-9ead-a75ede66e041"
     },
-    "version": "1.2.6",
+    "version": "1.2.7",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -24,10 +25,14 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "10",
+      "buildNumber": "11",
       "supportsTablet": true,
       "bundleIdentifier": "com.examinus.app",
       "jsEngine": "jsc",
+      "associatedDomains": [
+        "applinks:examinus.app",
+        "applinks:www.examinus.app"
+      ],
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
@@ -39,13 +44,19 @@
               "com.examinus.app",
               "com.googleusercontent.apps.477011438187-7gnqtm50ep300onpk68e1099tj0rse3v"
             ]
+          },
+          {
+            "CFBundleURLName": "examinus-deep-link",
+            "CFBundleURLSchemes": [
+              "examinus"
+            ]
           }
         ]
       },
       "appleTeamId": "NLLSSU23C9"
     },
     "android": {
-      "versionCode": 10,
+      "versionCode": 11,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -62,7 +73,12 @@
           "autoVerify": true,
           "data": [
             {
-              "scheme": "com.examinus.app"
+              "scheme": "https",
+              "host": "examinus.app",
+              "pathPrefix": "/app"
+            },
+            {
+              "scheme": "examinus"
             }
           ],
           "category": [
