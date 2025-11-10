@@ -12,9 +12,18 @@ export async function storageUserRemove() {
 }
 
 export async function storageUserGet() {
-  const storage = await AsyncStorage.getItem(USER_STORAGE);
+  try {
+    const storage = await AsyncStorage.getItem(USER_STORAGE);
 
-  const user: UserDTO = storage ? JSON.parse(storage) : {};
+    if (!storage) {
+      return {} as UserDTO;
+    }
 
-  return user;
+    const user: UserDTO = JSON.parse(storage);
+    return user;
+  } catch (error) {
+    console.error('Error parsing user from storage:', error);
+    await AsyncStorage.removeItem(USER_STORAGE);
+    return {} as UserDTO;
+  }
 }

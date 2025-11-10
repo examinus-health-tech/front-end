@@ -89,10 +89,20 @@ export function HealthWallet() {
   };
 
   function renderSystems() {
-    if (homeData.medicalExamOrganicSystemsScore?.length) {
-      const systems = homeData.medicalExamOrganicSystemsScore;
+    const systems = homeData.medicalExamOrganicSystemsScore;
 
-      function renderIcon(system: string, score: number) {
+    // Validação segura do array
+    if (!systems || !Array.isArray(systems) || systems.length === 0) {
+      return (
+        <Flex align="center" mt={12}>
+          <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
+            Você não possui dados de exames.
+          </Text>
+        </Flex>
+      );
+    }
+
+    function renderIcon(system: string, score: number) {
         const color = getColorByScore(score)?.color ?? '#000';
 
         const healthWalletIconsMap = {
@@ -168,15 +178,6 @@ export function HealthWallet() {
           </Box>
         </TouchableOpacity>
       ));
-    } else {
-      return (
-        <Flex align="center" mt={12}>
-          <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
-            Você não possui dados de exames.
-          </Text>
-        </Flex>
-      );
-    }
   }
 
   return (
@@ -198,6 +199,7 @@ export function HealthWallet() {
                       {user?.fullName ? (
                         user.fullName
                           .split(' ')
+                          .filter(Boolean)
                           .map((name) => name[0])
                           .join('')
                           .substring(0, 2)

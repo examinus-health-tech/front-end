@@ -424,9 +424,9 @@ export function ExamList() {
           <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
             <VStack flex={1} space={8} pt={2} pb={32}>
               <VStack mx={6} mt={4} space={8}>
-                {filteredExams && filteredExams.length > 0 ? (
+                {filteredExams && Array.isArray(filteredExams) && filteredExams.length > 0 ? (
                   filteredExams.map((exam, index) => <Box key={index}>{renderExam(exam)}</Box>)
-                ) : examData && examData.length > 0 ? (
+                ) : examData && Array.isArray(examData) && examData.length > 0 ? (
                   <VStack alignItems="center" justifyContent="center" py={20} space={4}>
                     <Box bg="gray.100" borderRadius={16} w={20} h={16} alignItems="center" justifyContent="center">
                       <FlaskIcon size="36" variant="duotone" color="gray.400" />

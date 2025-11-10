@@ -244,6 +244,17 @@ export function Exam() {
   }
 
   function renderExamItem() {
+    // Validação segura do array
+    if (!examSelected?.medicalExamItems || !Array.isArray(examSelected.medicalExamItems)) {
+      return (
+        <VStack flex={1} alignItems="center" mt={8}>
+          <Text fontSize={16} color="gray.500">
+            Nenhum item de exame disponível
+          </Text>
+        </VStack>
+      );
+    }
+
     return examSelected.medicalExamItems.map((item: any, index: number) => {
       return (
         <>

@@ -139,7 +139,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
             </Text>
           ) : (
             <HStack space={2}>
-              {nutritionCompleted.map((nutr, i) => {
+              {Array.isArray(nutritionCompleted) && nutritionCompleted.map((nutr, i) => {
                 if (i === 0) {
                   return (
                     <Badge

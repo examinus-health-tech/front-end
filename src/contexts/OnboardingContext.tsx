@@ -49,8 +49,13 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
       try {
         const storedData = await AsyncStorage.getItem('@app:onboardingData');
         if (storedData) {
-          const parsedData = JSON.parse(storedData);
-          setOnboardingData(parsedData);
+          try {
+            const parsedData = JSON.parse(storedData);
+            setOnboardingData(parsedData);
+          } catch (parseError) {
+            console.log('❌ OnboardingContext: Erro ao fazer parse dos dados:', parseError);
+            await AsyncStorage.removeItem('@app:onboardingData');
+          }
         }
       } catch (error) {
         console.log('❌ OnboardingContext: Erro ao carregar dados:', error);
@@ -219,21 +224,26 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
         const storedPersonalData = await AsyncStorage.getItem('@app:personalData');
 
         if (storedPersonalData) {
-          const parsedData = JSON.parse(storedPersonalData);
-          const hasAnyData =
-            parsedData &&
-            (parsedData.gender ||
-              parsedData.weight ||
-              parsedData.height !== undefined ||
-              parsedData.age ||
-              parsedData.workoutLevel ||
-              parsedData.physicalLevel ||
-              parsedData.eatingHabits);
+          try {
+            const parsedData = JSON.parse(storedPersonalData);
+            const hasAnyData =
+              parsedData &&
+              (parsedData.gender ||
+                parsedData.weight ||
+                parsedData.height !== undefined ||
+                parsedData.age ||
+                parsedData.workoutLevel ||
+                parsedData.physicalLevel ||
+                parsedData.eatingHabits);
 
-          console.log('📦 [ONBOARDING] Usando dados do cache local - onboarding completo:', hasAnyData);
-          setPersonalData(parsedData);
-          setIsOnboardingComplete(hasAnyData);
-          return hasAnyData;
+            console.log('📦 [ONBOARDING] Usando dados do cache local - onboarding completo:', hasAnyData);
+            setPersonalData(parsedData);
+            setIsOnboardingComplete(hasAnyData);
+            return hasAnyData;
+          } catch (parseError) {
+            console.log('❌ [ONBOARDING] Erro ao fazer parse do cache local:', parseError);
+            await AsyncStorage.removeItem('@app:personalData');
+          }
         }
       }
 

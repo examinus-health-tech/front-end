@@ -95,25 +95,29 @@ export function Homepage() {
   );
 
   function renderCardSystems() {
-    if (homeData.medicalExamOrganicSystemsScore?.length) {
-      const systems = homeData.medicalExamOrganicSystemsScore;
+    const systems = homeData.medicalExamOrganicSystemsScore;
 
-      // Array de ícones disponíveis (excluindo Vector10 que é reservado para Coração)
-      const availableIcons = [Vector9, Vector3, Vector4, Vector5, Vector6, Vector7, Vector8];
-      let availableIconIndex = 0;
+    // Validação segura do array
+    if (!systems || !Array.isArray(systems) || systems.length === 0) {
+      return null;
+    }
 
-      const getColorByScore = (score: number) => {
-        if (score >= 0 && score <= 333) {
-          return { title: 'alto', bgColor: 'red.400' };
-        } else if (score > 333 && score <= 666) {
-          return { title: 'normal', bgColor: 'dark_blue.200' };
-        } else if (score > 666 && score <= 1000) {
-          return { title: 'excelente', bgColor: 'ciano.300' };
-        }
-        return { title: 'risco normal', bgColor: 'dark_blue.200' };
-      };
+    // Array de ícones disponíveis (excluindo Vector10 que é reservado para Coração)
+    const availableIcons = [Vector9, Vector3, Vector4, Vector5, Vector6, Vector7, Vector8];
+    let availableIconIndex = 0;
 
-      return systems.map((system, index) => {
+    const getColorByScore = (score: number) => {
+      if (score >= 0 && score <= 333) {
+        return { title: 'alto', bgColor: 'red.400' };
+      } else if (score > 333 && score <= 666) {
+        return { title: 'normal', bgColor: 'dark_blue.200' };
+      } else if (score > 666 && score <= 1000) {
+        return { title: 'excelente', bgColor: 'ciano.300' };
+      }
+      return { title: 'risco normal', bgColor: 'dark_blue.200' };
+    };
+
+    return systems.map((system, index) => {
         if (index <= 2) {
           const colorStyle = getColorByScore(system.organicSystemScore);
 
@@ -203,7 +207,7 @@ export function Homepage() {
                   </Text>
                 </HStack>
                 <Text fontSize={30} fontWeight={800} letterSpacing={-1.2} lineHeight={38} color={'gray.900'} mb={2}>
-                  {`Olá, ${user?.fullName?.split(' ')[0]}! 👋`}
+                  {`Olá, ${user?.fullName?.split(' ')?.[0] ?? 'Usuário'}! 👋`}
                 </Text>
 
                 <Text fontSize={12} fontWeight={400} letterSpacing={-0.12} color={'gray.400'}>

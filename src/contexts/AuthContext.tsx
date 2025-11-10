@@ -98,12 +98,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (isValidToken) {
           const storedUser = await AsyncStorage.getItem('@app:user');
           if (storedUser) {
-            const userData = JSON.parse(storedUser);
-            logger.auth('User loaded from storage', {
-              userId: userData.userId,
-              hasToken: !!userData.token,
-            });
-            setUser(userData);
+            try {
+              const userData = JSON.parse(storedUser);
+              logger.auth('User loaded from storage', {
+                userId: userData.userId,
+                hasToken: !!userData.token,
+              });
+              setUser(userData);
+            } catch (parseError) {
+              logger.error('Error parsing user data from storage', parseError);
+              await AsyncStorage.removeItem('@app:user');
+              setUser(null);
+            }
           } else {
             logger.auth('No user found in storage');
             setUser(null);

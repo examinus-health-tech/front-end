@@ -30,6 +30,7 @@ import { Splash } from '@components/pages/Splash/splash';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ExamContextProvider } from '@contexts/ExamContext';
+import ErrorBoundary from '@components/ErrorBoundary';
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -158,24 +159,26 @@ export default function App() {
   }
 
   return (
-    <NativeBaseProvider theme={THEME}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+    <ErrorBoundary>
+      <NativeBaseProvider theme={THEME}>
+        <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <AuthProvider>
-        <OnboardingContextProvider>
-          <UploadContextProvider>
-            <ExamContextProvider>
-              <GestureHandlerRootView>
-                <BottomSheetModalProvider>
-                  <HomeContextProvider>
-                    {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
-                  </HomeContextProvider>
-                </BottomSheetModalProvider>
-              </GestureHandlerRootView>
-            </ExamContextProvider>
-          </UploadContextProvider>
-        </OnboardingContextProvider>
-      </AuthProvider>
-    </NativeBaseProvider>
+        <AuthProvider>
+          <OnboardingContextProvider>
+            <UploadContextProvider>
+              <ExamContextProvider>
+                <GestureHandlerRootView>
+                  <BottomSheetModalProvider>
+                    <HomeContextProvider>
+                      {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
+                    </HomeContextProvider>
+                  </BottomSheetModalProvider>
+                </GestureHandlerRootView>
+              </ExamContextProvider>
+            </UploadContextProvider>
+          </OnboardingContextProvider>
+        </AuthProvider>
+      </NativeBaseProvider>
+    </ErrorBoundary>
   );
 }
