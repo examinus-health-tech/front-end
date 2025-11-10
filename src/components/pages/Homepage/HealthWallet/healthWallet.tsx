@@ -32,6 +32,9 @@ import {
   RinIcon,
   SanIcon,
   UserIcon,
+  IntestineIcon,
+  UrinaIcon,
+  FlaskIcon,
 } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 
@@ -112,9 +115,12 @@ export function HealthWallet() {
           rins: { icon: <RinIcon size="30" color={color} /> },
           sangue: { icon: <SanIcon size="30" color={color} /> },
           coração: { icon: <HeartIcon size="30" color={color} /> },
+          intestino: { icon: <IntestineIcon size="30" color={color} /> },
+          urina: { icon: <UrinaIcon size="30" color={color} /> },
         };
 
-        return healthWalletIconsMap[system.toLowerCase() as keyof typeof healthWalletIconsMap]?.icon;
+        return healthWalletIconsMap[system.toLowerCase() as keyof typeof healthWalletIconsMap]?.icon
+          || <FlaskIcon size="30" color={color} />;
       }
 
       useEffect(() => {
@@ -154,7 +160,7 @@ export function HealthWallet() {
               {renderIcon(system.examOrganicSystemDescription, system.organicSystemScore)}
             </Box>
 
-            <VStack flex={1} ml={4}>
+            <VStack flex={1} ml={4} mr={3}>
               <Text fontSize={20} fontWeight={800} letterSpacing={-0.16}>
                 {system.examOrganicSystemDescription}
               </Text>
@@ -167,6 +173,7 @@ export function HealthWallet() {
             <Badge
               bg={getColorByScore(system.organicSystemScore)?.bgColor}
               borderRadius={6}
+              ml={2}
               _text={{
                 textTransform: 'uppercase',
                 color: getColorByScore(system.organicSystemScore)?.color,
@@ -210,7 +217,7 @@ export function HealthWallet() {
                     </Avatar>
                   )}
                   rotation={270}
-                  tintColor={getColorByScore(homeData.generalScore)?.color ?? '#8A3FFC'}
+                  tintColor={getColorByScore(homeData.generalScore)?.color ?? '#0CC1AF'}
                   backgroundColor="#DCE1E8"
                   arcSweepAngle={180}
                 />

@@ -269,30 +269,38 @@ export function Exam() {
                 lineCap="round"
                 width={20}
                 fill={getFillPercentage(item.medicalExamItemReferenceValue, item.medicalExamItemMeasureUnit, item.examItemDescription)}
-                children={() => (
-                  <VStack alignItems="center">
-                    <Text
-                      color={getColor(item.medicalExamItemWeightColor)}
-                      fontSize={42}
-                      fontWeight={800}
-                      letterSpacing={-1}
-                    >
-                      {item.medicalExamItemReferenceValue}
-                    </Text>
+                children={() => {
+                  const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
+                  const fontSize = valueLength > 7 ? 32 : valueLength > 6 ? 36 : 42;
 
-                    <Text
-                      mt={-4}
-                      mx={2}
-                      color="gray.400"
-                      fontSize={10}
-                      fontWeight={800}
-                      letterSpacing={1}
-                      textAlign="center"
-                    >
-                      Ref: {getReferenceRange(item.medicalExamItemMeasureUnit, item.examItemDescription)}
-                    </Text>
-                  </VStack>
-                )}
+                  return (
+                    <VStack alignItems="center" px={2}>
+                      <Text
+                        color={getColor(item.medicalExamItemWeightColor)}
+                        fontSize={fontSize}
+                        fontWeight={800}
+                        letterSpacing={-1}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}
+                      >
+                        {item.medicalExamItemReferenceValue}
+                      </Text>
+
+                      <Text
+                        mt={-2}
+                        mx={2}
+                        color="gray.500"
+                        fontSize={12}
+                        fontWeight={600}
+                        letterSpacing={0}
+                        textAlign="center"
+                      >
+                        Ref: {getReferenceRange(item.medicalExamItemMeasureUnit, item.examItemDescription)}
+                      </Text>
+                    </VStack>
+                  );
+                }}
                 rotation={90}
                 tintColor={getColor(item.medicalExamItemWeightColor) || '#00B39D'}
                 backgroundColor="#DCE1E8"

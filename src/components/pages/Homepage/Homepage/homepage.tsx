@@ -152,7 +152,6 @@ export function Homepage() {
         }
         return null;
       });
-    }
   }
 
   return (
@@ -261,8 +260,8 @@ export function Homepage() {
                     position="absolute"
                   />
 
-                  <Text color={'white'} fontSize={44} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
-                    {homeData.generalScore || '?'}
+                  <Text color={'white'} fontSize={36} fontWeight={800} letterSpacing={-1.2} lineHeight={36}>
+                    {homeData.generalScore ? Math.round(homeData.generalScore) : '?'}
                   </Text>
                 </Box>
 

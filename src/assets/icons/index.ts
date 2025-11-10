@@ -69,6 +69,8 @@ import EmojiSadIcon from './components/emojiSad';
 import EmojiAnxiousIcon from './components/emojiAnxious';
 import EmojiDepressedIcon from './components/emojiDepressed';
 import ClipboardIcon from './components/clipboard';
+import IntestineIcon from './components/intestine';
+import UrinaIcon from './components/urina';
 
 export {
   ArrowIcon,
@@ -142,4 +144,6 @@ export {
   EmojiAnxiousIcon,
   EmojiDepressedIcon,
   ClipboardIcon,
+  IntestineIcon,
+  UrinaIcon,
 };
