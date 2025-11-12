@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { Box, IScrollViewProps, Image, ScrollView, StatusBar, VStack, Flex, Icon } from 'native-base';
+import { Box, IScrollViewProps, Image, ScrollView, StatusBar, VStack, Flex, Icon, WarningOutlineIcon, Text, useToast } from 'native-base';
 import { useRef, useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -18,6 +18,8 @@ import { SuccessSaved } from '@components/pages/Settings/components/successSaved
 import { Header } from '../components/header/header';
 import { useAuth } from 'src/hooks/useAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveUserPersonalData, getUserPersonalData } from '@services/userService';
+import { AppError } from '@utils/AppErrors';
 
 type FormDataProps = {
   fullName: string;
@@ -31,17 +33,60 @@ type FormDataProps = {
 const infoSchema = yup.object({
   fullName: yup.string().required('Nome completo é obrigatório').min(2, 'Nome deve ter pelo menos 2 caracteres'),
   email: yup.string().required('E-mail é obrigatório').email('E-mail inválido'),
-  phone: yup.string().required('Telefone é obrigatório').min(10, 'Telefone inválido'),
-  birthDate: yup.string().required('Data de nascimento é obrigatória'),
+  phone: yup.string().required('Telefone é obrigatório').min(14, 'Telefone inválido'),
+  birthDate: yup.string().required('Data de nascimento é obrigatória').matches(/^\d{2}\/\d{2}\/\d{4}$/, 'Data inválida'),
   address: yup.string().required('Endereço é obrigatório'),
   country: yup.string().required('País é obrigatório'),
 });
 
+/**
+ * Aplica máscara de telefone brasileiro: (11) 99999-9999
+ */
+function applyPhoneMask(value: string): string {
+  // Remove tudo que não for número
+  const numbers = value.replace(/\D/g, '');
+
+  // Limita a 11 dígitos
+  const limited = numbers.slice(0, 11);
+
+  // Aplica a máscara
+  if (limited.length <= 2) {
+    return limited;
+  } else if (limited.length <= 7) {
+    return `(${limited.slice(0, 2)}) ${limited.slice(2)}`;
+  } else {
+    return `(${limited.slice(0, 2)}) ${limited.slice(2, 7)}-${limited.slice(7)}`;
+  }
+}
+
+/**
+ * Aplica máscara de data: DD/MM/AAAA
+ */
+function applyDateMask(value: string): string {
+  // Remove tudo que não for número
+  const numbers = value.replace(/\D/g, '');
+
+  // Limita a 8 dígitos
+  const limited = numbers.slice(0, 8);
+
+  // Aplica a máscara
+  if (limited.length <= 2) {
+    return limited;
+  } else if (limited.length <= 4) {
+    return `${limited.slice(0, 2)}/${limited.slice(2)}`;
+  } else {
+    return `${limited.slice(0, 2)}/${limited.slice(2, 4)}/${limited.slice(4)}`;
+  }
+}
+
 export function Info() {
   const [isSuccess, setSuccess] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const toast = useToast();
 
   const { user } = useAuth();
   const {
@@ -63,31 +108,104 @@ export function Info() {
 
   useEffect(() => {
     async function loadUserData() {
+      setIsLoading(true);
       try {
-        // Carregar dados do usuário autenticado
-        if (user) {
-          setValue('fullName', user.fullName || '');
-          setValue('email', user.email || user.name || '');
-        }
+        console.log('📥 [INFO] Carregando perfil completo do usuário (endpoint unificado)');
 
-        // Carregar dados pessoais do AsyncStorage
-        const personalDataJson = await AsyncStorage.getItem('@app:personalData');
-        if (personalDataJson) {
-          const personalData = JSON.parse(personalDataJson);
+        // 🎯 Buscar TODOS os dados em uma única chamada ao endpoint unificado
+        // Retorna: fullName, email, phone, location, birthDate, country, etc
+        const profileData = await getUserPersonalData();
 
-          // Preencher campos com dados do onboarding se disponíveis
-          if (personalData.age) {
-            // Calcular data de nascimento aproximada baseada na idade
-            const currentYear = new Date().getFullYear();
-            const birthYear = currentYear - personalData.age;
-            setValue('birthDate', `01/01/${birthYear}`);
+        if (profileData) {
+          console.log('✅ [INFO] Perfil completo encontrado no backend:', profileData);
+
+          // Preencher dados básicos (fullName, email)
+          if (profileData.fullName) {
+            setValue('fullName', profileData.fullName);
+          } else if (user?.fullName) {
+            setValue('fullName', user.fullName);
           }
-        }
 
-        // Sempre definir Brasil como país padrão
-        setValue('country', 'Brasil');
+          if (profileData.email) {
+            setValue('email', profileData.email);
+          } else if (user?.email || user?.name) {
+            setValue('email', user.email || user.name || '');
+          }
+
+          // Preencher dados pessoais (phone, location, birthDate, country)
+          if (profileData.phone) {
+            setValue('phone', profileData.phone);
+          }
+
+          if (profileData.location) {
+            setValue('address', profileData.location);
+          }
+
+          if (profileData.birthDate) {
+            // Converter data ISO para formato DD/MM/AAAA
+            const date = new Date(profileData.birthDate);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            setValue('birthDate', `${day}/${month}/${year}`);
+          }
+
+          if (profileData.country) {
+            setValue('country', profileData.country);
+          } else {
+            setValue('country', 'Brasil');
+          }
+        } else {
+          console.log('ℹ️ [INFO] Nenhum dado encontrado no backend, usando dados locais');
+
+          // Fallback: dados do contexto de autenticação
+          if (user) {
+            setValue('fullName', user.fullName || '');
+            setValue('email', user.email || user.name || '');
+          }
+
+          // Fallback: Carregar dados pessoais do AsyncStorage (do onboarding)
+          const personalDataJson = await AsyncStorage.getItem('@app:personalData');
+          if (personalDataJson) {
+            const localData = JSON.parse(personalDataJson);
+
+            // Preencher campos com dados do onboarding se disponíveis
+            if (localData.age) {
+              // Calcular data de nascimento aproximada baseada na idade
+              const currentYear = new Date().getFullYear();
+              const birthYear = currentYear - localData.age;
+              setValue('birthDate', `01/01/${birthYear}`);
+            }
+          }
+
+          // Sempre definir Brasil como país padrão se não houver dados
+          setValue('country', 'Brasil');
+        }
       } catch (error) {
-        console.error('Erro ao carregar dados do usuário:', error);
+        console.error('❌ [INFO] Erro ao carregar dados do usuário:', error);
+
+        const errorMessage =
+          error instanceof AppError ? error.message : 'Não foi possível carregar seus dados. Tente novamente.';
+
+        toast.show({
+          marginX: '12',
+          borderRadius: '12',
+          title: 'Erro ao carregar dados',
+          description: errorMessage,
+          _title: {
+            textAlign: 'center',
+            mx: '4',
+          },
+          _description: {
+            textAlign: 'center',
+            mx: '4',
+          },
+          placement: 'top',
+          color: 'gray.900',
+          bgColor: 'red.500',
+        });
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -95,9 +213,93 @@ export function Info() {
   }, [user, setValue]);
 
   async function handleSaveInfo(data: FormDataProps) {
-    console.log('Dados para salvar:', data);
-    // Aqui você pode implementar a chamada da API para salvar os dados
-    setSuccess(true);
+    if (!user?.userId) {
+      toast.show({
+        marginX: '12',
+        borderRadius: '12',
+        title: 'Erro',
+        description: 'Usuário não autenticado',
+        _title: {
+          textAlign: 'center',
+          mx: '4',
+        },
+        _description: {
+          textAlign: 'center',
+          mx: '4',
+        },
+        placement: 'top',
+        color: 'gray.900',
+        bgColor: 'red.500',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    console.log('📤 [INFO] Salvando perfil completo do usuário:', data);
+
+    try {
+      // Converter data de DD/MM/AAAA para ISO string
+      const [day, month, year] = data.birthDate.split('/');
+      const birthDateISO = new Date(`${year}-${month}-${day}`).toISOString();
+
+      // 🎯 Salvar TUDO em uma única chamada ao endpoint unificado
+      // Sempre usa PUT (UPSERT - o backend cria ou atualiza automaticamente)
+      // Atualiza simultaneamente: fullName, email, phone, location, birthDate, country
+      await saveUserPersonalData({
+        // Dados básicos do User
+        fullName: data.fullName,
+        email: data.email,
+
+        // Dados pessoais
+        phone: data.phone,
+        location: data.address,
+        birthDate: birthDateISO,
+        country: data.country,
+      });
+
+      console.log('✅ [INFO] Perfil completo salvo com sucesso!');
+      setSuccess(true);
+    } catch (error) {
+      console.error('❌ [INFO] Erro ao salvar perfil completo:', error);
+
+      let errorMessage = 'Não foi possível salvar seus dados. Tente novamente.';
+      let errorTitle = 'Erro ao salvar';
+
+      if (error instanceof AppError) {
+        errorMessage = error.message;
+
+        // Detectar inconsistência específica do backend
+        const msg = error.message?.toLowerCase() || '';
+        if (
+          (msg.includes('já possui dados') || msg.includes('already exists')) &&
+          msg.includes('atualização')
+        ) {
+          errorTitle = 'Inconsistência no Backend';
+          errorMessage = 'O sistema indica que os dados existem mas não consegue atualizá-los. Por favor, contate o suporte técnico.';
+        }
+      }
+
+      toast.show({
+        marginX: '12',
+        borderRadius: '12',
+        title: errorTitle,
+        description: errorMessage,
+        _title: {
+          textAlign: 'center',
+          mx: '4',
+        },
+        _description: {
+          textAlign: 'center',
+          mx: '4',
+        },
+        placement: 'top',
+        color: 'gray.900',
+        bgColor: 'red.500',
+        duration: 5000, // 5 segundos para mensagens de erro mais longas
+      });
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   if (isSuccess) {
@@ -198,7 +400,10 @@ export function Info() {
                 autoCapitalize="none"
                 label="Telefone"
                 value={value}
-                onChangeText={onChange}
+                onChangeText={(text) => {
+                  const masked = applyPhoneMask(text);
+                  onChange(masked);
+                }}
                 placeholder="(11) 99999-9999"
                 errorMessage={errors.phone?.message}
               />
@@ -220,11 +425,14 @@ export function Info() {
                     <Icon as={<EditIcon color="#052B3B" size="26" />} w="full" />
                   </Flex>
                 }
-                keyboardType="default"
+                keyboardType="number-pad"
                 autoCapitalize="none"
                 label="Data de Nascimento"
                 value={value}
-                onChangeText={onChange}
+                onChangeText={(text) => {
+                  const masked = applyDateMask(text);
+                  onChange(masked);
+                }}
                 placeholder="DD/MM/AAAA"
                 errorMessage={errors.birthDate?.message}
               />
@@ -286,9 +494,11 @@ export function Info() {
             mt={4}
             variant="primary"
             size="full"
-            title="Salvar"
+            title={isSaving ? "Salvando..." : "Salvar"}
             onPress={handleSubmit(handleSaveInfo)}
             icon={<CheckIcon color="#FFFFFF" size="28" />}
+            isLoading={isSaving}
+            disabled={isSaving || isLoading}
           />
         </VStack>
       </VStack>

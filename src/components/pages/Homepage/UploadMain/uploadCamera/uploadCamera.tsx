@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { VStack, Text, Image, Center, Modal, Box, Button as NativeButton, View, HStack } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -19,6 +19,13 @@ export function UploadCamera({ isOpen, onClose }: UploadCameraProps) {
   const cameraRef = useRef(null);
 
   const { handleUploadFile } = useUpload();
+
+  // Solicitar permissão quando o modal abrir
+  useEffect(() => {
+    if (isOpen && permission && !permission.granted && !modalVisible) {
+      handleCameraPermission();
+    }
+  }, [isOpen, permission?.granted, modalVisible]);
 
   async function handleCameraPermission() {
     if (!permission) {
@@ -130,11 +137,6 @@ export function UploadCamera({ isOpen, onClose }: UploadCameraProps) {
   // Se tem permissão negada, mostra modal de permissão
   if (permission && !permission.granted && modalVisible) {
     return renderPermissionMessage();
-  }
-
-  // Verificar permissão quando abre (só uma vez)
-  if (isOpen && permission && !permission.granted && !modalVisible) {
-    handleCameraPermission();
   }
 
   // Se tem foto capturada, mostra preview

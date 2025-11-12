@@ -79,7 +79,7 @@ export function Homepage() {
   }, [trackerData]);
 
   useEffect(() => {
-    getUserInfo();
+    // getUserInfo(); // Comentado: endpoint não aceita Bearer token, dados já vêm do JWT
     getHomeData();
     console.log('🚀 Homepage useEffect', user);
   }, []);
@@ -88,7 +88,7 @@ export function Homepage() {
   useFocusEffect(
     useCallback(() => {
       scrollRef.current?.scrollTo?.({ x: 0, y: 0, animated: false });
-      getUserInfo();
+      // getUserInfo(); // Comentado: endpoint não aceita Bearer token
       getHomeData();
       console.log('🔄 Homepage recarregada ao ganhar foco');
     }, [])
@@ -206,7 +206,14 @@ export function Homepage() {
                   </Text>
                 </HStack>
                 <Text fontSize={30} fontWeight={800} letterSpacing={-1.2} lineHeight={38} color={'gray.900'} mb={2}>
-                  {`Olá, ${user?.fullName?.split(' ')?.[0] ?? 'Usuário'}! 👋`}
+                  {`Olá, ${(() => {
+                    // Se fullName contém @ (é email), usar o campo name
+                    if (user?.fullName?.includes('@')) {
+                      return user?.name?.split(' ')?.[0] ?? 'Usuário';
+                    }
+                    // Caso contrário, usar fullName normalmente
+                    return user?.fullName?.split(' ')?.[0] ?? user?.name?.split(' ')?.[0] ?? 'Usuário';
+                  })()}! 👋`}
                 </Text>
 
                 <Text fontSize={12} fontWeight={400} letterSpacing={-0.12} color={'gray.400'}>

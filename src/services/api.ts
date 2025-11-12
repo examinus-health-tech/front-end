@@ -18,7 +18,7 @@ const api = axios.create({
   timeout: 30000, // 30 segundos timeout - aumentado para evitar timeouts prematuros
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
+    Accept: 'application/json',
   },
   withCredentials: true, // TEMPORÁRIO: Enviar cookies até o backend ser corrigido para aceitar apenas Bearer token
   maxRedirects: 0, // Não seguir redirecionamentos
@@ -28,7 +28,7 @@ const api = axios.create({
 api.testConnection = async () => {
   try {
     const response = await axios.head(`${process.env.EXPO_PUBLIC_API_URL}authentication`, {
-      timeout: 5000
+      timeout: 5000,
     });
     return true;
   } catch (error: any) {
@@ -54,6 +54,20 @@ api.interceptors.request.use(
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
+
+        // Log detalhado apenas para /users/{id}
+        if (config.url?.includes('/users/')) {
+          console.log('🔐 [API] Request /users/ details:', {
+            url: config.url,
+            method: config.method,
+            hasAuthHeader: !!config.headers.Authorization,
+            tokenPrefix: token.substring(0, 30) + '...',
+            userId: userDataParsed?.userId,
+            headers: config.headers,
+            withCredentials: config.withCredentials,
+            fullURL: `${config.baseURL}${config.url}`,
+          });
+        }
       }
 
       // TEMPORÁRIO: Garantir que withCredentials está true para enviar cookies
@@ -80,25 +94,64 @@ let isRefreshing = false;
 api.registerInterceptTokenManager = (signOut) => {
   const interceptTokenManager = api.interceptors.response.use(
     (response) => {
+      // Log de sucesso para debug (apenas rotas importantes)
+      if (response.config.url?.includes('/users') || response.config.url?.includes('authentication')) {
+        console.log('✅ [API] Request bem-sucedida:', {
+          method: response.config.method?.toUpperCase(),
+          url: response.config.url,
+          status: response.status,
+          statusText: response.statusText,
+          responseTime: response.headers['x-response-time'] || 'N/A',
+        });
+      }
       return response;
     },
     async (requestError) => {
       // 404 em algumas rotas é esperado quando o usuário não tem dados ainda
       const expected404Routes = [
         'user-personal-data',
-        'medical-exam-scores/get-last-final-result-by-current-user-logged'
+        'medical-exam-scores/get-last-final-result-by-current-user-logged',
       ];
 
       const isExpected404 =
         requestError.response?.status === 404 &&
-        expected404Routes.some(route => requestError.config?.url?.includes(route));
+        expected404Routes.some((route) => requestError.config?.url?.includes(route));
 
       if (!isExpected404) {
-        console.error('❌ API Error:', {
-          status: requestError.response?.status,
-          url: requestError.config?.url,
-          message: requestError.message
+        // Log estruturado completo para TODOS os erros
+        const errorLog = {
+          timestamp: new Date().toISOString(),
+          error: {
+            message: requestError.message,
+            code: requestError.code,
+            name: requestError.name,
+          },
+          request: {
+            method: requestError.config?.method?.toUpperCase(),
+            url: requestError.config?.url,
+            fullURL: `${requestError.config?.baseURL}${requestError.config?.url}`,
+            headers: requestError.config?.headers,
+            data: requestError.config?.data,
+            timeout: requestError.config?.timeout,
+          },
+          response: requestError.response ? {
+            status: requestError.response.status,
+            statusText: requestError.response.statusText,
+            headers: requestError.response.headers,
+            data: requestError.response.data,
+          } : null,
+        };
+
+        // Log compacto no console
+        console.error('❌ [API ERROR]', {
+          method: errorLog.request.method,
+          url: errorLog.request.url,
+          status: errorLog.response?.status,
+          message: requestError.message,
         });
+
+        // Log completo expandido para debug detalhado
+        console.error('📋 [API ERROR - Detalhes completos]', JSON.stringify(errorLog, null, 2));
       }
 
       // Handle unauthorized access
@@ -114,20 +167,54 @@ api.registerInterceptTokenManager = (signOut) => {
 
       // Handle server errors (5xx)
       if (requestError.response?.status >= 500) {
+        // Tentar extrair mensagem detalhada do backend
+        const backendMessage =
+          requestError.response?.data?.message ||
+          requestError.response?.data?.error ||
+          requestError.response?.data?.details;
+
+        // Se tem mensagem específica, usar ela
+        if (backendMessage) {
+          const errorMsg = Array.isArray(backendMessage) ? backendMessage.join(', ') : backendMessage;
+          console.error('❌ Erro 500 com detalhes do backend:', errorMsg);
+          return Promise.reject(new AppError(errorMsg));
+        }
+
+        // Caso contrário, usar mensagem genérica
         return Promise.reject(new AppError('Servidor temporariamente indisponível. Tente novamente.'));
       }
 
       // Handle other API errors with response
       if (requestError.response?.data?.message) {
-        return Promise.reject(new AppError(requestError.response.data.message));
+        const errorMsg = Array.isArray(requestError.response.data.message)
+          ? requestError.response.data.message.join(', ')
+          : requestError.response.data.message;
+
+        console.log('📋 [API] Mensagem de erro do backend:', errorMsg);
+        return Promise.reject(new AppError(errorMsg));
       }
 
       if (requestError.response?.data?.error?.message) {
+        console.log('📋 [API] Mensagem de erro do backend (error.message):', requestError.response.data.error.message);
         return Promise.reject(new AppError(requestError.response.data.error.message));
+      }
+
+      // Se não tem mensagem específica, logar o erro completo
+      if (requestError.response?.data) {
+        console.log('📋 [API] Response data completo:', requestError.response.data);
       }
 
       // Handle network/timeout errors
       if (!requestError.response) {
+        console.error('🌐 [API] Erro de rede/conexão:', {
+          code: requestError.code,
+          message: requestError.message,
+          url: requestError.config?.url,
+          method: requestError.config?.method,
+          timeout: requestError.config?.timeout,
+          hasRequest: !!requestError.request,
+        });
+
         if (requestError.code === 'ECONNABORTED' || requestError.message.includes('timeout')) {
           return Promise.reject(new AppError('Tempo limite excedido. Verifique sua conexão.'));
         }

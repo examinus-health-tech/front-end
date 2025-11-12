@@ -44,11 +44,37 @@ function base64DecodeToBytes(b64: string): Uint8Array {
   return new Uint8Array(output);
 }
 
-function bytesToAscii(bytes: Uint8Array): string {
+function bytesToUtf8(bytes: Uint8Array): string {
+  // Implementação manual de decodificação UTF-8
   let result = '';
-  for (let i = 0; i < bytes.length; i++) {
-    result += String.fromCharCode(bytes[i]);
+  let i = 0;
+
+  while (i < bytes.length) {
+    const byte1 = bytes[i++];
+
+    if (byte1 < 0x80) {
+      // 1-byte character (ASCII)
+      result += String.fromCharCode(byte1);
+    } else if (byte1 < 0xE0) {
+      // 2-byte character
+      const byte2 = bytes[i++];
+      result += String.fromCharCode(((byte1 & 0x1F) << 6) | (byte2 & 0x3F));
+    } else if (byte1 < 0xF0) {
+      // 3-byte character
+      const byte2 = bytes[i++];
+      const byte3 = bytes[i++];
+      result += String.fromCharCode(((byte1 & 0x0F) << 12) | ((byte2 & 0x3F) << 6) | (byte3 & 0x3F));
+    } else {
+      // 4-byte character (codepoint > 0xFFFF)
+      const byte2 = bytes[i++];
+      const byte3 = bytes[i++];
+      const byte4 = bytes[i++];
+      let codepoint = ((byte1 & 0x07) << 18) | ((byte2 & 0x3F) << 12) | ((byte3 & 0x3F) << 6) | (byte4 & 0x3F);
+      codepoint -= 0x10000;
+      result += String.fromCharCode(0xD800 + (codepoint >> 10), 0xDC00 + (codepoint & 0x3FF));
+    }
   }
+
   return result;
 }
 
@@ -60,7 +86,7 @@ export function decodeJwtPayload(token: string): JwtPayload | null {
   try {
     const payloadB64 = base64UrlToBase64(parts[1]);
     const bytes = base64DecodeToBytes(payloadB64);
-    const jsonStr = bytesToAscii(bytes);
+    const jsonStr = bytesToUtf8(bytes);
     return JSON.parse(jsonStr);
   } catch {
     return null;

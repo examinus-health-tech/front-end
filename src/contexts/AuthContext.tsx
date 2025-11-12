@@ -10,6 +10,7 @@ interface User {
   name?: string;
   token?: string;
   fullName?: string;
+  email?: string;
 }
 
 interface AuthContextData {
@@ -136,10 +137,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null); // Limpar erro anterior
 
+      const startTime = Date.now();
+
       logger.auth('Starting login attempt', {
         userName,
         action: 'signIn',
         apiUrl: process.env.EXPO_PUBLIC_API_URL,
+      });
+
+      console.log('🔐 [LOGIN] Iniciando login:', {
+        userName,
+        timestamp: new Date().toISOString(),
+        timeout: '30s',
       });
 
       // Add timeout to login request
@@ -154,8 +163,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
 
+      const elapsed = Date.now() - startTime;
+      console.log('⏱️ [LOGIN] Tempo de resposta:', `${elapsed}ms (${(elapsed / 1000).toFixed(2)}s)`);
+
       const { data } = response;
       const userData = data.data;
+
+      // LOG DETALHADO: Ver exatamente o que o backend está retornando
+      console.log('📊 [AUTH] Dados recebidos do backend (signIn):', {
+        userId: userData.userId,
+        name: userData.name,
+        fullName: userData.fullName,
+        email: userData.email,
+        hasToken: !!userData.token,
+        allFields: Object.keys(userData),
+      });
 
       // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
       // O checkOnboardingCompletion buscará os dados corretos do servidor
@@ -163,17 +185,66 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
       console.log('✅ [AUTH] Dados de onboarding locais removidos no login');
 
+      // ⚠️ TEMPORÁRIO: Extrair email do token JWT se não vier do backend
+      // TODO: Backend deveria retornar email diretamente
+      let emailFromToken = userData.email;
+      if (userData.token && !emailFromToken) {
+        try {
+          const tokenPayload = decodeJwtPayload(userData.token);
+          emailFromToken = tokenPayload?.Email || tokenPayload?.email;
+          console.log('⚠️ [AUTH] Email NÃO veio do backend, extraído do JWT:', emailFromToken);
+        } catch (error) {
+          console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
+        }
+      }
+
       const formattedUserData = {
         userId: userData.userId,
         name: userData.name,
         token: userData.token,
         fullName: userData.fullName || userData.name,
+        email: emailFromToken || userData.email,
       };
 
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
-      console.log('✅ [AUTH] Usuário setado:', { userId: formattedUserData.userId, name: formattedUserData.name });
+      console.log('✅ [AUTH] Usuário setado:', {
+        userId: formattedUserData.userId,
+        name: formattedUserData.name,
+        email: formattedUserData.email
+      });
       setUser(formattedUserData);
     } catch (error: any) {
+      // Log estruturado completo
+      const errorDetails = {
+        timestamp: new Date().toISOString(),
+        action: 'signIn',
+        userName,
+        error: {
+          message: error?.message,
+          code: error?.code,
+          name: error?.name,
+        },
+        request: {
+          hasRequest: !!error.request,
+          url: error?.config?.url,
+          method: error?.config?.method,
+          timeout: error?.config?.timeout,
+        },
+        response: error?.response ? {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+        } : null,
+      };
+
+      console.error('❌ [LOGIN ERROR]', {
+        userName,
+        status: error?.response?.status,
+        message: error?.message,
+      });
+
+      console.error('📋 [LOGIN ERROR - Detalhes completos]', JSON.stringify(errorDetails, null, 2));
+
       logger.error('Login failed', {
         action: 'signIn',
         userName,
@@ -237,23 +308,58 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const loginPromise = api.post('authentication/external', payload);
       const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
 
+      // LOG: Verificar se o backend está enviando cookies
+      console.log('🍪 [AUTH] Headers da resposta:', {
+        headers: response.headers,
+        setCookie: response.headers['set-cookie'],
+        allHeaderKeys: Object.keys(response.headers || {}),
+      });
+
       const { data } = response;
       const userData = data.data;
+
+      // LOG DETALHADO: Ver exatamente o que o backend está retornando
+      console.log('📊 [AUTH] Dados recebidos do backend (signInWithGoogle):', {
+        userId: userData.userId,
+        name: userData.name,
+        fullName: userData.fullName,
+        email: userData.email,
+        hasToken: !!userData.token,
+        allFields: Object.keys(userData),
+      });
 
       // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
       console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login Google...');
       await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
       console.log('✅ [AUTH] Dados de onboarding locais removidos no login Google');
 
+      // ⚠️ TEMPORÁRIO: Extrair email do token JWT se não vier do backend
+      // TODO: Backend deveria retornar email diretamente
+      let emailFromToken = userData.email;
+      if (userData.token && !emailFromToken) {
+        try {
+          const tokenPayload = decodeJwtPayload(userData.token);
+          emailFromToken = tokenPayload?.Email || tokenPayload?.email;
+          console.log('⚠️ [AUTH] Email NÃO veio do backend, extraído do JWT:', emailFromToken);
+        } catch (error) {
+          console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
+        }
+      }
+
       const formattedUserData = {
         userId: userData.userId,
         name: userData.name,
         token: userData.token,
         fullName: userData.fullName || userData.name,
+        email: emailFromToken || userData.email,
       };
 
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
-      console.log('✅ [AUTH] Usuário Google setado:', { userId: formattedUserData.userId, name: formattedUserData.name });
+      console.log('✅ [AUTH] Usuário Google setado:', {
+        userId: formattedUserData.userId,
+        name: formattedUserData.name,
+        email: formattedUserData.email
+      });
       setUser(formattedUserData);
     } catch (error: any) {
       console.error('❌ [AUTH] Erro no login Google:', {
@@ -322,62 +428,105 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const signupPromise = api.post('authentication/external', payload);
       const response = (await Promise.race([signupPromise, timeoutPromise])) as any;
 
-      console.log('✅ [AUTH] Cadastro Google bem-sucedido! Response:', {
+      console.log('✅ [AUTH] Resposta do cadastro Google:', {
         status: response.status,
         hasData: !!response.data,
-        userData: response.data?.data
-          ? {
-              userId: response.data.data.userId,
-              name: response.data.data.name,
-              hasToken: !!response.data.data.token,
-            }
-          : null,
+        dataContent: response.data,
       });
 
       const { data } = response;
-      const userData = data.data;
 
-      // Ensure userData has the correct structure for app usage
-      const formattedUserData = {
-        userId: userData.userId,
-        name: userData.name,
-        token: userData.token,
-        fullName: userData.fullName || userData.name, // fallback
-      };
+      // Se já existe um usuário (signin automático), vai ter userData
+      if (data?.data && data.data.userId && data.data.token) {
+        console.log('✅ [AUTH] Usuário Google já existe - fazendo login automático');
 
-      // Limpar dados de onboarding antigos para novo usuário
-      await AsyncStorage.removeItem('@app:personalData');
-      await AsyncStorage.removeItem('@app:onboardingData');
-      console.log('🧹 Dados de onboarding antigos removidos (cadastro Google)');
+        const userData = data.data;
 
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+        // Extrair email do token JWT
+        let emailFromToken = userData.email;
+        if (userData.token && !emailFromToken) {
+          try {
+            const tokenPayload = decodeJwtPayload(userData.token);
+            emailFromToken = tokenPayload?.Email || tokenPayload?.email;
+          } catch (error) {
+            console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
+          }
+        }
 
-      // Add small delay for smooth transition
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
+        const formattedUserData = {
+          userId: userData.userId,
+          name: userData.name,
+          token: userData.token,
+          fullName: userData.fullName || userData.name,
+          email: emailFromToken || userData.email,
+        };
 
-      setUser(formattedUserData);
+        // Limpar dados de onboarding de outro usuário
+        await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
+        console.log('🧹 Dados de onboarding antigos removidos (login Google)');
+
+        await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+        setUser(formattedUserData);
+        return;
+      }
+
+      // Se não tem userData mas status é 201/204, é um cadastro novo bem-sucedido
+      if (response.status === 201 || response.status === 204) {
+        console.log('✅ [AUTH] Novo usuário Google cadastrado com sucesso');
+
+        // Limpar dados de onboarding antigos
+        await AsyncStorage.removeItem('@app:personalData');
+        await AsyncStorage.removeItem('@app:onboardingData');
+        console.log('🧹 Dados de onboarding antigos removidos (cadastro Google novo)');
+
+        // Redirecionar para onboarding ou home (o hook vai detectar que não tem dados completos)
+        setUser(null);
+        return;
+      }
+
+      // Se chegou aqui, algo está errado
+      throw new Error('Resposta inesperada do servidor');
     } catch (error: any) {
-      console.log('❌ Erro no cadastro Google:', error);
+      console.log('❌ Erro no cadastro Google:', {
+        message: error?.message,
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        responseData: error?.response?.data,
+        hasResponse: !!error.response,
+        hasRequest: !!error.request,
+      });
 
       let errorMessage = 'Erro ao fazer cadastro com Google.';
 
       if (error.message === 'Tempo limite excedido. Tente novamente.') {
         errorMessage = error.message;
       } else if (error.response) {
+        console.log('📊 Detalhes do erro do servidor:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        });
+
         if (error.response.status === 401) {
           errorMessage = 'Não foi possível autenticar com Google.';
         } else if (error.response.status === 400) {
-          errorMessage = error.response.data?.message || 'Dados inválidos do Google.';
+          // Extrair mensagem detalhada do backend
+          const backendMessage = error.response.data?.message || error.response.data?.error;
+          errorMessage = backendMessage || 'Dados inválidos do Google.';
         } else if (error.response.status === 409) {
           errorMessage = 'Usuário já existe. Tente fazer login.';
         } else if (error.response.status >= 500) {
-          errorMessage = 'Erro interno do servidor. Tente novamente.';
+          // Mostrar mensagem do backend se disponível
+          const backendMessage = error.response.data?.message || error.response.data?.error;
+          errorMessage = backendMessage || 'Erro interno do servidor. Tente novamente.';
         } else {
           errorMessage = error.response.data?.message || 'Erro no servidor.';
         }
       } else if (error.request) {
         errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
       }
+
+      console.log('🚨 Mensagem de erro final (Google signup):', errorMessage);
 
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -637,14 +786,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('🚀 Criando conta para:', email);
+      const startTime = Date.now();
 
-      const response = await api.post('users', {
-        fullname,
+      console.log('🚀 [SIGNUP] Iniciando cadastro:', {
         email,
-        password,
-        confirmationPassword,
+        fullname,
+        timestamp: new Date().toISOString(),
+        timeout: '45s',
       });
+
+      // Add timeout de 45s - backend leva ~30s para processar cadastro
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Tempo limite excedido. O cadastro pode demorar um pouco. Tente novamente.')), 45000)
+      );
+
+      const signupPromise = api.post('users',
+        {
+          fullname,
+          email,
+          password,
+          confirmationPassword,
+        },
+        {
+          timeout: 45000, // Sobrescrever timeout global para essa requisição
+        }
+      );
+
+      const response = (await Promise.race([signupPromise, timeoutPromise])) as any;
+
+      const elapsed = Date.now() - startTime;
+
+      console.log('⏱️ [SIGNUP] Tempo de resposta:', `${elapsed}ms (${(elapsed / 1000).toFixed(2)}s)`);
 
       console.log('✅ Cadastro bem-sucedido:', {
         status: response.status,
@@ -733,19 +905,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       console.log('✅ Login automático realizado após cadastro');
     } catch (error: any) {
-      // Log detalhado do erro para debug
-      console.log('❌ Erro no cadastro:', {
-        message: error?.message,
+      // Log estruturado completo do erro
+      const errorDetails = {
+        timestamp: new Date().toISOString(),
+        action: 'signUp',
+        email,
+        error: {
+          message: error?.message,
+          code: error?.code,
+          name: error?.name,
+        },
+        request: {
+          hasRequest: !!error.request,
+          url: error?.config?.url,
+          method: error?.config?.method,
+          timeout: error?.config?.timeout,
+        },
+        response: error?.response ? {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          headers: error.response.headers,
+        } : null,
+      };
+
+      console.error('❌ [SIGNUP ERROR]', {
+        email,
         status: error?.response?.status,
-        statusText: error?.response?.statusText,
-        responseData: error?.response?.data,
-        errorResponse: error?.response,
-        hasResponse: !!error.response,
-        hasRequest: !!error.request,
-        fullError: error,
+        message: error?.message,
       });
 
+      console.error('📋 [SIGNUP ERROR - Detalhes completos]', JSON.stringify(errorDetails, null, 2));
+
       let errorMessage = 'Erro ao criar conta.';
+
+      // Tratamento específico para timeout
+      if (error.message && error.message.includes('Tempo limite excedido')) {
+        errorMessage = error.message;
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
 
       // Caso especial: erro com propriedade 'response' direta (não error.response)
       if (error.response && Array.isArray(error.response) && !error.response.status) {
@@ -878,7 +1077,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true);
 
-      const response = await api.get('/users/' + user?.userId);
+      console.log('🔍 [AUTH] Buscando informações do usuário:', {
+        userId: user.userId,
+        url: `users/${user.userId}`,
+        baseURL: (api as any)?.defaults?.baseURL,
+        hasToken: !!user.token,
+      });
+
+      const response = await api.get('users/' + user?.userId);
 
       const newUserContent = {
         ...user,
@@ -887,9 +1093,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       setUser(newUserContent);
     } catch (error: any) {
+      // Silenciar erros 404/500 relacionados a usuários OAuth não encontrados
+      // Isso acontece quando o backend tem problemas para encontrar usuários criados via OAuth
+      const isUserNotFound =
+        error?.message?.includes('Usuário autenticado não encontrado') ||
+        error?.message?.includes('404');
+
+      if (isUserNotFound) {
+        console.log('⚠️ [AUTH] Backend não encontrou usuário (provável usuário OAuth), mantendo dados do token');
+        return;
+      }
+
+      // Para outros erros, logar mas não quebrar a aplicação
+      console.error('❌ [AUTH] Erro ao buscar informações do usuário:', error.message);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setError(errorMessage);
-      throw error;
     } finally {
       setIsLoading(false);
     }
