@@ -5,6 +5,11 @@ import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
 import * as Updates from 'expo-updates';
 import * as SplashScreen from 'expo-splash-screen';
+import { OneSignal, LogLevel } from 'react-native-onesignal';
+
+OneSignal.initialize('c101b9a0-32fe-43ad-8a87-820c766b136e');
+OneSignal.Debug.setLogLevel(LogLevel.Verbose);
+OneSignal.Notifications.requestPermission(true);
 
 // Polyfill for BackHandler.removeEventListener (deprecated in RN 0.79)
 if (!BackHandler.removeEventListener) {
@@ -25,10 +30,39 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ExamContextProvider } from '@contexts/ExamContext';
 
+import { NavigationContainer } from '@react-navigation/native';
+import { navigationRef } from './src/services/navigationService';
+
 export default function App() {
   const [ready, setReady] = useState(false);
   const [splashVideoFinish, setSplashVideoFinish] = useState<boolean>(false);
   const [additionalFontsLoaded, setAdditionalFontsLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    const onClick = (event: any) => {
+      const data = event?.notification?.additionalData;
+
+      console.log('Notification clicked:', JSON.stringify(event, null, 2));
+
+      if (!data) return;
+
+      if (navigationRef.isReady()) {
+        navigationRef.navigate('notifications', {
+          notificationId: data?.notificationId,
+          type: data?.type,
+        });
+      } else {
+        console.log('Navigation not ready yet, cannot navigate.');
+      }
+    };
+
+    OneSignal.Notifications.addEventListener('click', onClick);
+
+    // cleanup pra não acumular listeners em dev
+    return () => {
+      OneSignal.Notifications.removeEventListener('click', onClick);
+    };
+  }, []);
 
   // Load essential fonts first
   const [fontsLoaded] = useFonts({
@@ -100,24 +134,28 @@ export default function App() {
   }
 
   return (
-    <NativeBaseProvider theme={THEME}>
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+    <>
+      <NavigationContainer ref={navigationRef}>
+        <NativeBaseProvider theme={THEME}>
+          <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <AuthProvider>
-        <OnboardingContextProvider>
-          <UploadContextProvider>
-            <ExamContextProvider>
-              <GestureHandlerRootView>
-                <BottomSheetModalProvider>
-                  <HomeContextProvider>
-                    {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
-                  </HomeContextProvider>
-                </BottomSheetModalProvider>
-              </GestureHandlerRootView>
-            </ExamContextProvider>
-          </UploadContextProvider>
-        </OnboardingContextProvider>
-      </AuthProvider>
-    </NativeBaseProvider>
+          <AuthProvider>
+            <OnboardingContextProvider>
+              <UploadContextProvider>
+                <ExamContextProvider>
+                  <GestureHandlerRootView>
+                    <BottomSheetModalProvider>
+                      <HomeContextProvider>
+                        {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
+                      </HomeContextProvider>
+                    </BottomSheetModalProvider>
+                  </GestureHandlerRootView>
+                </ExamContextProvider>
+              </UploadContextProvider>
+            </OnboardingContextProvider>
+          </AuthProvider>
+        </NativeBaseProvider>
+      </NavigationContainer>
+    </>
   );
 }

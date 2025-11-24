@@ -21,7 +21,7 @@ export function ConfigNotifications() {
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
       <VStack flex={1} py={24} mx={6}>
-        <Header title="Notificações" handleBackTo={() => navigation.navigate('myAccount')} />
+        <Header title="Notificações" handleBackTo={() => navigation.goBack()} />
 
         <VStack>
           <HStack justifyContent={'space-between'}>

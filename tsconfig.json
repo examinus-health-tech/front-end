@@ -23,6 +23,7 @@
       "@routes/*": ["./src/routes/*"],
       "@contexts/*": ["./src/contexts/*"],
       "@screens/*": ["./src/screens/*"],
+      "@types/*": ["./src/types/*"],
       "@atoms/*": ["./src/components/atoms/*"],
       "@molecules/*": ["./src/components/molecules/*"],
       "@organisms/*": ["./src/components/organisms/*"],

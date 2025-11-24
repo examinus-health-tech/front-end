@@ -27,7 +27,7 @@ import {
   PasswordConfig,
 } from '@components/pages/OnboardingSetup';
 import { UploadType } from '@components/organisms';
-import { Notifications } from '@screens/Notifications/screens/notifications/notifications';
+import { NotificationsOld } from '@screens/Notifications/screens/notifications/notifications-old';
 import { SuccessSaved } from '@components/pages/Settings/components/successSaved/successSaved';
 
 export type AppRoutes = {
@@ -236,6 +236,7 @@ function HomeTabs() {
 }
 
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
+import { Notifications } from '@screens/Notifications/screens/notifications/notifications';
 
 function AppRoutesContent() {
   const { isOnboardingComplete, checkOnboardingCompletion } = useOnboarding();
@@ -246,10 +247,10 @@ function AppRoutesContent() {
     async function determineInitialRoute() {
       try {
         console.log('🚀 AppRoutes: Determinando rota inicial...');
-        
+
         const isComplete = await checkOnboardingCompletion();
         console.log('📋 AppRoutes: Onboarding completo:', isComplete);
-        
+
         if (isComplete) {
           console.log('➡️ AppRoutes: Definindo homepage como inicial');
           setInitialRoute('homepage');
