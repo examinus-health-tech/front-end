@@ -4,6 +4,8 @@ import { api } from 'src/services/api';
 import { validateStoredToken } from '@utils/tokenValidation';
 import { logger } from '@utils/debugLogger';
 import { decodeJwtPayload } from '@utils/jwt';
+import { registerDeviceOnBackend } from 'src/services/register-device-backend';
+import { OneSignal } from 'react-native-onesignal';
 
 interface User {
   userId?: string;
@@ -206,6 +208,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: emailFromToken || userData.email,
       };
 
+      console.log('Token:', JSON.stringify(formattedUserData, null, 2));
+
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
       console.log('✅ [AUTH] Usuário setado:', {
         userId: formattedUserData.userId,
@@ -213,6 +217,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: formattedUserData.email
       });
       setUser(formattedUserData);
+
+      // 🔔 REGISTRA O DISPOSITIVO APÓS O LOGIN BEM-SUCEDIDO
+      // Aguarda um pouco mais para garantir que OneSignal esteja pronto
+      setTimeout(async () => {
+        try {
+          console.log('📱 Registrando dispositivo OneSignal...');
+          await registerDeviceOnBackend();
+          await OneSignal.login(formattedUserData.userId);
+          console.log('✅ Dispositivo registrado com sucesso');
+        } catch (deviceError) {
+          // ❗ NÃO QUEBRA O LOGIN SE O REGISTRO DO DISPOSITIVO FALHAR
+          console.warn('⚠️ Erro ao registrar dispositivo (não crítico):', deviceError);
+          // Opcional: pode adicionar um toast/lembrete para o usuário
+        }
+      }, 3000); // Delay de 3 segundos após o login
     } catch (error: any) {
       // Log estruturado completo
       const errorDetails = {
@@ -361,6 +380,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: formattedUserData.email
       });
       setUser(formattedUserData);
+
+      // 🔔 REGISTRA O DISPOSITIVO APÓS O LOGIN BEM-SUCEDIDO
+      // Aguarda um pouco mais para garantir que OneSignal esteja pronto
+      setTimeout(async () => {
+        try {
+          console.log('📱 Registrando dispositivo OneSignal (Google)...');
+          await registerDeviceOnBackend();
+          await OneSignal.login(formattedUserData.userId);
+
+          console.log('✅ Dispositivo registrado com sucesso (Google)');
+        } catch (deviceError) {
+          console.warn('⚠️ Erro ao registrar dispositivo (Google - não crítico):', deviceError);
+        }
+      }, 3000); // Delay de 3 segundos após o login
+
+      // Add small delay for smooth transition
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
     } catch (error: any) {
       console.error('❌ [AUTH] Erro no login Google:', {
         message: error?.message,
@@ -453,6 +489,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
 
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
         const formattedUserData = {
           userId: userData.userId,
           name: userData.name,
@@ -484,7 +521,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // Se chegou aqui, algo está errado
+      // 🔔 REGISTRA O DISPOSITIVO APÓS O LOGIN BEM-SUCEDIDO
+      // Aguarda um pouco mais para garantir que OneSignal esteja pronto
+      setTimeout(async () => {
+        try {
+          console.log('📱 Registrando dispositivo OneSignal (Apple)...');
+          await registerDeviceOnBackend();
+          const oneSignalId = await OneSignal.User.getOnesignalId();
+          await OneSignal.login(oneSignalId);
+          console.log('✅ Dispositivo registrado com sucesso (Apple)');
+        } catch (deviceError) {
+          console.warn('⚠️ Erro ao registrar dispositivo (Apple - não crítico):', deviceError);
+        }
+      }, 3000); // Delay de 3 segundos após o login
+
+      // Add small delay for smooth transition
+      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
+
+   	  // Se chegou aqui, algo está errado
       throw new Error('Resposta inesperada do servidor');
     } catch (error: any) {
       console.log('❌ Erro no cadastro Google:', {
@@ -563,9 +617,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const joinedName = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : '';
       const formattedFullName = joinedName.length > 0 ? joinedName : undefined;
       const fallbackFullName =
-        formattedFullName ||
-        (resolvedEmail ? resolvedEmail.split('@')[0] || undefined : undefined) ||
-        'Apple User';
+        formattedFullName || (resolvedEmail ? resolvedEmail.split('@')[0] || undefined : undefined) || 'Apple User';
 
       logger.network('Apple resolved fields (signIn)', {
         apiUrl: 'local',
@@ -629,10 +681,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
       console.log('✅ [AUTH] Usuário Apple setado:', { userId: formattedUserData.userId, name: formattedUserData.name });
 
+      setUser(formattedUserData);
+
+      // 🔔 REGISTRA O DISPOSITIVO APÓS O LOGIN BEM-SUCEDIDO
+      try {
+        console.log('📱 Registrando dispositivo OneSignal (Apple)...');
+        await registerDeviceOnBackend();
+        await OneSignal.login(formattedUserData.userId);
+        console.log('✅ Dispositivo registrado com sucesso (Apple)');
+      } catch (deviceError) {
+        console.warn('⚠️ Erro ao registrar dispositivo (Apple - não crítico):', deviceError);
+      }
+
       // Add small delay for smooth transition
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
-
-      setUser(formattedUserData);
     } catch (error: any) {
       console.log('❌ Erro no login Apple:', error);
 
@@ -679,11 +741,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const joinedName = fullName ? `${fullName.givenName || ''} ${fullName.familyName || ''}`.trim() : '';
       const formattedFullName = joinedName.length > 0 ? joinedName : undefined;
-      const fallbackFullName = formattedFullName || (email ? (email.split('@')[0] || undefined) : undefined) || 'Apple User';
+      const fallbackFullName =
+        formattedFullName || (email ? email.split('@')[0] || undefined : undefined) || 'Apple User';
 
       logger.auth('Apple claims resolved (signUp)', {
         action: 'apple_signup_claims',
-        extra: { hasClaims: !!claims, claims, emailFromCredential, chosenEmail: email, appleUserId, formattedFullName, fallbackFullName },
+        extra: {
+          hasClaims: !!claims,
+          claims,
+          emailFromCredential,
+          chosenEmail: email,
+          appleUserId,
+          formattedFullName,
+          fallbackFullName,
+        },
       });
 
       const urlPath = 'authentication/external';

@@ -286,7 +286,7 @@ export function MyAccount() {
                   flex={1}
                   variant="primary"
                   size="md"
-                  title={isSigningOut ? "Saindo..." : "Sair"}
+                  title={isSigningOut ? 'Saindo...' : 'Sair'}
                   onPress={handleSignOut}
                   bgColor="red.500"
                   _pressed={{ bgColor: 'red.600' }}

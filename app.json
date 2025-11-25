@@ -34,6 +34,9 @@
         "applinks:www.examinus.app"
       ],
       "infoPlist": {
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
         "NSMicrophoneUsageDescription": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais.",
@@ -53,6 +56,18 @@
           }
         ]
       },
+      "entitlements": {
+        "aps-environment": "production",
+        "com.apple.security.application-groups": [
+          "group.com.examinus.app.onesignal"
+        ]
+      },
+      "entitlements": {
+        "aps-environment": "production",
+        "com.apple.security.application-groups": [
+          "group.com.examinus.app.onesignal"
+        ]
+      },
       "appleTeamId": "NLLSSU23C9"
     },
     "android": {
@@ -61,7 +76,6 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.examinus.app",
       "jsEngine": "jsc",
       "permissions": [
         "android.permission.CAMERA",
@@ -99,6 +113,12 @@
           "iCloudContainerEnvironment": "Production"
         }
       ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
+        }
+      ],
       "expo-font",
       [
         "expo-camera",
@@ -112,6 +132,12 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.477011438187-7gnqtm50ep300onpk68e1099tj0rse3v"
+        }
+      ],
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "production"
         }
       ]
     ],
