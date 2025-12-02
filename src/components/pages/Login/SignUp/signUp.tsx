@@ -12,6 +12,9 @@ import {
   useToast,
   ScrollView,
   KeyboardAvoidingView,
+  Spinner,
+  Center,
+  VStack,
 } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -56,7 +59,7 @@ export function SignUp() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isTakeLook, setIsTakeLook] = useState<boolean>(false);
   const [isTakeLookConfirm, setIsTakeLookConfirm] = useState<boolean>(false);
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
   const { signUp } = useAuth();
   const { signUpWithGoogle, isLoading: isGoogleLoading, isConfigured: isGoogleConfigured } = useGoogleAuth();
   const { signUpWithApple, isLoading: isAppleLoading, isAvailable: isAppleAvailable } = useAppleAuth();
@@ -174,14 +177,38 @@ export function SignUp() {
     }
   }
 
-  return (
-    <KeyboardAvoidingView behavior="padding">
-      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-        <Flex justify="space-between" mx={6} py={32} h="100%">
+  // Verifica se está carregando cadastro externo (Google ou Apple)
+  const isExternalAuthLoading = isGoogleLoading || isAppleLoading;
 
-          <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={2}>
-            Cadastre-se
-          </Text>
+  return (
+    <>
+      {/* Overlay de carregamento para cadastro externo */}
+      {isExternalAuthLoading && (
+        <Center
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          bg="rgba(255,255,255,0.9)"
+          zIndex={999}
+        >
+          <VStack space={4} alignItems="center">
+            <Spinner size="lg" color="ciano.500" />
+            <Text color="gray.600" fontSize={16} fontWeight={500}>
+              {isGoogleLoading ? 'Conectando com Google...' : 'Conectando com Apple...'}
+            </Text>
+          </VStack>
+        </Center>
+      )}
+
+      <KeyboardAvoidingView behavior="padding">
+        <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+          <Flex justify="space-between" mx={6} py={32} h="100%">
+
+            <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={2}>
+              Cadastre-se
+            </Text>
 
           <Stack mt={2} space={6}>
             <Controller
@@ -330,7 +357,7 @@ export function SignUp() {
             size="full"
             title="Cadastrar"
             marginTop={4}
-            onPress={handleSubmit(handleSignUp)}
+            onPress={handleSubmit(handleSignUp as any)}
             isLoading={isLoading}
           />
 
@@ -421,5 +448,6 @@ export function SignUp() {
         </Flex>
       </ScrollView>
     </KeyboardAvoidingView>
+    </>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useMemo } from 'react';
-import { VStack, Text, useDisclose, Box, HStack, ScrollView, IScrollViewProps, Image } from 'native-base';
+import { VStack, Text, useDisclose, Box, HStack, ScrollView, Image } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import { TouchableOpacity } from 'react-native';
 
@@ -21,7 +21,7 @@ import { useHome } from 'src/hooks/useHome';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 
 export function HeartScore() {
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
   const { currentSystem, setCurrentSystem } = useHome();
   const { personalData } = useOnboarding();
@@ -63,7 +63,7 @@ export function HeartScore() {
           withBackButton={() => {
             navigation.navigate('healthWallet');
           }}
-          badgeVariant={currentSystem.nivel}
+          badgeVariant={currentSystem.nivel as 'risco alto' | 'risco normal' | 'excelente'}
         />
 
         <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

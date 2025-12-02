@@ -89,39 +89,24 @@ export function Code() {
   }
 
   async function handleResendConfirmationCode() {
-    try {
-      setIsLoading(true);
-
-      await resendConfirmationCode(emailTemp);
-
-      navigation.navigate('successLink');
-    } catch (error) {
-      const isAppError = error instanceof AppError;
-
-      const title = isAppError
-        ? 'Não foi possível encontrar sua conta.'
-        : 'Não foi possível encontrar sua conta.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
-
-      toast.show({
-        borderRadius: '12',
-        title,
-        description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    // TODO: Implementar reenvio de código quando a API estiver disponível
+    // A função resendConfirmationCode e emailTemp precisam ser implementadas
+    toast.show({
+      borderRadius: '12',
+      title: 'Reenvio de código',
+      description: 'Funcionalidade em desenvolvimento',
+      _title: {
+        textAlign: 'center',
+        mx: '4',
+      },
+      _description: {
+        textAlign: 'center',
+        mx: '4',
+      },
+      placement: 'top',
+      color: 'gray.900',
+      bgColor: 'yellow.500',
+    });
   }
 
   return (

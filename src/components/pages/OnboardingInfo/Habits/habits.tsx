@@ -29,7 +29,7 @@ export function Habits() {
 
   useEffect(() => {
     if (onboardingData.eatingHabits) {
-      setSelectedHabit(onboardingData.eatingHabits);
+      setSelectedHabit(onboardingData.eatingHabits as ISelectedHabit);
     }
   }, []);
 

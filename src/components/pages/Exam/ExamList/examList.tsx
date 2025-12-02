@@ -186,7 +186,7 @@ export function ExamList() {
       const searchTerm = filters.search.toLowerCase();
       filtered = filtered.filter(
         (exam) =>
-          exam.labor_name?.toLowerCase().includes(searchTerm) || exam.doctor_name?.toLowerCase().includes(searchTerm)
+          exam.laboratoryName?.toLowerCase().includes(searchTerm) || exam.doctorName?.toLowerCase().includes(searchTerm)
       );
     }
 
@@ -591,10 +591,6 @@ export function ExamList() {
                           borderWidth={1}
                           borderColor="gray.300"
                           borderRadius={10}
-                          _focus={{
-                            borderColor: 'ciano.500',
-                            borderWidth: 2,
-                          }}
                           _actionSheetContent={{
                             bg: 'white',
                           }}

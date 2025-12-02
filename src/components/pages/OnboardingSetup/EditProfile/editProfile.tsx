@@ -3,7 +3,6 @@ import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   Flex,
-  IScrollViewProps,
   Icon,
   ScrollView,
   Text,
@@ -26,7 +25,7 @@ import { HeaderProgress, Input } from '@components/molecules';
 
 export function EditProfile() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
 
   return (
     <ScrollView
@@ -36,7 +35,7 @@ export function EditProfile() {
       automaticallyAdjustKeyboardInsets={true}
     >
       <VStack flex={1} space={8} py={24}>
-        <HeaderProgress progressValue={60} jumpTo={() => {}} withBackButton />
+        <HeaderProgress progressValue={60} jumpTo={() => {}} withBackButton={() => navigation.goBack()} />
 
         <VStack flex={1} mx={6} space={2}>
           <Text

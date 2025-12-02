@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { TouchableOpacity, useWindowDimensions, RefreshControl } from 'react-native';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Image, Badge, Center } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center } from 'native-base';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api } from 'src/services/api';
 import ContentLoader, { Rect, Circle } from 'react-content-loader/native';
@@ -44,7 +44,7 @@ export function Homepage() {
   const [userWithoutData, setUserWithoutData] = useState<boolean>(true);
   const [userTrackerData, setUserTrackerData] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { user, getUserInfo, isLoading } = useAuth();
@@ -78,7 +78,7 @@ export function Homepage() {
   const weekday = new Date().toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
   const date = new Date()
     .toLocaleDateString('pt-BR', { day: 'numeric', month: 'short', year: 'numeric' })
-    .replace(/de/g, '')
+    .replace(/ de /g, ' ')
     .replace('.', '');
 
   async function handleGetHeathData() {

@@ -39,7 +39,7 @@ export function Physical() {
       levelSelecionado: level
     });
     if (level) {
-      setSelectedPhysical(level);
+      setSelectedPhysical(level as ISelectedPhysical);
     }
   }, []);
 

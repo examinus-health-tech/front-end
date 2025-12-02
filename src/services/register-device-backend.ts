@@ -49,7 +49,7 @@ function startAppStateListener() {
 export async function registerDeviceOnBackend() {
   // Delay inicial para dar tempo ao OneSignal se inicializar após o login
   console.log('[OneSignal] Aguardando inicialização...');
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  await new Promise<void>((resolve) => setTimeout(resolve, 2000));
 
   // Função para tentar obter o Player ID com retry
   const getPlayerIdWithRetry = async (maxRetries = 15, delayMs = 1500): Promise<string | null> => {
@@ -66,7 +66,7 @@ export async function registerDeviceOnBackend() {
 
       if (i < maxRetries - 1) {
         console.log(`[OneSignal] Aguardando ${delayMs}ms antes da próxima tentativa...`);
-        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        await new Promise<void>((resolve) => setTimeout(resolve, delayMs));
       }
     }
 

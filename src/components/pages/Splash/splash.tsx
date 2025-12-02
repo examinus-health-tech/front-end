@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Platform, Dimensions, StatusBar } from 'react-native';
 import { View, Image } from 'native-base';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -31,6 +31,29 @@ export function Splash() {
     }
   });
 
+  // Listener para status do player (substituindo onPlaybackStatusUpdate que não existe no expo-video)
+  useEffect(() => {
+    if (!player) return;
+
+    const statusSubscription = player.addListener('statusChange', (event) => {
+      console.log(`Video status on ${Platform.OS}:`, event);
+      // O evento é do tipo StatusChangeEventPayload, verificamos a propriedade status
+      const status = (event as any)?.status || event;
+      if ((status === 'readyToPlay' || status === 'playing') && !isReady) {
+        console.log('Video is ready!');
+        setIsReady(true);
+      }
+      if (status === 'error') {
+        console.error('Video error');
+        setHasError(true);
+      }
+    });
+
+    return () => {
+      statusSubscription?.remove();
+    };
+  }, [player, isReady]);
+
   // Se houver erro, mostrar imagem
   if (hasError) {
     console.log('Showing fallback image due to error');
@@ -62,23 +85,6 @@ export function Splash() {
         allowsFullscreen={false}
         allowsPictureInPicture={false}
         contentFit="cover"
-        onPlaybackStatusUpdate={(status) => {
-          console.log(`Video status on ${Platform.OS}:`, {
-            isLoaded: status.isLoaded,
-            isPlaying: status.isPlaying,
-            error: status.error,
-          });
-
-          if (status.isLoaded && !isReady) {
-            console.log('Video is ready!');
-            setIsReady(true);
-          }
-
-          if (status.error) {
-            console.error('Video error:', status.error);
-            setHasError(true);
-          }
-        }}
       />
 
       {/* Loading image para Android enquanto vídeo não carrega */}

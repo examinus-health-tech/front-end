@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { Box, IScrollViewProps, Image, ScrollView, StatusBar, VStack, Flex, Icon, WarningOutlineIcon, Text, useToast } from 'native-base';
+import { Box, Image, ScrollView, StatusBar, VStack, Flex, Icon, WarningOutlineIcon, Text, useToast } from 'native-base';
 import { useRef, useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -84,7 +84,7 @@ export function Info() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
   const toast = useToast();
 
@@ -95,7 +95,7 @@ export function Info() {
     formState: { errors },
     setValue,
   } = useForm<FormDataProps>({
-    resolver: yupResolver(infoSchema),
+    resolver: yupResolver(infoSchema) as any,
     defaultValues: {
       fullName: '',
       email: '',
@@ -495,7 +495,7 @@ export function Info() {
             variant="primary"
             size="full"
             title={isSaving ? "Salvando..." : "Salvar"}
-            onPress={handleSubmit(handleSaveInfo)}
+            onPress={handleSubmit(handleSaveInfo as any)}
             icon={<CheckIcon color="#FFFFFF" size="28" />}
             isLoading={isSaving}
             disabled={isSaving || isLoading}

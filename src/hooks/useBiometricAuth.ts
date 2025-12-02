@@ -34,7 +34,8 @@ async function getDeviceId(): Promise<string> {
       const iosId = await Application.getIosIdForVendorAsync();
       return iosId || 'ios-unknown';
     }
-    return Application.androidId || 'android-unknown';
+    const androidId = Application.getAndroidId();
+    return androidId || 'android-unknown';
   } catch (error) {
     console.error('👆 [BIOMETRIC] Erro ao obter deviceId:', error);
     return `${Platform.OS}-fallback-${Date.now()}`;
@@ -87,7 +88,8 @@ export function useBiometricAuth() {
   }, []);
 
   // Verifica se a biometria esta habilitada (tem token valido)
-  const checkBiometricEnabled = useCallback(async () => {
+  // Se currentUserId for fornecido, verifica se o token pertence a esse usuário
+  const checkBiometricEnabled = useCallback(async (currentUserId?: string) => {
     try {
       const tokenData = await SecureStore.getItemAsync(BIOMETRIC_TOKEN_KEY);
 
@@ -107,7 +109,14 @@ export function useBiometricAuth() {
         return false;
       }
 
-      console.log('👆 [BIOMETRIC] Token valido encontrado');
+      // Se um userId foi fornecido, verifica se o token pertence a esse usuário
+      if (currentUserId && parsed.userId !== currentUserId) {
+        console.log('👆 [BIOMETRIC] Token pertence a outro usuário, ignorando...');
+        setIsEnabled(false);
+        return false;
+      }
+
+      console.log('👆 [BIOMETRIC] Token valido encontrado para o usuário atual');
       setIsEnabled(true);
       return true;
     } catch (error) {

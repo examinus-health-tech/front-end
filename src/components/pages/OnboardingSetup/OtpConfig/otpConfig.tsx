@@ -3,7 +3,6 @@ import { TouchableOpacity } from 'react-native';
 import {
   Center,
   Flex,
-  IScrollViewProps,
   Icon,
   Image,
   ScrollView,
@@ -18,12 +17,12 @@ import { Button } from '@components/atoms/Button/button';
 import { HeaderTitle, Input } from '@components/molecules';
 
 export function OtpConfig() {
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
       <VStack flex={1} space={8} py={24}>
-        <HeaderTitle title="OTP Configuração" withBackButton />
+        <HeaderTitle title="OTP Configuração" withBackButton={() => {}} />
 
         <Image
           source={Vector}

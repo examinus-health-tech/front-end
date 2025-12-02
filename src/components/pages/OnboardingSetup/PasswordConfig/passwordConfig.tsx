@@ -6,7 +6,6 @@ import {
   Center,
   Flex,
   HStack,
-  IScrollViewProps,
   Icon,
   ScrollView,
   Text,
@@ -24,12 +23,12 @@ export function PasswordConfig() {
   const [type, setType] = useState<'password' | 'text'>('password');
 
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
       <VStack flex={1} space={8} py={24}>
-        <HeaderProgress progressValue={60} jumpTo={() => {}} withBackButton />
+        <HeaderProgress progressValue={60} jumpTo={() => {}} withBackButton={() => navigation.goBack()} />
 
         <VStack mx={6} space={2}>
           <Text

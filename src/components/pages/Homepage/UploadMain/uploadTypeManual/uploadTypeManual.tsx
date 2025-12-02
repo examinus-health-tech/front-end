@@ -37,12 +37,12 @@ type ExamProps = {
 };
 
 type FormDataProps = {
-  lab: string;
-  medico: string;
-  data: string;
+  lab?: string;
+  medico?: string;
+  data?: string;
   code_exam: string;
-  value: string;
-  reference_unit: string;
+  value?: string;
+  reference_unit?: string;
   exam_id: number;
 };
 
@@ -153,21 +153,21 @@ export function UploadTypeManual() {
         email: user?.email,
         doctor_name: examManual[0].medico || 'Desconhecido',
         labor_name: examManual[0].lab || 'Desconhecido',
-        exam_date: examManual[0].data
-          .toLocaleString('en-US', {
+        exam_date: (examManual[0].data as any)
+          ?.toLocaleString?.('en-US', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
           })
-          .replace(/\//g, '-')
-          .split('-')
-          .reverse()
-          .join('-'),
+          ?.replace?.(/\//g, '-')
+          ?.split?.('-')
+          ?.reverse?.()
+          ?.join?.('-') || examManual[0].data,
         detail: [...detail],
       };
 
-      await handleManualUploadFile(payload);
+      await handleManualUploadFile(payload as any);
     } catch (error) {
       const isAppError = error instanceof AppError;
 

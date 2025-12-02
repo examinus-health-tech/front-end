@@ -11,7 +11,7 @@ import {
 } from 'native-base';
 import { TextInput, Platform, View } from 'react-native';
 
-export type Props = (IInputProps | ISelectProps) & {
+export type Props = {
   leftIcon?: JSX.Element;
   rightIcon?: JSX.Element;
   InputLeftElement?: JSX.Element;
@@ -25,6 +25,7 @@ export type Props = (IInputProps | ISelectProps) & {
   errorMessage?: string;
   isRequired?: boolean;
   wContainer?: string;
+  [key: string]: any;
 };
 
 export interface VariantLeftIconProps {

@@ -36,7 +36,7 @@ export const OnboardingContext = createContext<OnboardingContextDataProps>({} as
 
 export function OnboardingContextProvider({ children }: OnboardingContextProviderProps) {
   const [onboardingData, setOnboardingData] = useState<OnboardingProps>({} as OnboardingProps);
-  const [personalData, setPersonalData] = useState();
+  const [personalData, setPersonalData] = useState<any>();
   const [isLoadingOnboardingContext, setisLoadingOnboardingContext] = useState<boolean>(false);
   const [isLoadingUpload, setIsLoadingUpload] = useState<boolean>(false);
   const [scoreWarning, setScoreWarning] = useState<boolean>(false);

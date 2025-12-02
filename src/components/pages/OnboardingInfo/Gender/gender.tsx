@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Image, VStack, Text, Flex, Box, HStack, Checkbox, ScrollView, IScrollViewProps } from 'native-base';
+import { Image, VStack, Text, Flex, Box, HStack, Checkbox, ScrollView } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 
 // routes
@@ -18,7 +18,7 @@ export function Gender() {
 
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
 
-  const scrollRef = useRef<null | IScrollViewProps | HTMLElement>(null);
+  const scrollRef = useRef<any>(null);
 
   useEffect(() => {
     if (onboardingData.gender) {

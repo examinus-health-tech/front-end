@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Linking, RefreshControl, useWindowDimensions } from 'react-native';
+import { Linking, RefreshControl, useWindowDimensions, TouchableOpacity } from 'react-native';
 import { VStack, Text, HStack, ScrollView, IScrollViewProps, Box, StatusBar, View } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import ContentLoader, { Rect } from 'react-content-loader/native';
 
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
-import { Header } from '../Settings/components/header/header';
 import { NotificationCard } from './components/NotificationCard/notificationCard';
+import { GearIcon, ChevronLeftIcon } from '@assets/icons';
 
 import { api } from 'src/services/api';
 import { Notification } from 'src/@types/notifications';
@@ -59,8 +59,14 @@ export function Notifications() {
   };
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    // Re-busca notificações quando o usuário mudar (login/logout/troca de conta)
+    if (user?.userId) {
+      fetchNotifications();
+    } else {
+      // Limpa notificações se não há usuário logado
+      setNotifications([]);
+    }
+  }, [user?.userId]);
 
   function handleDownloadPdf(url: string) {
     Linking.openURL(url);
@@ -96,18 +102,35 @@ export function Notifications() {
     </ContentLoader>
   );
 
+  // Header customizado com ícone de configurações
+  const CustomHeader = () => (
+    <HStack space={4} alignItems="center" mb={6}>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+        <ChevronLeftIcon size="30" color="#052B3B" />
+      </TouchableOpacity>
+
+      <Text flex={1} color="gray.900" fontWeight={800} fontSize={20} letterSpacing={-0.2}>
+        Notificações
+      </Text>
+
+      <TouchableOpacity onPress={() => navigation.navigate('configNotifications')}>
+        <GearIcon size="24" color="#052B3B" />
+      </TouchableOpacity>
+    </HStack>
+  );
+
   return (
     <View flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {isLoading ? (
         <VStack flex={1} py={16} mx={6}>
-          <Header title="Notificações" handleBackTo={() => navigation.goBack()} />
+          <CustomHeader />
 
           <HStack justifyContent="space-between" alignItems="center" mb={4}>
-            <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color="gray.900">
-              Recentes
-            </Text>
+            <ContentLoader viewBox="0 0 100 24" backgroundColor="#e5e5e5" foregroundColor="#f5f5f5">
+              <Rect x="0" y="0" rx="6" ry="6" width={100} height={24} />
+            </ContentLoader>
             <ContentLoader viewBox="0 0 60 20" backgroundColor="#e5e5e5" foregroundColor="#f5f5f5">
               <Rect x="0" y="0" rx="4" ry="4" width={60} height={20} />
             </ContentLoader>
@@ -127,7 +150,7 @@ export function Notifications() {
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
           <VStack flex={1} py={16} mx={6} mb={20}>
-            <Header title="Notificações" handleBackTo={() => navigation.goBack()} />
+            <CustomHeader />
 
             <HStack justifyContent="space-between" alignItems="center" mb={4}>
               <HStack alignItems="center" space={2}>

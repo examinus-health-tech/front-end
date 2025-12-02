@@ -54,7 +54,7 @@ export function UploadType({
     }
 
     // Aguardar a animação do ActionSheet fechar completamente
-    await new Promise(resolve => setTimeout(resolve, 600));
+    await new Promise<void>(resolve => setTimeout(resolve, 600));
 
     console.log('🏠 [Skip Upload] Navegando para homepage...');
 

@@ -112,15 +112,7 @@ export function UploadCamera({ isOpen, onClose }: UploadCameraProps) {
           uri: photo.uri,
           name: `photo_${Date.now()}.jpg`,
           size: photo.width * photo.height * 0.8,
-          type: 'success',
-          file: {
-            uri: photo.uri,
-            type: 'image/jpeg',
-            name: `photo_${Date.now()}.jpg`,
-          } as any,
-          output: [photo],
-          assets: [],
-          canceled: false,
+          mimeType: 'image/jpeg',
         };
 
         await handleUploadFile(photoAsset);

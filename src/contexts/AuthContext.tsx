@@ -56,12 +56,23 @@ export const AuthContext = createContext<AuthContextData>({} as AuthContextData)
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [resetCode, setResetCode] = useState<string | null>(null);
+  const [resetEmail, setResetEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const signOut = useCallback(async () => {
     try {
       console.log('🚪 Iniciando logout - limpando todos os dados do usuário...');
+
+      // 🔔 Desassocia o dispositivo do usuário no OneSignal
+      // Isso garante que notificações do usuário anterior não cheguem neste dispositivo
+      try {
+        console.log('📱 Desassociando dispositivo do OneSignal...');
+        OneSignal.logout();
+        console.log('✅ Dispositivo desassociado do OneSignal');
+      } catch (oneSignalError) {
+        console.warn('⚠️ Erro ao desassociar OneSignal (não crítico):', oneSignalError);
+      }
 
       // Limpar TODOS os dados armazenados do usuário
       await AsyncStorage.multiRemove([
@@ -80,7 +91,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // ou quando o token expira/e revogado pelo backend.
 
       // Pequeno delay para mostrar o loading
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise<void>((resolve) => setTimeout(resolve, 800));
 
       setUser(null);
       console.log('✅ Logout concluído');
@@ -561,7 +572,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
           }
         }
 
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
         const formattedUserData = {
           userId: userData.userId,
           name: userData.name,
@@ -1164,9 +1174,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
       });
 
-      const userData = { name: email };
-
-      setUser(userData);
+      // Armazena o email para uso nas próximas etapas do fluxo de reset
+      // NÃO usa setUser para não fazer o app pensar que está logado
+      setResetEmail(email);
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setError(errorMessage);
@@ -1181,7 +1191,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
 
       await api.post('password-reset/verify', {
-        email: user?.name,
+        email: resetEmail,
         code,
       });
 
@@ -1200,11 +1210,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
 
       await api.post('password-reset/password-confirm-reset', {
-        email: user?.name,
+        email: resetEmail,
         code: resetCode,
         newPassword,
         confirmationPassword,
       });
+
+      // Limpa os dados de reset após sucesso
+      setResetEmail(null);
+      setResetCode(null);
     } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setError(errorMessage);

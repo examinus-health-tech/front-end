@@ -9,13 +9,13 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
   const { trackerData } = useHome();
 
   // Safeguards and fallbacks to avoid runtime errors when data is missing
-  const kcalCompleted = trackerData?.kcal?.[0]?.kcal_completed ?? 0;
-  const stepsCompleted = trackerData?.step?.[0]?.step_completed ?? 0;
+  const kcalCompleted = Number(trackerData?.kcal?.[0]?.kcal_completed) || 0;
+  const stepsCompleted = Number(trackerData?.step?.[0]?.step_completed) || 0;
   const nutritionCompleted = trackerData?.nutrition?.[0]?.nutrition_completed ?? [];
-  const sleepCompleted = trackerData?.sleep?.[0]?.sleep_completed ?? 0;
-  const sleepGoal = trackerData?.sleep?.[0]?.sleep_goal ?? 0;
-  const hydrationCompleted = trackerData?.hydration?.[0]?.hydration_completed ?? 0;
-  const hydrationGoal = trackerData?.hydration?.[0]?.hydration_goal ?? 0;
+  const sleepCompleted = Number(trackerData?.sleep?.[0]?.sleep_completed) || 0;
+  const sleepGoal = Number(trackerData?.sleep?.[0]?.sleep_goal) || 0;
+  const hydrationCompleted = Number(trackerData?.hydration?.[0]?.hydration_completed) || 0;
+  const hydrationGoal = Number(trackerData?.hydration?.[0]?.hydration_goal) || 0;
 
   function renderHydration() {
     if (userTrackerData) {

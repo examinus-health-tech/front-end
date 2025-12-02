@@ -2,7 +2,6 @@ import { useRef } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Center,
-  IScrollViewProps,
   ScrollView,
   Text,
   VStack,
@@ -15,7 +14,7 @@ import { Button } from '@components/atoms/Button/button';
 import { HeaderTitle, Input } from '@components/molecules';
 
 export function OtpSecurity() {
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
   const field1 = useRef<null | HTMLElement>(null);
   const field2 = useRef(null);
   const field3 = useRef(null);
@@ -24,7 +23,7 @@ export function OtpSecurity() {
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
       <VStack flex={1} space={8} py={24}>
-        <HeaderTitle title="OTP Segurança" withBackButton />
+        <HeaderTitle title="OTP Segurança" withBackButton={() => {}} />
 
         <VStack flex={1} mx={6} space={4}>
           <Center mt={32}>

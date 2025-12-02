@@ -23,7 +23,6 @@ export function ConfigNotifications() {
   const [healthInsights, setHealthInsights] = useState(true);
   const [examInfo, setExamInfo] = useState(false);
   const [chatbotNotifications, setChatbotNotifications] = useState(false);
-  const [soundAlert, setSoundAlert] = useState(true);
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
@@ -77,31 +76,11 @@ export function ConfigNotifications() {
           </VStack>
         </VStack>
 
-        <VStack>
-          <HStack mt={8} justifyContent={'space-between'}>
-            <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-              Som da Notificação
-            </Text>
-
-            <TouchableOpacity>
-              <MoreIcon />
-            </TouchableOpacity>
-          </HStack>
-
-          <VStack mt={4} mb={8} space={3}>
-            <Card title="Qualidade de Aúdio" variant="value" action="value" value="Alta" />
-            <Card
-              title="Aviso sonoro de alerta saúde"
-              subTitle="Receba estímulos diários para concluir suas avaliações de saúde"
-              variant="description"
-              action="switch"
-              switchValue={soundAlert}
-              onSwitchChange={setSoundAlert}
-            />
-          </VStack>
+        {/* TODO: Habilitar quando a API de configurações estiver pronta
+        <VStack mt={8}>
+          <Button variant="primary" size="full" title="Salvar" icon={<CheckIcon color="white" />} />
         </VStack>
-
-        <Button variant="primary" size="full" title="Salvar" icon={<CheckIcon color="white" />} />
+        */}
       </VStack>
     </ScrollView>
   );

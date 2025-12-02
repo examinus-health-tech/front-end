@@ -57,7 +57,7 @@ export async function getUserPersonalData(): Promise<UserPersonalDataResponseDTO
     console.log('📦 [USER_SERVICE] Response completo:', JSON.stringify(response.data, null, 2));
 
     // O backend retorna { data: { fullName, email, phone, ... } }
-    const userData = response.data.data || response.data;
+    const userData = (response.data as any).data || response.data;
 
     console.log('✅ [USER_SERVICE] Perfil completo recuperado:', userData);
     console.log('📊 [USER_SERVICE] Campos extraídos:', {
@@ -68,7 +68,7 @@ export async function getUserPersonalData(): Promise<UserPersonalDataResponseDTO
       height: userData?.height,
     });
 
-    return userData;
+    return userData as UserPersonalDataResponseDTO;
   } catch (error: any) {
     console.error('❌ [USER_SERVICE] Erro ao buscar perfil completo:', error);
     console.error('❌ [USER_SERVICE] Status do erro:', error.response?.status);
@@ -186,7 +186,7 @@ export async function saveUserPersonalData(data: UserPersonalDataDTO) {
 
       try {
         // Aguardar um pouco para o backend processar
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise<void>((resolve) => setTimeout(resolve, 1000));
 
         // Tentar buscar os dados
         const checkData = await getUserPersonalData();

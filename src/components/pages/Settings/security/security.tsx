@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { VStack, ScrollView, IScrollViewProps, useToast } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
@@ -25,10 +25,18 @@ export function Security() {
     biometricType,
     enableBiometric,
     disableBiometric,
+    checkBiometricEnabled,
     isLoading: isBiometricLoading,
   } = useBiometricAuth();
 
   const [isToggling, setIsToggling] = useState(false);
+
+  // Re-verifica o status da biometria quando o usuário muda
+  useEffect(() => {
+    if (user?.userId) {
+      checkBiometricEnabled(user.userId);
+    }
+  }, [user?.userId, checkBiometricEnabled]);
 
   const handleBiometricToggle = async (value: boolean) => {
     if (isToggling) return;

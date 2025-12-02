@@ -1,4 +1,4 @@
-import { Divider, Flex, Text, VStack, Icon, HStack, Box, useToast } from 'native-base';
+import { Divider, Flex, Text, VStack, Icon, HStack, Box, useToast, Spinner, Center } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -215,12 +215,36 @@ export function SignIn() {
     }
   }
 
-  return (
-    <VStack justifyContent="space-between" flex={1} mx={6} py={32}>
+  // Verifica se está carregando login externo (Google ou Apple)
+  const isExternalAuthLoading = isGoogleLoading || isAppleLoading;
 
-      <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
-        Entre
-      </Text>
+  return (
+    <>
+      {/* Overlay de carregamento para login externo */}
+      {isExternalAuthLoading && (
+        <Center
+          position="absolute"
+          top={0}
+          left={0}
+          right={0}
+          bottom={0}
+          bg="rgba(255,255,255,0.9)"
+          zIndex={999}
+        >
+          <VStack space={4} alignItems="center">
+            <Spinner size="lg" color="ciano.500" />
+            <Text color="gray.600" fontSize={16} fontWeight={500}>
+              {isGoogleLoading ? 'Conectando com Google...' : 'Conectando com Apple...'}
+            </Text>
+          </VStack>
+        </Center>
+      )}
+
+      <VStack justifyContent="space-between" flex={1} mx={6} py={32}>
+
+        <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
+          Entre
+        </Text>
 
       <Text color="gray.500" fontSize={16} fontWeight={500} lineHeight={24} mb={4}>
         Faça login e simplifique sua saúde com nossa tecnologia de Inteligência Artificial.
@@ -399,5 +423,6 @@ export function SignIn() {
         </HStack>
       </VStack>
     </VStack>
+    </>
   );
 }

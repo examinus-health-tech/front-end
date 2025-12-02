@@ -1,7 +1,7 @@
-import { IInputProps, ISelectProps, VStack } from 'native-base';
-import { TextInput, Platform } from 'react-native';
+import { VStack } from 'native-base';
+import { TextInput, Platform, TextInputProps } from 'react-native';
 
-export type Props = (IInputProps | ISelectProps) & {
+export type Props = TextInputProps & {
   leftIcon?: JSX.Element;
   rightIcon?: JSX.Element;
   label?: string;
@@ -13,13 +13,14 @@ export type Props = (IInputProps | ISelectProps) & {
   errorMessage?: string;
   isRequired?: boolean;
   wContainer?: string;
+  focused?: boolean;
 };
 
 export interface VariantLeftIconProps {
   mail: JSX.Element;
 }
 
-export function InputNative({ focused: propFocused, ...rest }: Props & { focused?: boolean }) {
+export function InputNative({ focused: propFocused, ...rest }: Props) {
   return (
     <VStack mx={6} pointerEvents="auto">
       <TextInput

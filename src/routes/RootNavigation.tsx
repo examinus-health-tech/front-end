@@ -2,9 +2,9 @@ import { createNavigationContainerRef } from '@react-navigation/native';
 
 export const navigationRef = createNavigationContainerRef();
 
-export function navigate(name: string, params?: any) {
+export function navigate(name: string, params?: object) {
   if (navigationRef.isReady()) {
-    navigationRef.navigate(name as never, params);
+    (navigationRef.navigate as (name: string, params?: object) => void)(name, params);
   } else {
     console.warn('Navigation não está pronto ainda. Tentativa de navegar para:', name);
   }

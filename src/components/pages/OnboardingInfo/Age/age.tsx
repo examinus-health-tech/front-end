@@ -24,7 +24,7 @@ const CARD_SPACING = 16; // space={4} = 16px
 
 export function Age() {
   const [selectedAge, setSelectedAge] = useState<number>(20);
-  const scrollView = useRef<ScrollView>(null);
+  const scrollView = useRef<any>(null);
 
   const { onboardingData, setOnboardingData, handleNextStep } = useOnboarding();
 

@@ -14,7 +14,6 @@ import {
   Center,
   Pressable,
   ScrollView,
-  IScrollViewProps,
 } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -39,12 +38,12 @@ type ExamProps = {
 };
 
 type FormDataProps = {
-  lab: string;
-  medico: string;
-  data: string;
+  lab?: string;
+  medico?: string;
+  data?: string;
   code_exam: string;
-  value: string;
-  reference_unit: string;
+  value?: string;
+  reference_unit?: string;
   exam_id: number;
 };
 
@@ -62,7 +61,11 @@ const uploadFormSchema = yup.object({
   reference_unit: yup.string(),
 });
 
-export function UploadTypeManual() {
+interface UploadTypeManualProps {
+  setManual?: (value: boolean) => void;
+}
+
+export function UploadTypeManual({ setManual }: UploadTypeManualProps) {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [show, setShow] = useState<boolean>(false);
   const [date, setDate] = useState<Date>(new Date());
@@ -73,7 +76,7 @@ export function UploadTypeManual() {
 
   const { getExamTypes, examList, handleManualUploadFile } = useUpload();
   const { user } = useAuth();
-  const scrollRef = useRef<IScrollViewProps>(null);
+  const scrollRef = useRef<any>(null);
 
   const {
     control,
@@ -156,21 +159,21 @@ export function UploadTypeManual() {
         email: user?.email,
         doctor_name: examManual[0].medico,
         labor_name: examManual[0].lab,
-        exam_date: examManual[0].data
-          .toLocaleString('en-US', {
+        exam_date: (examManual[0].data as any)
+          ?.toLocaleString?.('en-US', {
             year: 'numeric',
             month: '2-digit',
             day: '2-digit',
             hour: '2-digit',
           })
-          .replace(/\//g, '-')
-          .split('-')
-          .reverse()
-          .join('-'),
+          ?.replace?.(/\//g, '-')
+          ?.split?.('-')
+          ?.reverse?.()
+          ?.join?.('-') || examManual[0].data,
         detail: [...detail],
       };
 
-      await handleManualUploadFile(payload);
+      await handleManualUploadFile(payload as any);
     } catch (error) {
       const isAppError = error instanceof AppError;
 

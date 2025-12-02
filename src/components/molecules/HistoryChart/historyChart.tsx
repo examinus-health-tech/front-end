@@ -146,11 +146,6 @@ export function HistoryChart({
           showVerticalLines
           verticalLinesColor="#E2E8F0"
           verticalLinesThickness={1}
-          showTextOnDataPoints
-          textShiftY={-10}
-          textShiftX={-5}
-          textColor="#4A5568"
-          textFontSize={11}
           pointerConfig={{
             pointerStripColor: color,
             pointerStripWidth: 2,
@@ -171,32 +166,26 @@ export function HistoryChart({
             },
           }}
           // Reference lines
-          referenceLine1Config={
-            referenceMax !== undefined
-              ? {
-                  value: referenceMax - minValue,
-                  color: '#FC8181',
-                  dashWidth: 4,
-                  dashGap: 4,
-                  thickness: 1,
-                  labelText: `Max: ${referenceMax}`,
-                  labelTextStyle: { color: '#FC8181', fontSize: 9 },
-                }
-              : undefined
-          }
-          referenceLine2Config={
-            referenceMin !== undefined
-              ? {
-                  value: referenceMin - minValue,
-                  color: '#68D391',
-                  dashWidth: 4,
-                  dashGap: 4,
-                  thickness: 1,
-                  labelText: `Min: ${referenceMin}`,
-                  labelTextStyle: { color: '#68D391', fontSize: 9 },
-                }
-              : undefined
-          }
+          showReferenceLine1={referenceMax !== undefined}
+          referenceLine1Position={referenceMax !== undefined ? referenceMax - minValue : 0}
+          referenceLine1Config={{
+            color: '#FC8181',
+            dashWidth: 4,
+            dashGap: 4,
+            thickness: 1,
+            labelText: `Max: ${referenceMax}`,
+            labelTextStyle: { color: '#FC8181', fontSize: 9 },
+          }}
+          showReferenceLine2={referenceMin !== undefined}
+          referenceLine2Position={referenceMin !== undefined ? referenceMin - minValue : 0}
+          referenceLine2Config={{
+            color: '#68D391',
+            dashWidth: 4,
+            dashGap: 4,
+            thickness: 1,
+            labelText: `Min: ${referenceMin}`,
+            labelTextStyle: { color: '#68D391', fontSize: 9 },
+          }}
         />
       </Box>
 
