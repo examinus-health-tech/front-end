@@ -28,7 +28,6 @@ import { useState, useRef } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 import { useGoogleAuth } from 'src/hooks/useGoogleAuth';
 import { useAppleAuth } from 'src/hooks/useAppleAuth';
-import Toast from 'react-native-toast-message';
 import * as AppleAuthentication from 'expo-apple-authentication';
 
 type FormDataProps = {
@@ -152,11 +151,11 @@ export function SignUp() {
       await signUpWithGoogle();
     } catch (error: any) {
       console.log('❌ Erro no cadastro Google:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Erro no Cadastro Google',
-        text2: 'Não foi possível cadastrar com Google.',
-        topOffset: 60,
+      toast.show({
+        title: 'Erro no Cadastro Google',
+        description: 'Não foi possível cadastrar com Google.',
+        placement: 'top',
+        bgColor: 'red.500',
       });
     }
   }
@@ -166,11 +165,11 @@ export function SignUp() {
       await signUpWithApple();
     } catch (error: any) {
       console.log('❌ Erro no cadastro Apple:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Erro no Cadastro Apple',
-        text2: 'Não foi possível cadastrar com Apple.',
-        topOffset: 60,
+      toast.show({
+        title: 'Erro no Cadastro Apple',
+        description: 'Não foi possível cadastrar com Apple.',
+        placement: 'top',
+        bgColor: 'red.500',
       });
     }
   }
@@ -179,7 +178,6 @@ export function SignUp() {
     <KeyboardAvoidingView behavior="padding">
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
         <Flex justify="space-between" mx={6} py={32} h="100%">
-          <Toast />
 
           <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={2}>
             Cadastre-se

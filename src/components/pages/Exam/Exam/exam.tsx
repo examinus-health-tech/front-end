@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { VStack, Text, HStack, ScrollView, IScrollViewProps, Badge, Divider, Box } from 'native-base';
 
 // routes
@@ -7,37 +7,124 @@ import { VStack, Text, HStack, ScrollView, IScrollViewProps, Badge, Divider, Box
 import { AddSquareIcon, ChartIcon } from '@assets/icons';
 
 // components
-import { BottomSheetModal, BottomSheetView, TouchableOpacity } from '@gorhom/bottom-sheet';
-import { HeaderDescription } from '@components/molecules';
+import { BottomSheetModal, BottomSheetView, BottomSheetScrollView, BottomSheetBackdrop, TouchableOpacity } from '@gorhom/bottom-sheet';
+import { HeaderDescription, HistoryChart } from '@components/molecules';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useExam } from 'src/hooks/useExam';
 import { formatDateToBrazilian } from '@utils/dateFormatter';
-import { useNavigation } from '@react-navigation/native';
-import { AppNavigatorRoutesProps } from '@routes/app.routes';
+import { formatExamValue } from '@utils/numberFormatter';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { AppNavigatorRoutesProps, AppRoutes } from '@routes/app.routes';
 import { Alert, Linking } from 'react-native';
 
+type HistoryDataPoint = {
+  value: number;
+  date: string;
+  label: string;
+};
+
+type ExamScreenRouteProp = RouteProp<AppRoutes, 'exam'>;
+
 export function Exam() {
-  const { examSelected } = useExam();
-  const [shadowOpacity, setShadowOpacity] = useState<0 | 60>(0);
+  const route = useRoute<ExamScreenRouteProp>();
+  const examIdFromParams = route.params?.examId;
+  const { examSelected, selectExamById, examData } = useExam();
+
+  // Se vier examId por parâmetro (ex: via push notification), seleciona o exame
+  useEffect(() => {
+    if (examIdFromParams) {
+      console.log('[Exam] Carregando exame via parâmetro:', examIdFromParams);
+      selectExamById(examIdFromParams);
+    }
+  }, [examIdFromParams]);
   const [bottomSheetText, setBottomSheetText] = useState<string>('');
   const [bottomSheetTitle, setBottomSheetTitle] = useState<string>('');
   const navigation = useNavigation<AppNavigatorRoutesProps>();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const historyBottomSheetRef = useRef<BottomSheetModal>(null);
+
+  // Estado para o gráfico de histórico
+  const [historyData, setHistoryData] = useState<HistoryDataPoint[]>([]);
+  const [historyItemDescription, setHistoryItemDescription] = useState<string>('');
+  const [historyItemUnit, setHistoryItemUnit] = useState<string>('');
 
   const snapPoints = useMemo(() => ['40%', '60%', '80%'], []);
+  const historySnapPoints = useMemo(() => ['70%', '90%'], []);
 
   const scrollRef = useRef<IScrollViewProps>(null);
 
-  const handleSheetChanges = (value: number) => {
-    if (value === -1) {
-      return setShadowOpacity(0);
-    }
-    return setShadowOpacity(60);
-  };
+  // Backdrop animado para os BottomSheets
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.6}
+      />
+    ),
+    []
+  );
 
   const handlePresentModalPress = useCallback(() => {
     bottomSheetModalRef.current?.present();
   }, []);
+
+  const handlePresentHistoryModal = useCallback(() => {
+    historyBottomSheetRef.current?.present();
+  }, []);
+
+  // Função para construir o histórico de um item específico
+  const buildHistoryData = useCallback(
+    (itemDescription: string, itemUnit: string) => {
+      if (!examData || examData.length === 0) {
+        return [];
+      }
+
+      const history: HistoryDataPoint[] = [];
+
+      // Percorrer todos os exames em ordem cronológica
+      const sortedExams = [...examData].sort(
+        (a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime()
+      );
+
+      sortedExams.forEach((exam) => {
+        if (exam.medicalExamItems && Array.isArray(exam.medicalExamItems)) {
+          const matchingItem = exam.medicalExamItems.find(
+            (item: any) => item.examItemDescription.toLowerCase() === itemDescription.toLowerCase()
+          );
+
+          if (matchingItem) {
+            const value = parseFloat(matchingItem.medicalExamItemReferenceValue);
+            if (!isNaN(value)) {
+              const date = new Date(exam.createdDate);
+              history.push({
+                value,
+                date: formatDateToBrazilian(exam.createdDate),
+                label: `${date.getMonth() + 1}/${date.getFullYear().toString().slice(-2)}`,
+              });
+            }
+          }
+        }
+      });
+
+      return history;
+    },
+    [examData]
+  );
+
+  // Handler para abrir o gráfico de histórico
+  const handleOpenHistory = useCallback(
+    (itemDescription: string, itemUnit: string) => {
+      const history = buildHistoryData(itemDescription, itemUnit);
+
+      setHistoryData(history);
+      setHistoryItemDescription(itemDescription);
+      setHistoryItemUnit(itemUnit);
+      handlePresentHistoryModal();
+    },
+    [buildHistoryData, handlePresentHistoryModal]
+  );
 
   function getColor(color: string) {
     if (color === 'Green') {
@@ -49,91 +136,16 @@ export function Exam() {
     }
   }
 
-  function getReferenceRange(unit: string, examDescription: string): string {
-    const desc = examDescription.toLowerCase();
-
-    // Glicose
-    if (desc.includes('glicose')) {
-      if (unit === 'mg/dL') return '70 a 100 mg/dL';
-      if (unit === 'mmol/L') return '3.9 a 5.6 mmol/L';
+  function formatReferenceValue(referenceValue: string, unit: string): string {
+    // Se o backend retornar o valor de referência, usa direto
+    if (referenceValue && referenceValue !== unit) {
+      // Adiciona a unidade se não estiver presente
+      if (!referenceValue.includes(unit) && unit) {
+        return `${referenceValue} ${unit}`;
+      }
+      return referenceValue;
     }
-
-    // Colesterol Total
-    if (desc.includes('colesterol total')) {
-      if (unit === 'mg/dL') return 'até 200 mg/dL';
-      if (unit === 'mmol/L') return 'até 5.17 mmol/L';
-    }
-
-    // Colesterol HDL
-    if (desc.includes('hdl')) {
-      if (unit === 'mg/dL') return 'acima de 60 mg/dL';
-      if (unit === 'mmol/L') return 'acima de 1.55 mmol/L';
-    }
-
-    // Colesterol LDL
-    if (desc.includes('ldl')) {
-      if (unit === 'mg/dL') return 'até 100 mg/dL';
-      if (unit === 'mmol/L') return 'até 2.59 mmol/L';
-    }
-
-    // Triglicérides
-    if (desc.includes('triglicérides') || desc.includes('triglicerides')) {
-      if (unit === 'mg/dL') return 'até 150 mg/dL';
-      if (unit === 'mmol/L') return 'até 1.69 mmol/L';
-    }
-
-    // Hemoglobina
-    if (desc.includes('hemoglobina')) {
-      if (unit === 'g/dL') return '12 a 18 g/dL';
-      if (unit === 'g/L') return '120 a 180 g/L';
-    }
-
-    // Hematócrito
-    if (desc.includes('hematócrito') || desc.includes('hematocrito')) {
-      if (unit === '%') return '36 a 54%';
-    }
-
-    // Leucócitos
-    if (desc.includes('leucócitos') || desc.includes('leucocitos')) {
-      if (unit === 'mil/mm³' || unit === 'mil/µL') return '4 a 10 mil/mm³';
-      if (unit === '×10⁹/L') return '4 a 10 ×10⁹/L';
-    }
-
-    // Plaquetas
-    if (desc.includes('plaquetas')) {
-      if (unit === 'mil/mm³' || unit === 'mil/µL') return '150 a 400 mil/mm³';
-      if (unit === '×10⁹/L') return '150 a 400 ×10⁹/L';
-    }
-
-    // TGO (AST)
-    if (desc.includes('tgo') || desc.includes('ast')) {
-      if (unit === 'U/L' || unit === 'UI/L') return 'até 40 U/L';
-    }
-
-    // TGP (ALT)
-    if (desc.includes('tgp') || desc.includes('alt')) {
-      if (unit === 'U/L' || unit === 'UI/L') return 'até 40 U/L';
-    }
-
-    // Creatinina
-    if (desc.includes('creatinina')) {
-      if (unit === 'mg/dL') return '0.6 a 1.3 mg/dL';
-      if (unit === 'µmol/L') return '53 a 115 µmol/L';
-    }
-
-    // Ureia
-    if (desc.includes('ureia') || desc.includes('uréia')) {
-      if (unit === 'mg/dL') return '10 a 50 mg/dL';
-      if (unit === 'mmol/L') return '1.7 a 8.3 mmol/L';
-    }
-
-    // Ácido Úrico
-    if (desc.includes('ácido úrico') || desc.includes('acido urico')) {
-      if (unit === 'mg/dL') return '3.5 a 7.0 mg/dL';
-      if (unit === 'µmol/L') return '208 a 416 µmol/L';
-    }
-
-    // Valor padrão: apenas retorna a unidade
+    // Fallback: retorna apenas a unidade
     return unit;
   }
 
@@ -268,7 +280,11 @@ export function Exam() {
                 size={144}
                 lineCap="round"
                 width={20}
-                fill={getFillPercentage(item.medicalExamItemReferenceValue, item.medicalExamItemMeasureUnit, item.examItemDescription)}
+                fill={getFillPercentage(
+                  item.medicalExamItemReferenceValue,
+                  item.medicalExamItemMeasureUnit,
+                  item.examItemDescription
+                )}
                 children={() => {
                   const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
                   const fontSize = valueLength > 7 ? 32 : valueLength > 6 ? 36 : 42;
@@ -284,7 +300,7 @@ export function Exam() {
                         adjustsFontSizeToFit
                         minimumFontScale={0.7}
                       >
-                        {item.medicalExamItemReferenceValue}
+                        {formatExamValue(item.medicalExamItemReferenceValue)}
                       </Text>
 
                       <Text
@@ -296,7 +312,7 @@ export function Exam() {
                         letterSpacing={0}
                         textAlign="center"
                       >
-                        Ref: {getReferenceRange(item.medicalExamItemMeasureUnit, item.examItemDescription)}
+                        Ref: {formatReferenceValue(item.medicalExamItemReferenceValue, item.medicalExamItemMeasureUnit)}
                       </Text>
                     </VStack>
                   );
@@ -308,12 +324,21 @@ export function Exam() {
               />
 
               <VStack flex={1} space={2} justifyContent="center">
-                <HStack space={2} alignItems="center">
-                  <AddSquareIcon size="28" />
-                  <Text fontSize={16} fontWeight={800} letterSpacing={-0.16}>
-                    Desmistificando
-                  </Text>
-                </HStack>
+                <TouchableOpacity
+                  onPress={() => {
+                    const explanation = item.examItemExplanation || 'Informação ainda não disponível para este exame.';
+                    setBottomSheetText(explanation.replace(/\n/g, ' '));
+                    setBottomSheetTitle('Desmistificando');
+                    handlePresentModalPress();
+                  }}
+                >
+                  <HStack space={2} alignItems="center">
+                    <AddSquareIcon size="28" />
+                    <Text fontSize={16} fontWeight={800} letterSpacing={-0.16}>
+                      Desmistificando
+                    </Text>
+                  </HStack>
+                </TouchableOpacity>
 
                 <TouchableOpacity
                   onPress={() => {
@@ -347,12 +372,16 @@ export function Exam() {
                   </HStack>
                 </TouchableOpacity>
 
-                {/* <HStack space={3} alignItems="center">
-                  <ChartIcon size="28" duotone />
-                  <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="ciano.300">
-                    Ver histórico de resultados
-                  </Text>
-                </HStack> */}
+                <TouchableOpacity
+                  onPress={() => handleOpenHistory(item.examItemDescription, item.medicalExamItemMeasureUnit)}
+                >
+                  <HStack space={2} alignItems="center">
+                    <ChartIcon size="28" duotone />
+                    <Text fontSize={14} fontWeight={600} letterSpacing={-0.16} color="ciano.300">
+                      Ver histórico de resultados
+                    </Text>
+                  </HStack>
+                </TouchableOpacity>
               </VStack>
             </HStack>
           </VStack>
@@ -384,16 +413,6 @@ export function Exam() {
 
   return (
     <>
-      <Box
-        width="100%"
-        height="100%"
-        bg="#000"
-        opacity={shadowOpacity}
-        position="absolute"
-        zIndex={1}
-        display={shadowOpacity ? 'flex' : 'none'}
-      />
-
       <VStack my={16}>
         <HeaderDescription
           title="Laboratório"
@@ -465,7 +484,7 @@ export function Exam() {
           index={1}
           snapPoints={snapPoints}
           keyboardBehavior="fillParent"
-          onChange={handleSheetChanges}
+          backdropComponent={renderBackdrop}
         >
           <BottomSheetView>
             <VStack mx={6} alignItems="center">
@@ -488,6 +507,32 @@ export function Exam() {
               </Text>
             </VStack>
           </BottomSheetView>
+        </BottomSheetModal>
+
+        {/* BottomSheet para o gráfico de histórico */}
+        <BottomSheetModal
+          ref={historyBottomSheetRef}
+          index={0}
+          snapPoints={historySnapPoints}
+          keyboardBehavior="fillParent"
+          backdropComponent={renderBackdrop}
+        >
+          <BottomSheetScrollView>
+            <VStack mx={6} pb={8}>
+              <HStack justifyContent="space-between" alignItems="center" width="100%" mt={2} mb={4}>
+                <Text fontSize={20} fontWeight={700} letterSpacing={-0.16} color="gray.800">
+                  Gráfico Evolutivo
+                </Text>
+              </HStack>
+
+              <HistoryChart
+                examItemDescription={historyItemDescription}
+                historyData={historyData}
+                unit={historyItemUnit}
+                color="#00B39D"
+              />
+            </VStack>
+          </BottomSheetScrollView>
         </BottomSheetModal>
       </VStack>
     </>

@@ -16,7 +16,7 @@ export function ContactUs() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   return (
-    <VStack flex={1} py={24} mx={6}>
+    <VStack flex={1} py={16} mx={6}>
       <Header title="Fale Conosco" handleBackTo={() => navigation.navigate('myAccount')} />
 
       <VStack mt={24} mb={16} space={3} alignItems={'center'}>

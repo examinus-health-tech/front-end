@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Select, CheckIcon } from 'native-base';
-import Toast from 'react-native-toast-message';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Select, CheckIcon, useToast } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -42,9 +41,9 @@ function getStatusMessage(status: string) {
     Received: 'Recebido',
     Extracted: 'Extraído',
     ExtractedFailed: 'Erro extração',
-    Analyzed: 'Analisado',
+    Analyzed: 'Concluído',
     AnalyzedFailed: 'Erro análise',
-    ScoreComputed: 'Analisado',
+    ScoreComputed: 'Concluído',
     ScoreComputedFailed: 'Erro processamento',
   };
 
@@ -107,7 +106,7 @@ export function ExamList() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const [shadowOpacity, setShadowOpacity] = useState<0 | 60>(0);
+  const toast = useToast();
   const { user } = useAuth();
   const { getExamList, examData, setExamSelected } = useExam();
   const { width, height } = useWindowDimensions();
@@ -145,16 +144,18 @@ export function ExamList() {
     bottomSheetModalRef.current?.present();
   }, []);
 
-  // const handleSheetChanges = useCallback((index: number) => {
-  //   console.log('handleSheetChanges', index);
-  // }, []);
-
-  const handleSheetChanges = (value: number) => {
-    if (value === -1) {
-      return setShadowOpacity(0);
-    }
-    return setShadowOpacity(60);
-  };
+  // Backdrop animado para o BottomSheet
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.6}
+      />
+    ),
+    []
+  );
 
   async function handleExamList() {
     try {
@@ -198,27 +199,20 @@ export function ExamList() {
       filtered = filtered.filter((exam) => new Date(exam.createdDate) <= new Date(filters.endDate));
     }
 
-    // Ordenação: primeiro por data (mais recentes primeiro), depois por status (Analyzed/ScoreComputed primeiro)
+    // Ordenação: primeiro por status (ScoreComputed primeiro), depois por data (mais recentes primeiro)
     filtered.sort((a, b) => {
-      // Primeiro ordenar por data (mais recente primeiro)
-      const dateA = new Date(a.createdDate).getTime();
-      const dateB = new Date(b.createdDate).getTime();
-      const dateDiff = dateB - dateA;
-
-      // Se as datas forem diferentes, usar a ordenação por data
-      if (dateDiff !== 0) {
-        return dateDiff;
-      }
-
-      // Se as datas forem iguais, priorizar status Analyzed/ScoreComputed
-      const priorityStatuses = ['Analyzed', 'ScoreComputed'];
+      // Primeiro priorizar status ScoreComputed (concluídos)
+      const priorityStatuses = ['ScoreComputed', 'Analyzed'];
       const aIsPriority = priorityStatuses.includes(a.medicalExamStatus);
       const bIsPriority = priorityStatuses.includes(b.medicalExamStatus);
 
       if (aIsPriority && !bIsPriority) return -1;
       if (!aIsPriority && bIsPriority) return 1;
 
-      return 0;
+      // Dentro do mesmo grupo de prioridade, ordenar por data (mais recente primeiro)
+      const dateA = new Date(a.createdDate).getTime();
+      const dateB = new Date(b.createdDate).getTime();
+      return dateB - dateA;
     });
 
     console.log(
@@ -277,11 +271,11 @@ export function ExamList() {
     setFilters(newFilters);
     bottomSheetModalRef.current?.close();
 
-    Toast.show({
-      type: 'success',
-      text1: 'Filtros aplicados',
-      text2: 'Lista de exames atualizada',
-      topOffset: 60,
+    toast.show({
+      title: 'Filtros aplicados',
+      description: 'Lista de exames atualizada',
+      placement: 'top',
+      bgColor: 'green.500',
     });
   }
 
@@ -296,11 +290,11 @@ export function ExamList() {
 
     reset();
 
-    Toast.show({
-      type: 'info',
-      text1: 'Filtros limpos',
-      text2: 'Exibindo todos os exames',
-      topOffset: 60,
+    toast.show({
+      title: 'Filtros limpos',
+      description: 'Exibindo todos os exames',
+      placement: 'top',
+      bgColor: 'blue.500',
     });
   }
 
@@ -321,12 +315,11 @@ export function ExamList() {
             setExamSelected(exam);
             navigation.navigate('exam');
           } else {
-            Toast.show({
-              type: 'info',
-              text1: 'Exame em processamento',
-              text2: `Status atual: ${statusMessage}. Aguarde o processamento ser concluído.`,
-              topOffset: 60,
-              visibilityTime: 4000,
+            toast.show({
+              title: 'Exame em processamento',
+              description: `Status atual: ${statusMessage}. Aguarde o processamento ser concluído.`,
+              placement: 'top',
+              bgColor: 'blue.500',
             });
           }
         }}
@@ -344,11 +337,11 @@ export function ExamList() {
 
           <VStack flex={1}>
             <Text mt={1} fontSize={22} fontWeight={800} letterSpacing={-0.16} lineHeight={22}>
-              Laboratório
+              {exam.laboratoryName || 'Laboratório'}
             </Text>
 
             <Text fontSize={16} fontWeight={400} letterSpacing={-0.16} color="gray.600">
-              {formatDateToBrazilian(exam.createdDate)}
+              {formatDateToBrazilian(exam.examDate || exam.createdDate)}
             </Text>
 
             {/* <Text mt={1} fontSize={14} fontWeight={400} letterSpacing={-0.16} color="gray.600">
@@ -388,16 +381,6 @@ export function ExamList() {
 
   return (
     <>
-      <Box
-        width="100%"
-        height="100%"
-        bg="#000"
-        opacity={shadowOpacity}
-        position="absolute"
-        zIndex={1}
-        display={shadowOpacity ? 'flex' : 'none'}
-      />
-
       <VStack my={16} flex={1}>
         <HeaderTitle
           title="Exames Realizados"
@@ -476,7 +459,7 @@ export function ExamList() {
         ref={bottomSheetModalRef}
         index={1}
         snapPoints={snapPoints}
-        onChange={handleSheetChanges}
+        backdropComponent={renderBackdrop}
         keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
@@ -669,8 +652,6 @@ export function ExamList() {
           </VStack>
         </BottomSheetView>
       </BottomSheetModal>
-
-      <Toast />
     </>
   );
 }

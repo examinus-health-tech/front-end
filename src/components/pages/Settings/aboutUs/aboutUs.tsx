@@ -114,7 +114,7 @@ export function AboutUs() {
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} py={24} mx={6}>
+      <VStack flex={1} py={16} mx={6}>
         <Header title="Sobre nós" handleBackTo={() => navigation.navigate('myAccount')} />
 
         <VStack mb={12} space={3} alignItems={'center'}>

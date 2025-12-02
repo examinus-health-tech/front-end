@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { VStack, Text, HStack, ScrollView, IScrollViewProps } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
@@ -18,9 +18,16 @@ export function ConfigNotifications() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
+  // Estado dos switches de notificação
+  const [dailyReminders, setDailyReminders] = useState(true);
+  const [healthInsights, setHealthInsights] = useState(true);
+  const [examInfo, setExamInfo] = useState(false);
+  const [chatbotNotifications, setChatbotNotifications] = useState(false);
+  const [soundAlert, setSoundAlert] = useState(true);
+
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} py={24} mx={6}>
+      <VStack flex={1} py={16} mx={6}>
         <Header title="Notificações" handleBackTo={() => navigation.goBack()} />
 
         <VStack>
@@ -40,24 +47,32 @@ export function ConfigNotifications() {
               subTitle="Receba estímulos diários para concluir suas avaliações de saúde"
               variant="description"
               action="switch"
+              switchValue={dailyReminders}
+              onSwitchChange={setDailyReminders}
             />
             <Card
               title="Health Insights"
               subTitle="Receba estímulos diários para concluir suas avaliações de saúde"
               variant="description"
               action="switch"
+              switchValue={healthInsights}
+              onSwitchChange={setHealthInsights}
             />
             <Card
               title="Informações sobre Exames"
               subTitle="Receba estímulos diários para concluir suas avaliações de saúde"
               variant="description"
               action="switch"
+              switchValue={examInfo}
+              onSwitchChange={setExamInfo}
             />
             <Card
               title="Notificações do ChatBot"
               subTitle="Receba estímulos diários para concluir suas avaliações de saúde"
               variant="description"
               action="switch"
+              switchValue={chatbotNotifications}
+              onSwitchChange={setChatbotNotifications}
             />
           </VStack>
         </VStack>
@@ -80,6 +95,8 @@ export function ConfigNotifications() {
               subTitle="Receba estímulos diários para concluir suas avaliações de saúde"
               variant="description"
               action="switch"
+              switchValue={soundAlert}
+              onSwitchChange={setSoundAlert}
             />
           </VStack>
         </VStack>

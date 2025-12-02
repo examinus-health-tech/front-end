@@ -4,6 +4,7 @@ import { api } from 'src/services/api';
 
 type MedicalExamItemProps = {
   examItemDescription: string;
+  examItemExplanation?: string;
   medicalExamItemReferenceValue: string;
   medicalExamItemMeasureUnit: string;
   medicalExamItemScore: number;
@@ -28,6 +29,10 @@ type ExamDataProps = {
   generalScoreActionRecommendation: string;
   medicalExamGender: string;
   medicalExamStatus: string;
+  // Metadados extraídos do exame
+  doctorName?: string;
+  laboratoryName?: string;
+  examDate?: string;
   medicalExamItems: MedicalExamItemProps[];
   medicalExamOrganicSystemsScore: MedicalExamOrganicSystemProps[];
 };
@@ -37,6 +42,7 @@ export type ExamContextDataProps = {
   getExamList: () => void;
   examSelected: ExamDataProps;
   setExamSelected: (exam: ExamDataProps) => void;
+  selectExamById: (examId: string) => Promise<boolean>;
 };
 
 type ExamContextProviderProps = {
@@ -54,9 +60,35 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
       const response = await api.get('/medical-exam/get-all-exams-upload-by-logged-user');
 
       setExamData(response.data.data);
+      return response.data.data;
     } catch (error) {
       throw error;
-    } finally {
+    }
+  }
+
+  async function selectExamById(examId: string): Promise<boolean> {
+    try {
+      // Primeiro tenta encontrar nos exames já carregados
+      let exams = examData;
+
+      // Se não tiver exames carregados, busca do servidor
+      if (!exams || exams.length === 0) {
+        exams = await getExamList();
+      }
+
+      // Procura o exame pelo ID
+      const exam = exams?.find((e: ExamDataProps) => e.medicalExamId === examId);
+
+      if (exam) {
+        setExamSelected(exam);
+        return true;
+      }
+
+      console.warn(`[ExamContext] Exame não encontrado: ${examId}`);
+      return false;
+    } catch (error) {
+      console.error('[ExamContext] Erro ao selecionar exame por ID:', error);
+      return false;
     }
   }
 
@@ -67,6 +99,7 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
         examData,
         examSelected,
         setExamSelected,
+        selectExamById,
       }}
     >
       {children}

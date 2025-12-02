@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity, useWindowDimensions } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, RefreshControl } from 'react-native';
 import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Image, Badge, Center } from 'native-base';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import ContentLoader, { Rect } from 'react-content-loader/native';
+import { api } from 'src/services/api';
+import ContentLoader, { Rect, Circle } from 'react-content-loader/native';
 import { useCallback } from 'react';
 
 // routes
@@ -15,6 +16,7 @@ import Vector2 from '@assets/png/vector-30.png';
 import Vector3 from '@assets/png/vector-39.png';
 import Vector4 from '@assets/png/vector-32.png';
 import Vector5 from '@assets/png/vector-37b.png';
+import ChatHealthImage from '@assets/png/chat-health.png';
 import Vector6 from '@assets/png/vector-38.png';
 import Vector7 from '@assets/png/vector-39.png';
 import Vector8 from '@assets/png/vector-40.png';
@@ -38,14 +40,39 @@ function getScoreText(score: number): string {
 }
 
 export function Homepage() {
-  const [withNotification, setWithNotification] = useState<boolean>(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
   const [userWithoutData, setUserWithoutData] = useState<boolean>(true);
   const [userTrackerData, setUserTrackerData] = useState<boolean>(false);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { user, getUserInfo, isLoading } = useAuth();
   const { getHomeData, homeData, trackerData, isLoadingHomeContext } = useHome();
+
+  async function onRefresh() {
+    setIsRefreshing(true);
+    try {
+      await getHomeData();
+      await fetchUnreadCount();
+    } catch (error) {
+      console.error('Erro ao atualizar:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }
+
+  // Busca contagem de notificações não lidas
+  async function fetchUnreadCount() {
+    try {
+      const response = await api.get('/notifications');
+      const notifications = Array.isArray(response.data) ? response.data : response.data?.data || [];
+      const count = notifications.filter((n: any) => !n.read).length;
+      setUnreadCount(count);
+    } catch (error) {
+      console.error('Erro ao buscar notificações:', error);
+    }
+  }
   const { width, height } = useWindowDimensions();
 
   const weekday = new Date().toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '');
@@ -90,6 +117,7 @@ export function Homepage() {
       scrollRef.current?.scrollTo?.({ x: 0, y: 0, animated: false });
       // getUserInfo(); // Comentado: endpoint não aceita Bearer token
       getHomeData();
+      fetchUnreadCount();
       console.log('🔄 Homepage recarregada ao ganhar foco');
     }, [])
   );
@@ -118,46 +146,49 @@ export function Homepage() {
     };
 
     return systems.map((system, index) => {
-        if (index <= 2) {
-          const colorStyle = getColorByScore(system.organicSystemScore);
+      if (index <= 2) {
+        const colorStyle = getColorByScore(system.organicSystemScore);
 
-          // Determinar o ícone baseado na descrição do sistema
-          let icon;
-          if (system.examOrganicSystemDescription?.toLowerCase().includes('coração')) {
-            icon = Vector10;
-          } else {
-            icon = availableIcons[availableIconIndex] || Vector3;
-            availableIconIndex++;
-          }
-
-          return (
-            <TouchableOpacity key={index} onPress={() => navigation.navigate('healthWallet')}>
-              <Box bg={colorStyle.bgColor} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
-                <VStack space={2}>
-                  <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
-                    {system.examOrganicSystemDescription}
-                  </Text>
-
-                  <Center>
-                    <Image source={icon} alt="Vetor" resizeMode="contain" size={14} />
-                  </Center>
-
-                  <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
-                    Risco: {colorStyle.title}
-                  </Text>
-                </VStack>
-              </Box>
-            </TouchableOpacity>
-          );
+        // Determinar o ícone baseado na descrição do sistema
+        let icon;
+        if (system.examOrganicSystemDescription?.toLowerCase().includes('coração')) {
+          icon = Vector10;
+        } else {
+          icon = availableIcons[availableIconIndex] || Vector3;
+          availableIconIndex++;
         }
-        return null;
-      });
+
+        return (
+          <TouchableOpacity key={index} onPress={() => navigation.navigate('healthWallet')}>
+            <Box bg={colorStyle.bgColor} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
+              <VStack space={2}>
+                <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
+                  {system.examOrganicSystemDescription}
+                </Text>
+
+                <Center>
+                  <Image source={icon} alt="Vetor" resizeMode="contain" size={14} />
+                </Center>
+
+                <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
+                  Risco: {colorStyle.title}
+                </Text>
+              </VStack>
+            </Box>
+          </TouchableOpacity>
+        );
+      }
+      return null;
+    });
   }
 
   return (
     <View>
       {isLoading || isLoadingHomeContext ? (
         <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#d5d5d5" foregroundColor="#ebebeb">
+          {/* Ícone de Notificação */}
+          <Rect x={width - 24 - 72} y={100} rx="14" ry="14" width={60} height={60} />
+
           {/* Data e Calendário */}
           <Rect x="24" y="96" rx="8" ry="8" width={120} height={16} />
 
@@ -195,7 +226,13 @@ export function Homepage() {
           <Rect x="24" y="856" rx="12" ry="12" width={width - 48} height={150} />
         </ContentLoader>
       ) : (
-        <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          ref={scrollRef}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#0CC1AF" colors={['#0CC1AF']} />
+          }
+        >
           <VStack flex={1} pb={24} pt={20} mx={6} mb={16}>
             <HStack justifyContent={'space-between'} alignItems={'center'}>
               <VStack>
@@ -222,98 +259,105 @@ export function Homepage() {
                 </Text>
               </VStack>
 
-              {/* <TouchableOpacity onPress={() => navigation.navigate('notifications')}>
-                {withNotification && (
-                  <Box
-                    bg={'red.500'}
-                    w={6}
-                    h={6}
-                    borderRadius={6}
-                    alignItems={'center'}
-                    justifyContent={'center'}
-                    position={'absolute'}
-                    zIndex={1}
-                    right={4}
-                    top={4}
-                  >
-                    <Text color={'white'} fontSize={16} fontWeight={800}>
-                      2
-                    </Text>
-                  </Box>
-                )}
-                <Box size={16} bg={'white'} borderRadius={16} alignItems={'center'} justifyContent={'center'}>
-                  <BellIcon size={'40'} />
+              <TouchableOpacity onPress={() => navigation.navigate('notifications')}>
+                <Box w={14} h={14} bg={'white'} borderRadius={14} alignItems={'center'} justifyContent={'center'}>
+                  {unreadCount > 0 && (
+                    <Box
+                      bg={'#FA4D5E'}
+                      minW={5}
+                      h={5}
+                      px={unreadCount > 9 ? 1 : 0}
+                      borderRadius={10}
+                      alignItems={'center'}
+                      justifyContent={'center'}
+                      position={'absolute'}
+                      zIndex={1}
+                      right={3}
+                      top={3}
+                    >
+                      <Text color={'white'} fontSize={10} fontWeight={800}>
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </Text>
+                    </Box>
+                  )}
+                  <BellIcon size={'32'} color={'#1E293B'} />
                 </Box>
-              </TouchableOpacity> */}
+              </TouchableOpacity>
             </HStack>
 
-            <Box w="100%" h="auto" bg={'white'} px={4} py={4} mt={8} borderRadius={12}>
-              <HStack space={4} alignItems={'flex-start'}>
-                <Box
-                  size={24}
-                  bg={userWithoutData ? 'gray.300' : 'purple.600'}
-                  borderRadius={14}
-                  alignItems={'center'}
-                  justifyContent={'center'}
-                >
-                  <Image
-                    source={Vector}
-                    defaultSource={Vector}
-                    alt="Vetor"
-                    resizeMode="cover"
+            <TouchableOpacity
+              onPress={() => !userWithoutData && navigation.navigate('healthWallet')}
+              disabled={userWithoutData}
+              activeOpacity={userWithoutData ? 1 : 0.7}
+            >
+              <Box w="100%" h="auto" bg={'white'} px={4} py={4} mt={8} borderRadius={12}>
+                <HStack space={4} alignItems={'flex-start'}>
+                  <Box
                     size={24}
-                    opacity={70}
-                    borderRadius={12}
-                    position="absolute"
-                  />
+                    bg={userWithoutData ? 'gray.300' : 'purple.600'}
+                    borderRadius={14}
+                    alignItems={'center'}
+                    justifyContent={'center'}
+                  >
+                    <Image
+                      source={Vector}
+                      defaultSource={Vector}
+                      alt="Vetor"
+                      resizeMode="cover"
+                      size={24}
+                      opacity={70}
+                      borderRadius={12}
+                      position="absolute"
+                    />
 
-                  <Text color={'white'} fontSize={36} fontWeight={800} letterSpacing={-1.2} lineHeight={36}>
-                    {homeData.generalScore ? Math.round(homeData.generalScore) : '?'}
-                  </Text>
-                </Box>
+                    <Text color={'white'} fontSize={36} fontWeight={800} letterSpacing={-1.2} lineHeight={36}>
+                      {homeData.generalScore ? Math.round(homeData.generalScore) : '?'}
+                    </Text>
+                  </Box>
 
-                <VStack flex={1}>
-                  <Text fontSize={16} fontWeight={800} letterSpacing={-0.16}>
-                    Score X
-                  </Text>
+                  <VStack flex={1}>
+                    <Text fontSize={16} fontWeight={800} letterSpacing={-0.16}>
+                      Score X
+                    </Text>
 
-                  {userWithoutData ? (
-                    <View>
-                      <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
-                        Você não possui dados de exames{'\n'}a serem analisados.
-                      </Text>
+                    {userWithoutData ? (
+                      <View>
+                        <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
+                          Você não possui dados de exames{'\n'}a serem analisados.
+                        </Text>
 
-                      <Text
-                        fontSize={12}
-                        fontWeight={500}
-                        lineHeight={19.2}
-                        mt={1}
-                        color="ciano.400"
-                        onPress={() => navigation.navigate('upload')}
-                      >
-                        Clique aqui e importe seu exame {'>'}
-                      </Text>
-                    </View>
-                  ) : (
-                    <View flex={1} display="flex">
-                      <Text fontSize={12} fontWeight={500} lineHeight={16} mt={2}>
-                        {getScoreText(homeData.generalScore || 0)}
+                        <Text
+                          fontSize={12}
+                          fontWeight={500}
+                          lineHeight={19.2}
+                          mt={1}
+                          color="ciano.400"
+                          onPress={() => navigation.navigate('upload')}
+                        >
+                          Clique aqui e importe seu exame {'>'}
+                        </Text>
+                      </View>
+                    ) : (
+                      <View flex={1} display="flex">
+                        <Text fontSize={12} fontWeight={500} lineHeight={16} mt={2}>
+                          {getScoreText(homeData.generalScore || 0)}
 
-                        {/* {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')} */}
-                      </Text>
+                          {/* {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')} */}
+                        </Text>
 
-                      <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="purple.700">
-                        Monitorar saúde {'>'}
-                      </Text>
+                        <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="purple.700">
+                          Monitorar saúde {'>'}
+                        </Text>
 
-                      <Text fontSize={10} fontWeight={400} color="gray.500" mt={2} lineHeight={12}>
-                        ⚠️ Apenas informativo. Consulte seu médico.
-                      </Text>
-                    </View>
-                  )}
-                </VStack>
-              </HStack>
-            </Box>
+                        <Text fontSize={10} fontWeight={400} color="gray.500" mt={2} lineHeight={12}>
+                          Apenas informativo. Consulte seu médico.
+                        </Text>
+                      </View>
+                    )}
+                  </VStack>
+                </HStack>
+              </Box>
+            </TouchableOpacity>
 
             <HStack mt={6} justifyContent={'space-between'}>
               <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
@@ -416,10 +460,15 @@ export function Homepage() {
               </ScrollView>
             </HStack>
 
-            <HStack mt={4} justifyContent={'space-between'}>
-              <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                Rastreador Fitness
-              </Text>
+            <HStack mt={4} justifyContent={'space-between'} alignItems={'center'}>
+              <HStack alignItems={'center'} space={2}>
+                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                  Rastreador Fitness
+                </Text>
+                <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>
+                  EM BREVE
+                </Badge>
+              </HStack>
 
               <TouchableOpacity onPress={() => navigation.navigate('tracker')}>
                 <MoreIcon />
@@ -428,37 +477,58 @@ export function Homepage() {
 
             {<StatusCards userTrackerData={userTrackerData} />}
 
-            <HStack mt={8} justifyContent={'space-between'}>
-              <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                Fale com o Doutor X
-              </Text>
+            <HStack mt={8} justifyContent={'space-between'} alignItems={'center'}>
+              <HStack alignItems={'center'} space={2}>
+                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                  Fale com o Doutor X
+                </Text>
+                <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>
+                  EM BREVE
+                </Badge>
+              </HStack>
 
               <TouchableOpacity>
                 <MoreIcon />
               </TouchableOpacity>
             </HStack>
 
-            <Box w="100%" h="auto" bg={'white'} borderRadius={12} mt={4}>
-              <HStack justifyItems="space-between" width="100%">
-                <VStack py={6} px={4} width={200}>
-                  <Badge
-                    width={24}
-                    bg="gray.400"
-                    borderRadius={6}
-                    _text={{
-                      color: 'white',
-                    }}
-                  >
-                    EM BREVE
-                  </Badge>
-
-                  <Text fontSize={16} fontWeight={500} lineHeight={19.2} mt={8}>
-                    Chatbot sobre Saúde Conversations
+            <Box w="100%" bg={'white'} borderRadius={12} mt={4} overflow="hidden" position="relative" h={170}>
+              <VStack py={4} px={4} position="absolute" left={0} top={0} zIndex={1} space={1}>
+                <Badge
+                  bg="gray.100"
+                  borderRadius={4}
+                  px={2}
+                  py={0.5}
+                  _text={{ color: 'gray.400', fontSize: 10, fontWeight: 600 }}
+                >
+                  BÁSICO
+                </Badge>
+                <HStack alignItems="baseline" space={1}>
+                  <Text fontSize={32} fontWeight={800} color="gray.900">
+                    192
                   </Text>
-                </VStack>
+                  <Text fontSize={14} fontWeight={500} color="gray.500">
+                    Total
+                  </Text>
+                </HStack>
+                <Text fontSize={14} fontWeight={600} lineHeight={18} color="gray.800">
+                  Bate-papo sobre{'\n'}Saúde e bem estar
+                </Text>
+              </VStack>
 
-                <Image source={Vector5} defaultSource={Vector5} alt="Vetor" resizeMode="cover" h={150} w={163} />
-              </HStack>
+              <Image
+                source={ChatHealthImage}
+                alt="Chat Health"
+                resizeMode="cover"
+                position="absolute"
+                right={-1}
+                bottom={0}
+                top={0}
+                w={180}
+                h={170}
+                borderTopRightRadius={12}
+                borderBottomRightRadius={12}
+              />
             </Box>
           </VStack>
         </ScrollView>

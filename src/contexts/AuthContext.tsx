@@ -1,11 +1,15 @@
 import { createContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { api } from 'src/services/api';
 import { validateStoredToken } from '@utils/tokenValidation';
 import { logger } from '@utils/debugLogger';
 import { decodeJwtPayload } from '@utils/jwt';
 import { registerDeviceOnBackend } from 'src/services/register-device-backend';
 import { OneSignal } from 'react-native-onesignal';
+
+// Chave para armazenamento seguro de biometria (apenas alfanumericos, ".", "-" e "_")
+const BIOMETRIC_TOKEN_KEY = 'examinus_biometric_token';
 
 interface User {
   userId?: string;
@@ -15,11 +19,20 @@ interface User {
   email?: string;
 }
 
+interface BiometricUserData {
+  userId: string;
+  name: string;
+  fullName: string;
+  email: string;
+  token: string;
+}
+
 interface AuthContextData {
   user?: User | null;
   isLoading: boolean;
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithBiometric: (userData: BiometricUserData) => Promise<void>;
   signInWithGoogle: (authCode: string) => Promise<void>;
   signUpWithGoogle: (authCode: string) => Promise<void>;
   signInWithApple: (identityToken: string, fullName?: any, emailFromCredential?: string | null) => Promise<void>;
@@ -60,6 +73,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       ]);
 
       console.log('✅ Dados do AsyncStorage removidos');
+
+      // NOTA: NAO apagar o token biometrico no logout!
+      // O token deve persistir para permitir login biometrico depois do logout.
+      // O token so e removido quando o usuario desabilita explicitamente a biometria
+      // ou quando o token expira/e revogado pelo backend.
 
       // Pequeno delay para mostrar o loading
       await new Promise((resolve) => setTimeout(resolve, 800));
@@ -303,6 +321,60 @@ export function AuthProvider({ children }: AuthProviderProps) {
       throw new Error(errorMessage);
     } finally {
       logger.auth('Login attempt completed', { action: 'signIn' });
+      setIsLoading(false);
+    }
+  }
+
+  // Login biometrico - recebe dados do usuario diretamente da API biometrica
+  async function signInWithBiometric(userData: BiometricUserData) {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      console.log('🔐 [BIOMETRIC LOGIN] Iniciando login biometrico:', {
+        userId: userData.userId,
+        email: userData.email,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Limpar dados de onboarding de outro usuario
+      console.log('🧹 [AUTH] Limpando dados locais antes do login biometrico...');
+      await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
+
+      const formattedUserData = {
+        userId: userData.userId,
+        name: userData.name,
+        token: userData.token,
+        fullName: userData.fullName || userData.name,
+        email: userData.email,
+      };
+
+      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      console.log('✅ [BIOMETRIC LOGIN] Usuario setado:', {
+        userId: formattedUserData.userId,
+        name: formattedUserData.name,
+        email: formattedUserData.email,
+      });
+      setUser(formattedUserData);
+
+      // Registra dispositivo OneSignal
+      setTimeout(async () => {
+        try {
+          console.log('📱 Registrando dispositivo OneSignal (biometric)...');
+          await registerDeviceOnBackend();
+          await OneSignal.login(formattedUserData.userId);
+          console.log('✅ Dispositivo registrado com sucesso');
+        } catch (deviceError) {
+          console.warn('⚠️ Erro ao registrar dispositivo (nao critico):', deviceError);
+        }
+      }, 3000);
+
+    } catch (error: any) {
+      console.error('❌ [BIOMETRIC LOGIN ERROR]', error);
+      const errorMessage = error?.message || 'Erro no login biometrico';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
       setIsLoading(false);
     }
   }
@@ -1235,6 +1307,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       clearError,
       isLoading,
       signIn,
+      signInWithBiometric,
       signInWithGoogle,
       signUpWithGoogle,
       signInWithApple,

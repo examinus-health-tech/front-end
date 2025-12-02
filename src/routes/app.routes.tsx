@@ -27,7 +27,6 @@ import {
   PasswordConfig,
 } from '@components/pages/OnboardingSetup';
 import { UploadType } from '@components/organisms';
-import { NotificationsOld } from '@screens/Notifications/screens/notifications/notifications-old';
 import { SuccessSaved } from '@components/pages/Settings/components/successSaved/successSaved';
 
 export type AppRoutes = {
@@ -63,7 +62,7 @@ export type AppRoutes = {
   healthWallet: undefined;
   heartScore: undefined;
   examList: undefined;
-  exam: undefined;
+  exam: { examId?: string } | undefined;
   onboardingSteps: undefined;
   workingInProgress: undefined;
 };
@@ -245,12 +244,12 @@ function HomeTabs() {
 }
 
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
-import { Notifications } from '@screens/Notifications/screens/notifications/notifications';
+import { Notifications } from '@components/pages/Notifications';
 import { useDeepLinking } from 'src/hooks/useDeepLinking';
 
 function AppRoutesContent() {
   const { isOnboardingComplete, checkOnboardingCompletion } = useOnboarding();
-  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+  const [initialRoute, setInitialRoute] = useState<keyof AppRoutes | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 
   // Ativar deep linking apenas após o app estar pronto

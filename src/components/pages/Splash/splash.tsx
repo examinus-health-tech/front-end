@@ -1,7 +1,10 @@
 import { useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Dimensions, StatusBar } from 'react-native';
 import { View, Image } from 'native-base';
 import { useVideoPlayer, VideoView } from 'expo-video';
+
+// Usar 'screen' ao invés de 'window' para incluir a área da barra de status
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('screen');
 
 export function Splash() {
   const [hasError, setHasError] = useState(false);
@@ -32,14 +35,22 @@ export function Splash() {
   if (hasError) {
     console.log('Showing fallback image due to error');
     return (
-      <View flex={1} bg="white" alignItems="center" justifyContent="center">
-        <Image source={splashImage} alt="Examinus Splash" resizeMode="contain" width="100%" height="100%" />
+      <View style={{ flex: 1, backgroundColor: 'white', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+        <StatusBar hidden />
+        <Image
+          source={splashImage}
+          alt="Examinus Splash"
+          resizeMode="cover"
+          width={SCREEN_WIDTH}
+          height={SCREEN_HEIGHT}
+        />
       </View>
     );
   }
 
   return (
-    <View flex={1} bg={Platform.OS === 'android' ? 'black' : 'transparent'}>
+    <View style={{ flex: 1, backgroundColor: Platform.OS === 'android' ? 'black' : 'transparent', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+      <StatusBar hidden />
       <VideoView
         style={{
           width: '100%',
@@ -76,13 +87,17 @@ export function Splash() {
           position="absolute"
           top={0}
           left={0}
-          right={0}
-          bottom={0}
+          width={SCREEN_WIDTH}
+          height={SCREEN_HEIGHT}
           bg="white"
-          alignItems="center"
-          justifyContent="center"
         >
-          <Image source={splashImage} alt="Loading Splash" resizeMode="contain" width="100%" height="100%" />
+          <Image
+            source={splashImage}
+            alt="Loading Splash"
+            resizeMode="cover"
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+          />
         </View>
       )}
     </View>

@@ -71,7 +71,8 @@ import EmojiDepressedIcon from './components/emojiDepressed';
 import ClipboardIcon from './components/clipboard';
 import IntestineIcon from './components/intestine';
 import UrinaIcon from './components/urina';
-
+import FingerprintIcon from './components/fingerprint';
+import FaceIdIcon from './components/faceId';
 export {
   ArrowIcon,
   MailIcon,
@@ -146,4 +147,6 @@ export {
   ClipboardIcon,
   IntestineIcon,
   UrinaIcon,
+  FingerprintIcon,
+  FaceIdIcon,
 };

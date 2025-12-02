@@ -16,7 +16,7 @@
     "icon": "./assets/icon.png",
     "splash": {
       "image": "./assets/splash.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "userInterfaceStyle": "light",
@@ -40,6 +40,7 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
         "NSMicrophoneUsageDescription": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais.",
+        "NSFaceIDUsageDescription": "O Examinus usa Face ID para autenticação biométrica, permitindo login rápido e seguro sem precisar digitar sua senha.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "google-oauth",

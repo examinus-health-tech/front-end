@@ -9,7 +9,20 @@ import { OneSignal, LogLevel } from 'react-native-onesignal';
 
 OneSignal.initialize('c101b9a0-32fe-43ad-8a87-820c766b136e');
 OneSignal.Debug.setLogLevel(LogLevel.Verbose);
-OneSignal.Notifications.requestPermission(true);
+
+// Solicitar permissão e fazer opt-in
+(async () => {
+  try {
+    const hasPermission = await OneSignal.Notifications.requestPermission(true);
+    console.log('[OneSignal] Permission granted:', hasPermission);
+
+    // Fazer opt-in para receber notificações push
+    await OneSignal.User.pushSubscription.optIn();
+    console.log('[OneSignal] Opted in to push notifications');
+  } catch (error) {
+    console.error('[OneSignal] Error requesting permission or opting in:', error);
+  }
+})();
 
 // Desabilitar warnings e erros na tela (apenas em desenvolvimento)
 if (__DEV__) {
@@ -37,8 +50,10 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ExamContextProvider } from '@contexts/ExamContext';
 import ErrorBoundary from '@components/ErrorBoundary';
 
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { navigationRef } from './src/services/navigationService';
+import { linking } from './src/config/linking';
+import { api } from './src/services/api';
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -46,21 +61,52 @@ export default function App() {
   const [additionalFontsLoaded, setAdditionalFontsLoaded] = useState<boolean>(false);
 
   useEffect(() => {
-    const onClick = (event: any) => {
+    const onClick = async (event: any) => {
       const data = event?.notification?.additionalData;
 
       console.log('Notification clicked:', JSON.stringify(event, null, 2));
 
-      if (!data) return;
+      // Marcar notificação como lida no backend
+      if (data?.notificationId) {
+        try {
+          await api.put(`/notifications/${data.notificationId}/read`);
+          console.log('[OneSignal] Notificação marcada como lida:', data.notificationId);
+        } catch (error) {
+          console.error('[OneSignal] Erro ao marcar notificação como lida:', error);
+        }
+      }
 
-      if (navigationRef.isReady()) {
-        navigationRef.navigate('notifications', {
+      if (!navigationRef.isReady()) {
+        console.log('Navigation not ready yet, cannot navigate.');
+        return;
+      }
+
+      // Mapear screen do backend para rotas do app
+      const screenMap: Record<string, string> = {
+        homepage: 'homepage',
+        exam: 'exam',
+        examList: 'examList',
+        notifications: 'notifications',
+      };
+
+      const backendScreen = data?.screen || 'notifications';
+      const screen = screenMap[backendScreen] || 'notifications';
+
+      // Montar parâmetros baseado na tela
+      let params: any = {};
+      if (screen === 'exam' && data?.examId) {
+        params = { examId: data.examId };
+      } else if (data?.params) {
+        params = data.params;
+      } else {
+        params = {
           notificationId: data?.notificationId,
           type: data?.type,
-        });
-      } else {
-        console.log('Navigation not ready yet, cannot navigate.');
+        };
       }
+
+      console.log(`[OneSignal] Navigating to: ${screen}`, params);
+      navigationRef.navigate(screen, params);
     };
 
     OneSignal.Notifications.addEventListener('click', onClick);
@@ -69,6 +115,45 @@ export default function App() {
     return () => {
       OneSignal.Notifications.removeEventListener('click', onClick);
     };
+  }, []);
+
+  // Debug: Verificar Player ID e estado do OneSignal
+  useEffect(() => {
+    const checkOneSignalStatus = async () => {
+      try {
+        // Aguardar um pouco para o OneSignal inicializar
+        setTimeout(async () => {
+          const playerId = await OneSignal.User.getOnesignalId();
+          const hasPermission = await OneSignal.Notifications.getPermissionAsync();
+          const pushToken = await OneSignal.User.pushSubscription.getTokenAsync();
+          const optedIn = OneSignal.User.pushSubscription.getOptedIn();
+
+          console.log('====== OneSignal Debug ======');
+          console.log('[OneSignal] Player ID:', playerId);
+          console.log('[OneSignal] Has Permission:', hasPermission);
+          console.log('[OneSignal] Push Token:', pushToken);
+          console.log('[OneSignal] Opted In:', optedIn);
+          console.log('[OneSignal] Push Subscription ID:', OneSignal.User.pushSubscription.getId());
+          console.log('=============================');
+
+          if (!pushToken) {
+            console.warn('⚠️ [OneSignal] Push Token vazio! Notificações não funcionarão.');
+            console.log('💡 [OneSignal] Tentando opt-in manualmente...');
+            await OneSignal.User.pushSubscription.optIn();
+
+            // Verificar novamente após opt-in
+            setTimeout(async () => {
+              const newToken = await OneSignal.User.pushSubscription.getTokenAsync();
+              console.log('[OneSignal] Push Token após opt-in:', newToken);
+            }, 2000);
+          }
+        }, 3000);
+      } catch (error) {
+        console.error('[OneSignal] Erro ao verificar status:', error);
+      }
+    };
+
+    checkOneSignalStatus();
   }, []);
 
   // Load essential fonts first
@@ -194,7 +279,14 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <NavigationContainer ref={navigationRef}>
+      <NavigationContainer
+        ref={navigationRef}
+        linking={linking}
+        theme={DefaultTheme}
+        onReady={() => {
+          console.log('✅ [Navigation] Navigation ready');
+        }}
+      >
       <NativeBaseProvider theme={THEME}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 

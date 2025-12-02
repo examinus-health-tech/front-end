@@ -1,5 +1,4 @@
 import { Divider, Flex, Text, VStack, Icon, HStack, Box, useToast } from 'native-base';
-import Toast, { BaseToast, ErrorToast } from 'react-native-toast-message';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -12,6 +11,8 @@ import {
   MailIcon,
   UserIcon,
   AppleFilledIcon,
+  FingerprintIcon,
+  FaceIdIcon,
 } from '@assets/icons';
 import { Input, LegalFooter } from '@components/molecules';
 import { Button } from '@components/atoms';
@@ -23,6 +24,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { useAuth } from '../../../../hooks/useAuth';
 import { useGoogleAuth } from '../../../../hooks/useGoogleAuth';
 import { useAppleAuth } from '../../../../hooks/useAppleAuth';
+import { useBiometricAuth } from '../../../../hooks/useBiometricAuth';
 import { AppError } from '@utils/AppErrors';
 import { useState, useEffect } from 'react';
 import { logger } from '@utils/debugLogger';
@@ -42,11 +44,19 @@ const signInSchema = yup.object({
 export function SignIn() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isTakeLook, setIsTakeLook] = useState<boolean>(false);
+  const [canUseBiometric, setCanUseBiometric] = useState<boolean>(false);
 
   const toast = useToast();
-  const { signIn } = useAuth();
+  const { signIn, signInWithBiometric } = useAuth();
   const { signInWithGoogle, isLoading: isGoogleLoading, isConfigured: isGoogleConfigured } = useGoogleAuth();
   const { signInWithApple, isLoading: isAppleLoading, isAvailable: isAppleAvailable } = useAppleAuth();
+  const {
+    isAvailable: isBiometricAvailable,
+    isEnabled: isBiometricEnabled,
+    biometricType,
+    authenticateWithBiometric,
+    canUseBiometricLogin,
+  } = useBiometricAuth();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
     control,
@@ -66,6 +76,26 @@ export function SignIn() {
       logger.network('Initial network diagnostics', { diagnostics });
     });
   }, []);
+
+  // Verifica se pode usar login biométrico
+  // Precisa ter: 1) hardware biometrico disponivel 2) token valido armazenado
+  useEffect(() => {
+    async function checkBiometric() {
+      // Primeiro verifica se o dispositivo tem biometria disponivel
+      if (!isBiometricAvailable) {
+        console.log('👆 [SIGNIN] Biometria nao disponivel no dispositivo');
+        setCanUseBiometric(false);
+        return;
+      }
+
+      // Depois verifica se tem token valido
+      const hasValidToken = await canUseBiometricLogin();
+      console.log('👆 [SIGNIN] Token biometrico valido:', hasValidToken);
+      console.log('👆 [SIGNIN] Biometria disponivel para login:', hasValidToken);
+      setCanUseBiometric(hasValidToken);
+    }
+    checkBiometric();
+  }, [canUseBiometricLogin, isBiometricAvailable]);
 
   async function handleSignIn(data: FormDataProps) {
     try {
@@ -106,19 +136,11 @@ export function SignIn() {
         errorMessage = error.response.data.message;
       }
 
-      Toast.show({
-        type: 'error',
-        text1: 'Erro no Login',
-        text2: errorMessage,
-        topOffset: 60,
-        text1Style: {
-          fontSize: 14,
-          paddingBottom: 2,
-        },
-        text2Style: {
-          fontSize: 13,
-          fontWeight: 600,
-        },
+      toast.show({
+        title: 'Erro no Login',
+        description: errorMessage,
+        placement: 'top',
+        bgColor: 'red.500',
       });
     } finally {
       setIsLoading(false);
@@ -130,11 +152,11 @@ export function SignIn() {
       await signInWithGoogle();
     } catch (error: any) {
       console.log('❌ Erro no login Google:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Erro no Login Google',
-        text2: 'Não foi possível fazer login com Google.',
-        topOffset: 60,
+      toast.show({
+        title: 'Erro no Login Google',
+        description: 'Não foi possível fazer login com Google.',
+        placement: 'top',
+        bgColor: 'red.500',
       });
     }
   }
@@ -144,18 +166,57 @@ export function SignIn() {
       await signInWithApple();
     } catch (error: any) {
       console.log('❌ Erro no login Apple:', error);
-      Toast.show({
-        type: 'error',
-        text1: 'Erro no Login Apple',
-        text2: 'Não foi possível fazer login com Apple.',
-        topOffset: 60,
+      toast.show({
+        title: 'Erro no Login Apple',
+        description: 'Não foi possível fazer login com Apple.',
+        placement: 'top',
+        bgColor: 'red.500',
       });
+    }
+  }
+
+  async function handleBiometricSignIn() {
+    try {
+      setIsLoading(true);
+      console.log('👆 [SIGNIN] Iniciando login biometrico...');
+
+      const result = await authenticateWithBiometric();
+
+      if (!result.success) {
+        console.log('👆 [SIGNIN] Autenticacao biometrica falhou:', result.error);
+        if (result.error !== 'Autenticacao cancelada') {
+          toast.show({
+            title: 'Erro na Biometria',
+            description: result.error || 'Nao foi possivel autenticar.',
+            placement: 'top',
+            bgColor: 'red.500',
+          });
+        }
+        return;
+      }
+
+      // Nova implementacao: userData vem diretamente da API
+      if (result.userData) {
+        console.log('👆 [SIGNIN] Dados do usuario obtidos via API biometrica');
+        // Usa a funcao do AuthContext para fazer login
+        await signInWithBiometric(result.userData);
+        console.log('👆 [SIGNIN] Login biometrico bem-sucedido!');
+      }
+    } catch (error: any) {
+      console.log('❌ Erro no login biometrico:', error);
+      toast.show({
+        title: 'Erro no Login',
+        description: error.message || 'Nao foi possivel fazer login com biometria.',
+        placement: 'top',
+        bgColor: 'red.500',
+      });
+    } finally {
+      setIsLoading(false);
     }
   }
 
   return (
     <VStack justifyContent="space-between" flex={1} mx={6} py={32}>
-      <Toast />
 
       <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
         Entre
@@ -220,15 +281,39 @@ export function SignIn() {
           </Text>
         </TouchableOpacity>
 
-        <Button
-          mt={-2}
-          variant="primary"
-          size="full"
-          title="Conecte-se"
-          isLoading={isLoading}
-          icon={<UserIcon />}
-          onPress={handleSubmit(handleSignIn)}
-        />
+        <HStack mt={-2} space={3} alignItems="center">
+          <Box flex={1}>
+            <Button
+              variant="primary"
+              size="full"
+              title="Conecte-se"
+              isLoading={isLoading}
+              icon={<UserIcon />}
+              onPress={handleSubmit(handleSignIn)}
+            />
+          </Box>
+          {canUseBiometric && (
+            <TouchableOpacity onPress={handleBiometricSignIn} disabled={isLoading}>
+              <Box
+                h={16}
+                w={16}
+                borderRadius={16}
+                borderWidth={2}
+                borderColor={isLoading ? 'gray.300' : 'ciano.300'}
+                bg={isLoading ? 'gray.50' : 'ciano.50'}
+                alignItems="center"
+                justifyContent="center"
+                opacity={isLoading ? 0.6 : 1}
+              >
+                {biometricType === 'Face ID' ? (
+                  <FaceIdIcon color="#0CC1AF" size="28" />
+                ) : (
+                  <FingerprintIcon color="#0CC1AF" size="28" />
+                )}
+              </Box>
+            </TouchableOpacity>
+          )}
+        </HStack>
 
         <Flex direction="row" justifyContent="space-between" pt={4} pb={2}>
           <Divider my={2} mx={2} w="40%" />

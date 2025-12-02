@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { VStack, Text, HStack, Box } from 'native-base';
-import Slider from '@react-native-community/slider';
+import { VStack, Text, HStack, Box, Slider } from 'native-base';
 
 // assets
 import {
@@ -85,18 +84,20 @@ export function Humour() {
         </VStack>
 
         {/* Slider vertical  - Simulado com slider horizontal rotacionado */}
-        <Box w="100%" alignItems="center" mt={-16}>
+        <Box w="80%" alignItems="center" mt={-16}>
           <Slider
-            style={{ width: '80%', height: 40 }}
-            minimumValue={1}
-            maximumValue={5}
+            w="100%"
+            minValue={1}
+            maxValue={5}
             step={1}
-            value={selectedHumour}
-            onValueChange={handleSliderChange}
-            minimumTrackTintColor="#EC5569"
-            maximumTrackTintColor="#E5E8ED"
-            thumbTintColor="#EC5569"
-          />
+            defaultValue={selectedHumour}
+            onChange={handleSliderChange}
+          >
+            <Slider.Track bg="gray.200">
+              <Slider.FilledTrack bg="#EC5569" />
+            </Slider.Track>
+            <Slider.Thumb bg="#EC5569" />
+          </Slider>
         </Box>
       </VStack>
 
