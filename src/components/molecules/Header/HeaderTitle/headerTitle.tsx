@@ -80,17 +80,15 @@ export function HeaderTitle({
   }
 
   return (
-    <HStack space={8} mx={6} alignItems="center" pb={4}>
+    <HStack space={4} mx={6} alignItems="center" mb={6}>
       {withBackButton && (
-        <VStack py={1}>
-          <TouchableOpacity onPress={withBackButton}>
-            <ChevronLeftIcon color={color === 'white' ? '#ffffff' : '#090E1D'} />
-          </TouchableOpacity>
-        </VStack>
+        <TouchableOpacity onPress={withBackButton}>
+          <ChevronLeftIcon size="30" color={color === 'white' ? '#ffffff' : '#052B3B'} />
+        </TouchableOpacity>
       )}
 
       {title && (
-        <Text flex={1} color={color} fontWeight={800} fontSize={20}>
+        <Text flex={1} color={color} fontWeight={800} fontSize={20} letterSpacing={-0.2}>
           {title}
         </Text>
       )}

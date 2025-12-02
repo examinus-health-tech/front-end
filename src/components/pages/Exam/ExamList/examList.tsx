@@ -381,13 +381,12 @@ export function ExamList() {
 
   return (
     <>
-      <VStack my={16} flex={1}>
+      <VStack py={16} flex={1}>
         <HeaderTitle
           title="Exames Realizados"
           withBackButton={() => navigation.navigate('homepage')}
           withFilterButton
           filterButtonAction={handlePresentModalPress}
-          position="fixed"
         />
 
         {isLoading ? (

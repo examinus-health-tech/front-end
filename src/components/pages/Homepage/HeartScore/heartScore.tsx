@@ -57,13 +57,12 @@ export function HeartScore() {
 
   if (currentSystem) {
     return (
-      <VStack my={16}>
+      <VStack py={16}>
         <HeaderTitle
           title={`Score ${currentSystem.sistema}`}
           withBackButton={() => {
             navigation.navigate('healthWallet');
           }}
-          position="fixed"
           badgeVariant={currentSystem.nivel}
         />
 

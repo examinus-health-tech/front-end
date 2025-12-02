@@ -188,8 +188,8 @@ export function HealthWallet() {
   }
 
   return (
-    <VStack my={16}>
-      <HeaderTitle title="Health Wallet" withBackButton={() => navigation.navigate('homepage')} position="fixed" />
+    <VStack py={16}>
+      <HeaderTitle title="Health Wallet" withBackButton={() => navigation.navigate('homepage')} />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
         <VStack flex={1} space={8} pt={2} pb={32}>
