@@ -1,16 +1,17 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { VStack, Text, HStack, ScrollView, IScrollViewProps, Badge, Divider, Box } from 'native-base';
+import { VStack, Text, HStack, ScrollView, IScrollViewProps, Badge, Divider, Box, Modal, Button as NativeBaseButton } from 'native-base';
 
 // routes
 
 // assets
-import { AddSquareIcon, ChartIcon } from '@assets/icons';
+import { AddSquareIcon, ChartIcon, TrashIcon } from '@assets/icons';
 
 // components
 import { BottomSheetModal, BottomSheetView, BottomSheetScrollView, BottomSheetBackdrop, TouchableOpacity } from '@gorhom/bottom-sheet';
 import { HeaderDescription, HistoryChart } from '@components/molecules';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useExam } from 'src/hooks/useExam';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 import { formatDateToBrazilian } from '@utils/dateFormatter';
 import { formatExamValue } from '@utils/numberFormatter';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -28,7 +29,12 @@ type ExamScreenRouteProp = RouteProp<AppRoutes, 'exam'>;
 export function Exam() {
   const route = useRoute<ExamScreenRouteProp>();
   const examIdFromParams = route.params?.examId;
-  const { examSelected, selectExamById, examData } = useExam();
+  const { examSelected, selectExamById, examData, deleteExam } = useExam();
+  const { showSuccess, showError } = useCustomToast();
+
+  // Estado para modal de confirmação de exclusão
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Se vier examId por parâmetro (ex: via push notification), seleciona o exame
   useEffect(() => {
@@ -411,18 +417,64 @@ export function Exam() {
     }
   }, []);
 
+  const handleDeleteExam = useCallback(async () => {
+    if (!examSelected?.medicalExamId) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteExam(examSelected.medicalExamId);
+      setIsDeleteModalOpen(false);
+      showSuccess({
+        title: 'Exame excluído',
+        description: 'O exame foi removido com sucesso.',
+      });
+      navigation.navigate('examList');
+    } catch (error) {
+      showError({
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o exame. Tente novamente.',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [examSelected, deleteExam, navigation, showSuccess, showError]);
+
   return (
     <>
       <VStack my={16}>
         <HeaderDescription
-          title="Laboratório"
-          date={formatDateToBrazilian(examSelected.createdDate)}
+          title={examSelected.laboratoryName || 'Laboratório'}
           withBackButton={() => navigation.navigate('examList')}
           position="fixed"
+          onDeletePress={() => setIsDeleteModalOpen(true)}
         />
 
         <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
           <VStack flex={1} mx={6} mt={4} mb={20} space={4}>
+            {/* Informações do exame */}
+            <VStack space={1} pb={3} borderBottomWidth={1} borderBottomColor="gray.200">
+              <HStack flexWrap="wrap" alignItems="center">
+                {examSelected.examDate && (
+                  <Text fontSize={14} fontWeight={600} color="gray.700">
+                    Exame: {formatDateToBrazilian(examSelected.examDate)}
+                  </Text>
+                )}
+                {examSelected.examDate && examSelected.createdDate && (
+                  <Text fontSize={14} color="gray.400" mx={2}>·</Text>
+                )}
+                <Text fontSize={14} fontWeight={500} color="gray.500">
+                  Enviado: {formatDateToBrazilian(examSelected.createdDate)}
+                </Text>
+              </HStack>
+              {examSelected.doctorName && (
+                <Text fontSize={14} fontWeight={600} color="gray.700" textTransform="capitalize">
+                  Dr(a). {examSelected.doctorName.toLowerCase()}
+                </Text>
+              )}
+              <Text fontSize={12} fontWeight={400} color="gray.400" mt={2} lineHeight={16}>
+                Dados extraídos e analisados automaticamente pela inteligência Examinus a partir do documento enviado.
+              </Text>
+            </VStack>
             {/* <Badge
             borderRadius={12}
             bg="gray.200"
@@ -535,6 +587,54 @@ export function Exam() {
           </BottomSheetScrollView>
         </BottomSheetModal>
       </VStack>
+
+      {/* Modal de confirmação de exclusão */}
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+        <Modal.Content maxWidth="340" borderRadius={16}>
+          <Modal.Body p={6}>
+            <VStack space={4} alignItems="center">
+              <Box p={3} bg="red.100" borderRadius={12}>
+                <TrashIcon color="#EF4444" size="32" />
+              </Box>
+
+              <VStack space={2} alignItems="center">
+                <Text fontSize={18} fontWeight={700} color="gray.900" textAlign="center">
+                  Excluir exame?
+                </Text>
+                <Text fontSize={14} fontWeight={400} color="gray.500" textAlign="center" lineHeight={20}>
+                  Esta ação é irreversível. O exame será removido permanentemente.
+                </Text>
+              </VStack>
+
+              <HStack space={3} w="100%" mt={2}>
+                <NativeBaseButton
+                  flex={1}
+                  variant="outline"
+                  borderColor="gray.300"
+                  _text={{ color: 'gray.600', fontWeight: 600 }}
+                  onPress={() => setIsDeleteModalOpen(false)}
+                  isDisabled={isDeleting}
+                  borderRadius={10}
+                >
+                  Cancelar
+                </NativeBaseButton>
+                <NativeBaseButton
+                  flex={1}
+                  bg="red.500"
+                  _pressed={{ bg: 'red.600' }}
+                  _text={{ fontWeight: 600 }}
+                  onPress={handleDeleteExam}
+                  isLoading={isDeleting}
+                  isDisabled={isDeleting}
+                  borderRadius={10}
+                >
+                  Excluir
+                </NativeBaseButton>
+              </HStack>
+            </VStack>
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
     </>
   );
 }

@@ -43,6 +43,8 @@ export type ExamContextDataProps = {
   examSelected: ExamDataProps;
   setExamSelected: (exam: ExamDataProps) => void;
   selectExamById: (examId: string) => Promise<boolean>;
+  deleteExam: (examId: string) => Promise<boolean>;
+  reprocessExam: (examId: string) => Promise<boolean>;
 };
 
 type ExamContextProviderProps = {
@@ -92,6 +94,49 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
     }
   }
 
+  async function deleteExam(examId: string): Promise<boolean> {
+    try {
+      console.log(`[ExamContext] Excluindo exame: ${examId}`);
+      await api.delete(`/medical-exam/${examId}`);
+
+      // Remove o exame da lista local
+      setExamData((prev) => prev.filter((exam) => exam.medicalExamId !== examId));
+
+      // Limpa o exame selecionado se for o mesmo
+      if (examSelected?.medicalExamId === examId) {
+        setExamSelected({} as ExamDataProps);
+      }
+
+      console.log(`[ExamContext] Exame excluído com sucesso: ${examId}`);
+      return true;
+    } catch (error) {
+      console.error('[ExamContext] Erro ao excluir exame:', error);
+      throw error;
+    }
+  }
+
+  async function reprocessExam(examId: string): Promise<boolean> {
+    try {
+      console.log(`[ExamContext] Reprocessando exame: ${examId}`);
+      await api.post(`/medical-exam/${examId}/reprocess`);
+
+      // Atualiza o status local para "Received" (reprocessando)
+      setExamData((prev) =>
+        prev.map((exam) =>
+          exam.medicalExamId === examId
+            ? { ...exam, medicalExamStatus: 'Received' }
+            : exam
+        )
+      );
+
+      console.log(`[ExamContext] Exame enviado para reprocessamento: ${examId}`);
+      return true;
+    } catch (error) {
+      console.error('[ExamContext] Erro ao reprocessar exame:', error);
+      throw error;
+    }
+  }
+
   return (
     <ExamContext.Provider
       value={{
@@ -100,6 +145,8 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
         examSelected,
         setExamSelected,
         selectExamById,
+        deleteExam,
+        reprocessExam,
       }}
     >
       {children}

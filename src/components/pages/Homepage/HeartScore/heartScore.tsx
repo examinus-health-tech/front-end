@@ -7,7 +7,7 @@ import { TouchableOpacity } from 'react-native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
-import { BarbellIcon, ChevronRightIcon, HeadHealtthIcon, PIllIcon, StethoscopeIcon } from '@assets/icons';
+import { BarbellIcon, ChevronRightIcon, HeadHealtthIcon, PillIcon, StethoscopeIcon } from '@assets/icons';
 import Vector2 from '@assets/png/vector-33.png';
 import Vector3 from '@assets/png/vector-46.png';
 import VectorMale from '@assets/png/vector-46.png'; // Imagem para homem (saúde boa)
@@ -253,7 +253,7 @@ export function HeartScore() {
 
                   <HStack justifyContent="space-between">
                     <Box bg="gray.50" borderRadius={16} size={12} alignItems="center" justifyContent="center">
-                      <PIllIcon />
+                      <PillIcon />
                     </Box>
                     <ChevronRightIcon color="#0CC1AF" size="32" />
                   </HStack>

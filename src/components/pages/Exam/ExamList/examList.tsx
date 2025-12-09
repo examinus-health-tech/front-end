@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Select, CheckIcon } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Select, CheckIcon, Modal, Button as NativeBaseButton, Actionsheet, useDisclose } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 
@@ -7,11 +7,11 @@ import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
-import { ChevronRightIcon, FilterIcon, FlaskIcon } from '@assets/icons';
+import { ChevronRightIcon, FilterIcon, FlaskIcon, RotateRightIcon, TrashIcon, UploadIcon } from '@assets/icons';
 
 // components
 import { HeaderTitle, Input } from '@components/molecules';
-import { TouchableOpacity, useWindowDimensions, Keyboard } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, Keyboard, Pressable, Animated } from 'react-native';
 import { Button } from '@components/atoms';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -107,10 +107,20 @@ export function ExamList() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const { showExtractionError, showAnalysisError, showExamProcessing, showFiltersApplied, showFiltersCleared, showError } = useCustomToast();
+  const { showExtractionError, showAnalysisError, showExamProcessing, showFiltersApplied, showFiltersCleared, showError, showSuccess, showInfo } = useCustomToast();
   const { user } = useAuth();
-  const { getExamList, examData, setExamSelected } = useExam();
+  const { getExamList, examData, setExamSelected, deleteExam, reprocessExam } = useExam();
   const { width, height } = useWindowDimensions();
+
+  // Estados para exclusão de exame
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [examToDelete, setExamToDelete] = useState<any>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Estados para menu de ações (reprocessar/excluir)
+  const { isOpen: isActionSheetOpen, onOpen: onActionSheetOpen, onClose: onActionSheetClose } = useDisclose();
+  const [selectedExamForAction, setSelectedExamForAction] = useState<any>(null);
+  const [isReprocessing, setIsReprocessing] = useState(false);
 
   // Estados dos filtros
   const [filters, setFilters] = useState<FilterState>({
@@ -294,77 +304,173 @@ export function ExamList() {
     applyFilters();
   }, [examData, filters]);
 
+  // Função para abrir modal de exclusão
+  function handleOpenDeleteModal(exam: any) {
+    setExamToDelete(exam);
+    setIsDeleteModalOpen(true);
+  }
+
+  // Função para abrir menu de ações (reprocessar/excluir)
+  function handleOpenActionSheet(exam: any) {
+    setSelectedExamForAction(exam);
+    onActionSheetOpen();
+  }
+
+  // Função para reprocessar exame
+  async function handleReprocessExam() {
+    if (!selectedExamForAction?.medicalExamId) return;
+
+    setIsReprocessing(true);
+    try {
+      await reprocessExam(selectedExamForAction.medicalExamId);
+      onActionSheetClose();
+      setSelectedExamForAction(null);
+      showSuccess({
+        title: 'Reprocessando',
+        description: 'O exame foi enviado para reprocessamento.',
+      });
+    } catch (error) {
+      showError({
+        title: 'Erro ao reprocessar',
+        description: 'Não foi possível reprocessar o exame. Tente novamente.',
+      });
+    } finally {
+      setIsReprocessing(false);
+    }
+  }
+
+  // Função para excluir do action sheet
+  function handleDeleteFromActionSheet() {
+    if (!selectedExamForAction) return;
+    onActionSheetClose();
+    setExamToDelete(selectedExamForAction);
+    setSelectedExamForAction(null);
+    setIsDeleteModalOpen(true);
+  }
+
+  // Função para excluir exame
+  async function handleDeleteExam() {
+    if (!examToDelete?.medicalExamId) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteExam(examToDelete.medicalExamId);
+      setIsDeleteModalOpen(false);
+      setExamToDelete(null);
+      showSuccess({
+        title: 'Exame excluído',
+        description: 'O exame foi removido com sucesso.',
+      });
+    } catch (error) {
+      showError({
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o exame. Tente novamente.',
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
   function renderExam(exam: any) {
     const isScoreComputed = exam.medicalExamStatus === 'ScoreComputed';
+    const isError = isErrorStatus(exam.medicalExamStatus);
+    const isProcessing = isProcessingStatus(exam.medicalExamStatus);
     const statusMessage = getStatusMessage(exam.medicalExamStatus);
     const statusColor = getStatusColor(exam.medicalExamStatus);
 
+    // Verifica se o exame pode ter ações (erro ou em processamento)
+    const canHaveActions = isError || isProcessing;
+
+    const handlePress = () => {
+      // Exames com erro ou em processamento abrem menu de ações diretamente
+      if (canHaveActions) {
+        handleOpenActionSheet(exam);
+        return;
+      }
+
+      // Apenas exames concluídos (ScoreComputed) podem abrir detalhes
+      if (isScoreComputed) {
+        setExamSelected(exam);
+        navigation.navigate('exam');
+      }
+    };
+
     return (
-      <TouchableOpacity
-        onPress={() => {
-          if (isScoreComputed) {
-            setExamSelected(exam);
-            navigation.navigate('exam');
-          } else if (exam.medicalExamStatus === 'ExtractedFailed') {
-            // Erro de extração - mostrar toast específico com recomendações
-            showExtractionError(exam.laboratoryName);
-          } else if (exam.medicalExamStatus === 'AnalyzedFailed' || exam.medicalExamStatus === 'ScoreComputedFailed') {
-            // Erro de análise ou processamento - mostrar toast específico
-            showAnalysisError(exam.laboratoryName);
-          } else {
-            // Exame em processamento normal
-            showExamProcessing(statusMessage);
-          }
-        }}
+      <Pressable
+        onPress={handlePress}
+        style={({ pressed }) => ({
+          opacity: pressed ? 0.7 : 1,
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+        })}
       >
         <HStack
           justifyContent="space-between"
           alignItems="center"
-          space={6}
+          space={4}
           flex={1}
           opacity={isScoreComputed ? 1 : 0.6}
         >
-          <Box bg="gray.100" borderRadius={16} w={20} h={16} alignItems="center" justifyContent="center">
-            <FlaskIcon size="36" variant="duotone" color={isScoreComputed ? undefined : 'gray.400'} />
+          {/* Ícone com indicador de status */}
+          <Box position="relative">
+            <Box bg="gray.100" borderRadius={16} w={16} h={14} alignItems="center" justifyContent="center">
+              <FlaskIcon size="32" variant="duotone" color={isScoreComputed ? undefined : 'gray.400'} />
+            </Box>
+            {/* Bolinha de status no canto */}
+            <Circle
+              size={4}
+              bg={statusColor}
+              position="absolute"
+              bottom={-1}
+              right={-1}
+              borderWidth={2}
+              borderColor="white"
+            >
+              {isProcessing && <Circle size={1.5} bg="white" />}
+            </Circle>
           </Box>
 
-          <VStack flex={1}>
-            <Text mt={1} fontSize={22} fontWeight={800} letterSpacing={-0.16} lineHeight={22}>
+          {/* Conteúdo central */}
+          <VStack flex={1} space={0}>
+            {/* Linha 1: Título */}
+            <Text fontSize={18} fontWeight={700} letterSpacing={-0.16} numberOfLines={1}>
               {exam.laboratoryName || 'Laboratório'}
             </Text>
 
-            <Text fontSize={16} fontWeight={400} letterSpacing={-0.16} color="gray.600">
-              {formatDateToBrazilian(exam.examDate || exam.createdDate)}
-            </Text>
+            {/* Linha 2: Data do exame */}
+            <HStack alignItems="center" space={1} mt={1}>
+              <Text fontSize={12} fontWeight={600} color="gray.500">Exame</Text>
+              <Text fontSize={13} fontWeight={600} color={exam.examDate ? "gray.700" : "gray.400"}>
+                {exam.examDate ? formatDateToBrazilian(exam.examDate) : 'Não identificada'}
+              </Text>
+            </HStack>
 
-            {/* <Text mt={1} fontSize={14} fontWeight={400} letterSpacing={-0.16} color="gray.600">
-              {exam.doctor_name}
-            </Text> */}
-
-            {/* Status do exame */}
-            <HStack alignItems="center" space={2} alignSelf="flex-start">
-              {/* Indicador visual do status */}
-              <Circle size={3} bg={statusColor}>
-                {isProcessingStatus(exam.medicalExamStatus) && <Circle size={1.5} bg="white" />}
-              </Circle>
-
-              <Box bg={statusColor} borderRadius={6} px={3} py={1} maxW="75%">
-                <Text fontSize={12} fontWeight={600} color="white" numberOfLines={1}>
-                  {statusMessage}
-                </Text>
-              </Box>
-
-              {isErrorStatus(exam.medicalExamStatus) && (
-                <Text fontSize={12} color="red.500" fontWeight={500}>
-                  ⚠️
-                </Text>
-              )}
+            {/* Linha 3: Data de envio */}
+            <HStack alignItems="center" space={1} mt={0.5}>
+              <Text fontSize={11} fontWeight={500} color="gray.400">Enviado</Text>
+              <Text fontSize={12} fontWeight={500} color="gray.500">
+                {formatDateToBrazilian(exam.createdDate)}
+              </Text>
             </HStack>
           </VStack>
 
-          <ChevronRightIcon color={isScoreComputed ? '#0CC1AF' : '#CCCCCC'} size="36" />
+          {/* Status + Ícone (unidos à direita) - largura fixa para alinhar */}
+          <VStack alignItems="center" space={2} minW={20}>
+            {/* Badge de status */}
+            <Box bg={statusColor} borderRadius={6} px={2} py={0.5}>
+              <Text fontSize={10} fontWeight={700} color="white" textAlign="center">
+                {statusMessage}
+              </Text>
+            </Box>
+
+            {/* Ícone de ação ou navegação */}
+            {canHaveActions ? (
+              <RotateRightIcon color="#6B7280" size="24" />
+            ) : (
+              <ChevronRightIcon color={isScoreComputed ? '#0CC1AF' : '#AAAAAA'} size="32" />
+            )}
+          </VStack>
         </HStack>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
@@ -640,6 +746,112 @@ export function ExamList() {
           </VStack>
         </BottomSheetView>
       </BottomSheetModal>
+
+      {/* Modal de confirmação de exclusão */}
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+        <Modal.Content maxWidth="340" borderRadius={16}>
+          <Modal.Body p={6}>
+            <VStack space={4} alignItems="center">
+              <Box p={3} bg="red.100" borderRadius={12}>
+                <TrashIcon color="#EF4444" size="32" />
+              </Box>
+
+              <VStack space={2} alignItems="center">
+                <Text fontSize={18} fontWeight={700} color="gray.900" textAlign="center">
+                  Excluir exame?
+                </Text>
+                <Text fontSize={14} fontWeight={400} color="gray.500" textAlign="center" lineHeight={20}>
+                  Esta ação é irreversível. O exame será removido permanentemente.
+                </Text>
+                {examToDelete?.laboratoryName && (
+                  <Text fontSize={12} fontWeight={600} color="gray.600" textAlign="center" mt={1}>
+                    {examToDelete.laboratoryName}
+                  </Text>
+                )}
+              </VStack>
+
+              <HStack space={3} w="100%" mt={2}>
+                <NativeBaseButton
+                  flex={1}
+                  variant="outline"
+                  borderColor="gray.300"
+                  _text={{ color: 'gray.600', fontWeight: 600 }}
+                  onPress={() => {
+                    setIsDeleteModalOpen(false);
+                    setExamToDelete(null);
+                  }}
+                  isDisabled={isDeleting}
+                  borderRadius={10}
+                >
+                  Cancelar
+                </NativeBaseButton>
+                <NativeBaseButton
+                  flex={1}
+                  bg="red.500"
+                  _pressed={{ bg: 'red.600' }}
+                  _text={{ fontWeight: 600 }}
+                  onPress={handleDeleteExam}
+                  isLoading={isDeleting}
+                  isDisabled={isDeleting}
+                  borderRadius={10}
+                >
+                  Excluir
+                </NativeBaseButton>
+              </HStack>
+            </VStack>
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
+
+      {/* ActionSheet de opções (Reprocessar/Excluir) */}
+      <Actionsheet isOpen={isActionSheetOpen} onClose={onActionSheetClose}>
+        <Actionsheet.Content>
+          <Box w="100%" px={4} py={2}>
+            <Text fontSize={16} fontWeight={700} color="gray.700" textAlign="center">
+              {selectedExamForAction?.laboratoryName || 'Exame'}
+            </Text>
+            <Text fontSize={12} fontWeight={400} color="gray.400" textAlign="center" mt={1}>
+              O que deseja fazer com este exame?
+            </Text>
+          </Box>
+
+          <Actionsheet.Item
+            onPress={handleReprocessExam}
+            isDisabled={isReprocessing}
+            _pressed={{ bg: 'blue.50' }}
+          >
+            <HStack space={3} alignItems="center">
+              <UploadIcon color="#3B82F6" size="22" />
+              <VStack>
+                <Text fontSize={16} fontWeight={600} color="blue.600">
+                  {isReprocessing ? 'Reprocessando...' : 'Reprocessar'}
+                </Text>
+                <Text fontSize={12} fontWeight={400} color="gray.500">
+                  Enviar novamente para processamento
+                </Text>
+              </VStack>
+            </HStack>
+          </Actionsheet.Item>
+
+          <Actionsheet.Item
+            onPress={handleDeleteFromActionSheet}
+            isDisabled={isReprocessing}
+            _pressed={{ bg: 'red.50' }}
+          >
+            <HStack space={3} alignItems="center">
+              <TrashIcon color="#EF4444" size="22" />
+              <VStack>
+                <Text fontSize={16} fontWeight={600} color="red.500">
+                  Excluir
+                </Text>
+                <Text fontSize={12} fontWeight={400} color="gray.500">
+                  Remover exame permanentemente
+                </Text>
+              </VStack>
+            </HStack>
+          </Actionsheet.Item>
+        </Actionsheet.Content>
+      </Actionsheet>
     </>
   );
 }
