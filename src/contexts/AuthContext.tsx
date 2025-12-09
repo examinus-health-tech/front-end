@@ -239,28 +239,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       console.log('Token:', JSON.stringify(formattedUserData, null, 2));
 
+      // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
-      console.log('✅ [AUTH] Usuário setado:', {
+
+      // Verificar se os dados foram persistidos corretamente
+      const verifyData = await AsyncStorage.getItem('@app:user');
+      if (!verifyData) {
+        throw new Error('Falha ao persistir dados do usuário');
+      }
+
+      console.log('✅ [AUTH] Usuário setado e verificado:', {
         userId: formattedUserData.userId,
         name: formattedUserData.name,
         email: formattedUserData.email
       });
+
+      // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (não com delay)
+      try {
+        console.log('📱 Registrando OneSignal external_id...');
+        await OneSignal.login(formattedUserData.userId);
+        console.log('✅ OneSignal external_id registrado');
+      } catch (oneSignalError) {
+        console.warn('⚠️ Erro ao registrar OneSignal external_id (não crítico):', oneSignalError);
+      }
+
+      // Agora sim, setar o usuário e disparar navegação
       setUser(formattedUserData);
 
-      // 🔔 REGISTRA O DISPOSITIVO APÓS O LOGIN BEM-SUCEDIDO
-      // Aguarda um pouco mais para garantir que OneSignal esteja pronto
-      setTimeout(async () => {
-        try {
-          console.log('📱 Registrando dispositivo OneSignal...');
-          await registerDeviceOnBackend();
-          await OneSignal.login(formattedUserData.userId);
-          console.log('✅ Dispositivo registrado com sucesso');
-        } catch (deviceError) {
-          // ❗ NÃO QUEBRA O LOGIN SE O REGISTRO DO DISPOSITIVO FALHAR
-          console.warn('⚠️ Erro ao registrar dispositivo (não crítico):', deviceError);
-          // Opcional: pode adicionar um toast/lembrete para o usuário
-        }
-      }, 3000); // Delay de 3 segundos após o login
+      // Registra dispositivo no backend em background (não bloqueia)
+      registerDeviceOnBackend().catch((deviceError) => {
+        console.warn('⚠️ Erro ao registrar dispositivo no backend (não crítico):', deviceError);
+      });
     } catch (error: any) {
       // Log estruturado completo
       const errorDetails = {
@@ -360,25 +369,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: userData.email,
       };
 
+      // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
-      console.log('✅ [BIOMETRIC LOGIN] Usuario setado:', {
+
+      // Verificar se os dados foram persistidos corretamente
+      const verifyData = await AsyncStorage.getItem('@app:user');
+      if (!verifyData) {
+        throw new Error('Falha ao persistir dados do usuário');
+      }
+
+      console.log('✅ [BIOMETRIC LOGIN] Usuario setado e verificado:', {
         userId: formattedUserData.userId,
         name: formattedUserData.name,
         email: formattedUserData.email,
       });
+
+      // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (não com delay)
+      // O login do OneSignal deve ser feito antes da navegação para garantir
+      // que o external_id esteja associado corretamente
+      try {
+        console.log('📱 Registrando OneSignal external_id (biometric)...');
+        await OneSignal.login(formattedUserData.userId);
+        console.log('✅ OneSignal external_id registrado');
+      } catch (oneSignalError) {
+        // Não bloquear o login se OneSignal falhar
+        console.warn('⚠️ Erro ao registrar OneSignal external_id (nao critico):', oneSignalError);
+      }
+
+      // Agora sim, setar o usuário e disparar navegação
       setUser(formattedUserData);
 
-      // Registra dispositivo OneSignal
-      setTimeout(async () => {
-        try {
-          console.log('📱 Registrando dispositivo OneSignal (biometric)...');
-          await registerDeviceOnBackend();
-          await OneSignal.login(formattedUserData.userId);
-          console.log('✅ Dispositivo registrado com sucesso');
-        } catch (deviceError) {
-          console.warn('⚠️ Erro ao registrar dispositivo (nao critico):', deviceError);
-        }
-      }, 3000);
+      // Registra dispositivo no backend em background (não bloqueia)
+      // Usa Promise sem await para não atrasar a navegação
+      registerDeviceOnBackend().catch((deviceError) => {
+        console.warn('⚠️ Erro ao registrar dispositivo no backend (nao critico):', deviceError);
+      });
 
     } catch (error: any) {
       console.error('❌ [BIOMETRIC LOGIN ERROR]', error);
@@ -456,27 +481,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: emailFromToken || userData.email,
       };
 
+      // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
-      console.log('✅ [AUTH] Usuário Google setado:', {
+
+      // Verificar se os dados foram persistidos corretamente
+      const verifyData = await AsyncStorage.getItem('@app:user');
+      if (!verifyData) {
+        throw new Error('Falha ao persistir dados do usuário');
+      }
+
+      console.log('✅ [AUTH] Usuário Google setado e verificado:', {
         userId: formattedUserData.userId,
         name: formattedUserData.name,
         email: formattedUserData.email
       });
+
+      // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (não com delay)
+      try {
+        console.log('📱 Registrando OneSignal external_id (Google)...');
+        await OneSignal.login(formattedUserData.userId);
+        console.log('✅ OneSignal external_id registrado (Google)');
+      } catch (oneSignalError) {
+        console.warn('⚠️ Erro ao registrar OneSignal external_id (Google - não crítico):', oneSignalError);
+      }
+
+      // Agora sim, setar o usuário e disparar navegação
       setUser(formattedUserData);
 
-      // 🔔 REGISTRA O DISPOSITIVO APÓS O LOGIN BEM-SUCEDIDO
-      // Aguarda um pouco mais para garantir que OneSignal esteja pronto
-      setTimeout(async () => {
-        try {
-          console.log('📱 Registrando dispositivo OneSignal (Google)...');
-          await registerDeviceOnBackend();
-          await OneSignal.login(formattedUserData.userId);
-
-          console.log('✅ Dispositivo registrado com sucesso (Google)');
-        } catch (deviceError) {
-          console.warn('⚠️ Erro ao registrar dispositivo (Google - não crítico):', deviceError);
-        }
-      }, 3000); // Delay de 3 segundos após o login
+      // Registra dispositivo no backend em background (não bloqueia)
+      registerDeviceOnBackend().catch((deviceError) => {
+        console.warn('⚠️ Erro ao registrar dispositivo no backend (Google - não crítico):', deviceError);
+      });
 
       // Add small delay for smooth transition
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
@@ -584,8 +619,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
         await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
         console.log('🧹 Dados de onboarding antigos removidos (login Google)');
 
+        // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
         await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+
+        // Verificar se os dados foram persistidos corretamente
+        const verifyData = await AsyncStorage.getItem('@app:user');
+        if (!verifyData) {
+          throw new Error('Falha ao persistir dados do usuário');
+        }
+
+        // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE
+        try {
+          console.log('📱 Registrando OneSignal external_id (signUpWithGoogle)...');
+          await OneSignal.login(formattedUserData.userId);
+          console.log('✅ OneSignal external_id registrado (signUpWithGoogle)');
+        } catch (oneSignalError) {
+          console.warn('⚠️ Erro ao registrar OneSignal (signUpWithGoogle - não crítico):', oneSignalError);
+        }
+
+        // Agora sim, setar o usuário e disparar navegação
         setUser(formattedUserData);
+
+        // Registra dispositivo no backend em background (não bloqueia)
+        registerDeviceOnBackend().catch((deviceError) => {
+          console.warn('⚠️ Erro ao registrar dispositivo no backend (signUpWithGoogle - não crítico):', deviceError);
+        });
+
         return;
       }
 
@@ -603,24 +662,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      // 🔔 REGISTRA O DISPOSITIVO APÓS O LOGIN BEM-SUCEDIDO
-      // Aguarda um pouco mais para garantir que OneSignal esteja pronto
-      setTimeout(async () => {
-        try {
-          console.log('📱 Registrando dispositivo OneSignal (Apple)...');
-          await registerDeviceOnBackend();
-          const oneSignalId = await OneSignal.User.getOnesignalId();
-          await OneSignal.login(oneSignalId);
-          console.log('✅ Dispositivo registrado com sucesso (Apple)');
-        } catch (deviceError) {
-          console.warn('⚠️ Erro ao registrar dispositivo (Apple - não crítico):', deviceError);
-        }
-      }, 3000); // Delay de 3 segundos após o login
-
-      // Add small delay for smooth transition
-      await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
-
-   	  // Se chegou aqui, algo está errado
+      // Se chegou aqui, algo está errado
       throw new Error('Resposta inesperada do servidor');
     } catch (error: any) {
       console.log('❌ Erro no cadastro Google:', {
@@ -760,20 +802,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
         fullName: userData.fullName || userData.name, // fallback
       };
 
+      // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
-      console.log('✅ [AUTH] Usuário Apple setado:', { userId: formattedUserData.userId, name: formattedUserData.name });
 
+      // Verificar se os dados foram persistidos corretamente
+      const verifyData = await AsyncStorage.getItem('@app:user');
+      if (!verifyData) {
+        throw new Error('Falha ao persistir dados do usuário');
+      }
+
+      console.log('✅ [AUTH] Usuário Apple setado e verificado:', { userId: formattedUserData.userId, name: formattedUserData.name });
+
+      // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (ANTES de setUser)
+      try {
+        console.log('📱 Registrando OneSignal external_id (Apple)...');
+        await OneSignal.login(formattedUserData.userId);
+        console.log('✅ OneSignal external_id registrado (Apple)');
+      } catch (oneSignalError) {
+        console.warn('⚠️ Erro ao registrar OneSignal external_id (Apple - não crítico):', oneSignalError);
+      }
+
+      // Agora sim, setar o usuário e disparar navegação
       setUser(formattedUserData);
 
-      // 🔔 REGISTRA O DISPOSITIVO APÓS O LOGIN BEM-SUCEDIDO
-      try {
-        console.log('📱 Registrando dispositivo OneSignal (Apple)...');
-        await registerDeviceOnBackend();
-        await OneSignal.login(formattedUserData.userId);
-        console.log('✅ Dispositivo registrado com sucesso (Apple)');
-      } catch (deviceError) {
-        console.warn('⚠️ Erro ao registrar dispositivo (Apple - não crítico):', deviceError);
-      }
+      // Registra dispositivo no backend em background (não bloqueia)
+      registerDeviceOnBackend().catch((deviceError) => {
+        console.warn('⚠️ Erro ao registrar dispositivo no backend (Apple - não crítico):', deviceError);
+      });
 
       // Add small delay for smooth transition
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
@@ -892,12 +947,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await AsyncStorage.removeItem('@app:onboardingData');
       console.log('🧹 Dados de onboarding antigos removidos (cadastro Apple)');
 
+      // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
       await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+
+      // Verificar se os dados foram persistidos corretamente
+      const verifyData = await AsyncStorage.getItem('@app:user');
+      if (!verifyData) {
+        throw new Error('Falha ao persistir dados do usuário');
+      }
+
+      console.log('✅ [AUTH] Usuário Apple cadastrado e verificado:', { userId: formattedUserData.userId, name: formattedUserData.name });
+
+      // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (ANTES de setUser)
+      try {
+        console.log('📱 Registrando OneSignal external_id (signUpWithApple)...');
+        await OneSignal.login(formattedUserData.userId);
+        console.log('✅ OneSignal external_id registrado (signUpWithApple)');
+      } catch (oneSignalError) {
+        console.warn('⚠️ Erro ao registrar OneSignal external_id (signUpWithApple - não crítico):', oneSignalError);
+      }
+
+      // Agora sim, setar o usuário e disparar navegação
+      setUser(formattedUserData);
+
+      // Registra dispositivo no backend em background (não bloqueia)
+      registerDeviceOnBackend().catch((deviceError) => {
+        console.warn('⚠️ Erro ao registrar dispositivo no backend (signUpWithApple - não crítico):', deviceError);
+      });
 
       // Add small delay for smooth transition
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
-
-      setUser(formattedUserData);
     } catch (error: any) {
       console.log('❌ Erro no cadastro Apple:', error);
 
