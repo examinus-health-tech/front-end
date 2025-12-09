@@ -1,0 +1,35 @@
+diff --git a/node_modules/onesignal-expo-plugin/build/onesignal/withOneSignalIos.js b/node_modules/onesignal-expo-plugin/build/onesignal/withOneSignalIos.js
+index 39d0321..217602e 100644
+--- a/node_modules/onesignal-expo-plugin/build/onesignal/withOneSignalIos.js
++++ b/node_modules/onesignal-expo-plugin/build/onesignal/withOneSignalIos.js
+@@ -83,7 +83,7 @@ const withAppGroupPermissions = (config) => {
+             newConfig.modResults[APP_GROUP_KEY] = [];
+         }
+         const modResultsArray = newConfig.modResults[APP_GROUP_KEY];
+-        const entitlement = `group.${((_a = newConfig === null || newConfig === void 0 ? void 0 : newConfig.ios) === null || _a === void 0 ? void 0 : _a.bundleIdentifier) || ""}.onesignal`;
++        const entitlement = `group.${((_a = newConfig === null || newConfig === void 0 ? void 0 : newConfig.ios) === null || _a === void 0 ? void 0 : _a.bundleIdentifier) || ""}.OneSignalNotificationServiceExtension`;
+         if (modResultsArray.indexOf(entitlement) !== -1) {
+             return newConfig;
+         }
+@@ -130,7 +130,7 @@ const withOneSignalNSE = (config, props) => {
+             await FileManager_1.FileManager.copyFile(`${sourcePath}`, targetFile);
+             /* MODIFY COPIED EXTENSION FILES */
+             const nseUpdater = new NseUpdaterManager_1.default(iosPath);
+-            await nseUpdater.updateNSEEntitlements(`group.${(_b = config.ios) === null || _b === void 0 ? void 0 : _b.bundleIdentifier}.onesignal`);
++            await nseUpdater.updateNSEEntitlements(`group.${(_b = config.ios) === null || _b === void 0 ? void 0 : _b.bundleIdentifier}.OneSignalNotificationServiceExtension`);
+             await nseUpdater.updateNSEBundleVersion((_d = (_c = config.ios) === null || _c === void 0 ? void 0 : _c.buildNumber) !== null && _d !== void 0 ? _d : iosConstants_1.DEFAULT_BUNDLE_VERSION);
+             await nseUpdater.updateNSEBundleShortVersion((_e = config === null || config === void 0 ? void 0 : config.version) !== null && _e !== void 0 ? _e : iosConstants_1.DEFAULT_BUNDLE_SHORT_VERSION);
+             return config;
+diff --git a/node_modules/onesignal-expo-plugin/build/support/eas/getEasManagedCredentialsConfigExtra.js b/node_modules/onesignal-expo-plugin/build/support/eas/getEasManagedCredentialsConfigExtra.js
+index 2822b73..a514844 100644
+--- a/node_modules/onesignal-expo-plugin/build/support/eas/getEasManagedCredentialsConfigExtra.js
++++ b/node_modules/onesignal-expo-plugin/build/support/eas/getEasManagedCredentialsConfigExtra.js
+@@ -21,7 +21,7 @@ function getEasManagedCredentialsConfigExtra(config) {
+                                 bundleIdentifier: `${(_s = config === null || config === void 0 ? void 0 : config.ios) === null || _s === void 0 ? void 0 : _s.bundleIdentifier}.${iosConstants_1.NSE_TARGET_NAME}`,
+                                 entitlements: {
+                                     'com.apple.security.application-groups': [
+-                                        `group.${(_t = config === null || config === void 0 ? void 0 : config.ios) === null || _t === void 0 ? void 0 : _t.bundleIdentifier}.onesignal`
++                                        `group.${(_t = config === null || config === void 0 ? void 0 : config.ios) === null || _t === void 0 ? void 0 : _t.bundleIdentifier}.OneSignalNotificationServiceExtension`
+                                     ]
+                                 },
+                             }

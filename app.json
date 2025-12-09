@@ -8,7 +8,7 @@
       "fallbackToCacheTimeout": 3000,
       "url": "https://u.expo.dev/29aa665e-a9a4-4a0b-9ead-a75ede66e041"
     },
-    "version": "1.2.9",
+    "version": "1.2.10",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -25,7 +25,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "13",
+      "buildNumber": "14",
       "supportsTablet": true,
       "bundleIdentifier": "com.examinus.app",
       "jsEngine": "jsc",
@@ -41,6 +41,7 @@
         "NSCameraUsageDescription": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
         "NSMicrophoneUsageDescription": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais.",
         "NSFaceIDUsageDescription": "O Examinus usa Face ID para autenticação biométrica, permitindo login rápido e seguro sem precisar digitar sua senha.",
+        "NSLocationWhenInUseUsageDescription": "O Examinus pode usar sua localização para melhorar sua experiência e fornecer serviços personalizados de saúde na sua região.",
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "google-oauth",
@@ -60,25 +61,21 @@
       "entitlements": {
         "aps-environment": "production",
         "com.apple.security.application-groups": [
-          "group.com.examinus.app.onesignal"
-        ]
-      },
-      "entitlements": {
-        "aps-environment": "production",
-        "com.apple.security.application-groups": [
-          "group.com.examinus.app.onesignal"
+          "group.com.examinus.app.OneSignalNotificationServiceExtension"
         ]
       },
       "appleTeamId": "NLLSSU23C9"
     },
     "android": {
-      "versionCode": 13,
+      "versionCode": 14,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
       "jsEngine": "jsc",
       "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
@@ -100,8 +97,27 @@
             "BROWSABLE",
             "DEFAULT"
           ]
+        },
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "examinus.app",
+              "pathPrefix": "/app"
+            },
+            {
+              "scheme": "examinus"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
-      ]
+      ],
+      "package": "com.examinus.app"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -140,7 +156,8 @@
         {
           "mode": "production"
         }
-      ]
+      ],
+      "./plugins/withCustomAppGroup.js"
     ],
     "extra": {
       "eas": {
