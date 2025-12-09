@@ -257,13 +257,6 @@ export function MyAccount() {
               goTo={() => navigation.navigate('contactUs')}
               icon={<TelephoneIcon color="#3D4966" size="30" />}
             />
-            <Card
-              title="Teste de Toasts (DEV)"
-              variant="primary"
-              action="chevron"
-              goTo={() => navigation.navigate('toastTest')}
-              icon={<WarningIcon color="#F59E0B" size="30" />}
-            />
           </VStack>
         </VStack>
 
