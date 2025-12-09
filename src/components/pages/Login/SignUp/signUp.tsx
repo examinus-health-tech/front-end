@@ -9,7 +9,6 @@ import {
   Box,
   FormControl,
   WarningOutlineIcon,
-  useToast,
   ScrollView,
   KeyboardAvoidingView,
   Spinner,
@@ -31,6 +30,7 @@ import { useState, useRef } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 import { useGoogleAuth } from 'src/hooks/useGoogleAuth';
 import { useAppleAuth } from 'src/hooks/useAppleAuth';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 import * as AppleAuthentication from 'expo-apple-authentication';
 
 type FormDataProps = {
@@ -63,7 +63,7 @@ export function SignUp() {
   const { signUp } = useAuth();
   const { signUpWithGoogle, isLoading: isGoogleLoading, isConfigured: isGoogleConfigured } = useGoogleAuth();
   const { signUpWithApple, isLoading: isAppleLoading, isAvailable: isAppleAvailable } = useAppleAuth();
-  const toast = useToast();
+  const { showSuccess, showError } = useCustomToast();
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
   const {
     control,
@@ -79,21 +79,9 @@ export function SignUp() {
       setIsLoading(true);
       await signUp(name, email, password, confirm_password);
 
-      toast.show({
-        marginX: '12',
-        borderRadius: '12',
+      showSuccess({
         title: 'Conta criada com sucesso',
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'green.500',
+        description: 'Você já pode fazer login.',
       });
       navigation.navigate('signIn');
     } catch (error: any) {
@@ -127,22 +115,9 @@ export function SignUp() {
         });
       }
 
-      toast.show({
-        marginX: '12',
-        borderRadius: '12',
+      showError({
         title: 'Não foi possível criar sua conta',
         description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
       });
     } finally {
       setIsLoading(false);
@@ -154,11 +129,9 @@ export function SignUp() {
       await signUpWithGoogle();
     } catch (error: any) {
       console.log('❌ Erro no cadastro Google:', error);
-      toast.show({
+      showError({
         title: 'Erro no Cadastro Google',
         description: 'Não foi possível cadastrar com Google.',
-        placement: 'top',
-        bgColor: 'red.500',
       });
     }
   }
@@ -168,11 +141,9 @@ export function SignUp() {
       await signUpWithApple();
     } catch (error: any) {
       console.log('❌ Erro no cadastro Apple:', error);
-      toast.show({
+      showError({
         title: 'Erro no Cadastro Apple',
         description: 'Não foi possível cadastrar com Apple.',
-        placement: 'top',
-        bgColor: 'red.500',
       });
     }
   }

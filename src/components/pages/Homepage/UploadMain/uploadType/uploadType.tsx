@@ -1,5 +1,5 @@
 import { Platform, TouchableOpacity } from 'react-native';
-import { VStack, Text, Image, Center, Box, HStack, useToast } from 'native-base';
+import { VStack, Text, Image, Center, Box, HStack } from 'native-base';
 import { DocumentPickerAsset, getDocumentAsync } from 'expo-document-picker';
 import { useRef, useEffect } from 'react';
 
@@ -8,6 +8,7 @@ import { EditIcon, UploadIcon } from '@assets/icons';
 import Vector1 from '@assets/png/vector-9.png';
 import { useUpload } from 'src/hooks/useUpload';
 import { useAuth } from 'src/hooks/useAuth';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 import { AppError } from '@utils/AppErrors';
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -21,7 +22,7 @@ interface UploadTypeProps {
 export function UploadType({ onCameraOpen, onManualOpen, handleUploadFileProp }: UploadTypeProps) {
   const uploadContext = useUpload();
   const { user } = useAuth();
-  const toast = useToast();
+  const { showError } = useCustomToast();
 
   // Usar a prop se fornecida, senão usar do contexto
   const handleUploadFile = handleUploadFileProp || uploadContext.handleUploadFile;
@@ -62,12 +63,9 @@ export function UploadType({ onCameraOpen, onManualOpen, handleUploadFileProp }:
     } catch (error) {
       console.error('💥 Erro ao selecionar/fazer upload do arquivo:', error);
 
-      toast.show({
-        borderRadius: '12',
+      showError({
         title: 'Erro no upload',
         description: error instanceof Error ? error.message : 'Erro desconhecido ao fazer upload',
-        placement: 'top',
-        bgColor: 'red.500',
       });
     }
   }

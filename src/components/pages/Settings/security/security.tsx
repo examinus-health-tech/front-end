@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { VStack, ScrollView, IScrollViewProps, useToast } from 'native-base';
+import { VStack, ScrollView, IScrollViewProps } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
 // routes
@@ -12,11 +12,12 @@ import { Card } from '../components/card/card';
 // hooks
 import { useBiometricAuth } from 'src/hooks/useBiometricAuth';
 import { useAuth } from 'src/hooks/useAuth';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 
 export function Security() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const toast = useToast();
+  const { showSuccess, showError } = useCustomToast();
 
   const { user } = useAuth();
   const {
@@ -46,11 +47,9 @@ export function Security() {
       if (value) {
         // Habilitar biometria
         if (!user?.email) {
-          toast.show({
+          showError({
             title: 'Erro',
             description: 'Login biometrico so esta disponivel para contas com email.',
-            placement: 'top',
-            bgColor: 'red.500',
           });
           return;
         }
@@ -59,31 +58,25 @@ export function Security() {
         const result = await enableBiometric(user.email);
 
         if (result.success) {
-          toast.show({
+          showSuccess({
             title: 'Biometria habilitada!',
             description: `Agora voce pode fazer login usando ${biometricType?.toLowerCase() || 'biometria'}.`,
-            placement: 'top',
-            bgColor: 'green.500',
           });
         } else {
           // Nao mostra toast se foi cancelado pelo usuario
           if (result.error !== 'Autenticação cancelada') {
-            toast.show({
+            showError({
               title: 'Erro',
               description: result.error || 'Nao foi possivel habilitar a biometria.',
-              placement: 'top',
-              bgColor: 'red.500',
             });
           }
         }
       } else {
         // Desabilitar biometria
         if (!user?.userId) {
-          toast.show({
+          showError({
             title: 'Erro',
             description: 'Usuario nao identificado.',
-            placement: 'top',
-            bgColor: 'red.500',
           });
           return;
         }
@@ -91,21 +84,17 @@ export function Security() {
         const success = await disableBiometric(user.userId);
 
         if (success) {
-          toast.show({
+          showSuccess({
             title: 'Biometria desabilitada',
             description: 'O login biometrico foi desativado.',
-            placement: 'top',
-            bgColor: 'green.500',
           });
         }
       }
     } catch (error: any) {
       console.error('❌ [SECURITY] Erro ao configurar biometria:', error);
-      toast.show({
+      showError({
         title: 'Erro',
         description: error?.message || 'Falha ao configurar biometria.',
-        placement: 'top',
-        bgColor: 'red.500',
       });
     } finally {
       setIsToggling(false);

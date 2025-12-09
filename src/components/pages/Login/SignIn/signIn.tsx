@@ -1,4 +1,4 @@
-import { Divider, Flex, Text, VStack, Icon, HStack, Box, useToast, Spinner, Center } from 'native-base';
+import { Divider, Flex, Text, VStack, Icon, HStack, Box, Spinner, Center } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -25,6 +25,7 @@ import { useAuth } from '../../../../hooks/useAuth';
 import { useGoogleAuth } from '../../../../hooks/useGoogleAuth';
 import { useAppleAuth } from '../../../../hooks/useAppleAuth';
 import { useBiometricAuth } from '../../../../hooks/useBiometricAuth';
+import { useCustomToast } from '../../../../hooks/useCustomToast';
 import { AppError } from '@utils/AppErrors';
 import { useState, useEffect } from 'react';
 import { logger } from '@utils/debugLogger';
@@ -46,7 +47,7 @@ export function SignIn() {
   const [isTakeLook, setIsTakeLook] = useState<boolean>(false);
   const [canUseBiometric, setCanUseBiometric] = useState<boolean>(false);
 
-  const toast = useToast();
+  const { showError } = useCustomToast();
   const { signIn, signInWithBiometric } = useAuth();
   const { signInWithGoogle, isLoading: isGoogleLoading, isConfigured: isGoogleConfigured } = useGoogleAuth();
   const { signInWithApple, isLoading: isAppleLoading, isAvailable: isAppleAvailable } = useAppleAuth();
@@ -136,11 +137,9 @@ export function SignIn() {
         errorMessage = error.response.data.message;
       }
 
-      toast.show({
+      showError({
         title: 'Erro no Login',
         description: errorMessage,
-        placement: 'top',
-        bgColor: 'red.500',
       });
     } finally {
       setIsLoading(false);
@@ -152,11 +151,9 @@ export function SignIn() {
       await signInWithGoogle();
     } catch (error: any) {
       console.log('❌ Erro no login Google:', error);
-      toast.show({
+      showError({
         title: 'Erro no Login Google',
         description: 'Não foi possível fazer login com Google.',
-        placement: 'top',
-        bgColor: 'red.500',
       });
     }
   }
@@ -166,11 +163,9 @@ export function SignIn() {
       await signInWithApple();
     } catch (error: any) {
       console.log('❌ Erro no login Apple:', error);
-      toast.show({
+      showError({
         title: 'Erro no Login Apple',
         description: 'Não foi possível fazer login com Apple.',
-        placement: 'top',
-        bgColor: 'red.500',
       });
     }
   }
@@ -185,11 +180,9 @@ export function SignIn() {
       if (!result.success) {
         console.log('👆 [SIGNIN] Autenticacao biometrica falhou:', result.error);
         if (result.error !== 'Autenticacao cancelada') {
-          toast.show({
+          showError({
             title: 'Erro na Biometria',
             description: result.error || 'Nao foi possivel autenticar.',
-            placement: 'top',
-            bgColor: 'red.500',
           });
         }
         return;
@@ -204,11 +197,9 @@ export function SignIn() {
       }
     } catch (error: any) {
       console.log('❌ Erro no login biometrico:', error);
-      toast.show({
+      showError({
         title: 'Erro no Login',
         description: error.message || 'Nao foi possivel fazer login com biometria.',
-        placement: 'top',
-        bgColor: 'red.500',
       });
     } finally {
       setIsLoading(false);

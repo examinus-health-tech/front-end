@@ -2,7 +2,6 @@ import { ReactNode, createContext, useEffect, useState, useMemo, useCallback } f
 import { DocumentPickerAsset } from 'expo-document-picker';
 import { api } from 'src/services/api';
 import { AppError } from '@utils/AppErrors';
-import { useToast } from 'native-base';
 
 type ExamProps = {
   exam_id: number;
@@ -46,7 +45,6 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   const [isLoadingUploadContext, setIsLoading] = useState<boolean>(false);
   const [scoreWarning, setScoreWarning] = useState<boolean>(false);
   const [examList, setExamList] = useState([]);
-  const toast = useToast();
 
   const handleUploadFile = useCallback(async ({ name, mimeType, uri, file, size }: DocumentPickerAsset) => {
     setIsLoading(true);
@@ -217,31 +215,11 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
         setExamList(data.detail);
       }
     } catch (error) {
-      const isAppError = error instanceof AppError;
-
-      const title = isAppError
-        ? 'Não foi possível consultar lista de exames.'
-        : 'Não foi possível consultar lista de exames.\nTente novamente mais tarde.';
-      const description = isAppError && error.message;
-
-      toast.show({
-        borderRadius: '12',
-        title,
-        description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
-      });
+      console.error('❌ Erro ao consultar lista de exames:', error);
+      // Erro será tratado pelo componente que chama
+      throw error;
     }
-  }, [toast]);
+  }, []);
 
   // Não usar useMemo aqui - o objeto precisa ser recriado quando as props mudarem
   // mas as funções useCallback garantem estabilidade

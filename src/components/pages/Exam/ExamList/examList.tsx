@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Select, CheckIcon, useToast } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Select, CheckIcon } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 
@@ -18,6 +18,7 @@ import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useAuth } from 'src/hooks/useAuth';
 import { useExam } from 'src/hooks/useExam';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 import ContentLoader, { Rect } from 'react-content-loader/native';
 import { formatDateToBrazilian } from '@utils/dateFormatter';
 
@@ -106,7 +107,7 @@ export function ExamList() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const toast = useToast();
+  const { showExtractionError, showAnalysisError, showExamProcessing, showFiltersApplied, showFiltersCleared, showError } = useCustomToast();
   const { user } = useAuth();
   const { getExamList, examData, setExamSelected } = useExam();
   const { width, height } = useWindowDimensions();
@@ -271,12 +272,7 @@ export function ExamList() {
     setFilters(newFilters);
     bottomSheetModalRef.current?.close();
 
-    toast.show({
-      title: 'Filtros aplicados',
-      description: 'Lista de exames atualizada',
-      placement: 'top',
-      bgColor: 'green.500',
-    });
+    showFiltersApplied();
   }
 
   // Função para limpar filtros
@@ -290,12 +286,7 @@ export function ExamList() {
 
     reset();
 
-    toast.show({
-      title: 'Filtros limpos',
-      description: 'Exibindo todos os exames',
-      placement: 'top',
-      bgColor: 'blue.500',
-    });
+    showFiltersCleared();
   }
 
   // Aplicar filtros quando examData ou filters mudarem
@@ -314,13 +305,15 @@ export function ExamList() {
           if (isScoreComputed) {
             setExamSelected(exam);
             navigation.navigate('exam');
+          } else if (exam.medicalExamStatus === 'ExtractedFailed') {
+            // Erro de extração - mostrar toast específico com recomendações
+            showExtractionError(exam.laboratoryName);
+          } else if (exam.medicalExamStatus === 'AnalyzedFailed' || exam.medicalExamStatus === 'ScoreComputedFailed') {
+            // Erro de análise ou processamento - mostrar toast específico
+            showAnalysisError(exam.laboratoryName);
           } else {
-            toast.show({
-              title: 'Exame em processamento',
-              description: `Status atual: ${statusMessage}. Aguarde o processamento ser concluído.`,
-              placement: 'top',
-              bgColor: 'blue.500',
-            });
+            // Exame em processamento normal
+            showExamProcessing(statusMessage);
           }
         }}
       >

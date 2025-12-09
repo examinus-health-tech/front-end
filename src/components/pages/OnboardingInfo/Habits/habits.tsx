@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { VStack, Text, Box, HStack, View, useToast } from 'native-base';
+import { VStack, Text, Box, HStack, View } from 'native-base';
 
 // routes
 
@@ -22,7 +22,6 @@ export type ISelectedHabit = 'X' | 'B' | 'V' | 'N' | '';
 export function Habits() {
   const [selectedHabit, setSelectedHabit] = useState<ISelectedHabit>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const toast = useToast();
 
   const { onboardingData, setOnboardingData, saveOnboarding } = useOnboarding();
   const { user } = useAuth();

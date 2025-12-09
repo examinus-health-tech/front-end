@@ -10,7 +10,6 @@ import {
   CloseIcon,
   Box,
   Modal,
-  useToast,
   Center,
   Pressable,
   ScrollView,
@@ -28,6 +27,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { remove } from 'lodash';
 import { useUpload } from 'src/hooks/useUpload';
 import { useAuth } from 'src/hooks/useAuth';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 
 type ExamProps = {
   exam_id: number;
@@ -90,7 +90,7 @@ export function UploadTypeManual({ setManual }: UploadTypeManualProps) {
     defaultValues: { code_exam: '' },
     resolver: yupResolver(uploadFormSchema),
   });
-  const toast = useToast();
+  const { showError } = useCustomToast();
 
   function handleDateSelected(event: DateTimePickerEvent, selectedDate: Date | undefined) {
     if (selectedDate) {
@@ -182,21 +182,9 @@ export function UploadTypeManual({ setManual }: UploadTypeManualProps) {
         : 'Não foi possível salvar seus exames.\nTente novamente mais tarde.';
       const description = isAppError && error.message;
 
-      toast.show({
-        borderRadius: '12',
+      showError({
         title,
-        description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
+        description: description || undefined,
       });
 
       // setIsLoading(false);

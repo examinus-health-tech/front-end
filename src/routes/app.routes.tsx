@@ -28,6 +28,7 @@ import {
 } from '@components/pages/OnboardingSetup';
 import { UploadType } from '@components/organisms';
 import { SuccessSaved } from '@components/pages/Settings/components/successSaved/successSaved';
+import { ToastTest } from '@components/pages/ToastTest/toastTest';
 
 export type AppRoutes = {
   gender: undefined;
@@ -46,6 +47,7 @@ export type AppRoutes = {
   contactUs: undefined;
   aboutUs: undefined;
   configNotifications: undefined;
+  toastTest: undefined;
   successSaved: undefined;
   tracker: undefined;
   sleep: undefined;
@@ -326,6 +328,7 @@ function AppRoutesContent() {
       <Screen name="security" component={Security} />
       <Screen name="contactUs" component={ContactUs} />
       <Screen name="aboutUs" component={AboutUs} />
+      <Screen name="toastTest" component={ToastTest} />
 
       {/** FITNESS TRACKER */}
       <Screen name="tracker" component={Tracker} />

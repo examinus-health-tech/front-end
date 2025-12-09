@@ -5,7 +5,6 @@ import {
   Center,
   Icon,
   HStack,
-  useToast,
   VStack,
   Image,
   ScrollView,
@@ -25,6 +24,7 @@ import { HeaderTitle, Input } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useRef, useState } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 import { AppError } from '@utils/AppErrors';
 
 import Vector from '@assets/png/vector-42.png';
@@ -50,7 +50,7 @@ export function ForgotPassword() {
     resolver: yupResolver(forgetSchema),
   });
   const { forgotPassword } = useAuth();
-  const toast = useToast();
+  const { showError } = useCustomToast();
 
   async function handleForgotPassword({ email }: FormDataProps) {
     try {
@@ -61,21 +61,9 @@ export function ForgotPassword() {
     } catch (error: any) {
       const description = error?.response?.data?.message;
 
-      toast.show({
-        borderRadius: '12',
+      showError({
         title: 'Não foi possível encontrar seu email',
         description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
       });
     } finally {
       setIsLoading(false);

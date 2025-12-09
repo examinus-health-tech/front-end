@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { Box, Image, ScrollView, StatusBar, VStack, Flex, Icon, WarningOutlineIcon, Text, useToast } from 'native-base';
+import { Box, Image, ScrollView, StatusBar, VStack, Flex, Icon, WarningOutlineIcon, Text } from 'native-base';
 import { useRef, useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -17,6 +17,7 @@ import { Input } from '@components/molecules/Input/input';
 import { SuccessSaved } from '@components/pages/Settings/components/successSaved/successSaved';
 import { Header } from '../components/header/header';
 import { useAuth } from 'src/hooks/useAuth';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUserPersonalData, getUserPersonalData } from '@services/userService';
 import { AppError } from '@utils/AppErrors';
@@ -86,7 +87,7 @@ export function Info() {
 
   const scrollRef = useRef<any>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const toast = useToast();
+  const { showError } = useCustomToast();
 
   const { user } = useAuth();
   const {
@@ -187,22 +188,9 @@ export function Info() {
         const errorMessage =
           error instanceof AppError ? error.message : 'Não foi possível carregar seus dados. Tente novamente.';
 
-        toast.show({
-          marginX: '12',
-          borderRadius: '12',
+        showError({
           title: 'Erro ao carregar dados',
           description: errorMessage,
-          _title: {
-            textAlign: 'center',
-            mx: '4',
-          },
-          _description: {
-            textAlign: 'center',
-            mx: '4',
-          },
-          placement: 'top',
-          color: 'gray.900',
-          bgColor: 'red.500',
         });
       } finally {
         setIsLoading(false);
@@ -214,22 +202,9 @@ export function Info() {
 
   async function handleSaveInfo(data: FormDataProps) {
     if (!user?.userId) {
-      toast.show({
-        marginX: '12',
-        borderRadius: '12',
+      showError({
         title: 'Erro',
         description: 'Usuário não autenticado',
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
       });
       return;
     }
@@ -279,23 +254,10 @@ export function Info() {
         }
       }
 
-      toast.show({
-        marginX: '12',
-        borderRadius: '12',
+      showError({
         title: errorTitle,
         description: errorMessage,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
-        duration: 5000, // 5 segundos para mensagens de erro mais longas
+        duration: 5000,
       });
     } finally {
       setIsSaving(false);

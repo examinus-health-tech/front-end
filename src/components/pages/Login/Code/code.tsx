@@ -1,4 +1,4 @@
-import { Text, Center, VStack, HStack, useToast, KeyboardAvoidingView } from 'native-base';
+import { Text, Center, VStack, HStack, KeyboardAvoidingView } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -14,6 +14,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { InputStyled } from './styles';
 import { TextInput, TouchableOpacity, Platform } from 'react-native';
 import { useAuth } from 'src/hooks/useAuth';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 import { AppError } from '@utils/AppErrors';
 
 type FormDataProps = {
@@ -52,7 +53,7 @@ export function Code() {
   const refSix = useRef<TextInput | null>(null);
   const [focusInput, setFocusInput] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const toast = useToast();
+  const { showError, showWarning } = useCustomToast();
 
   const { verifyCode } = useAuth();
 
@@ -67,21 +68,9 @@ export function Code() {
     } catch (error: any) {
       const description = error?.response?.data?.message;
 
-      toast.show({
-        borderRadius: '12',
-        title: 'Não foi verificar o código',
+      showError({
+        title: 'Não foi possível verificar o código',
         description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
       });
     } finally {
       setIsLoading(false);
@@ -91,21 +80,9 @@ export function Code() {
   async function handleResendConfirmationCode() {
     // TODO: Implementar reenvio de código quando a API estiver disponível
     // A função resendConfirmationCode e emailTemp precisam ser implementadas
-    toast.show({
-      borderRadius: '12',
+    showWarning({
       title: 'Reenvio de código',
       description: 'Funcionalidade em desenvolvimento',
-      _title: {
-        textAlign: 'center',
-        mx: '4',
-      },
-      _description: {
-        textAlign: 'center',
-        mx: '4',
-      },
-      placement: 'top',
-      color: 'gray.900',
-      bgColor: 'yellow.500',
     });
   }
 

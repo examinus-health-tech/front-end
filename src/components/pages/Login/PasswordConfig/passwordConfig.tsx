@@ -1,4 +1,4 @@
-import { Text, Flex, Icon, HStack, useToast, VStack, Box } from 'native-base';
+import { Text, Flex, Icon, HStack, VStack, Box } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import * as yup from 'yup';
@@ -13,6 +13,7 @@ import { HeaderTitle, Input } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useEffect, useState } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
+import { useCustomToast } from 'src/hooks/useCustomToast';
 
 type FormDataProps = {
   password: string;
@@ -55,7 +56,7 @@ export function PasswordConfig() {
     resolver: yupResolver(forgetSchema),
   });
   const { resetPassword } = useAuth();
-  const toast = useToast();
+  const { showError } = useCustomToast();
 
   async function handleResetPassword({ password, confirm_password }: FormDataProps) {
     try {
@@ -66,21 +67,9 @@ export function PasswordConfig() {
     } catch (error: any) {
       const description = error?.response?.data?.message;
 
-      toast.show({
-        borderRadius: '12',
-        title: 'Não foi possivel salvar nova senha',
+      showError({
+        title: 'Não foi possível salvar nova senha',
         description,
-        _title: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        _description: {
-          textAlign: 'center',
-          mx: '4',
-        },
-        placement: 'top',
-        color: 'gray.900',
-        bgColor: 'red.500',
       });
     } finally {
       setIsLoading(false);
