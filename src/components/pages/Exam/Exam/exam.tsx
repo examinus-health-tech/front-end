@@ -136,129 +136,88 @@ export function Exam() {
     if (color === 'Green') {
       return '#00B39D';
     } else if (color === 'Yellow') {
-      return '#00B39D';
+      return '#F59E0B'; // Amarelo para valores abaixo da referência
     } else if (color === 'Red') {
       return '#FA4D5E';
     }
+    return '#00B39D';
   }
 
-  function formatReferenceValue(referenceValue: string, unit: string): string {
-    // Se o backend retornar o valor de referência, usa direto
-    if (referenceValue && referenceValue !== unit) {
-      // Adiciona a unidade se não estiver presente
-      if (!referenceValue.includes(unit) && unit) {
-        return `${referenceValue} ${unit}`;
-      }
-      return referenceValue;
+  function formatReferenceValue(
+    referenceMin: number | null | undefined,
+    referenceMax: number | null | undefined,
+    unit: string
+  ): string {
+    // Se tem min e max, mostra a faixa
+    if (referenceMin != null && referenceMax != null) {
+      return `${referenceMin} - ${referenceMax} ${unit}`;
+    }
+    // Se só tem max (ex: "até 100")
+    if (referenceMax != null) {
+      return `até ${referenceMax} ${unit}`;
+    }
+    // Se só tem min (ex: "> 40")
+    if (referenceMin != null) {
+      return `> ${referenceMin} ${unit}`;
     }
     // Fallback: retorna apenas a unidade
     return unit;
   }
 
-  function getFillPercentage(value: string, unit: string, examDescription: string): number {
+  /**
+   * Calcula a porcentagem de preenchimento do círculo baseado nos valores de referência
+   *
+   * Lógica:
+   * - Amarelo (abaixo da ref): preenchimento proporcional ao valor vs referência mínima
+   * - Verde (dentro da ref): preenchimento proporcional ao valor dentro da faixa
+   * - Vermelho (acima da ref): sempre 100% preenchido (fora da faixa)
+   */
+  function getFillPercentage(
+    value: string,
+    referenceMin: number | null | undefined,
+    referenceMax: number | null | undefined,
+    color: string
+  ): number {
     const numericValue = parseFloat(value);
 
-    // Mapeamento baseado no documento "Variações da unidade de concentração"
-    const getMaxReference = (unit: string, description: string): number => {
-      const desc = description.toLowerCase();
+    if (isNaN(numericValue)) return 0;
 
-      // Glicose
-      if (desc.includes('glicose')) {
-        if (unit === 'mg/dL') return 100; // Referência: jejum até 100 mg/dL
-        if (unit === 'mmol/L') return 5.6; // Conversão: mg/dL × 0.0555
+    // Se não tiver referências, usa lógica de fallback
+    if (referenceMin == null && referenceMax == null) {
+      return 50; // Valor padrão quando não há referência
+    }
+
+    // Vermelho: muito alto/fora da referência - sempre 100%
+    if (color === 'Red') {
+      return 100;
+    }
+
+    // Amarelo: abaixo da referência - preenchimento proporcional
+    if (color === 'Yellow') {
+      if (referenceMin != null && referenceMin > 0) {
+        // Proporção do valor em relação ao mínimo esperado
+        const percentage = (numericValue / referenceMin) * 100;
+        return Math.min(Math.max(percentage, 5), 95); // Entre 5% e 95%
       }
+      return 50;
+    }
 
-      // Colesterol Total
-      if (desc.includes('colesterol total')) {
-        if (unit === 'mg/dL') return 200; // Referência desejável < 200 mg/dL
-        if (unit === 'mmol/L') return 5.17; // Conversão: mg/dL × 0.02586
+    // Verde: dentro da referência - preenchimento proporcional
+    if (color === 'Green') {
+      if (referenceMax != null && referenceMax > 0) {
+        // Proporção do valor em relação ao máximo da faixa
+        const percentage = (numericValue / referenceMax) * 100;
+        return Math.min(Math.max(percentage, 20), 100); // Entre 20% e 100%
       }
-
-      // Colesterol HDL
-      if (desc.includes('hdl')) {
-        if (unit === 'mg/dL') return 60; // Referência ideal > 60 mg/dL
-        if (unit === 'mmol/L') return 1.55; // Conversão: mg/dL × 0.02586
+      if (referenceMin != null && referenceMin > 0) {
+        // Se só tem mínimo, calcula proporção considerando margem
+        const percentage = (numericValue / (referenceMin * 1.5)) * 100;
+        return Math.min(Math.max(percentage, 20), 100);
       }
+      return 75; // Valor padrão para verde
+    }
 
-      // Colesterol LDL
-      if (desc.includes('ldl')) {
-        if (unit === 'mg/dL') return 100; // Referência ideal < 100 mg/dL
-        if (unit === 'mmol/L') return 2.59; // Conversão: mg/dL × 0.02586
-      }
-
-      // Triglicérides
-      if (desc.includes('triglicérides') || desc.includes('triglicerides')) {
-        if (unit === 'mg/dL') return 150; // Referência normal < 150 mg/dL
-        if (unit === 'mmol/L') return 1.69; // Conversão: mg/dL × 0.01129
-      }
-
-      // Hemoglobina
-      if (desc.includes('hemoglobina')) {
-        if (unit === 'g/dL') return 18; // Referência: 12-18 g/dL
-        if (unit === 'g/L') return 180; // Conversão: g/dL × 10
-      }
-
-      // Hematócrito
-      if (desc.includes('hematócrito') || desc.includes('hematocrito')) {
-        if (unit === '%') return 100; // Já é percentual
-      }
-
-      // Leucócitos
-      if (desc.includes('leucócitos') || desc.includes('leucocitos')) {
-        if (unit === 'mil/mm³' || unit === 'mil/µL') return 10; // Referência: 4-10 mil/mm³
-        if (unit === '×10⁹/L') return 10; // Equivalente
-      }
-
-      // Plaquetas
-      if (desc.includes('plaquetas')) {
-        if (unit === 'mil/mm³' || unit === 'mil/µL') return 400; // Referência: 150-400 mil/mm³
-        if (unit === '×10⁹/L') return 400; // Equivalente
-      }
-
-      // TGO (AST)
-      if (desc.includes('tgo') || desc.includes('ast')) {
-        if (unit === 'U/L' || unit === 'UI/L') return 40; // Referência: até 40 U/L
-      }
-
-      // TGP (ALT)
-      if (desc.includes('tgp') || desc.includes('alt')) {
-        if (unit === 'U/L' || unit === 'UI/L') return 40; // Referência: até 40 U/L
-      }
-
-      // Creatinina
-      if (desc.includes('creatinina')) {
-        if (unit === 'mg/dL') return 1.3; // Referência: 0.6-1.3 mg/dL
-        if (unit === 'µmol/L') return 115; // Conversão: mg/dL × 88.4
-      }
-
-      // Ureia
-      if (desc.includes('ureia') || desc.includes('uréia')) {
-        if (unit === 'mg/dL') return 50; // Referência: 10-50 mg/dL
-        if (unit === 'mmol/L') return 8.3; // Conversão: mg/dL × 0.1665
-      }
-
-      // Ácido Úrico
-      if (desc.includes('ácido úrico') || desc.includes('acido urico')) {
-        if (unit === 'mg/dL') return 7; // Referência: até 7 mg/dL
-        if (unit === 'µmol/L') return 416; // Conversão: mg/dL × 59.48
-      }
-
-      // Valores genéricos por unidade
-      if (unit === 'mg/dL') return 200;
-      if (unit === 'g/dL') return 18;
-      if (unit === '%') return 100;
-      if (unit === 'mm³' || unit === 'mil/mm³') return 10000;
-      if (unit === 'x 10³/mm³' || unit === '×10³/mm³') return 400;
-      if (unit === 'U/L' || unit === 'UI/L') return 40;
-
-      return 100; // Valor padrão
-    };
-
-    const maxReference = getMaxReference(unit, examDescription);
-    const percentage = (numericValue / maxReference) * 100;
-
-    // Limitar entre 0 e 100
-    return Math.min(Math.max(percentage, 0), 100);
+    return 50;
   }
 
   function renderExamItem() {
@@ -288,8 +247,9 @@ export function Exam() {
                 width={20}
                 fill={getFillPercentage(
                   item.medicalExamItemReferenceValue,
-                  item.medicalExamItemMeasureUnit,
-                  item.examItemDescription
+                  item.referenceMin,
+                  item.referenceMax,
+                  item.medicalExamItemWeightColor
                 )}
                 children={() => {
                   const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
@@ -318,7 +278,7 @@ export function Exam() {
                         letterSpacing={0}
                         textAlign="center"
                       >
-                        Ref: {formatReferenceValue(item.medicalExamItemReferenceValue, item.medicalExamItemMeasureUnit)}
+                        Ref: {formatReferenceValue(item.referenceMin, item.referenceMax, item.medicalExamItemMeasureUnit)}
                       </Text>
                     </VStack>
                   );
