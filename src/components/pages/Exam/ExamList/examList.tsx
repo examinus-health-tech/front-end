@@ -11,7 +11,7 @@ import { ChevronRightIcon, FilterIcon, FlaskIcon, RotateRightIcon, TrashIcon, Up
 
 // components
 import { HeaderTitle, Input } from '@components/molecules';
-import { TouchableOpacity, useWindowDimensions, Keyboard, Pressable, Animated } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, Keyboard, Pressable, Animated, RefreshControl } from 'react-native';
 import { Button } from '@components/atoms';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -130,6 +130,7 @@ export function ExamList() {
     status: '',
   });
   const [filteredExams, setFilteredExams] = useState<any[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const snapPoints = useMemo(() => ['55%', '55%'], []);
 
@@ -175,6 +176,18 @@ export function ExamList() {
       setIsLoading(false);
     } catch (error) {
     } finally {
+    }
+  }
+
+  // Função para pull-to-refresh
+  async function handleRefresh() {
+    setIsRefreshing(true);
+    try {
+      await getExamList();
+    } catch (error) {
+      console.error('Erro ao atualizar lista de exames:', error);
+    } finally {
+      setIsRefreshing(false);
     }
   }
 
@@ -502,7 +515,18 @@ export function ExamList() {
             </ContentLoader>
           </View>
         ) : (
-          <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            ref={scrollRef}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor="#0CC1AF"
+                colors={['#0CC1AF']}
+              />
+            }
+          >
             <VStack flex={1} space={8} pt={2} pb={32}>
               <VStack mx={6} mt={4} space={8}>
                 {filteredExams && Array.isArray(filteredExams) && filteredExams.length > 0 ? (

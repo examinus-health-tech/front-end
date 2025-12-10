@@ -60,13 +60,18 @@ export function HistoryChart({
     if (referenceMin !== undefined) min = Math.min(min, referenceMin);
     if (referenceMax !== undefined) max = Math.max(max, referenceMax);
 
-    // Add padding
+    // Add padding e arredondar para valores inteiros
     const padding = (max - min) * 0.15;
     return {
-      minValue: Math.max(0, min - padding),
-      maxValue: max + padding,
+      minValue: Math.floor(Math.max(0, min - padding)),
+      maxValue: Math.ceil(max + padding),
     };
   }, [historyData, referenceMin, referenceMax]);
+
+  // Formatar valores do eixo Y para números inteiros
+  const formatYAxisLabel = (value: number) => {
+    return Math.round(value).toString();
+  };
 
   if (!historyData || historyData.length === 0) {
     return (
@@ -139,6 +144,7 @@ export function HistoryChart({
           xAxisColor="#E2E8F0"
           yAxisTextStyle={{ color: '#718096', fontSize: 10 }}
           xAxisLabelTextStyle={{ color: '#718096', fontSize: 10 }}
+          formatYLabel={formatYAxisLabel}
           hideRules
           yAxisOffset={minValue}
           maxValue={maxValue - minValue}

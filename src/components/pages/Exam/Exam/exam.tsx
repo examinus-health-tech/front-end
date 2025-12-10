@@ -168,9 +168,10 @@ export function Exam() {
    * Calcula a porcentagem de preenchimento do círculo baseado nos valores de referência
    *
    * Lógica:
-   * - Amarelo (abaixo da ref): preenchimento proporcional ao valor vs referência mínima
-   * - Verde (dentro da ref): preenchimento proporcional ao valor dentro da faixa
-   * - Vermelho (acima da ref): sempre 100% preenchido (fora da faixa)
+   * - Verde (dentro da ref): 100% preenchido
+   * - Amarelo (abaixo da ref): proporcional - valor/referênciaMin
+   * - Vermelho (acima da ref): 100% preenchido
+   * - Qualitativos (Negativo/Positivo): 100%
    */
   function getFillPercentage(
     value: string,
@@ -180,44 +181,36 @@ export function Exam() {
   ): number {
     const numericValue = parseFloat(value);
 
-    if (isNaN(numericValue)) return 0;
-
-    // Se não tiver referências, usa lógica de fallback
-    if (referenceMin == null && referenceMax == null) {
-      return 50; // Valor padrão quando não há referência
+    // Qualitativos (Negativo, Positivo, Reagente, etc) - sempre 100%
+    if (isNaN(numericValue)) {
+      return 100;
     }
 
-    // Vermelho: muito alto/fora da referência - sempre 100%
+    // Verde: dentro da referência - sempre 100%
+    if (color === 'Green') {
+      return 100;
+    }
+
+    // Vermelho: acima da referência - sempre 100%
     if (color === 'Red') {
       return 100;
     }
 
     // Amarelo: abaixo da referência - preenchimento proporcional
     if (color === 'Yellow') {
-      if (referenceMin != null && referenceMin > 0) {
-        // Proporção do valor em relação ao mínimo esperado
-        const percentage = (numericValue / referenceMin) * 100;
-        return Math.min(Math.max(percentage, 5), 95); // Entre 5% e 95%
+      // Usa referenceMin como alvo (o valor que deveria atingir)
+      const target = referenceMin ?? referenceMax;
+      if (target != null && target > 0) {
+        const percentage = (numericValue / target) * 100;
+        // Mínimo de 20% para não ficar visualmente estranho, máximo 95%
+        return Math.min(Math.max(percentage, 20), 95);
       }
+      // Fallback: sem referência, mostra 50%
       return 50;
     }
 
-    // Verde: dentro da referência - preenchimento proporcional
-    if (color === 'Green') {
-      if (referenceMax != null && referenceMax > 0) {
-        // Proporção do valor em relação ao máximo da faixa
-        const percentage = (numericValue / referenceMax) * 100;
-        return Math.min(Math.max(percentage, 20), 100); // Entre 20% e 100%
-      }
-      if (referenceMin != null && referenceMin > 0) {
-        // Se só tem mínimo, calcula proporção considerando margem
-        const percentage = (numericValue / (referenceMin * 1.5)) * 100;
-        return Math.min(Math.max(percentage, 20), 100);
-      }
-      return 75; // Valor padrão para verde
-    }
-
-    return 50;
+    // Fallback geral
+    return 100;
   }
 
   function renderExamItem() {
@@ -241,53 +234,76 @@ export function Exam() {
             </Text>
 
             <HStack space={6} mt={2}>
-              <AnimatedCircularProgress
-                size={144}
-                lineCap="round"
-                width={20}
-                fill={getFillPercentage(
-                  item.medicalExamItemReferenceValue,
-                  item.referenceMin,
-                  item.referenceMax,
-                  item.medicalExamItemWeightColor
-                )}
-                children={() => {
-                  const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
-                  const fontSize = valueLength > 7 ? 32 : valueLength > 6 ? 36 : 42;
-
-                  return (
-                    <VStack alignItems="center" px={2}>
-                      <Text
-                        color={getColor(item.medicalExamItemWeightColor)}
-                        fontSize={fontSize}
-                        fontWeight={800}
-                        letterSpacing={-1}
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.7}
-                      >
-                        {formatExamValue(item.medicalExamItemReferenceValue)}
-                      </Text>
-
-                      <Text
-                        mt={-2}
-                        mx={2}
-                        color="gray.500"
-                        fontSize={12}
-                        fontWeight={600}
-                        letterSpacing={0}
-                        textAlign="center"
-                      >
-                        Ref: {formatReferenceValue(item.referenceMin, item.referenceMax, item.medicalExamItemMeasureUnit)}
-                      </Text>
-                    </VStack>
-                  );
-                }}
-                rotation={90}
-                tintColor={getColor(item.medicalExamItemWeightColor) || '#00B39D'}
-                backgroundColor="#DCE1E8"
-                delay={10}
-              />
+              <Box w={144} h={144} alignItems="center" justifyContent="center">
+                <AnimatedCircularProgress
+                  size={144}
+                  lineCap="round"
+                  width={20}
+                  fill={getFillPercentage(
+                    item.medicalExamItemReferenceValue,
+                    item.referenceMin,
+                    item.referenceMax,
+                    item.medicalExamItemWeightColor
+                  )}
+                  rotation={90}
+                  tintColor={getColor(item.medicalExamItemWeightColor) || '#00B39D'}
+                  backgroundColor="#DCE1E8"
+                  delay={10}
+                />
+                {/* Inset shadow effect - thin dark border on outer edge */}
+                <Box
+                  position="absolute"
+                  w={144}
+                  h={144}
+                  borderRadius={999}
+                  borderWidth={1}
+                  borderColor="rgba(0,0,0,0.08)"
+                  pointerEvents="none"
+                />
+                {/* Inner circle with shadow - positioned absolutely over the progress */}
+                <Box
+                  position="absolute"
+                  bg="white"
+                  borderRadius={999}
+                  w={100}
+                  h={100}
+                  alignItems="center"
+                  justifyContent="center"
+                  style={{
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 3 },
+                    shadowOpacity: 0.35,
+                    shadowRadius: 10,
+                    elevation: 10,
+                  }}
+                >
+                  <Text
+                    color={getColor(item.medicalExamItemWeightColor)}
+                    fontSize={(() => {
+                      const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
+                      return valueLength > 7 ? 32 : valueLength > 6 ? 36 : 42;
+                    })()}
+                    fontWeight={800}
+                    letterSpacing={-1}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                  >
+                    {formatExamValue(item.medicalExamItemReferenceValue)}
+                  </Text>
+                  <Text
+                    mt={-2}
+                    mx={2}
+                    color="gray.500"
+                    fontSize={10}
+                    fontWeight={600}
+                    letterSpacing={0}
+                    textAlign="center"
+                  >
+                    Ref: {formatReferenceValue(item.referenceMin, item.referenceMax, item.medicalExamItemMeasureUnit)}
+                  </Text>
+                </Box>
+              </Box>
 
               <VStack flex={1} space={2} justifyContent="center">
                 <TouchableOpacity
@@ -549,7 +565,11 @@ export function Exam() {
       </VStack>
 
       {/* Modal de confirmação de exclusão */}
-      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => !isDeleting && setIsDeleteModalOpen(false)}
+        closeOnOverlayClick={!isDeleting}
+      >
         <Modal.Content maxWidth="340" borderRadius={16}>
           <Modal.Body p={6}>
             <VStack space={4} alignItems="center">

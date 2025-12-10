@@ -110,14 +110,22 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       const { data } = response;
       setHomeData(data.data);
     } catch (error: any) {
-      // 404 é esperado quando o usuário não tem exames ainda
-      if (error.response?.status === 404) {
+      const errorMessage = error.response?.data?.message || error.message || '';
+      const isNoDataError =
+        error.response?.status === 404 ||
+        errorMessage.toLowerCase().includes('nenhum arquivo de exame') ||
+        errorMessage.toLowerCase().includes('não encontrado') ||
+        errorMessage.toLowerCase().includes('not found');
+
+      // Limpa os dados quando não há exames com score
+      if (isNoDataError) {
+        console.log('📭 [HomeContext] Nenhum exame com score encontrado, limpando dados');
         setHomeData({} as homeProps);
         return;
       }
 
       // Para outros erros, loga e não quebra a aplicação
-      console.error('❌ [HomeContext] Erro ao buscar dados:', error.message);
+      console.error('❌ [HomeContext] Erro ao buscar dados:', errorMessage);
     } finally {
       setIsLoading(false);
     }
