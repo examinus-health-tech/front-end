@@ -1,9 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
-import { Box, Image, ScrollView, StatusBar, VStack, Flex, Icon, WarningOutlineIcon, Text } from 'native-base';
+import { Box, Image, ScrollView, StatusBar, VStack, Flex, Icon, WarningOutlineIcon, Text, Actionsheet, useDisclose } from 'native-base';
 import { useRef, useState, useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import * as ImagePicker from 'expo-image-picker';
+import { TouchableOpacity, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -19,7 +21,7 @@ import { Header } from '../components/header/header';
 import { useAuth } from 'src/hooks/useAuth';
 import { useCustomToast } from 'src/hooks/useCustomToast';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { saveUserPersonalData, getUserPersonalData } from '@services/userService';
+import { saveUserPersonalData, getUserPersonalData, uploadProfilePhoto, deleteProfilePhoto } from '@services/userService';
 import { AppError } from '@utils/AppErrors';
 
 type FormDataProps = {
@@ -82,14 +84,16 @@ function applyDateMask(value: string): string {
 
 export function Info() {
   const [isSuccess, setSuccess] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Inicia carregando
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const { isOpen: isPhotoMenuOpen, onOpen: onPhotoMenuOpen, onClose: onPhotoMenuClose } = useDisclose();
 
   const scrollRef = useRef<any>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const { showError } = useCustomToast();
+  const { showError, showSuccess } = useCustomToast();
 
-  const { user } = useAuth();
+  const { user, updateUserPhoto } = useAuth();
   const {
     control,
     handleSubmit,
@@ -106,6 +110,147 @@ export function Info() {
       country: 'Brasil',
     },
   });
+
+  async function handleSelectFromGallery() {
+    try {
+      onPhotoMenuClose();
+
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        Alert.alert('Permissão negada', 'É necessário permitir acesso à galeria de fotos.');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setPhotoUri(imageUri);
+
+        // Upload para o backend
+        try {
+          showSuccess({
+            title: 'Enviando foto...',
+            description: 'Aguarde enquanto fazemos o upload.',
+          });
+
+          const savedPhotoBase64 = await uploadProfilePhoto(imageUri);
+          setPhotoUri(savedPhotoBase64); // Usar a foto salva no backend
+
+          // Atualizar contexto para cache global
+          updateUserPhoto(savedPhotoBase64);
+
+          showSuccess({
+            title: 'Foto salva!',
+            description: 'Sua foto de perfil foi atualizada com sucesso.',
+          });
+        } catch (uploadError: any) {
+          console.error('Erro no upload:', uploadError);
+          setPhotoUri(null); // Reverter em caso de erro
+
+          showError({
+            title: 'Erro no upload',
+            description: uploadError.message || 'Não foi possível enviar a foto.',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao selecionar foto:', error);
+      showError({
+        title: 'Erro',
+        description: 'Não foi possível selecionar a foto.',
+      });
+    }
+  }
+
+  async function handleTakePhoto() {
+    try {
+      onPhotoMenuClose();
+
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (permissionResult.granted === false) {
+        Alert.alert('Permissão negada', 'É necessário permitir acesso à câmera.');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+        cameraType: ImagePicker.CameraType.front,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const imageUri = result.assets[0].uri;
+        setPhotoUri(imageUri);
+
+        // Upload para o backend
+        try {
+          showSuccess({
+            title: 'Enviando foto...',
+            description: 'Aguarde enquanto fazemos o upload.',
+          });
+
+          const savedPhotoBase64 = await uploadProfilePhoto(imageUri);
+          setPhotoUri(savedPhotoBase64); // Usar a foto salva no backend
+
+          // Atualizar contexto para cache global
+          updateUserPhoto(savedPhotoBase64);
+
+          showSuccess({
+            title: 'Foto salva!',
+            description: 'Sua foto de perfil foi atualizada com sucesso.',
+          });
+        } catch (uploadError: any) {
+          console.error('Erro no upload:', uploadError);
+          setPhotoUri(null); // Reverter em caso de erro
+
+          showError({
+            title: 'Erro no upload',
+            description: uploadError.message || 'Não foi possível enviar a foto.',
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao tirar foto:', error);
+      showError({
+        title: 'Erro',
+        description: 'Não foi possível tirar a foto.',
+      });
+    }
+  }
+
+  async function handleRemovePhoto() {
+    try {
+      onPhotoMenuClose();
+
+      // Deletar no backend
+      await deleteProfilePhoto();
+
+      setPhotoUri(null);
+
+      // Limpar foto do contexto
+      updateUserPhoto(null);
+
+      showSuccess({
+        title: 'Foto removida!',
+        description: 'Sua foto de perfil foi removida com sucesso.',
+      });
+    } catch (error: any) {
+      console.error('Erro ao remover foto:', error);
+      showError({
+        title: 'Erro',
+        description: error.message || 'Não foi possível remover a foto.',
+      });
+    }
+  }
 
   useEffect(() => {
     async function loadUserData() {
@@ -182,6 +327,19 @@ export function Info() {
           // Sempre definir Brasil como país padrão se não houver dados
           setValue('country', 'Brasil');
         }
+
+        // Carregar foto do perfil se disponível
+        // Prioridade: contexto (cache) > profilePhotoBase64 do backend > photoUrl do contexto
+        if (user?.profilePhotoBase64) {
+          // Usar foto do contexto (cache)
+          setPhotoUri(user.profilePhotoBase64);
+        } else if (profileData?.profilePhotoBase64) {
+          setPhotoUri(profileData.profilePhotoBase64);
+          // Atualizar contexto para cache
+          updateUserPhoto(profileData.profilePhotoBase64);
+        } else if (user?.photoUrl) {
+          setPhotoUri(user.photoUrl);
+        }
       } catch (error) {
         console.error('❌ [INFO] Erro ao carregar dados do usuário:', error);
 
@@ -198,7 +356,7 @@ export function Info() {
     }
 
     loadUserData();
-  }, [user, setValue]);
+  }, [user, setValue, updateUserPhoto]);
 
   async function handleSaveInfo(data: FormDataProps) {
     if (!user?.userId) {
@@ -268,26 +426,89 @@ export function Info() {
     return <SuccessSaved />;
   }
 
-  return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <StatusBar barStyle="default" backgroundColor="transparent" translucent />
-
-      <Box w={'100%'} h={240} borderBottomRadius={24} position={'absolute'} bgColor={'gray.900'}>
-        <Image
-          source={
-            {
-              // uri: user.ImageUserUrl,
-            }
-          }
-          size={28}
-          borderWidth={1}
-          borderColor="white"
-          rounded={12}
-          position={'absolute'}
-          bottom={-56}
-          right={'37%'}
-        />
+  if (isLoading) {
+    return (
+      <Box flex={1} justifyContent="center" alignItems="center" bg="white">
+        <StatusBar barStyle="default" backgroundColor="transparent" translucent />
+        <VStack space={4} alignItems="center">
+          <Box
+            size={20}
+            borderRadius={10}
+            bg="gray.100"
+            alignItems="center"
+            justifyContent="center"
+          >
+            <UserIcon size="48" color="#9CA3AF" />
+          </Box>
+          <Text fontSize={16} fontWeight={600} color="gray.500">
+            Carregando dados...
+          </Text>
+        </VStack>
       </Box>
+    );
+  }
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
+      <ScrollView
+        ref={scrollRef}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 40 }}
+      >
+        <StatusBar barStyle="default" backgroundColor="transparent" translucent />
+
+      <Box w={'100%'} h={240} borderBottomRadius={24} position={'absolute'} bgColor={'gray.900'} />
+
+      {/* Foto de perfil clicável */}
+      <TouchableOpacity
+        onPress={onPhotoMenuOpen}
+        style={{
+          position: 'absolute',
+          top: 160,
+          alignSelf: 'center',
+          zIndex: 10,
+        }}
+        activeOpacity={0.8}
+      >
+        <Box
+          size={28}
+          borderRadius={14}
+          overflow="hidden"
+          bg="gray.700"
+          alignItems="center"
+          justifyContent="center"
+          borderWidth={4}
+          borderColor="white"
+          shadow={4}
+        >
+          {photoUri ? (
+            <Image source={{ uri: photoUri }} size={28} alt="Foto de perfil" />
+          ) : (
+            <UserIcon size="80" color="#9CA3AF" />
+          )}
+        </Box>
+
+        {/* Ícone de edição */}
+        <Box
+          position="absolute"
+          bottom={0}
+          right={0}
+          bg="ciano.400"
+          size={10}
+          borderRadius={20}
+          alignItems="center"
+          justifyContent="center"
+          borderWidth={2}
+          borderColor="white"
+        >
+          <EditIcon size="20" color="#FFFFFF" />
+        </Box>
+      </TouchableOpacity>
 
       <VStack flex={1} py={16} mx={6} zIndex={1}>
         <Header title="Informações Pessoais" bgMode handleBackTo={() => navigation.navigate('homepage')} />
@@ -464,6 +685,40 @@ export function Info() {
           />
         </VStack>
       </VStack>
-    </ScrollView>
+
+      {/* Menu de opções de foto */}
+      <Actionsheet isOpen={isPhotoMenuOpen} onClose={onPhotoMenuClose}>
+        <Actionsheet.Content>
+          <Box w="100%" px={4} py={2}>
+            <Text fontSize={18} fontWeight={700} mb={4}>
+              Foto de Perfil
+            </Text>
+
+            <Actionsheet.Item onPress={handleSelectFromGallery}>
+              <Text fontSize={16}>Escolher da Galeria</Text>
+            </Actionsheet.Item>
+
+            <Actionsheet.Item onPress={handleTakePhoto}>
+              <Text fontSize={16}>Tirar Foto</Text>
+            </Actionsheet.Item>
+
+            {photoUri && (
+              <Actionsheet.Item onPress={handleRemovePhoto}>
+                <Text fontSize={16} color="red.500">
+                  Remover Foto
+                </Text>
+              </Actionsheet.Item>
+            )}
+
+            <Actionsheet.Item onPress={onPhotoMenuClose}>
+              <Text fontSize={16} color="gray.600">
+                Cancelar
+              </Text>
+            </Actionsheet.Item>
+          </Box>
+        </Actionsheet.Content>
+      </Actionsheet>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

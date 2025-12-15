@@ -1,5 +1,6 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   VStack,
   Text,
@@ -14,6 +15,7 @@ import {
   useDisclose,
   Flex,
   Input,
+  Spinner,
 } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
@@ -44,6 +46,7 @@ import { Card } from '../components/card/card';
 import { Button } from '@components/atoms';
 import { useAuth } from 'src/hooks/useAuth';
 import { useHome } from 'src/hooks/useHome';
+import { getUserPersonalData } from '@services/userService';
 
 export function MyAccount() {
   const { isOpen: isSignOutOpen, onOpen: onSignOutOpen, onClose: onSignOutClose } = useDisclose();
@@ -51,6 +54,7 @@ export function MyAccount() {
   const { isOpen: isFeedbackOpen, onOpen: onFeedbackOpen, onClose: onFeedbackClose } = useDisclose();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
   const [deleteFeedback, setDeleteFeedback] = useState({
     reason: '',
     customReason: '',
@@ -67,8 +71,40 @@ export function MyAccount() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
-  const { user, signOut, deleteAccount } = useAuth();
+  const { user, signOut, deleteAccount, updateUserPhoto } = useAuth();
   const { clearHomeData } = useHome();
+
+  // Buscar foto de perfil do backend apenas se não estiver no contexto
+  useFocusEffect(
+    useCallback(() => {
+      async function loadProfilePhotoIfNeeded() {
+        // Se já tem foto no contexto, não precisa buscar
+        if (user?.profilePhotoBase64) {
+          console.log('📷 [MY_ACCOUNT] Foto já está no contexto, não precisa buscar');
+          return;
+        }
+
+        setIsLoadingPhoto(true);
+        try {
+          console.log('📷 [MY_ACCOUNT] Buscando foto de perfil do backend...');
+          const profileData = await getUserPersonalData();
+          if (profileData?.profilePhotoBase64) {
+            // Salva no contexto para cache
+            updateUserPhoto(profileData.profilePhotoBase64);
+            console.log('✅ [MY_ACCOUNT] Foto de perfil carregada e salva no contexto');
+          } else {
+            console.log('ℹ️ [MY_ACCOUNT] Usuário não possui foto de perfil');
+          }
+        } catch (error) {
+          console.log('⚠️ [MY_ACCOUNT] Erro ao buscar foto de perfil:', error);
+        } finally {
+          setIsLoadingPhoto(false);
+        }
+      }
+
+      loadProfilePhotoIfNeeded();
+    }, [user?.profilePhotoBase64, updateUserPhoto])
+  );
 
   const handleSignOut = async () => {
     try {
@@ -121,47 +157,51 @@ export function MyAccount() {
       <VStack flex={1} py={16} mx={6} mb={20}>
         <Header title="Minha Conta" handleBackTo={() => navigation.navigate('homepage')} />
 
-        <Box bg={'gray.800'} w="100%" borderRadius={16} p={4}>
-          <HStack space={3} alignItems={'center'}>
-            {/* <Image
-              source={
-                {
-                  // uri: user.ImageUserUrl,
-                }
-              }
-              size={20}
-              borderWidth={2}
-              borderColor="white"
-              rounded={10}
-            /> */}
+        <TouchableOpacity onPress={() => navigation.navigate('info')} activeOpacity={0.8}>
+          <Box bg={'gray.800'} w="100%" borderRadius={16} p={4}>
+            <HStack space={3} alignItems={'center'}>
+              {/* Foto de perfil ou ícone padrão */}
+              <Box
+                size={20}
+                borderRadius={10}
+                overflow="hidden"
+                bg="gray.700"
+                alignItems="center"
+                justifyContent="center"
+              >
+                {isLoadingPhoto ? (
+                  <Spinner color="gray.400" size="lg" />
+                ) : user?.profilePhotoBase64 || user?.photoUrl ? (
+                  <Image
+                    source={{ uri: user?.profilePhotoBase64 || user?.photoUrl }}
+                    size={20}
+                    alt="Foto de perfil"
+                  />
+                ) : (
+                  <UserIcon size="48" color="#9CA3AF" />
+                )}
+              </Box>
 
-            <VStack flex={1} space={2}>
-              <Text color={'white'} fontSize={22} fontWeight={800} letterSpacing={-0.36}>
-                {user?.fullName || 'Usuário'}
-              </Text>
-              {user?.email ? (
-                <Text color={'gray.200'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-                  {user.email}
+              <VStack flex={1} space={2}>
+                <Text color={'white'} fontSize={22} fontWeight={800} letterSpacing={-0.36}>
+                  {user?.fullName || 'Usuário'}
                 </Text>
-              ) : null}
-            </VStack>
+                {user?.email ? (
+                  <Text color={'gray.200'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
+                    {user.email}
+                  </Text>
+                ) : null}
+              </VStack>
 
-            <TouchableOpacity onPress={() => navigation.navigate('info')}>
               <EditIcon size="30" />
-            </TouchableOpacity>
-          </HStack>
-        </Box>
+            </HStack>
+          </Box>
+        </TouchableOpacity>
 
         <VStack>
-          <HStack mt={12} justifyContent={'space-between'}>
-            <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-              Configurações Gerais
-            </Text>
-
-            <TouchableOpacity>
-              <MoreIcon />
-            </TouchableOpacity>
-          </HStack>
+          <Text mt={12} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+            Configurações Gerais
+          </Text>
 
           <VStack mt={4} space={3}>
             <Card
@@ -196,15 +236,9 @@ export function MyAccount() {
         </VStack>
 
         <VStack>
-          <HStack mt={8} justifyContent={'space-between'}>
-            <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-              Acessibilidade
-            </Text>
-
-            <TouchableOpacity>
-              <MoreIcon />
-            </TouchableOpacity>
-          </HStack>
+          <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+            Acessibilidade
+          </Text>
 
           <VStack mt={4} space={3}>
             <Card
@@ -225,15 +259,9 @@ export function MyAccount() {
         </VStack>
 
         <VStack>
-          <HStack mt={8} justifyContent={'space-between'}>
-            <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-              Ajuda & Suporte
-            </Text>
-
-            <TouchableOpacity>
-              <MoreIcon />
-            </TouchableOpacity>
-          </HStack>
+          <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+            Ajuda & Suporte
+          </Text>
 
           <VStack mt={4} space={3}>
             <Card
@@ -261,15 +289,9 @@ export function MyAccount() {
         </VStack>
 
         <VStack>
-          <HStack mt={8} justifyContent={'space-between'}>
-            <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-              Desconectar
-            </Text>
-
-            <TouchableOpacity>
-              <MoreIcon />
-            </TouchableOpacity>
-          </HStack>
+          <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+            Desconectar
+          </Text>
 
           <VStack mt={4} space={3}>
             <Card

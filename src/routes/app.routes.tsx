@@ -102,6 +102,7 @@ const CustomTabExaminusButton = ({ children, onPress }: BottomTabBarButtonProps)
 
 function HomeTabsContent() {
   const { isTabBarVisible } = useTabBar();
+  const { openBottomSheet } = useUploadBottomSheet();
 
   return (
     <Tab.Navigator
@@ -182,11 +183,19 @@ function HomeTabsContent() {
         options={{
           unmountOnBlur: true,
           tabBarIcon: () => <ExaminusIcon />,
-          tabBarButton: ({ children, onPress }) => (
+          tabBarButton: ({ children }) => (
             <View>
-              <CustomTabExaminusButton children={children} onPress={onPress} />
+              <CustomTabExaminusButton children={children} onPress={openBottomSheet} />
             </View>
           ),
+        }}
+        listeners={{
+          tabPress: (e) => {
+            // Previne a navegação padrão
+            e.preventDefault();
+            // Abre o bottomSheet global
+            openBottomSheet();
+          },
         }}
       />
       <Tab.Screen
@@ -237,15 +246,21 @@ function HomeTabsContent() {
 
 function HomeTabs() {
   return (
-    <TabBarContextProvider>
-      <HomeTabsContent />
-    </TabBarContextProvider>
+    <UploadBottomSheetProvider>
+      <TabBarContextProvider>
+        <HomeTabsContent />
+        {/* Renderiza o bottomSheet global de upload */}
+        <GlobalUploadBottomSheet />
+      </TabBarContextProvider>
+    </UploadBottomSheetProvider>
   );
 }
 
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
 import { Notifications } from '@components/pages/Notifications';
 import { useDeepLinking } from 'src/hooks/useDeepLinking';
+import { UploadBottomSheetProvider, useUploadBottomSheet } from 'src/contexts/UploadBottomSheetContext';
+import { GlobalUploadBottomSheet } from '@components/organisms/GlobalUploadBottomSheet/GlobalUploadBottomSheet';
 
 function AppRoutesContent() {
   const { isOnboardingComplete, checkOnboardingCompletion } = useOnboarding();

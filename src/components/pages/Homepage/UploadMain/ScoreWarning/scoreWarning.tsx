@@ -1,5 +1,6 @@
-import { VStack, Text, Image, Center, Box, HStack } from 'native-base';
+import { VStack, Text, Image, Center } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -7,13 +8,57 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 // assets
 import { ArrowIcon } from '@assets/icons';
 import Vector from '@assets/png/vector-10.png';
-import Logo from '@assets/png/logo.png';
 
 // components
 import { Button } from '@components/atoms';
+import { useTabBar } from 'src/hooks/useTabBar';
+import { useUpload } from 'src/hooks/useUpload';
 
-export function ScoreWarning() {
+interface ScoreWarningProps {
+  onClose?: () => void;
+}
+
+export function ScoreWarning({ onClose }: ScoreWarningProps = {}) {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+
+  // Hooks com fallback seguro
+  let showTabBar: (() => void) | undefined;
+  let setWithSuccess: ((value: boolean) => void) | undefined;
+
+  try {
+    const tabBarContext = useTabBar();
+    showTabBar = tabBarContext?.showTabBar;
+  } catch (error) {
+    console.log('TabBar context não disponível (pode estar no onboarding)');
+  }
+
+  try {
+    const uploadContext = useUpload();
+    setWithSuccess = uploadContext?.setWithSuccess;
+  } catch (error) {
+    console.log('Upload context não disponível (pode estar no onboarding)');
+  }
+
+  function handleGoToHomepage() {
+    console.log('🏠 Fechando modal de sucesso');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(err =>
+      console.log('Haptics não disponível:', err)
+    );
+
+    // Se tem onClose prop (GlobalUploadBottomSheet), usa ela
+    if (onClose) {
+      onClose();
+    } else {
+      // Senão, usa o comportamento antigo (UploadMain do onboarding)
+      if (setWithSuccess) {
+        setWithSuccess(false);
+      }
+      if (showTabBar) {
+        showTabBar();
+      }
+      navigation.navigate('homepage');
+    }
+  }
 
   return (
     <VStack flex={1} space={8} py={24} bg={'purple.500'}>
@@ -45,7 +90,11 @@ export function ScoreWarning() {
           title="Bora ficar saudável"
           icon={<ArrowIcon />}
           mt={6}
-          onPress={() => navigation.navigate('homepage')}
+          onPress={handleGoToHomepage}
+          _pressed={{
+            bgColor: 'rgba(255, 255, 255, 0.2)',
+            borderColor: 'white',
+          }}
         />
       </Center>
     </VStack>

@@ -42,22 +42,22 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
   }
 
   return (
-    <VStack mt={4} space={4}>
+    <VStack mt={4} space={3}>
       <Box
         bg={'white'}
         w={'100%'}
-        p={4}
+        p={3}
         borderRadius={16}
         flexDir={'row'}
         alignItems={'center'}
         justifyContent={'space-between'}
       >
-        <Box bg={'gray.50'} w={20} h={20} borderRadius={12} alignItems={'center'} justifyContent={'center'}>
-          <BarbellIcon size="30" />
+        <Box bg={'gray.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
+          <BarbellIcon size="24" />
         </Box>
 
-        <VStack flex={1} ml={4}>
-          <Text fontSize={20} fontWeight={800} letterSpacing={-0.16} mb={3}>
+        <VStack flex={1} ml={3}>
+          <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} mb={2}>
             Calorias Perdidas
           </Text>
 
@@ -68,11 +68,11 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
             bgColor={userTrackerData ? 'gray.100' : 'red.100'}
           />
 
-          <HStack justifyContent={'space-between'} mt={2}>
-            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+          <HStack justifyContent={'space-between'} mt={1}>
+            <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               {userTrackerData ? 0 : `${kcalCompleted}`}kcal
             </Text>
-            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+            <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               2000kcal
             </Text>
           </HStack>
@@ -82,35 +82,35 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
       <Box
         bg={'white'}
         w={'100%'}
-        p={4}
+        p={3}
         borderRadius={16}
         flexDir={'row'}
         alignItems={'center'}
         justifyContent={'space-between'}
       >
-        <Box bg={'gray.50'} w={20} h={20} borderRadius={12} alignItems={'center'} justifyContent={'center'}>
-          <WalkingIcon size="30" />
+        <Box bg={'gray.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
+          <WalkingIcon size="24" />
         </Box>
 
-        <VStack flex={1} ml={4}>
-          <Text fontSize={20} fontWeight={800} letterSpacing={-0.16} mb={1}>
+        <VStack flex={1} ml={3}>
+          <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} mb={1}>
             Passos
           </Text>
 
           {userTrackerData || !stepsCompleted ? (
-            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+            <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               Você não andou hoje. Se movimente!
             </Text>
           ) : (
-            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+            <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               Você deu {stepsCompleted} passos
             </Text>
           )}
         </VStack>
 
         {!userTrackerData && (
-          <Box bg="ciano.50" w={12} h={12} borderRadius={8} alignItems={'center'} justifyContent={'center'}>
-            <CheckIcon size="36" />
+          <Box bg="ciano.50" w={10} h={10} borderRadius={6} alignItems={'center'} justifyContent={'center'}>
+            <CheckIcon size="28" />
           </Box>
         )}
       </Box>
@@ -118,23 +118,23 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
       <Box
         bg={'white'}
         w={'100%'}
-        p={4}
+        p={3}
         borderRadius={16}
         flexDir={'row'}
         alignItems={'center'}
         justifyContent={'space-between'}
       >
-        <Box bg={'gray.50'} w={20} h={20} borderRadius={12} alignItems={'center'} justifyContent={'center'}>
-          <AppleIcon size="30" />
+        <Box bg={'gray.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
+          <AppleIcon size="24" />
         </Box>
 
-        <VStack flex={1} ml={4}>
-          <Text fontSize={20} fontWeight={800} letterSpacing={-0.16} mb={1}>
+        <VStack flex={1} ml={3}>
+          <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} mb={1}>
             Nutrição
           </Text>
 
           {userTrackerData ? (
-            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+            <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               Você há dados sobre sua alimentação
             </Text>
           ) : (
@@ -147,7 +147,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
                       borderRadius={6}
                       bg={'dark_blue.200'}
                       _text={{
-                        fontSize: 16,
+                        fontSize: 14,
                         fontWeight: 600,
                         letterSpacing: -0.12,
                         color: 'dark_blue.50',
@@ -163,7 +163,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
                     borderRadius={6}
                     bg={'dark_blue.50'}
                     _text={{
-                      fontSize: 16,
+                      fontSize: 14,
                       fontWeight: 600,
                       letterSpacing: -0.12,
                       color: 'dark_blue.300',
@@ -181,27 +181,27 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
       <Box
         bg={'white'}
         w={'100%'}
-        p={4}
+        p={3}
         borderRadius={16}
         flexDir={'row'}
         alignItems={'center'}
         justifyContent={'space-between'}
       >
-        <Box bg={'gray.50'} w={20} h={20} borderRadius={12} alignItems={'center'} justifyContent={'center'}>
-          <BedIcon size="30" />
+        <Box bg={'gray.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
+          <BedIcon size="24" />
         </Box>
 
-        <VStack flex={1} ml={4}>
-          <Text fontSize={20} fontWeight={800} letterSpacing={-0.16} mb={1}>
+        <VStack flex={1} ml={3}>
+          <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} mb={1}>
             Sono
           </Text>
 
           {userTrackerData ? (
-            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+            <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               Sem registro do seu ciclo
             </Text>
           ) : (
-            <Text color={'gray.400'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+            <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               {Math.round(sleepCompleted)}/{Math.round(sleepGoal)} {'\n'}
               Circadiano Mensal
             </Text>
@@ -209,9 +209,9 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
         </VStack>
 
         <AnimatedCircularProgress
-          size={68}
+          size={56}
           lineCap="round"
-          width={5}
+          width={4}
           fill={
             userTrackerData
               ? 0
@@ -220,7 +220,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
               : 0
           }
           children={() => (
-            <Text fontSize={14} fontWeight={800} letterSpacing={1}>
+            <Text fontSize={12} fontWeight={800} letterSpacing={1}>
               {userTrackerData
                 ? '0%'
                 : `${sleepGoal ? (Math.round(sleepCompleted) / sleepGoal) * 100 : 0}%`}
@@ -235,28 +235,28 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
       <Box
         bg={'white'}
         w={'100%'}
-        p={4}
+        p={3}
         borderRadius={16}
         flexDir={'row'}
         alignItems={'center'}
         justifyContent={'space-between'}
       >
-        <Box bg={'gray.50'} w={20} h={20} borderRadius={12} alignItems={'center'} justifyContent={'center'}>
-          <WaterIcon size="30" />
+        <Box bg={'gray.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
+          <WaterIcon size="24" />
         </Box>
 
-        <VStack flex={1} ml={4}>
-          <Text fontSize={20} fontWeight={800} letterSpacing={-0.16} mb={3}>
+        <VStack flex={1} ml={3}>
+          <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} mb={2}>
             Hidratação
           </Text>
 
           <HStack space={1}>{renderHydration()}</HStack>
 
           <HStack justifyContent={'space-between'} mt={1}>
-            <Text color={'gray.600'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+            <Text color={'gray.600'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               {userTrackerData ? 0 : hydrationCompleted}
             </Text>
-            <Text color={'gray.600'} fontSize={16} fontWeight={600} letterSpacing={-0.12}>
+            <Text color={'gray.600'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               {userTrackerData ? 12 : hydrationGoal}
             </Text>
           </HStack>

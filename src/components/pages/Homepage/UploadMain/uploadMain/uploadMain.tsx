@@ -12,8 +12,6 @@ import { useUpload } from 'src/hooks/useUpload';
 import { useTabBar } from 'src/hooks/useTabBar';
 import { UploadError } from '../error/error';
 import { Loading } from '../loading/loading';
-import { AppNavigatorRoutesProps } from '@routes/app.routes';
-import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
 import { ScoreWarning } from '../ScoreWarning/scoreWarning';
 
@@ -22,7 +20,6 @@ export function UploadMain() {
   const { isOpen: isCameraOpen, onOpen: onCameraOpen, onClose: onCameraClose } = useDisclose();
   const { isLoadingUploadContext, withError, withSuccess, setWithSuccess, handleUploadFile } = useUpload();
   const { hideTabBar, showTabBar } = useTabBar();
-  const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   function handleCameraOpen() {
     onClose(); // Fecha o BottomSheet
@@ -36,12 +33,12 @@ export function UploadMain() {
     showTabBar(); // Mostra tabs usando contexto
   }
 
+  // Esconder tab bar durante loading e ScoreWarning
   useEffect(() => {
-    if (withSuccess) {
-      showTabBar(); // Restaurar tabs antes de navegar
-      navigation.navigate('homepage');
+    if (isLoadingUploadContext || withSuccess) {
+      hideTabBar();
     }
-  }, [withSuccess]);
+  }, [isLoadingUploadContext, withSuccess]);
 
   useEffect(() => {
     // Cleanup - garantir que as tabs sejam restauradas quando o componente for desmontado
@@ -54,11 +51,12 @@ export function UploadMain() {
   // Efeito para controlar as tabs baseado no estado da câmera
   useEffect(() => {
     if (isCameraOpen) {
-      hideTabBar(); // Ocultar tabs quando câmera estiver aberta
-    } else {
-      showTabBar(); // Mostrar tabs quando câmera estiver fechada
+      hideTabBar();
+    } else if (!isLoadingUploadContext && !withSuccess) {
+      // Só mostra tabs se não estiver em loading nem em success
+      showTabBar();
     }
-  }, [isCameraOpen]);
+  }, [isCameraOpen, isLoadingUploadContext, withSuccess]);
 
   if (isLoadingUploadContext) {
     return <Loading />;

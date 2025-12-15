@@ -1,6 +1,7 @@
 export type UserDTO = {
   email: string;
   userId: string;
+  photoUrl?: string;
 };
 
 /**
@@ -29,6 +30,17 @@ export type UserPersonalDataDTO = {
 };
 
 /**
+ * Preferências de notificação do usuário
+ * Endpoint: GET/PUT /user-personal-data/notification-preferences
+ */
+export type NotificationPreferencesDTO = {
+  dailyReminders: boolean;
+  healthInsights: boolean;
+  examInfo: boolean;
+  chatbotNotifications: boolean;
+};
+
+/**
  * DTO unificado de resposta que retorna dados do usuário + dados pessoais
  * Endpoint: GET /user-personal-data
  */
@@ -36,6 +48,13 @@ export type UserPersonalDataResponseDTO = {
   // Dados básicos do User
   fullName?: string;
   email?: string;
+  photoUrl?: string;
+
+  // Foto de perfil em base64 (retornada pelo novo endpoint)
+  profilePhotoBase64?: string;
+
+  // Preferências de notificação
+  notificationPreferences?: NotificationPreferencesDTO;
 
   // Dados pessoais
   gender?: string;

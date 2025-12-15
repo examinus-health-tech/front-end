@@ -28,24 +28,54 @@ type ExamScreenRouteProp = RouteProp<AppRoutes, 'exam'>;
 
 export function Exam() {
   const route = useRoute<ExamScreenRouteProp>();
+  const navigation = useNavigation<AppNavigatorRoutesProps>();
   const examIdFromParams = route.params?.examId;
   const { examSelected, selectExamById, examData, deleteExam } = useExam();
-  const { showSuccess, showError } = useCustomToast();
+  const { showSuccess, showError, showInfo } = useCustomToast();
 
   // Estado para modal de confirmação de exclusão
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Estado para loading quando vem de push notification
+  const [isLoadingExam, setIsLoadingExam] = useState(false);
+
   // Se vier examId por parâmetro (ex: via push notification), seleciona o exame
   useEffect(() => {
-    if (examIdFromParams) {
-      console.log('[Exam] Carregando exame via parâmetro:', examIdFromParams);
-      selectExamById(examIdFromParams);
+    async function loadExamFromParams() {
+      if (examIdFromParams) {
+        console.log('[Exam] Carregando exame via parâmetro:', examIdFromParams);
+        setIsLoadingExam(true);
+
+        try {
+          const found = await selectExamById(examIdFromParams);
+
+          if (!found) {
+            console.warn('[Exam] Exame não encontrado:', examIdFromParams);
+            showInfo({
+              title: 'Exame não encontrado',
+              description: 'O exame pode ainda estar sendo processado. Verifique a lista de exames.',
+            });
+            navigation.navigate('examList');
+          }
+        } catch (error) {
+          console.error('[Exam] Erro ao carregar exame:', error);
+          showError({
+            title: 'Erro ao carregar',
+            description: 'Não foi possível carregar o exame. Tente novamente.',
+          });
+          navigation.navigate('examList');
+        } finally {
+          setIsLoadingExam(false);
+        }
+      }
     }
+
+    loadExamFromParams();
   }, [examIdFromParams]);
+
   const [bottomSheetText, setBottomSheetText] = useState<string>('');
   const [bottomSheetTitle, setBottomSheetTitle] = useState<string>('');
-  const navigation = useNavigation<AppNavigatorRoutesProps>();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const historyBottomSheetRef = useRef<BottomSheetModal>(null);
 
@@ -414,6 +444,29 @@ export function Exam() {
       setIsDeleting(false);
     }
   }, [examSelected, deleteExam, navigation, showSuccess, showError]);
+
+  // Mostrar loading enquanto carrega exame via parâmetro
+  if (isLoadingExam) {
+    return (
+      <VStack flex={1} alignItems="center" justifyContent="center" bg="white">
+        <Text fontSize={16} color="gray.500">Carregando exame...</Text>
+      </VStack>
+    );
+  }
+
+  // Verificar se há exame selecionado (evita tela vazia)
+  if (!examSelected?.medicalExamId && !examIdFromParams) {
+    return (
+      <VStack flex={1} alignItems="center" justifyContent="center" bg="white" px={6}>
+        <Text fontSize={18} fontWeight={600} color="gray.700" textAlign="center">
+          Nenhum exame selecionado
+        </Text>
+        <Text fontSize={14} color="gray.500" textAlign="center" mt={2}>
+          Selecione um exame na lista para visualizar os detalhes.
+        </Text>
+      </VStack>
+    );
+  }
 
   return (
     <>

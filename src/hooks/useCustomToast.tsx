@@ -1,8 +1,4 @@
-import { useToast, Box, Text, VStack, Pressable } from 'native-base';
-import { Dimensions } from 'react-native';
-
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const TOAST_WIDTH = SCREEN_WIDTH - 32; // 16px de margem em cada lado
+import { useToast, Box, Text, HStack, Pressable } from 'native-base';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info' | 'processing';
 
@@ -16,35 +12,29 @@ interface ToastConfig {
   };
 }
 
-// Configurações visuais por tipo de toast
-const toastStyles: Record<ToastType, { bg: string; borderColor: string; iconColor: string }> = {
+// Configurações visuais iOS style
+const toastStyles: Record<ToastType, { color: string; symbol: string }> = {
   success: {
-    bg: 'green.50',
-    borderColor: 'green.500',
-    iconColor: '#22C55E',
+    color: '#22C55E',
+    symbol: '✓',
   },
   error: {
-    bg: 'red.50',
-    borderColor: 'red.500',
-    iconColor: '#EF4444',
+    color: '#EF4444',
+    symbol: '✕',
   },
   warning: {
-    bg: 'orange.50',
-    borderColor: 'orange.500',
-    iconColor: '#F97316',
+    color: '#F97316',
+    symbol: '!',
   },
   info: {
-    bg: 'blue.50',
-    borderColor: 'blue.500',
-    iconColor: '#3B82F6',
+    color: '#3B82F6',
+    symbol: 'i',
   },
   processing: {
-    bg: 'blue.50',
-    borderColor: 'blue.400',
-    iconColor: '#60A5FA',
+    color: '#60A5FA',
+    symbol: '↻',
   },
 };
-
 
 export function useCustomToast() {
   const toast = useToast();
@@ -52,42 +42,52 @@ export function useCustomToast() {
   const showToast = (type: ToastType, config: ToastConfig) => {
     const style = toastStyles[type];
 
+    // Texto compacto: se tem descrição curta, concatena com título
+    const displayText = config.description
+      ? `${config.title} · ${config.description}`
+      : config.title;
+
     toast.show({
       placement: 'top',
-      duration: config.duration || 4000,
+      duration: config.duration || 3000,
       render: ({ id }) => (
-        <Pressable onPress={() => toast.close(id)}>
-          <Box
-            w={TOAST_WIDTH}
-            bg={style.bg}
-            borderWidth={1}
-            borderColor={style.borderColor}
-            borderRadius={12}
-            px={4}
-            py={3}
-            mx={4}
-            mt={2}
-            shadow={3}
-          >
-            <VStack space={1}>
-              <Text fontSize={15} fontWeight="700" color="gray.800" letterSpacing={-0.3}>
-                {config.title}
-              </Text>
-              {config.description && (
-                <Text fontSize={13} fontWeight="400" color="gray.600" lineHeight={18}>
-                  {config.description}
+        <Box alignItems="center" mt={2} w="100%" px={5}>
+          <Pressable onPress={() => toast.close(id)} style={{ maxWidth: '100%' }}>
+            <HStack
+              bg="rgba(30, 30, 30, 0.9)"
+              borderRadius={20}
+              px={3}
+              py={1.5}
+              space={2}
+              alignItems="center"
+              shadow={3}
+            >
+              {/* Ícone circular com símbolo */}
+              <Box
+                w={5}
+                h={5}
+                borderRadius={10}
+                bg={style.color}
+                alignItems="center"
+                justifyContent="center"
+                flexShrink={0}
+              >
+                <Text fontSize={11} fontWeight="800" color="white">
+                  {style.symbol}
                 </Text>
-              )}
-              {config.action && (
-                <Pressable onPress={config.action.onPress} mt={2}>
-                  <Text fontSize={13} fontWeight="600" color={style.borderColor} underline>
-                    {config.action.label}
-                  </Text>
-                </Pressable>
-              )}
-            </VStack>
-          </Box>
-        </Pressable>
+              </Box>
+              <Text
+                fontSize={13}
+                fontWeight="600"
+                color="white"
+                letterSpacing={-0.2}
+                flexShrink={1}
+              >
+                {displayText}
+              </Text>
+            </HStack>
+          </Pressable>
+        </Box>
       ),
     });
   };

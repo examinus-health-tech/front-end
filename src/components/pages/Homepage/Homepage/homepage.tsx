@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity, useWindowDimensions, RefreshControl } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, StatusBar } from 'react-native';
+import { CustomRefreshControl } from '@components/atoms';
 import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center } from 'native-base';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { api } from 'src/services/api';
@@ -27,6 +28,7 @@ import Vector10 from '@assets/png/vector-45.png';
 import { StatusCards } from '@components/molecules';
 import { useAuth } from 'src/hooks/useAuth';
 import { useHome } from 'src/hooks/useHome';
+import { useTabBar } from 'src/hooks/useTabBar';
 
 // Função helper para determinar o texto baseado no score
 function getScoreText(score: number): string {
@@ -49,8 +51,10 @@ export function Homepage() {
 
   const { user, getUserInfo, isLoading } = useAuth();
   const { getHomeData, homeData, trackerData, isLoadingHomeContext } = useHome();
+  const { showTabBar } = useTabBar();
 
   async function onRefresh() {
+    console.log('🔄 onRefresh chamado na homepage');
     setIsRefreshing(true);
     try {
       await getHomeData();
@@ -115,10 +119,9 @@ export function Homepage() {
   useFocusEffect(
     useCallback(() => {
       scrollRef.current?.scrollTo?.({ x: 0, y: 0, animated: false });
-      // getUserInfo(); // Comentado: endpoint não aceita Bearer token
+      showTabBar();
       getHomeData();
       fetchUnreadCount();
-      console.log('🔄 Homepage recarregada ao ganhar foco');
     }, [])
   );
 
@@ -183,7 +186,8 @@ export function Homepage() {
   }
 
   return (
-    <View>
+    <View flex={1} bg="gray.100">
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       {isLoading || isLoadingHomeContext ? (
         <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#d5d5d5" foregroundColor="#ebebeb">
           {/* Ícone de Notificação */}
@@ -230,7 +234,7 @@ export function Homepage() {
           ref={scrollRef}
           showsVerticalScrollIndicator={false}
           refreshControl={
-            <RefreshControl refreshing={isRefreshing} onRefresh={onRefresh} tintColor="#0CC1AF" colors={['#0CC1AF']} />
+            <CustomRefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />
           }
         >
           <VStack flex={1} pb={24} pt={20} mx={6} mb={16}>
@@ -477,19 +481,13 @@ export function Homepage() {
 
             {<StatusCards userTrackerData={userTrackerData} />}
 
-            <HStack mt={8} justifyContent={'space-between'} alignItems={'center'}>
-              <HStack alignItems={'center'} space={2}>
-                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                  Fale com o Doutor X
-                </Text>
-                <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>
-                  EM BREVE
-                </Badge>
-              </HStack>
-
-              <TouchableOpacity>
-                <MoreIcon />
-              </TouchableOpacity>
+            <HStack mt={8} alignItems={'center'} space={2}>
+              <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                Fale com o Doutor X
+              </Text>
+              <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>
+                EM BREVE
+              </Badge>
             </HStack>
 
             <Box w="100%" bg={'white'} borderRadius={12} mt={4} overflow="hidden" position="relative" h={170}>

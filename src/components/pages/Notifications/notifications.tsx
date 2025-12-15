@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Linking, RefreshControl, useWindowDimensions, TouchableOpacity } from 'react-native';
+import { Linking, useWindowDimensions, TouchableOpacity } from 'react-native';
+import { CustomRefreshControl } from '@components/atoms';
 import { VStack, Text, HStack, ScrollView, IScrollViewProps, Box, StatusBar, View } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import ContentLoader, { Rect } from 'react-content-loader/native';
@@ -38,9 +39,11 @@ export function Notifications() {
     return [];
   };
 
-  async function fetchNotifications() {
+  async function fetchNotifications(showFullLoading = true) {
     try {
-      setIsLoading(true);
+      if (showFullLoading) {
+        setIsLoading(true);
+      }
       const response = await api.get('/notifications');
       const notificationsArray = ensureArray(response.data);
       setNotifications(notificationsArray);
@@ -54,8 +57,17 @@ export function Notifications() {
   }
 
   const onRefresh = async () => {
+    console.log('🔄 onRefresh chamado nas notificações');
     setRefreshing(true);
-    await fetchNotifications();
+    try {
+      const response = await api.get('/notifications');
+      const notificationsArray = ensureArray(response.data);
+      setNotifications(notificationsArray);
+    } catch (error) {
+      console.error('Erro ao buscar notificações:', error);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   useEffect(() => {
@@ -147,7 +159,7 @@ export function Notifications() {
         <ScrollView
           ref={scrollRef}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+          refreshControl={<CustomRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
           <VStack flex={1} py={16} mx={6} mb={20}>
             <CustomHeader />

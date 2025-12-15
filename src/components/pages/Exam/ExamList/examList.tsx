@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Select, CheckIcon, Modal, Button as NativeBaseButton, Actionsheet, useDisclose } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Modal, Button as NativeBaseButton, Actionsheet, useDisclose } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import * as Haptics from 'expo-haptics';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
-import { ChevronRightIcon, FilterIcon, FlaskIcon, RotateRightIcon, TrashIcon, UploadIcon } from '@assets/icons';
+import { ChevronRightIcon, FilterIcon, FlaskIcon, MoreIcon, RotateRightIcon, TrashIcon, UploadIcon } from '@assets/icons';
 
 // components
 import { HeaderTitle, Input } from '@components/molecules';
-import { TouchableOpacity, useWindowDimensions, Keyboard, Pressable, Animated, RefreshControl } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, Keyboard, Pressable, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
+import { CustomRefreshControl } from '@components/atoms';
 import { Button } from '@components/atoms';
 import { Controller, useForm } from 'react-hook-form';
 import * as yup from 'yup';
@@ -42,10 +44,11 @@ function getStatusMessage(status: string) {
     Received: 'Recebido',
     Extracted: 'Extraído',
     ExtractedFailed: 'Erro extração',
-    Analyzed: 'Concluído',
+    Analyzed: 'Analisado',
     AnalyzedFailed: 'Erro análise',
     ScoreComputed: 'Concluído',
     ScoreComputedFailed: 'Erro processamento',
+    ProcessingTimeout: 'Tempo excedido',
   };
 
   return statusMap[status as keyof typeof statusMap] || status;
@@ -61,6 +64,7 @@ function getStatusColor(status: string) {
     AnalyzedFailed: 'red.500',
     ScoreComputed: 'ciano.500',
     ScoreComputedFailed: 'red.500',
+    ProcessingTimeout: 'orange.600',
   };
 
   return colorMap[status as keyof typeof colorMap] || 'gray.500';
@@ -73,7 +77,7 @@ function isErrorStatus(status: string) {
 
 // Função para verificar se é status de processamento
 function isProcessingStatus(status: string) {
-  return ['Received', 'Extracted', 'Analyzed'].includes(status);
+  return ['Received', 'Extracted', 'Analyzed', 'ProcessingTimeout'].includes(status);
 }
 
 const uploadFormSchema = yup.object({
@@ -83,17 +87,21 @@ const uploadFormSchema = yup.object({
   status: yup.string(),
 });
 
-// Opções de status para o filtro
-const statusOptions = [
-  { label: 'Todos os status', value: '' },
-  { label: 'Recebido', value: 'Received' },
-  { label: 'Extraído', value: 'Extracted' },
-  { label: 'Erro extração', value: 'ExtractedFailed' },
-  { label: 'Analisado', value: 'Analyzed' },
-  { label: 'Erro análise', value: 'AnalyzedFailed' },
-  { label: 'Processamento completo', value: 'ScoreComputed' },
-  { label: 'Erro processamento', value: 'ScoreComputedFailed' },
+// Opções simplificadas de status para o filtro (chips)
+const statusFilterOptions = [
+  { label: 'Todos', value: '', color: 'gray.500', bgColor: 'gray.100', activeBg: 'gray.600' },
+  { label: 'Processando', value: 'processing', color: 'blue.600', bgColor: 'blue.50', activeBg: 'blue.500' },
+  { label: 'Concluídos', value: 'completed', color: 'green.600', bgColor: 'green.50', activeBg: 'green.500' },
+  { label: 'Com erro', value: 'error', color: 'red.600', bgColor: 'red.50', activeBg: 'red.500' },
 ];
+
+// Mapeamento de filtro simplificado para status reais
+const statusFilterMap: Record<string, string[]> = {
+  '': [], // Todos
+  processing: ['Received', 'Extracted', 'Analyzed', 'ProcessingTimeout'],
+  completed: ['ScoreComputed'],
+  error: ['ExtractedFailed', 'AnalyzedFailed', 'ScoreComputedFailed'],
+};
 
 type ExamDataProps = {
   identifier: string;
@@ -200,9 +208,12 @@ export function ExamList() {
 
     let filtered = [...examData];
 
-    // Filtro por status
-    if (filters.status) {
-      filtered = filtered.filter((exam) => exam.medicalExamStatus === filters.status);
+    // Filtro por status (usando mapeamento simplificado)
+    if (filters.status && statusFilterMap[filters.status]) {
+      const allowedStatuses = statusFilterMap[filters.status];
+      if (allowedStatuses.length > 0) {
+        filtered = filtered.filter((exam) => allowedStatuses.includes(exam.medicalExamStatus));
+      }
     }
 
     // Filtro por pesquisa (título/laboratório)
@@ -325,6 +336,7 @@ export function ExamList() {
 
   // Função para abrir menu de ações (reprocessar/excluir)
   function handleOpenActionSheet(exam: any) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); // Feedback tátil ao abrir opções
     setSelectedExamForAction(exam);
     onActionSheetOpen();
   }
@@ -391,20 +403,15 @@ export function ExamList() {
     const statusMessage = getStatusMessage(exam.medicalExamStatus);
     const statusColor = getStatusColor(exam.medicalExamStatus);
 
-    // Verifica se o exame pode ter ações (erro ou em processamento)
-    const canHaveActions = isError || isProcessing;
-
     const handlePress = () => {
-      // Exames com erro ou em processamento abrem menu de ações diretamente
-      if (canHaveActions) {
-        handleOpenActionSheet(exam);
-        return;
-      }
-
-      // Apenas exames concluídos (ScoreComputed) podem abrir detalhes
+      // Exames concluídos (ScoreComputed) abrem detalhes
       if (isScoreComputed) {
         setExamSelected(exam);
         navigation.navigate('exam');
+      } else {
+        // Exames com erro/processando abrem menu de opções
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        handleOpenActionSheet(exam);
       }
     };
 
@@ -418,13 +425,13 @@ export function ExamList() {
       >
         <HStack
           justifyContent="space-between"
-          alignItems="center"
-          space={4}
+          alignItems="flex-start"
+          space={3}
           flex={1}
-          opacity={isScoreComputed ? 1 : 0.6}
+          opacity={isScoreComputed ? 1 : 0.7}
         >
           {/* Ícone com indicador de status */}
-          <Box position="relative">
+          <Box position="relative" mt={1}>
             <Box bg="gray.100" borderRadius={16} w={16} h={14} alignItems="center" justifyContent="center">
               <FlaskIcon size="32" variant="duotone" color={isScoreComputed ? undefined : 'gray.400'} />
             </Box>
@@ -445,7 +452,7 @@ export function ExamList() {
           {/* Conteúdo central */}
           <VStack flex={1} space={0}>
             {/* Linha 1: Título */}
-            <Text fontSize={18} fontWeight={700} letterSpacing={-0.16} numberOfLines={1}>
+            <Text fontSize={17} fontWeight={700} letterSpacing={-0.16} numberOfLines={1}>
               {exam.laboratoryName || 'Laboratório'}
             </Text>
 
@@ -457,8 +464,8 @@ export function ExamList() {
               </Text>
             </HStack>
 
-            {/* Linha 3: Data de envio */}
-            <HStack alignItems="center" space={1} mt={0.5}>
+            {/* Linha 3: Data de envio + Badge de status */}
+            <HStack alignItems="center" space={1} mt={1}>
               <Text fontSize={11} fontWeight={500} color="gray.400">Enviado</Text>
               <Text fontSize={12} fontWeight={500} color="gray.500">
                 {formatDateToBrazilian(exam.createdDate)}
@@ -466,8 +473,8 @@ export function ExamList() {
             </HStack>
           </VStack>
 
-          {/* Status + Ícone (unidos à direita) - largura fixa para alinhar */}
-          <VStack alignItems="center" space={2} minW={20}>
+          {/* Lado direito: Badge + Ícone */}
+          <VStack alignItems="flex-end" justifyContent="center" space={2}>
             {/* Badge de status */}
             <Box bg={statusColor} borderRadius={6} px={2} py={0.5}>
               <Text fontSize={10} fontWeight={700} color="white" textAlign="center">
@@ -475,11 +482,16 @@ export function ExamList() {
               </Text>
             </Box>
 
-            {/* Ícone de ação ou navegação */}
-            {canHaveActions ? (
-              <RotateRightIcon color="#6B7280" size="24" />
-            ) : (
-              <ChevronRightIcon color={isScoreComputed ? '#0CC1AF' : '#AAAAAA'} size="32" />
+            {/* Exames concluídos: apenas chevron */}
+            {isScoreComputed && (
+              <ChevronRightIcon color="#0CC1AF" size="28" />
+            )}
+
+            {/* Exames com erro/processando: 3 pontos como indicador visual */}
+            {!isScoreComputed && (
+              <Box p={1}>
+                <MoreIcon color="#9CA3AF" size="24" />
+              </Box>
             )}
           </VStack>
         </HStack>
@@ -492,7 +504,8 @@ export function ExamList() {
   }, []);
 
   return (
-    <>
+    <VStack flex={1} bg="gray.100">
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <VStack py={16} flex={1}>
         <HeaderTitle
           title="Exames Realizados"
@@ -519,12 +532,7 @@ export function ExamList() {
             ref={scrollRef}
             showsVerticalScrollIndicator={false}
             refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                tintColor="#0CC1AF"
-                colors={['#0CC1AF']}
-              />
+              <CustomRefreshControl refreshing={isRefreshing} onRefresh={handleRefresh} />
             }
           >
             <VStack flex={1} space={8} pt={2} pb={32}>
@@ -582,14 +590,22 @@ export function ExamList() {
         index={1}
         snapPoints={snapPoints}
         backdropComponent={renderBackdrop}
-        keyboardBehavior="interactive"
+        keyboardBehavior="extend"
         keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
       >
         <BottomSheetView style={{ flex: 1 }}>
-          <VStack flex={1}>
-            {/* Scrollable Content */}
-            <ScrollView showsVerticalScrollIndicator={false} flex={1}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <VStack flex={1}>
+              {/* Scrollable Content */}
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                flex={1}
+                keyboardShouldPersistTaps="handled"
+              >
               <VStack mx={6} pb={4}>
                 {/* Header */}
                 <VStack mb={6}>
@@ -610,131 +626,66 @@ export function ExamList() {
                 {/* Form Fields */}
                 <VStack width="100%" space={5}>
                   {/* Período de datas */}
-                  <VStack space={3}>
-                    <Text fontSize={14} fontWeight={600} color="gray.700" mb={1}>
-                      Período
-                    </Text>
-                    <HStack space={3}>
-                      {/* Data de início */}
-                      <VStack flex={1}>
-                        <Text fontSize={12} fontWeight={500} color="gray.500" mb={-4}>
-                          Data Início
-                        </Text>
-                        <Controller
-                          control={control}
-                          name="start_date"
-                          render={({ field: { onChange, value } }) => (
-                            <Input
-                              placeholder="DD/MM/AAAA"
-                              h={12}
-                              bgColor="white"
-                              borderWidth={1}
-                              borderColor="gray.300"
-                              onChangeText={(text) => {
-                                const maskedValue = applyDateMask(text);
-                                onChange(maskedValue);
-                              }}
-                              value={value}
-                              fontSize={14}
-                              borderRadius={10}
-                              keyboardType="numeric"
-                              maxLength={10}
-                              _focus={{
-                                borderColor: 'ciano.500',
-                                borderWidth: 2,
-                                bgColor: 'white',
-                              }}
-                            />
-                          )}
-                        />
-                      </VStack>
+                  <HStack space={3}>
+                    <Box flex={1}>
+                      <Controller
+                        control={control}
+                        name="start_date"
+                        render={({ field: { onChange, value } }) => (
+                          <Input
+                            label="Data Início"
+                            placeholder="DD/MM/AAAA"
+                            onChangeText={(text) => {
+                              const maskedValue = applyDateMask(text);
+                              onChange(maskedValue);
+                            }}
+                            value={value}
+                            keyboardType="numeric"
+                            maxLength={10}
+                          />
+                        )}
+                      />
+                    </Box>
 
-                      {/* Data final */}
-                      <VStack flex={1}>
-                        <Text fontSize={12} fontWeight={500} color="gray.500" mb={-4}>
-                          Data Final
-                        </Text>
-                        <Controller
-                          control={control}
-                          name="final_date"
-                          render={({ field: { onChange, value } }) => (
-                            <Input
-                              placeholder="DD/MM/AAAA"
-                              h={12}
-                              bgColor="white"
-                              borderWidth={1}
-                              borderColor="gray.300"
-                              onChangeText={(text) => {
-                                const maskedValue = applyDateMask(text);
-                                onChange(maskedValue);
-                              }}
-                              value={value}
-                              fontSize={14}
-                              borderRadius={10}
-                              keyboardType="numeric"
-                              maxLength={10}
-                              _focus={{
-                                borderColor: 'ciano.500',
-                                borderWidth: 2,
-                                bgColor: 'white',
-                              }}
-                            />
-                          )}
-                        />
-                      </VStack>
-                    </HStack>
-                  </VStack>
+                    <Box flex={1}>
+                      <Controller
+                        control={control}
+                        name="final_date"
+                        render={({ field: { onChange, value } }) => (
+                          <Input
+                            label="Data Final"
+                            placeholder="DD/MM/AAAA"
+                            onChangeText={(text) => {
+                              const maskedValue = applyDateMask(text);
+                              onChange(maskedValue);
+                            }}
+                            value={value}
+                            keyboardType="numeric"
+                            maxLength={10}
+                          />
+                        )}
+                      />
+                    </Box>
+                  </HStack>
 
-                  {/* Filtro por status */}
-                  <VStack space={3}>
-                    <Text fontSize={14} fontWeight={600} color="gray.700" mb={1}>
-                      Status do Processamento
-                    </Text>
-                    <Controller
-                      control={control}
-                      name="status"
-                      render={({ field: { onChange, value } }) => (
-                        <Select
-                          selectedValue={value}
-                          minWidth="100%"
-                          accessibilityLabel="Selecione o status"
-                          placeholder="Todos os status"
-                          _selectedItem={{
-                            bg: 'ciano.100',
-                            _text: {
-                              color: 'ciano.700',
-                              fontWeight: 600,
-                            },
-                            endIcon: <CheckIcon size="5" color="ciano.700" />,
-                          }}
-                          onValueChange={onChange}
-                          fontSize={14}
-                          h={12}
-                          bgColor="white"
-                          borderWidth={1}
-                          borderColor="gray.300"
-                          borderRadius={10}
-                          _actionSheetContent={{
-                            bg: 'white',
-                          }}
-                          _actionSheetBody={{
-                            pt: 4,
-                          }}
-                          _item={{
-                            _text: {
-                              fontSize: 14,
-                              color: 'gray.700',
-                            },
-                            py: 3,
-                          }}
-                        >
-                          {statusOptions.map((option) => (
-                            <Select.Item key={option.value} label={option.label} value={option.value} />
-                          ))}
-                        </Select>
-                      )}
-                    />
-                  </VStack>
+                  {/* Filtro por status - Dropdown */}
+                  <Controller
+                    control={control}
+                    name="status"
+                    render={({ field: { onChange, value } }) => (
+                      <Input
+                        label="Status"
+                        selectType
+                        selectedValue={value}
+                        onValueChange={onChange}
+                        placeholder="Todos os status"
+                        options={statusFilterOptions.map((option) => ({
+                          label: option.label,
+                          value: option.value,
+                        }))}
+                      />
+                    )}
+                  />
                 </VStack>
               </VStack>
             </ScrollView>
@@ -768,6 +719,7 @@ export function ExamList() {
               </HStack>
             </VStack>
           </VStack>
+          </KeyboardAvoidingView>
         </BottomSheetView>
       </BottomSheetModal>
 
@@ -845,7 +797,7 @@ export function ExamList() {
             _pressed={{ bg: 'blue.50' }}
           >
             <HStack space={3} alignItems="center">
-              <UploadIcon color="#3B82F6" size="22" />
+              <RotateRightIcon color="#3B82F6" size="22" />
               <VStack>
                 <Text fontSize={16} fontWeight={600} color="blue.600">
                   {isReprocessing ? 'Reprocessando...' : 'Reprocessar'}
@@ -876,6 +828,6 @@ export function ExamList() {
           </Actionsheet.Item>
         </Actionsheet.Content>
       </Actionsheet>
-    </>
+    </VStack>
   );
 }

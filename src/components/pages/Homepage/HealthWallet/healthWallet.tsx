@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { TouchableOpacity, Linking, Alert } from 'react-native';
+import { TouchableOpacity, Linking, Alert, StatusBar } from 'react-native';
 import {
   VStack,
   Text,
@@ -188,7 +188,8 @@ export function HealthWallet() {
   }
 
   return (
-    <VStack py={16}>
+    <VStack py={16} flex={1} bg="gray.100">
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <HeaderTitle title="Health Wallet" withBackButton={() => navigation.navigate('homepage')} />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

@@ -1,6 +1,7 @@
 import { api } from './api';
-import { UserPersonalDataDTO, UserPersonalDataResponseDTO } from '@dtos/userDTO';
+import { UserPersonalDataDTO, UserPersonalDataResponseDTO, NotificationPreferencesDTO } from '@dtos/userDTO';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as FileSystem from 'expo-file-system';
 
 /**
  * 🎯 ENDPOINT UNIFICADO
@@ -200,5 +201,136 @@ export async function saveUserPersonalData(data: UserPersonalDataDTO) {
     }
 
     throw putError;
+  }
+}
+
+/**
+ * Upload de foto de perfil
+ * Endpoint: PUT /user-personal-data/profile-photo
+ *
+ * Converte a imagem para base64 e envia para o backend.
+ * O backend aceita base64 com ou sem prefixo data URL.
+ *
+ * @param imageUri - URI local da imagem (file://)
+ * @returns Promise com a foto salva em base64
+ */
+export async function uploadProfilePhoto(imageUri: string): Promise<string> {
+  try {
+    console.log('📤 [USER_SERVICE] Iniciando upload de foto de perfil:', imageUri);
+
+    // Ler a imagem como base64
+    const base64Image = await FileSystem.readAsStringAsync(imageUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    // Detectar o tipo da imagem pelo URI
+    const extension = imageUri.split('.').pop()?.toLowerCase() || 'jpeg';
+    const mimeType = extension === 'png' ? 'image/png' : 'image/jpeg';
+
+    // Criar data URL com prefixo
+    const photoBase64 = `data:${mimeType};base64,${base64Image}`;
+
+    console.log('📊 [USER_SERVICE] Tamanho da imagem base64:', Math.round(photoBase64.length / 1024), 'KB');
+
+    // Validar tamanho (máximo 5MB conforme documentação)
+    const sizeInMB = (photoBase64.length * 3) / 4 / (1024 * 1024); // Aproximação do tamanho real
+    if (sizeInMB > 5) {
+      throw new Error('A foto deve ter no máximo 5MB.');
+    }
+
+    const response = await api.put<{ success: boolean; data: { photoBase64: string } }>(
+      'user-personal-data/profile-photo',
+      { photoBase64 },
+      { timeout: 60000 } // 60s timeout para upload
+    );
+
+    console.log('✅ [USER_SERVICE] Foto de perfil enviada com sucesso');
+
+    // Retornar a foto salva (pode ser processada pelo backend)
+    return response.data.data?.photoBase64 || photoBase64;
+  } catch (error: any) {
+    console.error('❌ [USER_SERVICE] Erro ao fazer upload da foto:', error);
+    console.error('❌ [USER_SERVICE] Detalhes do erro:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+
+    // Tratar erros específicos do backend
+    if (error.response?.status === 400) {
+      const errorMessage = error.response.data?.message || 'Erro ao enviar foto';
+      throw new Error(errorMessage);
+    }
+
+    throw error;
+  }
+}
+
+/**
+ * Remove a foto de perfil do usuário
+ * Endpoint: DELETE /user-personal-data/profile-photo
+ *
+ * @returns Promise<void>
+ */
+export async function deleteProfilePhoto(): Promise<void> {
+  try {
+    console.log('🗑️ [USER_SERVICE] Removendo foto de perfil...');
+
+    await api.delete('user-personal-data/profile-photo');
+
+    console.log('✅ [USER_SERVICE] Foto de perfil removida com sucesso');
+  } catch (error: any) {
+    console.error('❌ [USER_SERVICE] Erro ao remover foto de perfil:', error);
+
+    // Se o erro for "usuário não possui foto", não é um erro crítico
+    if (error.response?.status === 400 && error.response?.data?.message?.includes('não possui foto')) {
+      console.log('ℹ️ [USER_SERVICE] Usuário não tinha foto de perfil');
+      return;
+    }
+
+    throw error;
+  }
+}
+
+/**
+ * Busca as preferências de notificação do usuário
+ * Endpoint: GET /user-personal-data/notification-preferences
+ *
+ * @returns Promise com as preferências de notificação
+ */
+export async function getNotificationPreferences(): Promise<NotificationPreferencesDTO> {
+  try {
+    console.log('📥 [USER_SERVICE] Buscando preferências de notificação...');
+
+    const response = await api.get<{ success: boolean; data: NotificationPreferencesDTO }>(
+      'user-personal-data/notification-preferences'
+    );
+
+    console.log('✅ [USER_SERVICE] Preferências de notificação recuperadas:', response.data.data);
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error('❌ [USER_SERVICE] Erro ao buscar preferências de notificação:', error);
+    throw error;
+  }
+}
+
+/**
+ * Atualiza as preferências de notificação do usuário
+ * Endpoint: PUT /user-personal-data/notification-preferences
+ *
+ * @param preferences - Objeto com as preferências de notificação
+ * @returns Promise<void>
+ */
+export async function updateNotificationPreferences(preferences: NotificationPreferencesDTO): Promise<void> {
+  try {
+    console.log('📤 [USER_SERVICE] Atualizando preferências de notificação:', preferences);
+
+    await api.put('user-personal-data/notification-preferences', preferences);
+
+    console.log('✅ [USER_SERVICE] Preferências de notificação atualizadas com sucesso');
+  } catch (error: any) {
+    console.error('❌ [USER_SERVICE] Erro ao atualizar preferências de notificação:', error);
+    throw error;
   }
 }

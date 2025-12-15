@@ -40,6 +40,8 @@
         "ITSAppUsesNonExemptEncryption": false,
         "NSCameraUsageDescription": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
         "NSMicrophoneUsageDescription": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais.",
+        "NSPhotoLibraryUsageDescription": "O Examinus precisa acessar sua galeria de fotos para que você possa selecionar imagens de exames laboratoriais já existentes no seu dispositivo. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
+        "NSPhotoLibraryAddUsageDescription": "O Examinus pode salvar fotos de exames no seu dispositivo para facilitar o acesso futuro.",
         "NSFaceIDUsageDescription": "O Examinus usa Face ID para autenticação biométrica, permitindo login rápido e seguro sem precisar digitar sua senha.",
         "NSLocationWhenInUseUsageDescription": "O Examinus pode usar sua localização para melhorar sua experiência e fornecer serviços personalizados de saúde na sua região.",
         "CFBundleURLTypes": [
@@ -75,7 +77,10 @@
       "jsEngine": "jsc",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
       "intentFilters": [
         {
@@ -116,6 +121,12 @@
         {
           "cameraPermission": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
           "microphonePermission": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Examinus precisa acessar sua galeria de fotos para que você possa selecionar imagens de exames laboratoriais já existentes no seu dispositivo. As imagens são processadas de forma segura e não são compartilhadas com terceiros."
         }
       ],
       "expo-apple-authentication",

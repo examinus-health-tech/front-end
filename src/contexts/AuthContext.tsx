@@ -1,8 +1,9 @@
-import { createContext, useState, useEffect, useMemo, useCallback, type ReactNode } from 'react';
+import { createContext, useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { AppState, AppStateStatus } from 'react-native';
 import { api } from 'src/services/api';
-import { validateStoredToken } from '@utils/tokenValidation';
+import { validateStoredToken, validateTokenWithBackend } from '@utils/tokenValidation';
 import { logger } from '@utils/debugLogger';
 import { decodeJwtPayload } from '@utils/jwt';
 import { registerDeviceOnBackend } from 'src/services/register-device-backend';
@@ -17,6 +18,8 @@ interface User {
   token?: string;
   fullName?: string;
   email?: string;
+  photoUrl?: string;
+  profilePhotoBase64?: string; // Foto de perfil em base64 (cache local)
 }
 
 interface BiometricUserData {
@@ -45,6 +48,7 @@ interface AuthContextData {
   deleteAccount: () => Promise<void>;
   clearError: () => void;
   getUserInfo: () => void;
+  updateUserPhoto: (photoBase64: string | null) => void;
 }
 
 interface AuthProviderProps {
@@ -59,6 +63,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [resetEmail, setResetEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Referência para o AppState anterior
+  const appState = useRef(AppState.currentState);
+  const lastBackendValidation = useRef<number>(0);
 
   const signOut = useCallback(async () => {
     try {
@@ -112,6 +120,78 @@ export function AuthProvider({ children }: AuthProviderProps) {
       unsubscribe();
     };
   }, [signOut]);
+
+  // Validação do token quando o app volta do background
+  useEffect(() => {
+    const handleAppStateChange = async (nextAppState: AppStateStatus) => {
+      // Quando o app volta do background para ativo
+      if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+        console.log('[Auth] App voltou do background, verificando token...');
+
+        // Só valida se tiver usuário logado
+        if (user?.userId) {
+          // Throttle: só valida a cada 5 minutos no máximo
+          const now = Date.now();
+          const fiveMinutes = 5 * 60 * 1000;
+
+          if (now - lastBackendValidation.current > fiveMinutes) {
+            lastBackendValidation.current = now;
+
+            // Primeiro verifica localmente (rápido)
+            const isValidLocal = await validateStoredToken();
+            if (!isValidLocal) {
+              console.log('[Auth] Token inválido localmente, fazendo logout...');
+              await signOut();
+              return;
+            }
+
+            // Depois valida com backend em background (não bloqueia UI)
+            validateTokenWithBackend().then((isValidBackend) => {
+              if (!isValidBackend) {
+                console.log('[Auth] Token rejeitado pelo backend, fazendo logout...');
+                signOut();
+              }
+            }).catch((error) => {
+              console.warn('[Auth] Erro ao validar token com backend:', error);
+              // Não faz logout em caso de erro de rede
+            });
+          } else {
+            console.log('[Auth] Validação de token em throttle, pulando...');
+          }
+        }
+      }
+
+      appState.current = nextAppState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+
+    return () => {
+      subscription.remove();
+    };
+  }, [user?.userId, signOut]);
+
+  // Validação inicial com backend após carregar usuário (em background)
+  useEffect(() => {
+    if (user?.userId && !isLoading) {
+      // Delay para não atrasar a renderização inicial
+      const timer = setTimeout(() => {
+        console.log('[Auth] Validação inicial do token com backend...');
+        lastBackendValidation.current = Date.now();
+
+        validateTokenWithBackend().then((isValid) => {
+          if (!isValid) {
+            console.log('[Auth] Token inválido na validação inicial, fazendo logout...');
+            signOut();
+          }
+        }).catch((error) => {
+          console.warn('[Auth] Erro na validação inicial com backend:', error);
+        });
+      }, 2000); // 2 segundos de delay
+
+      return () => clearTimeout(timer);
+    }
+  }, [user?.userId, isLoading, signOut]);
 
   async function loadStoredUser() {
     try {
@@ -1393,6 +1473,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
   }, []);
 
+  // Atualiza a foto de perfil no contexto e persiste no AsyncStorage
+  const updateUserPhoto = useCallback(async (photoBase64: string | null) => {
+    if (!user) return;
+
+    const updatedUser = {
+      ...user,
+      profilePhotoBase64: photoBase64 || undefined,
+    };
+
+    // Atualizar estado
+    setUser(updatedUser);
+
+    // Persistir no AsyncStorage
+    try {
+      await AsyncStorage.setItem('@app:user', JSON.stringify(updatedUser));
+      console.log('📸 [AUTH] Foto de perfil atualizada no contexto e persistida');
+    } catch (error) {
+      console.error('❌ [AUTH] Erro ao persistir foto de perfil:', error);
+    }
+  }, [user]);
+
   const contextValue = useMemo(
     () => ({
       user,
@@ -1412,6 +1513,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       resetPassword,
       deleteAccount,
       getUserInfo,
+      updateUserPhoto,
     }),
     [
       user,
@@ -1430,6 +1532,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       resetPassword,
       deleteAccount,
       getUserInfo,
+      updateUserPhoto,
     ]
   );
 

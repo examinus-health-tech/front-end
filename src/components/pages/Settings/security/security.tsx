@@ -114,7 +114,7 @@ export function Security() {
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
       <VStack flex={1} py={16} mx={6}>
-        <Header title="Seguranca" handleBackTo={() => navigation.navigate('myAccount')} />
+        <Header title="Segurança" handleBackTo={() => navigation.navigate('myAccount')} />
 
         <VStack mt={4} space={3}>
           {/* Card Lembrar Senha - Em Breve */}

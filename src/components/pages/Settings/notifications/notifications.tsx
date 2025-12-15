@@ -1,28 +1,124 @@
-import { useRef, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { VStack, Text, HStack, ScrollView, IScrollViewProps } from 'native-base';
+import { useRef, useState, useEffect, useCallback } from 'react';
+import { VStack, Text, ScrollView, IScrollViewProps } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { OneSignal } from 'react-native-onesignal';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
-// assets
-import { CheckIcon, MoreIcon } from '@assets/icons';
-
 // components
 import { Header } from '../components/header/header';
 import { Card } from '../components/card/card';
-import { Button } from '@components/atoms/Button/button';
+import { useCustomToast } from 'src/hooks/useCustomToast';
+
+const NOTIFICATION_PREFS_KEY = '@examinus:notification_prefs';
 
 export function ConfigNotifications() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const { showSuccess, showError } = useCustomToast();
 
   // Estado dos switches de notificação
   const [dailyReminders, setDailyReminders] = useState(true);
   const [healthInsights, setHealthInsights] = useState(true);
-  const [examInfo, setExamInfo] = useState(false);
+  const [examInfo, setExamInfo] = useState(true);
   const [chatbotNotifications, setChatbotNotifications] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Carregar preferências ao montar o componente
+  useEffect(() => {
+    loadPreferences();
+  }, []);
+
+  async function loadPreferences() {
+    try {
+      setIsLoading(true);
+      const stored = await AsyncStorage.getItem(NOTIFICATION_PREFS_KEY);
+
+      if (stored) {
+        const prefs = JSON.parse(stored);
+        setDailyReminders(prefs.dailyReminders ?? true);
+        setHealthInsights(prefs.healthInsights ?? true);
+        setExamInfo(prefs.examInfo ?? true);
+        setChatbotNotifications(prefs.chatbotNotifications ?? false);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar preferências:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Função para salvar preferências automaticamente
+  const savePreference = useCallback(async (key: string, value: boolean, allPrefs: Record<string, boolean>) => {
+    try {
+      const updatedPrefs = { ...allPrefs, [key]: value };
+
+      // Salvar localmente (AsyncStorage)
+      await AsyncStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(updatedPrefs));
+
+      // Atualizar tag específica no OneSignal
+      try {
+        OneSignal.User.addTag(key, value.toString());
+      } catch (oneSignalError) {
+        console.warn('Erro ao atualizar tag OneSignal:', oneSignalError);
+      }
+
+      showSuccess({
+        title: 'Salvo',
+        description: 'Preferência atualizada.',
+        duration: 1500,
+      });
+    } catch (error) {
+      console.error('Erro ao salvar preferência:', error);
+      showError({
+        title: 'Erro',
+        description: 'Não foi possível salvar.',
+      });
+    }
+  }, [showSuccess, showError]);
+
+  // Handlers para cada switch com auto-save
+  const handleDailyReminders = useCallback((value: boolean) => {
+    setDailyReminders(value);
+    savePreference('dailyReminders', value, {
+      dailyReminders: value,
+      healthInsights,
+      examInfo,
+      chatbotNotifications,
+    });
+  }, [healthInsights, examInfo, chatbotNotifications, savePreference]);
+
+  const handleHealthInsights = useCallback((value: boolean) => {
+    setHealthInsights(value);
+    savePreference('healthInsights', value, {
+      dailyReminders,
+      healthInsights: value,
+      examInfo,
+      chatbotNotifications,
+    });
+  }, [dailyReminders, examInfo, chatbotNotifications, savePreference]);
+
+  const handleExamInfo = useCallback((value: boolean) => {
+    setExamInfo(value);
+    savePreference('examInfo', value, {
+      dailyReminders,
+      healthInsights,
+      examInfo: value,
+      chatbotNotifications,
+    });
+  }, [dailyReminders, healthInsights, chatbotNotifications, savePreference]);
+
+  const handleChatbotNotifications = useCallback((value: boolean) => {
+    setChatbotNotifications(value);
+    savePreference('chatbotNotifications', value, {
+      dailyReminders,
+      healthInsights,
+      examInfo,
+      chatbotNotifications: value,
+    });
+  }, [dailyReminders, healthInsights, examInfo, savePreference]);
 
   return (
     <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
@@ -30,15 +126,9 @@ export function ConfigNotifications() {
         <Header title="Notificações" handleBackTo={() => navigation.goBack()} />
 
         <VStack>
-          <HStack justifyContent={'space-between'}>
-            <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-              Configurações Gerais
-            </Text>
-
-            <TouchableOpacity>
-              <MoreIcon />
-            </TouchableOpacity>
-          </HStack>
+          <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+            Configurações Gerais
+          </Text>
 
           <VStack mt={4} space={3}>
             <Card
@@ -47,7 +137,7 @@ export function ConfigNotifications() {
               variant="description"
               action="switch"
               switchValue={dailyReminders}
-              onSwitchChange={setDailyReminders}
+              onSwitchChange={handleDailyReminders}
             />
             <Card
               title="Health Insights"
@@ -55,7 +145,7 @@ export function ConfigNotifications() {
               variant="description"
               action="switch"
               switchValue={healthInsights}
-              onSwitchChange={setHealthInsights}
+              onSwitchChange={handleHealthInsights}
             />
             <Card
               title="Informações sobre Exames"
@@ -63,7 +153,7 @@ export function ConfigNotifications() {
               variant="description"
               action="switch"
               switchValue={examInfo}
-              onSwitchChange={setExamInfo}
+              onSwitchChange={handleExamInfo}
             />
             <Card
               title="Notificações do ChatBot"
@@ -71,16 +161,10 @@ export function ConfigNotifications() {
               variant="description"
               action="switch"
               switchValue={chatbotNotifications}
-              onSwitchChange={setChatbotNotifications}
+              onSwitchChange={handleChatbotNotifications}
             />
           </VStack>
         </VStack>
-
-        {/* TODO: Habilitar quando a API de configurações estiver pronta
-        <VStack mt={8}>
-          <Button variant="primary" size="full" title="Salvar" icon={<CheckIcon color="white" />} />
-        </VStack>
-        */}
       </VStack>
     </ScrollView>
   );
