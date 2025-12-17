@@ -186,7 +186,7 @@ export function Homepage() {
   }
 
   return (
-    <View flex={1} bg="gray.100">
+    <View flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       {isLoading || isLoadingHomeContext ? (
         <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#d5d5d5" foregroundColor="#ebebeb">

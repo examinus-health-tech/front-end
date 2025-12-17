@@ -188,7 +188,7 @@ export function HealthWallet() {
   }
 
   return (
-    <VStack py={16} flex={1} bg="gray.100">
+    <VStack py={16} flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <HeaderTitle title="Health Wallet" withBackButton={() => navigation.navigate('homepage')} />
 

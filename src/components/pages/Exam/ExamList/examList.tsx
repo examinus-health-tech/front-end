@@ -504,7 +504,7 @@ export function ExamList() {
   }, []);
 
   return (
-    <VStack flex={1} bg="gray.100">
+    <VStack flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <VStack py={16} flex={1}>
         <HeaderTitle
