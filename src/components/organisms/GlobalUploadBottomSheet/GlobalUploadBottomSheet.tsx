@@ -45,19 +45,27 @@ export function GlobalUploadBottomSheet() {
       setWithError(false);
     }
     closeBottomSheet();
+    // Garantir StatusBar dark ao fechar
+    StatusBar.setBarStyle('dark-content');
   }
 
   function handleSuccessClose() {
     console.log('🎉 Fechando modal de sucesso');
     setWithSuccess(false);
     showTabBar();
+    // Resetar StatusBar para dark-content ao fechar o modal
+    StatusBar.setBarStyle('dark-content');
   }
 
   // Quando entra em loading, fecha o bottomSheet e oculta tabs
+  // Quando sai do loading, reseta a StatusBar para dark-content
   useEffect(() => {
     if (isLoadingUploadContext) {
       closeBottomSheet();
       hideTabBar();
+      StatusBar.setBarStyle('light-content');
+    } else {
+      StatusBar.setBarStyle('dark-content');
     }
   }, [isLoadingUploadContext]);
 
@@ -116,7 +124,8 @@ export function GlobalUploadBottomSheet() {
       <UploadCamera isOpen={isCameraOpen} onClose={handleCameraClose} />
 
       {/* Telas de feedback - Modal full screen */}
-      <Modal isOpen={isLoadingUploadContext} size="full">
+      <Modal isOpen={isLoadingUploadContext} size="full" _backdrop={{ bg: "gray.800" }}>
+        <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <Modal.Content bg="gray.800" width="100%" height="100%" maxWidth="100%" maxHeight="100%" margin={0} borderRadius={0}>
           <Loading />
         </Modal.Content>

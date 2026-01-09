@@ -59,7 +59,7 @@ export function Loading() {
 
   return (
     <VStack flex={1} bg={'gray.800'} space={8} py={24} px={6} justifyContent={'center'}>
-      <StatusBar barStyle="light-content" backgroundColor="#1f2937" />
+      <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
       <Center>
         {/* Container para X e fog centralizados juntos */}
         <Center style={{ position: 'relative' }}>

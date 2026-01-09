@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { Box, HStack, IScrollViewProps, Image, ScrollView, Text, VStack } from 'native-base';
+import { Box, HStack, IScrollViewProps, Image, ScrollView, Text, VStack, View, StatusBar } from 'native-base';
 import { Linking, Alert, Platform } from 'react-native';
 
 // routes
@@ -113,9 +113,16 @@ export function AboutUs() {
   };
 
   return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} py={16} mx={6}>
+    <View flex={1}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+      {/* Header fixo */}
+      <VStack pt={16} mx={6}>
         <Header title="Sobre nós" handleBackTo={() => navigation.navigate('myAccount')} />
+      </VStack>
+
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+        <VStack flex={1} mx={6} mb={20}>
 
         <VStack mb={12} space={3} alignItems={'center'}>
           <Image source={Logo} defaultSource={Logo} alt="Vetor" resizeMode="stretch" />
@@ -185,7 +192,8 @@ export function AboutUs() {
             <LinkedinIcon size="30" />
           </Box>
         </HStack>
-      </VStack>
-    </ScrollView>
+        </VStack>
+      </ScrollView>
+    </View>
   );
 }

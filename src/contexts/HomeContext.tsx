@@ -1,9 +1,17 @@
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
-import { ReactNode, createContext, useState } from 'react';
+import { ReactNode, createContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 
 import { api } from 'src/services/api';
+import { getFitnessDashboard, isFitnessEnabled, FitnessDashboard } from 'src/services/fitnessService';
+import {
+  isHealthKitAvailable,
+  initHealthKit,
+  getHealthKitDataForDate,
+  syncHealthKitToBackend,
+  HealthKitData
+} from 'src/services/healthKitService';
 
 type homeProps = {
   medicalExamId: string;
@@ -80,6 +88,8 @@ export type HomeContextDataProps = {
   currentSystem: specificSystemProps;
   setCurrentSystem: (val: specificSystemProps) => void;
   clearHomeData: () => void;
+  fitnessEnabled: boolean;
+  refreshFitnessData: () => Promise<void>;
 };
 
 type HomeContextProviderProps = {
@@ -94,8 +104,226 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   const [trackerData, setTrackerData] = useState<trackerProps>({} as trackerProps);
   const [currentSystem, setCurrentSystem] = useState<specificSystemProps>({} as specificSystemProps);
   const [isLoadingHomeContext, setIsLoading] = useState<boolean>(false);
+  const [fitnessEnabled, setFitnessEnabled] = useState<boolean>(false);
 
   const { user } = useAuth();
+
+  // Verifica se fitness está habilitado ao montar
+  useEffect(() => {
+    checkFitnessEnabled();
+  }, []);
+
+  async function checkFitnessEnabled() {
+    const enabled = await isFitnessEnabled();
+    setFitnessEnabled(enabled);
+    if (enabled) {
+      await fetchFitnessData();
+    }
+  }
+
+  // Converte dados do HealthKit para o formato trackerProps
+  function convertHealthKitToTracker(healthData: HealthKitData): trackerProps {
+    const today = new Date().toISOString().split('T')[0];
+
+    return {
+      kcal: [{
+        calculation_date: today,
+        kcal_completed: String(healthData.caloriesBurned || 0),
+        kcal_goal: '2000',
+      }],
+      step: [{
+        calculation_date: today,
+        step_completed: String(healthData.steps || 0),
+        step_goal: '10000',
+        distance_completed: String(healthData.distance?.toFixed(2) || '0'),
+        distance_goal: '5',
+        hour_completed: '0',
+        hour_goal: '1',
+      }],
+      weight: healthData.weightKg ? [{
+        calculation_date: today,
+        weight_completed: String(healthData.weightKg),
+        weight_goal: null,
+      }] : [],
+      hydration: [{
+        calculation_date: today,
+        hydration_completed: String(Math.floor((healthData.waterMl || 0) / 250)),
+        hydration_goal: '8', // 8 copos = 2L
+      }],
+      nutrition: [{
+        calculation_date: today,
+        nutrition_completed: [],
+      }],
+      sleep: [{
+        calculation_date: today,
+        sleep_completed: String(Math.round((healthData.sleepMinutes || 0) / 60)),
+        sleep_goal: '8',
+      }],
+    };
+  }
+
+  // Converte dados do dashboard de fitness (backend) para o formato trackerProps
+  function convertFitnessToTracker(dashboard: FitnessDashboard): trackerProps {
+    const today = new Date().toISOString().split('T')[0];
+
+    return {
+      kcal: dashboard.todayLog ? [{
+        calculation_date: today,
+        kcal_completed: String(dashboard.todayLog.caloriesBurned || 0),
+        kcal_goal: String(dashboard.todayLog.caloriesGoal || 2000),
+      }] : [],
+      step: dashboard.todayLog ? [{
+        calculation_date: today,
+        step_completed: String(dashboard.todayLog.steps || 0),
+        step_goal: String(dashboard.todayLog.stepsGoal || 10000),
+        distance_completed: '0',
+        distance_goal: '5',
+        hour_completed: '0',
+        hour_goal: '1',
+      }] : [],
+      weight: dashboard.currentWeight ? [{
+        calculation_date: today,
+        weight_completed: String(dashboard.currentWeight.weightKg || 0),
+        weight_goal: null,
+      }] : [],
+      hydration: dashboard.todayLog ? [{
+        calculation_date: today,
+        hydration_completed: String(Math.floor((dashboard.todayLog.waterMl || 0) / 250)), // Converte ml para copos (250ml)
+        hydration_goal: String(Math.floor((dashboard.todayLog.waterGoalMl || 2000) / 250)),
+      }] : [],
+      nutrition: [{
+        calculation_date: today,
+        nutrition_completed: [], // TODO: Integrar com dados de nutrição quando disponível
+      }],
+      sleep: dashboard.lastNightSleep ? [{
+        calculation_date: today,
+        sleep_completed: String(Math.round((dashboard.lastNightSleep.durationMinutes || 0) / 60)), // Converte minutos para horas
+        sleep_goal: String(Math.round((dashboard.todayLog?.sleepGoalMinutes || 480) / 60)),
+      }] : dashboard.todayLog ? [{
+        calculation_date: today,
+        sleep_completed: String(Math.round((dashboard.todayLog.sleepMinutes || 0) / 60)),
+        sleep_goal: String(Math.round((dashboard.todayLog.sleepGoalMinutes || 480) / 60)),
+      }] : [],
+    };
+  }
+
+  // Mescla dados do HealthKit com dados do backend (prioriza o maior valor)
+  function mergeTrackerData(healthKitData: trackerProps, backendData: trackerProps): trackerProps {
+    const today = new Date().toISOString().split('T')[0];
+
+    // Função auxiliar para pegar o maior valor
+    const maxVal = (a: string | undefined, b: string | undefined): string => {
+      const numA = Number(a) || 0;
+      const numB = Number(b) || 0;
+      return String(Math.max(numA, numB));
+    };
+
+    return {
+      kcal: [{
+        calculation_date: today,
+        kcal_completed: maxVal(healthKitData.kcal?.[0]?.kcal_completed, backendData.kcal?.[0]?.kcal_completed),
+        kcal_goal: backendData.kcal?.[0]?.kcal_goal || healthKitData.kcal?.[0]?.kcal_goal || '2000',
+      }],
+      step: [{
+        calculation_date: today,
+        step_completed: maxVal(healthKitData.step?.[0]?.step_completed, backendData.step?.[0]?.step_completed),
+        step_goal: backendData.step?.[0]?.step_goal || healthKitData.step?.[0]?.step_goal || '10000',
+        distance_completed: maxVal(healthKitData.step?.[0]?.distance_completed, backendData.step?.[0]?.distance_completed),
+        distance_goal: '5',
+        hour_completed: '0',
+        hour_goal: '1',
+      }],
+      weight: (healthKitData.weight?.length || backendData.weight?.length) ? [{
+        calculation_date: today,
+        weight_completed: healthKitData.weight?.[0]?.weight_completed || backendData.weight?.[0]?.weight_completed || '0',
+        weight_goal: null,
+      }] : [],
+      hydration: [{
+        calculation_date: today,
+        hydration_completed: maxVal(healthKitData.hydration?.[0]?.hydration_completed, backendData.hydration?.[0]?.hydration_completed),
+        hydration_goal: backendData.hydration?.[0]?.hydration_goal || healthKitData.hydration?.[0]?.hydration_goal || '8',
+      }],
+      nutrition: [{
+        calculation_date: today,
+        nutrition_completed: backendData.nutrition?.[0]?.nutrition_completed || [],
+      }],
+      sleep: [{
+        calculation_date: today,
+        sleep_completed: maxVal(healthKitData.sleep?.[0]?.sleep_completed, backendData.sleep?.[0]?.sleep_completed),
+        sleep_goal: backendData.sleep?.[0]?.sleep_goal || healthKitData.sleep?.[0]?.sleep_goal || '8',
+      }],
+    };
+  }
+
+  async function fetchFitnessData() {
+    try {
+      console.log('🏃 [HomeContext] Buscando dados de fitness...');
+
+      let healthKitData: trackerProps = {} as trackerProps;
+      let backendData: trackerProps = {} as trackerProps;
+
+      // 1. Tenta buscar dados do HealthKit (iOS)
+      if (isHealthKitAvailable()) {
+        try {
+          console.log('📱 [HomeContext] Inicializando HealthKit...');
+          await initHealthKit();
+
+          const rawHealthData = await getHealthKitDataForDate(new Date());
+          healthKitData = convertHealthKitToTracker(rawHealthData);
+          console.log('✅ [HomeContext] Dados do HealthKit:', healthKitData);
+
+          // Sincroniza com backend em background (não bloqueia UI)
+          syncHealthKitToBackend().catch(err =>
+            console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err)
+          );
+        } catch (healthKitError) {
+          console.warn('⚠️ [HomeContext] Erro ao buscar do HealthKit:', healthKitError);
+        }
+      }
+
+      // 2. Busca dados do backend
+      try {
+        const dashboard = await getFitnessDashboard();
+        if (dashboard) {
+          backendData = convertFitnessToTracker(dashboard);
+          console.log('✅ [HomeContext] Dados do backend:', backendData);
+        }
+      } catch (backendError) {
+        console.warn('⚠️ [HomeContext] Erro ao buscar do backend:', backendError);
+      }
+
+      // 3. Mescla os dados (HealthKit + Backend)
+      const hasHealthKit = Object.keys(healthKitData).length > 0;
+      const hasBackend = Object.keys(backendData).length > 0;
+
+      if (hasHealthKit && hasBackend) {
+        const mergedData = mergeTrackerData(healthKitData, backendData);
+        setTrackerData(mergedData);
+        console.log('✅ [HomeContext] Dados mesclados (HealthKit + Backend):', mergedData);
+      } else if (hasHealthKit) {
+        setTrackerData(healthKitData);
+        console.log('✅ [HomeContext] Usando apenas dados do HealthKit');
+      } else if (hasBackend) {
+        setTrackerData(backendData);
+        console.log('✅ [HomeContext] Usando apenas dados do backend');
+      } else {
+        console.log('📭 [HomeContext] Nenhum dado de fitness encontrado');
+        setTrackerData({} as trackerProps);
+      }
+    } catch (error) {
+      console.error('❌ [HomeContext] Erro ao buscar dados de fitness:', error);
+    }
+  }
+
+  const refreshFitnessData = useCallback(async () => {
+    const enabled = await isFitnessEnabled();
+    setFitnessEnabled(enabled);
+    if (enabled) {
+      await fetchFitnessData();
+    } else {
+      setTrackerData({} as trackerProps);
+    }
+  }, []);
 
   async function getHomeData() {
     setIsLoading(true);
@@ -149,6 +377,8 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         currentSystem,
         setCurrentSystem,
         clearHomeData,
+        fitnessEnabled,
+        refreshFitnessData,
       }}
     >
       {children}

@@ -1,17 +1,32 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { TouchableOpacity, useWindowDimensions, StatusBar } from 'react-native';
 import { CustomRefreshControl } from '@components/atoms';
-import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center, Avatar } from 'native-base';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { api } from 'src/services/api';
 import ContentLoader, { Rect, Circle } from 'react-content-loader/native';
-import { useCallback } from 'react';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
-import { BellIcon, CalendarIcon, ChevronRightIcon, MoreIcon } from '@assets/icons';
+import {
+  BellIcon,
+  CalendarIcon,
+  ChevronRightIcon,
+  MoreIcon,
+  UserIcon,
+  FigIcon,
+  ImuIcon,
+  PanIcon,
+  RinIcon,
+  SanIcon,
+  HeartIcon,
+  IntestineIcon,
+  UrinaIcon,
+  FlaskIcon,
+} from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 import Vector2 from '@assets/png/vector-30.png';
 import Vector3 from '@assets/png/vector-39.png';
@@ -26,6 +41,7 @@ import Vector10 from '@assets/png/vector-45.png';
 
 // components
 import { StatusCards } from '@components/molecules';
+import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useAuth } from 'src/hooks/useAuth';
 import { useHome } from 'src/hooks/useHome';
 import { useTabBar } from 'src/hooks/useTabBar';
@@ -41,17 +57,31 @@ function getScoreText(score: number): string {
   }
 }
 
+// Função helper para obter cor baseada no score (consistente com Health Wallet)
+function getScoreColor(score: number): string {
+  if (score >= 0 && score <= 333) {
+    return '#FA4D5E'; // Vermelho - risco alto
+  } else if (score > 333 && score <= 666) {
+    return '#0CC1AF'; // Verde/Ciano - normal
+  } else if (score > 666 && score <= 1000) {
+    return '#8A3FFC'; // Roxo - excelente
+  }
+  return '#0CC1AF';
+}
+
 export function Homepage() {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [userWithoutData, setUserWithoutData] = useState<boolean>(true);
   const [userTrackerData, setUserTrackerData] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+  const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const scrollRef = useRef<any>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { user, getUserInfo, isLoading } = useAuth();
-  const { getHomeData, homeData, trackerData, isLoadingHomeContext } = useHome();
+  const { getHomeData, homeData, trackerData, isLoadingHomeContext, fitnessEnabled, refreshFitnessData } = useHome();
   const { showTabBar } = useTabBar();
+
 
   async function onRefresh() {
     console.log('🔄 onRefresh chamado na homepage');
@@ -59,6 +89,7 @@ export function Homepage() {
     try {
       await getHomeData();
       await fetchUnreadCount();
+      await refreshFitnessData();
     } catch (error) {
       console.error('Erro ao atualizar:', error);
     } finally {
@@ -118,10 +149,18 @@ export function Homepage() {
   // Rola para o topo e recarrega dados quando a tela ganhar foco
   useFocusEffect(
     useCallback(() => {
+      // Forçar StatusBar dark-content com pequeno delay para garantir
+      // que execute após qualquer modal/actionsheet fechar
+      const timer = setTimeout(() => {
+        StatusBar.setBarStyle('dark-content');
+      }, 100);
+
       scrollRef.current?.scrollTo?.({ x: 0, y: 0, animated: false });
       showTabBar();
       getHomeData();
       fetchUnreadCount();
+
+      return () => clearTimeout(timer);
     }, [])
   );
 
@@ -133,33 +172,39 @@ export function Homepage() {
       return null;
     }
 
-    // Array de ícones disponíveis (excluindo Vector10 que é reservado para Coração)
-    const availableIcons = [Vector9, Vector3, Vector4, Vector5, Vector6, Vector7, Vector8];
-    let availableIconIndex = 0;
-
     const getColorByScore = (score: number) => {
       if (score >= 0 && score <= 333) {
         return { title: 'alto', bgColor: 'red.400' };
       } else if (score > 333 && score <= 666) {
-        return { title: 'normal', bgColor: 'dark_blue.200' };
+        return { title: 'normal', bgColor: 'ciano.300' };
       } else if (score > 666 && score <= 1000) {
-        return { title: 'excelente', bgColor: 'ciano.300' };
+        return { title: 'excelente', bgColor: 'purple.600' };
       }
-      return { title: 'risco normal', bgColor: 'dark_blue.200' };
+      return { title: 'risco normal', bgColor: 'ciano.300' };
     };
+
+    // Mapeamento de ícones SVG por sistema (igual ao Health Wallet)
+    function renderIcon(systemDescription: string) {
+      const system = systemDescription?.toLowerCase();
+      const iconColor = 'white';
+      const iconSize = '48';
+
+      if (system?.includes('fígado')) return <FigIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('imunidade')) return <ImuIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('pâncreas')) return <PanIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('rins') || system?.includes('rim')) return <RinIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('sangue')) return <SanIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('coração')) return <HeartIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('intestino')) return <IntestineIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('urina') || system?.includes('urinário')) return <UrinaIcon size={iconSize} color={iconColor} />;
+
+      // Ícone padrão para sistemas não mapeados
+      return <FlaskIcon size={iconSize} color={iconColor} />;
+    }
 
     return systems.map((system, index) => {
       if (index <= 2) {
         const colorStyle = getColorByScore(system.organicSystemScore);
-
-        // Determinar o ícone baseado na descrição do sistema
-        let icon;
-        if (system.examOrganicSystemDescription?.toLowerCase().includes('coração')) {
-          icon = Vector10;
-        } else {
-          icon = availableIcons[availableIconIndex] || Vector3;
-          availableIconIndex++;
-        }
 
         return (
           <TouchableOpacity key={index} onPress={() => navigation.navigate('healthWallet')}>
@@ -170,7 +215,7 @@ export function Homepage() {
                 </Text>
 
                 <Center>
-                  <Image source={icon} alt="Vetor" resizeMode="contain" size={14} />
+                  {renderIcon(system.examOrganicSystemDescription)}
                 </Center>
 
                 <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
@@ -203,31 +248,33 @@ export function Homepage() {
           <Rect x="24" y="170" rx="8" ry="8" width={180} height={14} />
           <Rect x="24" y="190" rx="8" ry="8" width={150} height={14} />
 
-          {/* Card Score X */}
-          <Rect x="24" y="230" rx="12" ry="12" width={width - 48} height={120} />
+          {/* Card Score X - layout centralizado igual Health Wallet */}
+          <Rect x="24" y="230" rx="12" ry="12" width={width - 48} height={260} />
+          {/* Círculo do Score dentro do card */}
+          <Circle cx={width / 2} cy={310} r={60} />
 
           {/* Título Health Wallet */}
-          <Rect x="24" y="374" rx="8" ry="8" width={120} height={20} />
+          <Rect x="24" y="514" rx="8" ry="8" width={120} height={20} />
 
           {/* Cards Health Wallet - 3 cards lado a lado */}
-          <Rect x="24" y="404" rx="16" ry="16" width={144} height={144} />
-          <Rect x="180" y="404" rx="16" ry="16" width={144} height={144} />
-          <Rect x="336" y="404" rx="16" ry="16" width={144} height={144} />
+          <Rect x="24" y="544" rx="16" ry="16" width={144} height={144} />
+          <Rect x="180" y="544" rx="16" ry="16" width={144} height={144} />
+          <Rect x="336" y="544" rx="16" ry="16" width={144} height={144} />
 
           {/* Título Rastreador Fitness */}
-          <Rect x="24" y="564" rx="8" ry="8" width={150} height={20} />
+          <Rect x="24" y="704" rx="8" ry="8" width={150} height={20} />
 
           {/* Cards Rastreador - 2 linhas com 2 cards cada */}
-          <Rect x="24" y="594" rx="12" ry="12" width={(width - 60) / 2} height={100} />
-          <Rect x={24 + (width - 60) / 2 + 12} y="594" rx="12" ry="12" width={(width - 60) / 2} height={100} />
-          <Rect x="24" y="706" rx="12" ry="12" width={(width - 60) / 2} height={100} />
-          <Rect x={24 + (width - 60) / 2 + 12} y="706" rx="12" ry="12" width={(width - 60) / 2} height={100} />
+          <Rect x="24" y="734" rx="12" ry="12" width={(width - 60) / 2} height={100} />
+          <Rect x={24 + (width - 60) / 2 + 12} y="734" rx="12" ry="12" width={(width - 60) / 2} height={100} />
+          <Rect x="24" y="846" rx="12" ry="12" width={(width - 60) / 2} height={100} />
+          <Rect x={24 + (width - 60) / 2 + 12} y="846" rx="12" ry="12" width={(width - 60) / 2} height={100} />
 
           {/* Título Fale com Doutor X */}
-          <Rect x="24" y="826" rx="8" ry="8" width={180} height={20} />
+          <Rect x="24" y="966" rx="8" ry="8" width={180} height={20} />
 
           {/* Card Chatbot */}
-          <Rect x="24" y="856" rx="12" ry="12" width={width - 48} height={150} />
+          <Rect x="24" y="996" rx="12" ry="12" width={width - 48} height={150} />
         </ContentLoader>
       ) : (
         <ScrollView
@@ -238,142 +285,154 @@ export function Homepage() {
           }
         >
           <VStack flex={1} pb={24} pt={20} mx={6} mb={16}>
-            <HStack justifyContent={'space-between'} alignItems={'center'}>
-              <VStack>
-                <HStack alignItems={'center'} mb={4}>
-                  <CalendarIcon />
-                  <Text fontSize={12} fontWeight={600} letterSpacing={-0.12} color={'gray.400'} ml={2}>
-                    {`${weekday}, ${date}`}
+            {/* Header com saudação - animação 1 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(0) : undefined}>
+              <HStack justifyContent={'space-between'} alignItems={'center'}>
+                <VStack>
+                  <HStack alignItems={'center'} mb={4}>
+                    <CalendarIcon />
+                    <Text fontSize={12} fontWeight={600} letterSpacing={-0.12} color={'gray.400'} ml={2}>
+                      {`${weekday}, ${date}`}
+                    </Text>
+                  </HStack>
+                  <Text fontSize={30} fontWeight={800} letterSpacing={-1.2} lineHeight={38} color={'gray.900'} mb={2}>
+                    {`Olá, ${(() => {
+                      // Se fullName contém @ (é email), usar o campo name
+                      if (user?.fullName?.includes('@')) {
+                        return user?.name?.split(' ')?.[0] ?? 'Usuário';
+                      }
+                      // Caso contrário, usar fullName normalmente
+                      return user?.fullName?.split(' ')?.[0] ?? user?.name?.split(' ')?.[0] ?? 'Usuário';
+                    })()}! 👋`}
                   </Text>
-                </HStack>
-                <Text fontSize={30} fontWeight={800} letterSpacing={-1.2} lineHeight={38} color={'gray.900'} mb={2}>
-                  {`Olá, ${(() => {
-                    // Se fullName contém @ (é email), usar o campo name
-                    if (user?.fullName?.includes('@')) {
-                      return user?.name?.split(' ')?.[0] ?? 'Usuário';
-                    }
-                    // Caso contrário, usar fullName normalmente
-                    return user?.fullName?.split(' ')?.[0] ?? user?.name?.split(' ')?.[0] ?? 'Usuário';
-                  })()}! 👋`}
-                </Text>
 
-                <Text fontSize={12} fontWeight={400} letterSpacing={-0.12} color={'gray.400'}>
-                  Hoje é um belo dia para{'\n'}
-                  cuidar da sua saúde! :)
-                </Text>
-              </VStack>
+                  <Text fontSize={12} fontWeight={400} letterSpacing={-0.12} color={'gray.400'}>
+                    Hoje é um belo dia para{'\n'}
+                    cuidar da sua saúde! :)
+                  </Text>
+                </VStack>
 
-              <TouchableOpacity onPress={() => navigation.navigate('notifications')}>
-                <Box w={14} h={14} bg={'white'} borderRadius={14} alignItems={'center'} justifyContent={'center'}>
-                  {unreadCount > 0 && (
-                    <Box
-                      bg={'#FA4D5E'}
-                      minW={5}
-                      h={5}
-                      px={unreadCount > 9 ? 1 : 0}
-                      borderRadius={10}
-                      alignItems={'center'}
-                      justifyContent={'center'}
-                      position={'absolute'}
-                      zIndex={1}
-                      right={3}
-                      top={3}
+                <TouchableOpacity onPress={() => navigation.navigate('notifications')}>
+                  <Box w={14} h={14} bg={'white'} borderRadius={14} alignItems={'center'} justifyContent={'center'}>
+                    {unreadCount > 0 && (
+                      <Box
+                        bg={'#FA4D5E'}
+                        minW={5}
+                        h={5}
+                        px={unreadCount > 9 ? 1 : 0}
+                        borderRadius={10}
+                        alignItems={'center'}
+                        justifyContent={'center'}
+                        position={'absolute'}
+                        zIndex={1}
+                        right={3}
+                        top={3}
+                      >
+                        <Text color={'white'} fontSize={10} fontWeight={800}>
+                          {unreadCount > 9 ? '9+' : unreadCount}
+                        </Text>
+                      </Box>
+                    )}
+                    <BellIcon size={'32'} color={'#1E293B'} />
+                  </Box>
+                </TouchableOpacity>
+              </HStack>
+            </Animated.View>
+
+            {/* Score X - animação 2 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(100) : undefined}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate(userWithoutData ? 'upload' : 'healthWallet')}
+                activeOpacity={0.7}
+              >
+                <Box w="100%" h="auto" bg={'white'} px={4} py={5} mt={8} borderRadius={12} shadow={2}>
+                  <VStack alignItems={'center'}>
+                    <AnimatedCircularProgress
+                      size={150}
+                      lineCap="round"
+                      width={18}
+                      fill={userWithoutData ? 0 : Math.round((homeData.generalScore || 0) / 10)}
+                      rotation={270}
+                      tintColor={userWithoutData ? '#D1D5DB' : getScoreColor(homeData.generalScore || 0)}
+                      backgroundColor="#DCE1E8"
+                      arcSweepAngle={180}
                     >
-                      <Text color={'white'} fontSize={10} fontWeight={800}>
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                      </Text>
-                    </Box>
-                  )}
-                  <BellIcon size={'32'} color={'#1E293B'} />
-                </Box>
-              </TouchableOpacity>
-            </HStack>
+                      {() => (
+                        <Avatar
+                          size="50px"
+                          mt={-4}
+                          bg="gray.300"
+                          source={
+                            user?.profilePhotoBase64 || user?.photoUrl
+                              ? { uri: user?.profilePhotoBase64 || user?.photoUrl }
+                              : undefined
+                          }
+                        >
+                          {!(user?.profilePhotoBase64 || user?.photoUrl) && (
+                            user?.fullName ? (
+                              user.fullName
+                                .split(' ')
+                                .filter(Boolean)
+                                .map((name) => name[0])
+                                .join('')
+                                .substring(0, 2)
+                                .toUpperCase()
+                            ) : (
+                              <UserIcon color="#6B7280" size="24" />
+                            )
+                          )}
+                        </Avatar>
+                      )}
+                    </AnimatedCircularProgress>
 
-            <TouchableOpacity
-              onPress={() => !userWithoutData && navigation.navigate('healthWallet')}
-              disabled={userWithoutData}
-              activeOpacity={userWithoutData ? 1 : 0.7}
-            >
-              <Box w="100%" h="auto" bg={'white'} px={4} py={4} mt={8} borderRadius={12}>
-                <HStack space={4} alignItems={'flex-start'}>
-                  <Box
-                    size={24}
-                    bg={userWithoutData ? 'gray.300' : 'purple.600'}
-                    borderRadius={14}
-                    alignItems={'center'}
-                    justifyContent={'center'}
-                  >
-                    <Image
-                      source={Vector}
-                      defaultSource={Vector}
-                      alt="Vetor"
-                      resizeMode="cover"
-                      size={24}
-                      opacity={70}
-                      borderRadius={12}
-                      position="absolute"
-                    />
-
-                    <Text color={'white'} fontSize={36} fontWeight={800} letterSpacing={-1.2} lineHeight={36}>
+                    <Text mt={-12} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
                       {homeData.generalScore ? Math.round(homeData.generalScore) : '?'}
                     </Text>
-                  </Box>
 
-                  <VStack flex={1}>
-                    <Text fontSize={16} fontWeight={800} letterSpacing={-0.16}>
+                    <Text mt={-2} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
                       Score X
                     </Text>
 
                     {userWithoutData ? (
-                      <View>
-                        <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
-                          Você não possui dados de exames{'\n'}a serem analisados.
+                      <VStack alignItems="center" mt={2}>
+                        <Text fontSize={12} fontWeight={500} lineHeight={19.2} textAlign="center" color="gray.600">
+                          Você não possui dados de exames a serem analisados.
                         </Text>
-
-                        <Text
-                          fontSize={12}
-                          fontWeight={500}
-                          lineHeight={19.2}
-                          mt={1}
-                          color="ciano.400"
-                          onPress={() => navigation.navigate('upload')}
-                        >
-                          Clique aqui e importe seu exame {'>'}
+                        <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="ciano.400">
+                          Toque para importar seu exame {'>'}
                         </Text>
-                      </View>
+                      </VStack>
                     ) : (
-                      <View flex={1} display="flex">
-                        <Text fontSize={12} fontWeight={500} lineHeight={16} mt={2}>
-                          {getScoreText(homeData.generalScore || 0)}
-
-                          {/* {homeData.generalScoreActionRecommendation?.replace('\r\n', ' ')} */}
+                      <VStack alignItems="center" mt={2}>
+                        <Text color="gray.600" fontSize={12} fontWeight={500} lineHeight={19.2} textAlign="center">
+                          {homeData.generalScoreActionRecommendation?.replace('\r\n', '') || getScoreText(homeData.generalScore || 0)}
                         </Text>
 
-                        <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={1} color="purple.700">
-                          Monitorar saúde {'>'}
-                        </Text>
-
-                        <Text fontSize={10} fontWeight={400} color="gray.500" mt={2} lineHeight={12}>
-                          Apenas informativo. Consulte seu médico.
-                        </Text>
-                      </View>
+                        <Box mt={2} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
+                          <Text fontSize={10} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
+                            ⚠️ Aviso: Esta análise é apenas informativa e não substitui consulta médica.
+                          </Text>
+                        </Box>
+                      </VStack>
                     )}
                   </VStack>
-                </HStack>
-              </Box>
-            </TouchableOpacity>
-
-            <HStack mt={6} justifyContent={'space-between'}>
-              <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                Health Wallet
-              </Text>
-
-              <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
-                <MoreIcon />
+                </Box>
               </TouchableOpacity>
-            </HStack>
+            </Animated.View>
 
-            <HStack h={165}>
+            {/* Health Wallet - animação 3 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(200) : undefined}>
+              <HStack mt={6} justifyContent={'space-between'}>
+                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                  Health Wallet
+                </Text>
+
+                <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
+                  <MoreIcon />
+                </TouchableOpacity>
+              </HStack>
+
+              <HStack h={165}>
               <ScrollView horizontal ref={scrollRef} mx={-6} showsHorizontalScrollIndicator={false}>
                 {userWithoutData ? (
                   <HStack space={3} mx={6} alignItems="center">
@@ -462,35 +521,46 @@ export function Homepage() {
                   </VStack>
                 )}
               </ScrollView>
-            </HStack>
+              </HStack>
+            </Animated.View>
 
-            <HStack mt={4} justifyContent={'space-between'} alignItems={'center'}>
-              <HStack alignItems={'center'} space={2}>
+            {/* Rastreador Fitness - animação 4 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(300) : undefined}>
+              <HStack mt={4} justifyContent={'space-between'} alignItems={'center'}>
+                <HStack alignItems={'center'} space={2}>
+                  <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                    Rastreador Fitness
+                  </Text>
+                  {!fitnessEnabled && (
+                    <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>
+                      DESABILITADO
+                    </Badge>
+                  )}
+                </HStack>
+
+                <TouchableOpacity onPress={() => navigation.navigate('tracker')}>
+                  <MoreIcon />
+                </TouchableOpacity>
+              </HStack>
+
+              {<StatusCards userTrackerData={!fitnessEnabled} />}
+            </Animated.View>
+
+            {/* Fale com Doutor X - animação 5 */}
+            <Animated.View
+              entering={!hasAnimated ? FadeInDown.duration(400).delay(400) : undefined}
+              onLayout={() => !hasAnimated && setHasAnimated(true)}
+            >
+              <HStack mt={8} alignItems={'center'} space={2}>
                 <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                  Rastreador Fitness
+                  Fale com o Doutor X
                 </Text>
                 <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>
                   EM BREVE
                 </Badge>
               </HStack>
 
-              <TouchableOpacity onPress={() => navigation.navigate('tracker')}>
-                <MoreIcon />
-              </TouchableOpacity>
-            </HStack>
-
-            {<StatusCards userTrackerData={userTrackerData} />}
-
-            <HStack mt={8} alignItems={'center'} space={2}>
-              <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                Fale com o Doutor X
-              </Text>
-              <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>
-                EM BREVE
-              </Badge>
-            </HStack>
-
-            <Box w="100%" bg={'white'} borderRadius={12} mt={4} overflow="hidden" position="relative" h={170}>
+              <Box w="100%" bg={'white'} borderRadius={12} mt={4} overflow="hidden" position="relative" h={170}>
               <VStack py={4} px={4} position="absolute" left={0} top={0} zIndex={1} space={1}>
                 <Badge
                   bg="gray.100"
@@ -527,7 +597,8 @@ export function Homepage() {
                 borderTopRightRadius={12}
                 borderBottomRightRadius={12}
               />
-            </Box>
+              </Box>
+            </Animated.View>
           </VStack>
         </ScrollView>
       )}

@@ -521,40 +521,37 @@ export function Exam() {
             {renderExamItem()}
 
             {/* Medical Information Sources */}
-            <VStack space={3} mt={2}>
-              <Box p={4} bg="gray.50" borderRadius={12}>
-                <Text fontSize={12} fontWeight={700} color="gray.700" mb={2}>
-                  📚 Fontes e Referências
+            <VStack space={3} mt={1}>
+              <Box p={4} bg="white" borderRadius={12} borderWidth={1} borderColor="gray.200">
+                <Text fontSize={12} fontWeight={600} color="gray.600" mb={3}>
+                  Fontes e Referências
                 </Text>
                 <VStack space={2}>
                   <TouchableOpacity onPress={() => openExternalLink('https://www.who.int/health-topics')}>
-                    <Text fontSize={10} fontWeight={500} color="primary.600">
-                      🔗 Organização Mundial da Saúde (OMS) — https://www.who.int/health-topics
+                    <Text fontSize={11} fontWeight={500} color="ciano.600">
+                      ↗ Organização Mundial da Saúde (OMS)
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => openExternalLink('https://www.gov.br/saude')}>
-                    <Text fontSize={10} fontWeight={500} color="primary.600">
-                      🔗 Ministério da Saúde (Brasil) — https://www.gov.br/saude
+                    <Text fontSize={11} fontWeight={500} color="ciano.600">
+                      ↗ Ministério da Saúde (Brasil)
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => openExternalLink('https://www.mayocliniclabs.com')}>
-                    <Text fontSize={10} fontWeight={500} color="primary.600">
-                      🔗 Mayo Clinic Laboratories — https://www.mayocliniclabs.com
+                    <Text fontSize={11} fontWeight={500} color="ciano.600">
+                      ↗ Mayo Clinic Laboratories
                     </Text>
                   </TouchableOpacity>
-                  <Text fontSize={10} fontWeight={400} color="gray.600" lineHeight={16} mt={2}>
-                    As análises e recomendações são baseadas em diretrizes médicas estabelecidas. Consulte sempre seu
-                    médico para interpretação personalizada.
-                  </Text>
                 </VStack>
               </Box>
 
-              <Box p={4} bg="yellow.50" borderRadius={12}>
-                <Text fontSize={10} fontWeight={500} color="gray.700" lineHeight={16}>
-                  ⚠️ Aviso Médico: As informações fornecidas pelo aplicativo têm caráter informativo e não substituem a
-                  orientação, diagnóstico ou tratamento de profissionais de saúde. Sempre busque a avaliação de um
-                  médico antes de tomar qualquer decisão relacionada à sua saúde.
-                </Text>
+              <Box p={4} bg="orange.50" borderRadius={12}>
+                <HStack alignItems="flex-start" space={2}>
+                  <Text fontSize={14}>⚠️</Text>
+                  <Text fontSize={11} fontWeight={500} color="gray.700" lineHeight={16} flex={1}>
+                    As informações fornecidas têm caráter informativo e não substituem orientação médica. Consulte um profissional de saúde.
+                  </Text>
+                </HStack>
               </Box>
             </VStack>
           </VStack>
@@ -567,8 +564,8 @@ export function Exam() {
           keyboardBehavior="fillParent"
           backdropComponent={renderBackdrop}
         >
-          <BottomSheetView>
-            <VStack mx={6} alignItems="center">
+          <BottomSheetScrollView>
+            <VStack px={6} pb={8}>
               <HStack justifyContent="space-between" alignItems="center" width="100%" mt={4}>
                 <Text fontSize={24} fontWeight={500} letterSpacing={-0.16} color="gray.600">
                   {bottomSheetTitle}
@@ -580,14 +577,13 @@ export function Exam() {
                 fontWeight={400}
                 letterSpacing={-0.16}
                 color="gray.600"
-                width="100%"
                 mt={4}
-                textAlign="justify"
+                textAlign="left"
               >
                 {bottomSheetText}
               </Text>
             </VStack>
-          </BottomSheetView>
+          </BottomSheetScrollView>
         </BottomSheetModal>
 
         {/* BottomSheet para o gráfico de histórico */}

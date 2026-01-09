@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { TouchableOpacity, Linking, Alert, StatusBar } from 'react-native';
 import {
   VStack,
@@ -13,7 +13,8 @@ import {
   Badge,
   Avatar,
 } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -43,15 +44,42 @@ import { HeaderTitle, Progress, StatusCards } from '@components/molecules';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useHome } from 'src/hooks/useHome';
 import { useAuth } from 'src/hooks/useAuth';
+import { getUserPersonalData } from 'src/services/userService';
 
 export function HealthWallet() {
   const [isLoading, setLoading] = useState<boolean>(false);
+  const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { homeData, setCurrentSystem, currentSystem } = useHome();
-  const { user } = useAuth();
+  const { user, updateUserPhoto } = useAuth();
   const { isOpen, onOpen, onClose } = useDisclose();
+
+  // Garantir StatusBar dark e carregar foto de perfil quando a tela ganhar foco
+  useFocusEffect(
+    useCallback(() => {
+      StatusBar.setBarStyle('dark-content');
+
+      // Carregar foto de perfil se não estiver no contexto
+      async function loadProfilePhotoIfNeeded() {
+        if (user?.profilePhotoBase64) {
+          return; // Já tem foto no contexto
+        }
+
+        try {
+          const profileData = await getUserPersonalData();
+          if (profileData?.profilePhotoBase64) {
+            updateUserPhoto(profileData.profilePhotoBase64);
+          }
+        } catch (error) {
+          console.log('⚠️ [HEALTH_WALLET] Erro ao buscar foto de perfil:', error);
+        }
+      }
+
+      loadProfilePhotoIfNeeded();
+    }, [user?.profilePhotoBase64, updateUserPhoto])
+  );
 
   const getColorByScore = (score: number) => {
     if (score >= 0 && score <= 333) {
@@ -195,7 +223,9 @@ export function HealthWallet() {
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
         <VStack flex={1} space={8} pt={2} pb={32}>
           <VStack flex={1} mx={6}>
-            <Box w="100%" h="auto" bg={'white'} px={4} py={5} borderRadius={12} shadow={2}>
+            {/* Score X Card - animação 1 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(0) : undefined}>
+              <Box w="100%" h="auto" bg={'white'} px={4} py={5} borderRadius={12} shadow={2}>
               <VStack alignItems={'center'}>
                 <AnimatedCircularProgress
                   size={150}
@@ -203,17 +233,28 @@ export function HealthWallet() {
                   width={18}
                   fill={Math.round(homeData.generalScore / 10)}
                   children={() => (
-                    <Avatar size="50px" mt={-4} bg="gray.300">
-                      {user?.fullName ? (
-                        user.fullName
-                          .split(' ')
-                          .filter(Boolean)
-                          .map((name) => name[0])
-                          .join('')
-                          .substring(0, 2)
-                          .toUpperCase()
-                      ) : (
-                        <UserIcon color="#6B7280" size="24" />
+                    <Avatar
+                      size="50px"
+                      mt={-4}
+                      bg="gray.300"
+                      source={
+                        user?.profilePhotoBase64 || user?.photoUrl
+                          ? { uri: user?.profilePhotoBase64 || user?.photoUrl }
+                          : undefined
+                      }
+                    >
+                      {!(user?.profilePhotoBase64 || user?.photoUrl) && (
+                        user?.fullName ? (
+                          user.fullName
+                            .split(' ')
+                            .filter(Boolean)
+                            .map((name) => name[0])
+                            .join('')
+                            .substring(0, 2)
+                            .toUpperCase()
+                        ) : (
+                          <UserIcon color="#6B7280" size="24" />
+                        )
                       )}
                     </Avatar>
                   )}
@@ -243,48 +284,57 @@ export function HealthWallet() {
                   </Text>
                 </Box>
               </VStack>
-            </Box>
-
-            <HStack justifyContent={'space-between'} mt={6}>
-              <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                Overview
-              </Text>
-
-              <TouchableOpacity>
-                <MoreIcon />
-              </TouchableOpacity>
-            </HStack>
-
-            {renderSystems()}
-
-            {/* Medical Information Sources */}
-            {homeData.medicalExamOrganicSystemsScore?.length > 0 && (
-              <Box mt={8} px={4} bg="gray.50" borderRadius={12}>
-                <Text fontSize={12} fontWeight={700} color="gray.700" mb={2}>
-                  📚 Fontes e Referências
-                </Text>
-                <VStack space={2}>
-                  <TouchableOpacity onPress={() => Linking.openURL('https://www.who.int/health-topics')}>
-                    <Text fontSize={10} fontWeight={500} color="primary.600">
-                      🔗 Organização Mundial da Saúde (OMS) — https://www.who.int/health-topics
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => Linking.openURL('https://www.gov.br/saude')}>
-                    <Text fontSize={10} fontWeight={500} color="primary.600">
-                      🔗 Ministério da Saúde (Brasil) — https://www.gov.br/saude
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => Linking.openURL('https://www.mayocliniclabs.com')}>
-                    <Text fontSize={10} fontWeight={500} color="primary.600">
-                      🔗 Mayo Clinic Laboratories — https://www.mayocliniclabs.com
-                    </Text>
-                  </TouchableOpacity>
-                  <Text fontSize={10} fontWeight={400} color="gray.600" lineHeight={16} mt={2}>
-                    As análises e recomendações são baseadas em diretrizes médicas estabelecidas. Consulte sempre seu
-                    médico para interpretação personalizada.
-                  </Text>
-                </VStack>
               </Box>
+            </Animated.View>
+
+            {/* Overview - animação 2 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(100) : undefined}>
+              <HStack justifyContent={'space-between'} mt={6}>
+                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                  Overview
+                </Text>
+
+                <TouchableOpacity>
+                  <MoreIcon />
+                </TouchableOpacity>
+              </HStack>
+
+              {renderSystems()}
+            </Animated.View>
+
+            {/* Medical Information Sources - animação 3 */}
+            {homeData.medicalExamOrganicSystemsScore?.length > 0 && (
+              <Animated.View
+                entering={!hasAnimated ? FadeInDown.duration(400).delay(200) : undefined}
+                onLayout={() => !hasAnimated && setHasAnimated(true)}
+              >
+                <Box borderTopWidth={1} borderTopColor="gray.200" mt={8} mb={8} />
+                <Box p={4} bg="white" borderRadius={12} borderWidth={1} borderColor="gray.200">
+                  <Text fontSize={12} fontWeight={600} color="gray.600" mb={3}>
+                    Fontes e Referências
+                  </Text>
+                  <VStack space={2}>
+                    <TouchableOpacity onPress={() => Linking.openURL('https://www.who.int/health-topics')}>
+                      <Text fontSize={11} fontWeight={500} color="ciano.600">
+                        ↗ Organização Mundial da Saúde (OMS)
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => Linking.openURL('https://www.gov.br/saude')}>
+                      <Text fontSize={11} fontWeight={500} color="ciano.600">
+                        ↗ Ministério da Saúde (Brasil)
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => Linking.openURL('https://www.mayocliniclabs.com')}>
+                      <Text fontSize={11} fontWeight={500} color="ciano.600">
+                        ↗ Mayo Clinic Laboratories
+                      </Text>
+                    </TouchableOpacity>
+                  </VStack>
+                  <Text fontSize={10} color="gray.500" mt={3}>
+                    Consulte seu médico para interpretação personalizada.
+                  </Text>
+                </Box>
+              </Animated.View>
             )}
           </VStack>
         </VStack>

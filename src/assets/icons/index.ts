@@ -74,6 +74,8 @@ import ChevronUpMdIcon from './components/chevronUpMd';
 import ChevronUpSmIcon from './components/chevronUpSm';
 import ClipboardIcon from './components/clipboard';
 import ClockIcon from './components/clock';
+import ClockSquareIcon from './components/clockSquare';
+import CompassTargetIcon from './components/compassTarget';
 import CloseIcon from './components/close';
 import CloseSquareIcon from './components/closeSquare';
 import CoffeIcon from './components/coffe';
@@ -109,6 +111,7 @@ import EmojiNormalMinimalIcon from './components/emojiNormalMinimal';
 import EmojiSadIcon from './components/emojiSad';
 import EmojiSadMinimalIcon from './components/emojiSadMinimal';
 import EnergyIcon from './components/energy';
+import EnergyBoltIcon from './components/energyBolt';
 import ExaminusIcon from './components/examinus';
 import ExclamationMarkIcon from './components/exclamationMark';
 import ExclamationMarkSquareIcon from './components/exclamationMarkSquare';
@@ -228,7 +231,10 @@ import VirusIcon from './components/virus';
 import WalkingIcon from './components/walking';
 import WarningIcon from './components/warning';
 import WaterIcon from './components/water';
+import WaterDropFilledIcon from './components/waterDropFilled';
 import WeightScaleIcon from './components/weightScale';
+import { WeightInitialIcon } from './components/weightInitial';
+import { WeightTargetIcon } from './components/weightTarget';
 
 export {
   ActivityBikingIcon,
@@ -307,6 +313,8 @@ export {
   ChevronUpSmIcon,
   ClipboardIcon,
   ClockIcon,
+  ClockSquareIcon,
+  CompassTargetIcon,
   CloseIcon,
   CloseSquareIcon,
   CoffeIcon,
@@ -342,6 +350,7 @@ export {
   EmojiSadIcon,
   EmojiSadMinimalIcon,
   EnergyIcon,
+  EnergyBoltIcon,
   ExaminusIcon,
   ExclamationMarkIcon,
   ExclamationMarkSquareIcon,
@@ -461,5 +470,8 @@ export {
   WalkingIcon,
   WarningIcon,
   WaterIcon,
+  WaterDropFilledIcon,
   WeightScaleIcon,
+  WeightInitialIcon,
+  WeightTargetIcon,
 };

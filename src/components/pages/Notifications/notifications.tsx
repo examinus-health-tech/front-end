@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
 import { Linking, useWindowDimensions, TouchableOpacity } from 'react-native';
 import { CustomRefreshControl } from '@components/atoms';
 import { VStack, Text, HStack, ScrollView, IScrollViewProps, Box, StatusBar, View } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import ContentLoader, { Rect } from 'react-content-loader/native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { NotificationCard } from './components/NotificationCard/notificationCard';
@@ -12,6 +13,68 @@ import { GearIcon, ChevronLeftIcon } from '@assets/icons';
 import { api } from 'src/services/api';
 import { Notification } from 'src/@types/notifications';
 import { useAuth } from 'src/hooks/useAuth';
+
+// Tipo para grupos de notificações
+type NotificationGroup = {
+  title: string;
+  notifications: Notification[];
+};
+
+// Função para agrupar notificações por período
+function groupNotificationsByPeriod(notifications: Notification[]): NotificationGroup[] {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const lastWeek = new Date(today);
+  lastWeek.setDate(lastWeek.getDate() - 7);
+  const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const groups: { [key: string]: Notification[] } = {
+    today: [],
+    yesterday: [],
+    lastWeek: [],
+    thisMonth: [],
+    older: [],
+  };
+
+  notifications.forEach((notification) => {
+    const notifDate = new Date(notification.createdAt);
+    const notifDay = new Date(notifDate.getFullYear(), notifDate.getMonth(), notifDate.getDate());
+
+    if (notifDay.getTime() === today.getTime()) {
+      groups.today.push(notification);
+    } else if (notifDay.getTime() === yesterday.getTime()) {
+      groups.yesterday.push(notification);
+    } else if (notifDay > lastWeek) {
+      groups.lastWeek.push(notification);
+    } else if (notifDay >= thisMonth) {
+      groups.thisMonth.push(notification);
+    } else {
+      groups.older.push(notification);
+    }
+  });
+
+  const result: NotificationGroup[] = [];
+
+  if (groups.today.length > 0) {
+    result.push({ title: 'Recentes', notifications: groups.today });
+  }
+  if (groups.yesterday.length > 0) {
+    result.push({ title: 'Ontem', notifications: groups.yesterday });
+  }
+  if (groups.lastWeek.length > 0) {
+    result.push({ title: 'Última Semana', notifications: groups.lastWeek });
+  }
+  if (groups.thisMonth.length > 0) {
+    result.push({ title: 'Este Mês', notifications: groups.thisMonth });
+  }
+  if (groups.older.length > 0) {
+    result.push({ title: 'Anteriores', notifications: groups.older });
+  }
+
+  return result;
+}
 
 export function Notifications() {
   const scrollRef = useRef<IScrollViewProps>(null);
@@ -22,6 +85,7 @@ export function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
 
   const ensureArray = (data: any): Notification[] => {
     if (Array.isArray(data)) {
@@ -103,12 +167,17 @@ export function Notifications() {
   const total = notifications.length;
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  // Agrupar notificações por período
+  const groupedNotifications = useMemo(() => {
+    return groupNotificationsByPeriod(notifications);
+  }, [notifications]);
+
   const NotificationSkeleton = () => (
     <ContentLoader
       viewBox={`0 0 ${width - 48} 100`}
-      backgroundColor="#e5e5e5"
-      foregroundColor="#f5f5f5"
-      style={{ marginBottom: 12 }}
+      backgroundColor="#d5d5d5"
+      foregroundColor="#ebebeb"
+      style={{ width: width - 48, height: 100 }}
     >
       <Rect x="0" y="0" rx="12" ry="12" width={width - 48} height={100} />
     </ContentLoader>
@@ -135,15 +204,28 @@ export function Notifications() {
     <View flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      {isLoading ? (
-        <VStack flex={1} py={16} mx={6}>
-          <CustomHeader />
+      {/* Header fixo */}
+      <VStack pt={16} mx={6}>
+        <CustomHeader />
+      </VStack>
 
+      {isLoading ? (
+        <VStack flex={1} mx={6}>
           <HStack justifyContent="space-between" alignItems="center" mb={4}>
-            <ContentLoader viewBox="0 0 100 24" backgroundColor="#e5e5e5" foregroundColor="#f5f5f5">
+            <ContentLoader
+              viewBox="0 0 100 24"
+              backgroundColor="#d5d5d5"
+              foregroundColor="#ebebeb"
+              style={{ width: 100, height: 24 }}
+            >
               <Rect x="0" y="0" rx="6" ry="6" width={100} height={24} />
             </ContentLoader>
-            <ContentLoader viewBox="0 0 60 20" backgroundColor="#e5e5e5" foregroundColor="#f5f5f5">
+            <ContentLoader
+              viewBox="0 0 60 20"
+              backgroundColor="#d5d5d5"
+              foregroundColor="#ebebeb"
+              style={{ width: 60, height: 20 }}
+            >
               <Rect x="0" y="0" rx="4" ry="4" width={60} height={20} />
             </ContentLoader>
           </HStack>
@@ -161,46 +243,71 @@ export function Notifications() {
           showsVerticalScrollIndicator={false}
           refreshControl={<CustomRefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          <VStack flex={1} py={16} mx={6} mb={20}>
-            <CustomHeader />
+          <VStack flex={1} mx={6} mb={20}>
+            {groupedNotifications.length > 0 ? (
+              groupedNotifications.map((group, groupIndex) => {
+                // Calcular índice global para animações
+                let globalIndex = 0;
+                for (let i = 0; i < groupIndex; i++) {
+                  globalIndex += groupedNotifications[i].notifications.length;
+                }
 
-            <HStack justifyContent="space-between" alignItems="center" mb={4}>
-              <HStack alignItems="center" space={2}>
-                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color="gray.900">
-                  Recentes
+                const groupUnreadCount = group.notifications.filter((n) => !n.read).length;
+
+                return (
+                  <VStack key={group.title} mb={6}>
+                    {/* Header do grupo */}
+                    <HStack justifyContent="space-between" alignItems="center" mb={4}>
+                      <HStack alignItems="center" space={2}>
+                        <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color="gray.900">
+                          {group.title}
+                        </Text>
+                        {groupUnreadCount > 0 && (
+                          <Box bg="ciano.300" borderRadius="full" px={2} py={0.5}>
+                            <Text fontSize={12} fontWeight={700} color="white">
+                              {groupUnreadCount} {groupUnreadCount === 1 ? 'nova' : 'novas'}
+                            </Text>
+                          </Box>
+                        )}
+                      </HStack>
+                      <Text fontSize={14} fontWeight={600} letterSpacing={-0.14} color="gray.500">
+                        {group.notifications.length} Total
+                      </Text>
+                    </HStack>
+
+                    {/* Notificações do grupo */}
+                    <VStack space={3}>
+                      {group.notifications.map((notification, index) => {
+                        const animIndex = globalIndex + index;
+                        const isLastItem =
+                          groupIndex === groupedNotifications.length - 1 &&
+                          index === group.notifications.length - 1;
+
+                        return (
+                          <Animated.View
+                            key={notification.id}
+                            entering={!hasAnimated ? FadeInDown.duration(400).delay(animIndex * 80) : undefined}
+                            onLayout={() => isLastItem && !hasAnimated && setHasAnimated(true)}
+                          >
+                            <NotificationCard
+                              notification={notification}
+                              onPressDownloadPdf={handleDownloadPdf}
+                              onPress={handleNotificationPress}
+                            />
+                          </Animated.View>
+                        );
+                      })}
+                    </VStack>
+                  </VStack>
+                );
+              })
+            ) : (
+              <Box mt={8} alignItems="center">
+                <Text color="gray.500" fontSize={14}>
+                  Nenhuma notificação por aqui ainda.
                 </Text>
-                {unreadCount > 0 && (
-                  <Box bg="ciano.300" borderRadius="full" px={2} py={0.5}>
-                    <Text fontSize={12} fontWeight={700} color="white">
-                      {unreadCount} {unreadCount === 1 ? 'nova' : 'novas'}
-                    </Text>
-                  </Box>
-                )}
-              </HStack>
-              <Text fontSize={14} fontWeight={600} letterSpacing={-0.14} color="gray.500">
-                {total} Total
-              </Text>
-            </HStack>
-
-            <VStack space={3}>
-              {Array.isArray(notifications) &&
-                notifications.map((notification) => (
-                  <NotificationCard
-                    key={notification.id}
-                    notification={notification}
-                    onPressDownloadPdf={handleDownloadPdf}
-                    onPress={handleNotificationPress}
-                  />
-                ))}
-
-              {!notifications || notifications.length === 0 ? (
-                <Box mt={8} alignItems="center">
-                  <Text color="gray.500" fontSize={14}>
-                    Nenhuma notificação por aqui ainda.
-                  </Text>
-                </Box>
-              ) : null}
-            </VStack>
+              </Box>
+            )}
           </VStack>
         </ScrollView>
       )}

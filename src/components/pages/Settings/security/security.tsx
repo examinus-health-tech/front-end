@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { VStack, ScrollView, IScrollViewProps } from 'native-base';
+import { VStack, ScrollView, IScrollViewProps, View, StatusBar } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 
 // routes
@@ -112,11 +112,17 @@ export function Security() {
   };
 
   return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} py={16} mx={6}>
-        <Header title="Segurança" handleBackTo={() => navigation.navigate('myAccount')} />
+    <View flex={1}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        <VStack mt={4} space={3}>
+      {/* Header fixo */}
+      <VStack pt={16} mx={6}>
+        <Header title="Segurança" handleBackTo={() => navigation.navigate('myAccount')} />
+      </VStack>
+
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+        <VStack flex={1} mx={6} mb={20}>
+          <VStack mt={4} space={3}>
           {/* Card Lembrar Senha - Em Breve */}
           <Card
             title="Lembrar Senha"
@@ -153,8 +159,9 @@ export function Security() {
             value="1 dispositivo"
             comingSoon
           />
+          </VStack>
         </VStack>
-      </VStack>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

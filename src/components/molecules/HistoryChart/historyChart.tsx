@@ -60,6 +60,14 @@ export function HistoryChart({
     if (referenceMin !== undefined) min = Math.min(min, referenceMin);
     if (referenceMax !== undefined) max = Math.max(max, referenceMax);
 
+    // Se todos os valores são iguais, criar um range mínimo para centralizar a linha
+    if (max === min) {
+      const baseValue = max;
+      const minRange = baseValue * 0.1 || 10; // 10% do valor ou 10 unidades se for 0
+      min = baseValue - minRange;
+      max = baseValue + minRange;
+    }
+
     // Add padding e arredondar para valores inteiros
     const padding = (max - min) * 0.15;
     return {
@@ -68,9 +76,15 @@ export function HistoryChart({
     };
   }, [historyData, referenceMin, referenceMax]);
 
-  // Formatar valores do eixo Y para números inteiros
-  const formatYAxisLabel = (value: number) => {
-    return Math.round(value).toString();
+  // Formatar valores do eixo Y - mostrar decimais quando o range é pequeno
+  const formatYAxisLabel = (value: string | number) => {
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    const range = maxValue - minValue;
+    // Se o range é pequeno (menos de 5 unidades), mostrar 1 casa decimal
+    if (range < 5) {
+      return numValue.toFixed(1);
+    }
+    return Math.round(numValue).toString();
   };
 
   if (!historyData || historyData.length === 0) {

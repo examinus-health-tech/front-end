@@ -1,6 +1,7 @@
 import { useRef, useState, useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
   VStack,
   Text,
@@ -55,6 +56,7 @@ export function MyAccount() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoadingPhoto, setIsLoadingPhoto] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
   const [deleteFeedback, setDeleteFeedback] = useState({
     reason: '',
     customReason: '',
@@ -151,14 +153,21 @@ export function MyAccount() {
   };
 
   return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+    <View flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-      <VStack flex={1} py={16} mx={6} mb={20}>
+      {/* Header fixo */}
+      <VStack pt={16} mx={6}>
         <Header title="Minha Conta" handleBackTo={() => navigation.navigate('homepage')} />
+      </VStack>
 
-        <TouchableOpacity onPress={() => navigation.navigate('info')} activeOpacity={0.8}>
-          <Box bg={'gray.800'} w="100%" borderRadius={16} p={4}>
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
+        <VStack flex={1} mx={6} mb={10}>
+
+        {/* Perfil card - animação 1 */}
+        <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(0) : undefined}>
+          <TouchableOpacity onPress={() => navigation.navigate('info')} activeOpacity={0.8}>
+            <Box bg={'gray.800'} w="100%" borderRadius={16} p={4}>
             <HStack space={3} alignItems={'center'}>
               {/* Foto de perfil ou ícone padrão */}
               <Box
@@ -195,126 +204,143 @@ export function MyAccount() {
 
               <EditIcon size="30" />
             </HStack>
-          </Box>
-        </TouchableOpacity>
+            </Box>
+          </TouchableOpacity>
+        </Animated.View>
 
-        <VStack>
-          <Text mt={12} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-            Configurações Gerais
-          </Text>
+        {/* Configurações Gerais - animação 2 */}
+        <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(100) : undefined}>
+          <VStack>
+            <Text mt={12} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+              Configurações Gerais
+            </Text>
 
-          <VStack mt={4} space={3}>
-            <Card
-              title="Informação Pessoal"
-              variant="primary"
-              action="chevron"
-              goTo={() => navigation.navigate('info')}
-              icon={<UserIcon color="#3D4966" size="30" />}
-            />
-            <Card
-              title="Notificações"
-              variant="primary"
-              action="chevron"
-              goTo={() => navigation.navigate('configNotifications')}
-              icon={<BellSecondaryIcon color="#3D4966" size="30" />}
-            />
-            <Card
-              title="Preferências"
-              variant="primary"
-              action="chevron"
-              comingSoon={true}
-              icon={<GearIcon color="#3D4966" size="30" />}
-            />
-            <Card
-              title="Segurança"
-              variant="primary"
-              action="chevron"
-              goTo={() => navigation.navigate('security')}
-              icon={<LockIcon color="#3D4966" size="30" />}
-            />
+            <VStack mt={4} space={3}>
+              <Card
+                title="Informação Pessoal"
+                variant="primary"
+                action="chevron"
+                goTo={() => navigation.navigate('info')}
+                icon={<UserIcon color="#3D4966" size="30" />}
+              />
+              <Card
+                title="Notificações"
+                variant="primary"
+                action="chevron"
+                goTo={() => navigation.navigate('configNotifications')}
+                icon={<BellSecondaryIcon color="#3D4966" size="30" />}
+              />
+              <Card
+                title="Preferências"
+                variant="primary"
+                action="chevron"
+                goTo={() => navigation.navigate('preferences')}
+                icon={<GearIcon color="#3D4966" size="30" />}
+              />
+              <Card
+                title="Segurança"
+                variant="primary"
+                action="chevron"
+                goTo={() => navigation.navigate('security')}
+                icon={<LockIcon color="#3D4966" size="30" />}
+              />
+            </VStack>
           </VStack>
-        </VStack>
+        </Animated.View>
 
-        <VStack>
-          <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+        {/* Suporte - animação 3 */}
+        <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(200) : undefined}>
+          <VStack>
+            <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
             Acessibilidade
           </Text>
 
-          <VStack mt={4} space={3}>
-            <Card
-              title="Idioma"
-              variant="primary"
-              action="chevron"
-              comingSoon={true}
-              icon={<FlagIcon color="#3D4966" size="30" />}
-            />
-            <Card
-              title="Dark Mode"
-              variant="primary"
-              icon={<EyeIcon color="#3D4966" size="30" />}
-              action="switch"
-              comingSoon={true}
-            />
+            <VStack mt={4} space={3}>
+              <Card
+                title="Idioma"
+                variant="primary"
+                action="chevron"
+                comingSoon={true}
+                icon={<FlagIcon color="#3D4966" size="30" />}
+              />
+              <Card
+                title="Dark Mode"
+                variant="primary"
+                icon={<EyeIcon color="#3D4966" size="30" />}
+                action="switch"
+                comingSoon={true}
+              />
+            </VStack>
           </VStack>
-        </VStack>
+        </Animated.View>
 
-        <VStack>
-          <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-            Ajuda & Suporte
-          </Text>
+        {/* Ajuda & Suporte - animação 4 */}
+        <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(300) : undefined}>
+          <VStack>
+            <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+              Ajuda & Suporte
+            </Text>
 
-          <VStack mt={4} space={3}>
-            <Card
-              title="Sobre"
-              variant="primary"
-              action="chevron"
-              goTo={() => navigation.navigate('aboutUs')}
-              icon={<QuestionIcon color="#3D4966" size="30" />}
-            />
-            <Card
-              title="Central de Ajuda"
-              variant="primary"
-              action="chevron"
-              comingSoon={true}
-              icon={<ChatIcon color="#3D4966" size="30" />}
-            />
-            <Card
-              title="Fale com o Team X"
-              variant="primary"
-              action="chevron"
-              goTo={() => navigation.navigate('contactUs')}
-              icon={<TelephoneIcon color="#3D4966" size="30" />}
-            />
+            <VStack mt={4} space={3}>
+              <Card
+                title="Sobre"
+                variant="primary"
+                action="chevron"
+                goTo={() => navigation.navigate('aboutUs')}
+                icon={<QuestionIcon color="#3D4966" size="30" />}
+              />
+              <Card
+                title="Central de Ajuda"
+                variant="primary"
+                action="chevron"
+                comingSoon={true}
+                icon={<ChatIcon color="#3D4966" size="30" />}
+              />
+              <Card
+                title="Fale com o Team X"
+                variant="primary"
+                action="chevron"
+                goTo={() => navigation.navigate('contactUs')}
+                icon={<TelephoneIcon color="#3D4966" size="30" />}
+              />
+            </VStack>
           </VStack>
-        </VStack>
+        </Animated.View>
 
-        <VStack>
-          <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-            Desconectar
-          </Text>
+        {/* Desconectar - animação 5 */}
+        <Animated.View
+          entering={!hasAnimated ? FadeInDown.duration(400).delay(400) : undefined}
+          onLayout={() => !hasAnimated && setHasAnimated(true)}
+        >
+          <VStack>
+            <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+              Desconectar
+            </Text>
 
-          <VStack mt={4} space={3}>
-            <Card
-              title="Sair"
-              variant="primary"
-              action="chevron"
-              goTo={onSignOutOpen}
-              icon={<ArrowCurvedIcon color="#3D4966" size="30" />}
-            />
+            <VStack mt={4} space={3}>
+              <Card
+                title="Sair"
+                variant="primary"
+                action="chevron"
+                goTo={onSignOutOpen}
+                icon={<ArrowCurvedIcon color="#3D4966" size="30" />}
+              />
+            </VStack>
           </VStack>
-        </VStack>
 
-        <VStack mt={12}>
-          <TouchableOpacity onPress={handleDeleteAccountClick}>
-            <HStack alignItems="center" space={3} bg="gray.100" px={4} py={3} borderRadius={12}>
-              <TrashIcon color="#9CA3AF" size="20" />
-              <Text fontSize={14} fontWeight={500} color="gray.500">
-                Deletar Conta
-              </Text>
-            </HStack>
-          </TouchableOpacity>
-        </VStack>
+          <VStack mt={12}>
+            <TouchableOpacity onPress={handleDeleteAccountClick}>
+              <HStack alignItems="center" space={3} bg="gray.100" px={4} py={3} borderRadius={12}>
+                <TrashIcon color="#9CA3AF" size="20" />
+                <Text fontSize={14} fontWeight={500} color="gray.500">
+                  Deletar Conta
+                </Text>
+              </HStack>
+            </TouchableOpacity>
+          </VStack>
+        </Animated.View>
       </VStack>
+      </ScrollView>
 
       {/* BottomSheet para confirmação de sair */}
       <Actionsheet isOpen={isSignOutOpen} onClose={onSignOutClose}>
@@ -509,6 +535,6 @@ export function MyAccount() {
           </Box>
         </Actionsheet.Content>
       </Actionsheet>
-    </ScrollView>
+    </View>
   );
 }

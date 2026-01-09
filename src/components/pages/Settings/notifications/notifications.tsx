@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { VStack, Text, ScrollView, IScrollViewProps } from 'native-base';
+import { VStack, Text, ScrollView, IScrollViewProps, View, StatusBar } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OneSignal } from 'react-native-onesignal';
@@ -121,11 +121,17 @@ export function ConfigNotifications() {
   }, [dailyReminders, healthInsights, examInfo, savePreference]);
 
   return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} py={16} mx={6}>
-        <Header title="Notificações" handleBackTo={() => navigation.goBack()} />
+    <View flex={1}>
+      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
-        <VStack>
+      {/* Header fixo */}
+      <VStack pt={16} mx={6}>
+        <Header title="Notificações" handleBackTo={() => navigation.goBack()} />
+      </VStack>
+
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+        <VStack flex={1} mx={6} mb={20}>
+          <VStack>
           <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
             Configurações Gerais
           </Text>
@@ -163,9 +169,10 @@ export function ConfigNotifications() {
               switchValue={chatbotNotifications}
               onSwitchChange={handleChatbotNotifications}
             />
+            </VStack>
           </VStack>
         </VStack>
-      </VStack>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

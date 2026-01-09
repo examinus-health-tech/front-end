@@ -70,6 +70,7 @@
     "react-native-fs": "^2.20.0",
     "react-native-gesture-handler": "~2.24.0",
     "react-native-gifted-charts": "^1.4.69",
+    "react-native-health": "^1.19.0",
     "react-native-onesignal": "^5.2.14",
     "react-native-reanimated": "~3.17.4",
     "react-native-ruler-picker": "^0.2.1",

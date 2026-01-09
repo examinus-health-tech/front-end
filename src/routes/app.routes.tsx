@@ -1,7 +1,7 @@
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Homepage, HealthWallet, HeartScore, UploadMain } from '@components/pages/Homepage';
-import { AboutUs, ConfigNotifications, ContactUs, Info, MyAccount, Security } from '@components/pages/Settings';
+import { AboutUs, ConfigNotifications, ContactUs, Info, MyAccount, Preferences, Security } from '@components/pages/Settings';
 
 import { ExamList, Exam } from '@components/pages/Exam';
 
@@ -16,8 +16,7 @@ import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useState, useEffect } from 'react';
 import { Flex, Image } from 'native-base';
 
-import { Weight, Tracker, Calories } from '@components/pages/Tracker';
-import { Nutrition } from '@components/pages/Tracker/Nutrition/nutrition';
+import { Weight, Tracker, Calories, Nutrition, Steps, Hydration } from '@components/pages/Tracker';
 import {
   BiomConfig,
   EditProfile,
@@ -65,6 +64,9 @@ export type AppRoutes = {
   exam: { examId?: string } | undefined;
   onboardingSteps: undefined;
   workingInProgress: undefined;
+  preferences: undefined;
+  steps: undefined;
+  hydration: undefined;
 };
 
 export type AppNavigatorRoutesProps = NativeStackNavigationProp<AppRoutes>;
@@ -240,6 +242,50 @@ function HomeTabsContent() {
           ),
         }}
       />
+
+      {/* Telas ocultas na navbar mas com acesso à tab bar */}
+      <Tab.Screen
+        name="tracker"
+        component={Tracker}
+        options={{
+          tabBarButton: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="weight"
+        component={Weight}
+        options={{
+          tabBarButton: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="nutrition"
+        component={Nutrition}
+        options={{
+          tabBarButton: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="calories"
+        component={Calories}
+        options={{
+          tabBarButton: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="steps"
+        component={Steps}
+        options={{
+          tabBarButton: () => null,
+        }}
+      />
+      <Tab.Screen
+        name="hydration"
+        component={Hydration}
+        options={{
+          tabBarButton: () => null,
+        }}
+      />
     </Tab.Navigator>
   );
 }
@@ -337,17 +383,14 @@ function AppRoutesContent() {
       {/** SETTINGS */}
       {/* <Screen name="myAccount" component={MyAccount} /> */}
       <Screen name="configNotifications" component={ConfigNotifications} />
+      <Screen name="preferences" component={Preferences} />
       <Screen name="info" component={Info} />
       <Screen name="security" component={Security} />
       <Screen name="contactUs" component={ContactUs} />
       <Screen name="aboutUs" component={AboutUs} />
 
       {/** FITNESS TRACKER */}
-      <Screen name="tracker" component={Tracker} />
-      <Screen name="weight" component={Weight} />
-      <Screen name="nutrition" component={Nutrition} />
-      <Screen name="calories" component={Calories} />
-
+      {/* <Screen name="calories" component={Calories} /> */}
       {/* <Screen name="weightTracker" component={WeightTracker} /> */}
     </Navigator>
   );

@@ -1,115 +1,164 @@
-import { useRef, useState } from 'react';
-import { VStack, ScrollView, IScrollViewProps, Box, Text, HStack, Flex, Badge, Divider } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
+import { useRef, useMemo, useCallback } from 'react';
+import { VStack, ScrollView, IScrollViewProps, Box, Text, HStack, Divider, Pressable } from 'native-base';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // components
-
-// assets
-import { HeaderTitle } from '@components/molecules';
-import { AppleIcon } from '@assets/icons';
+import { HeaderTitle, CaloriesBar, ActivityCard } from '@components/molecules';
 import { Button } from '@components/atoms';
 
+// assets
+import { FireIcon, ActivityRunningIcon, ActivitySnowboardingIcon, WalkingIcon } from '@assets/icons';
+
+// hooks
+import { useHome } from 'src/hooks/useHome';
+import { useTabBar } from 'src/hooks/useTabBar';
+
 export function Calories() {
-  const [rangeSelected, setRangeSelected] = useState<1 | 2 | 3 | 4 | 5>(1);
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const { trackerData } = useHome();
+  const { hideTabBar, showTabBar } = useTabBar();
 
-  const data = [
-    { quarter: 1, earnings: 13000 },
-    { quarter: 2, earnings: 16500 },
-    { quarter: 3, earnings: 14250 },
-    { quarter: 4, earnings: 19000 },
-  ];
+  // Hide tab bar when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      hideTabBar();
+      return () => showTabBar();
+    }, [hideTabBar, showTabBar])
+  );
 
-  function handleContribuitionChart() {
-    const boxComponents: JSX.Element[] = [];
+  // Dados do contexto
+  const kcalGoal = Number(trackerData?.kcal?.[0]?.kcal_goal) || 2000;
+  const kcalBurned = Number(trackerData?.kcal?.[0]?.kcal_completed) || 1542;
 
-    const box = () => {
-      for (let i = 1; i <= 35; i++) {
-        boxComponents.push(
-          <Box bg="gray.100" rounded={8} size={10} alignItems={'center'} justifyContent={'center'} mb={2}></Box>
-        );
-      }
+  // Verifica se está no caminho certo (acima de 50% da meta)
+  const isOnTrack = kcalBurned >= kcalGoal * 0.5;
 
-      return boxComponents;
-    };
-
-    return (
-      <Flex align="center" mx={6} mt={8} justify="center">
-        <HStack flex={1} flexWrap="wrap" flexDir="row" space={2} w="100%" ml={8}>
-          {box()}
-        </HStack>
-      </Flex>
-    );
-  }
+  // Mock de atividades
+  const activities = useMemo(
+    () => [
+      {
+        id: '1',
+        title: 'Treino Cardio',
+        calories: 154,
+        variant: 'green' as const,
+        icon: <FireIcon size="20" color="#0CC1AF" />,
+      },
+      {
+        id: '2',
+        title: 'Caminhada',
+        calories: 854,
+        variant: 'yellow' as const,
+        icon: <WalkingIcon size="20" color="#F5C518" />,
+      },
+      {
+        id: '3',
+        title: 'Snow Boarding',
+        calories: 224,
+        variant: 'purple' as const,
+        icon: <ActivitySnowboardingIcon size="20" color="#8B5CF6" />,
+      },
+    ],
+    []
+  );
 
   return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} py={12} mb={16} width="100%">
-        <HeaderTitle withBackButton={() => navigation.navigate('homepage')} title="Calorias" withMoreButton />
+    <VStack flex={1} py={16}>
+      <HeaderTitle withBackButton={() => navigation.navigate('tracker')} title="Calorias" withMoreButton />
 
-        <VStack flex={1} mx={6} mt={2}>
-          <HStack space={2} alignItems="center">
-            <Text fontSize={16} letterSpacing={-0.16} fontWeight={600}>
-              Hoje você queimou
-            </Text>
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+        <VStack flex={1} pb={32}>
+          {/* Header com meta */}
+          <VStack mx={6}>
+            <HStack space={2} alignItems="center">
+              <Text fontFamily="Poligon" fontSize={16} letterSpacing={-0.16} fontWeight={600}>
+                Hoje você queimou
+              </Text>
+              <Box bg={isOnTrack ? '#E6F7F5' : '#FEE2E2'} px={2} py={1} borderRadius={8}>
+                <Text color={isOnTrack ? '#0CC1AF' : '#EF4444'} fontFamily="Poligon" fontSize={10} fontWeight={700} textTransform="uppercase">
+                  {isOnTrack ? 'No caminho certo' : 'Abaixo da meta'}
+                </Text>
+              </Box>
+            </HStack>
 
-            <Badge
-              background="ciano.200"
-              _text={{ color: 'white', fontSize: 12, textTransform: 'uppercase' }}
-              borderRadius={8}
-              py={1}
-            >
-              NO CAminho certo
-            </Badge>
+            <HStack alignItems="flex-end" mt={2}>
+              <Text fontFamily="Poligon" fontSize={72} fontWeight={800} letterSpacing={-0.72} color="gray.900">
+                {kcalBurned.toLocaleString('pt-BR')}
+              </Text>
+              <Text fontFamily="Poligon" ml={2} mb={4} fontSize={24} fontWeight={600} letterSpacing={-0.24} color="gray.400">
+                kcal
+              </Text>
+            </HStack>
+          </VStack>
+
+          {/* Barra de calorias */}
+          <Box mx={6} mt={4}>
+            <CaloriesBar burned={kcalBurned} target={kcalGoal} />
+          </Box>
+
+          {/* Legenda */}
+          <HStack mt={6} justifyContent="center" alignItems="center">
+            <VStack alignItems="center" space={2}>
+              <Box bg="#6FD3C6" size={3} borderRadius={4} />
+              <Text fontFamily="Poligon" fontSize={12} fontWeight={700} color="gray.300">
+                Gastas
+              </Text>
+            </VStack>
+
+            <Divider bg="gray.100" orientation="vertical" mx={4} h={8} />
+
+            <VStack alignItems="center" space={2}>
+              <Box bg="#0CC1AF" size={3} borderRadius={4} />
+              <Text fontFamily="Poligon" fontSize={12} fontWeight={700} color="gray.300">
+                Alvo
+              </Text>
+            </VStack>
+
+            <Divider bg="gray.100" orientation="vertical" mx={4} h={8} />
+
+            <VStack alignItems="center" space={2}>
+              <Box bg="#8A3FFC" size={3} borderRadius={4} />
+              <Text fontFamily="Poligon" fontSize={12} fontWeight={700} color="gray.300">
+                Faltam
+              </Text>
+            </VStack>
           </HStack>
 
-          <HStack alignItems="flex-end">
-            <Text fontSize={72} fontWeight={800} letterSpacing={-0.16}>
-              1,542
-            </Text>
-            <Text ml={2} mb={4} fontSize={24} fontWeight={600} letterSpacing={-0.64} color={'gray.400'}>
-              kcal
-            </Text>
-          </HStack>
+          {/* Seção de Atividades */}
+          <VStack mx={6} mt={10}>
+            <HStack justifyContent="space-between" alignItems="center" mb={4}>
+              <Text fontFamily="Poligon" fontSize={18} fontWeight={700} color="gray.900" letterSpacing={-0.18}>
+                Atividades
+              </Text>
+              <Pressable>
+                <Text fontFamily="Poligon" fontSize={14} fontWeight={600} color="ciano.200" letterSpacing={-0.14}>
+                  Ver Tudo
+                </Text>
+              </Pressable>
+            </HStack>
+
+            <VStack space={3}>
+              {activities.map((activity) => (
+                <ActivityCard
+                  key={activity.id}
+                  title={activity.title}
+                  calories={activity.calories}
+                  variant={activity.variant}
+                  icon={activity.icon}
+                />
+              ))}
+            </VStack>
+          </VStack>
+
+          {/* Botão de ação */}
+          <VStack mx={6} mt={8}>
+            <Button title="Adicionar Atividade" variant="primary" size="full" icon={<Text color="white" fontSize={18}>+</Text>} />
+          </VStack>
         </VStack>
-
-        {handleContribuitionChart()}
-
-        <HStack mt={12} justifyContent="center">
-          <VStack alignItems="center" space={2}>
-            <Box background="ciano.200" size={3} rounded={4} />
-            <Text fontSize={12} fontWeight={700} color="gray.300">
-              Dentro da Meta
-            </Text>
-          </VStack>
-
-          <Divider bg="gray.100" orientation="vertical" mx={4} />
-
-          <VStack alignItems="center" space={2}>
-            <Box background="red.400" size={3} rounded={4} />
-            <Text fontSize={12} fontWeight={700} color="gray.300">
-              Acima da Meta
-            </Text>
-          </VStack>
-
-          <Divider bg="gray.100" orientation="vertical" mx={4} />
-
-          <VStack alignItems="center" space={2}>
-            <Box background="gray.100" size={3} rounded={4} />
-            <Text fontSize={12} fontWeight={700} color="gray.300">
-              Sem Dados
-            </Text>
-          </VStack>
-        </HStack>
-
-        <VStack mx={6}>
-          <Button title="Adicionar Kcal Ingeridas" variant="primary" size="full" mt={20} />
-        </VStack>
-      </VStack>
-    </ScrollView>
+      </ScrollView>
+    </VStack>
   );
 }

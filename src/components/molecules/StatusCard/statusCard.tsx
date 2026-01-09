@@ -1,7 +1,6 @@
-import { AppleIcon, BarbellIcon, BedIcon, CheckIcon, WalkingIcon, WaterIcon } from '@assets/icons';
+import { BarbellIcon, BedIcon, CheckIcon, WalkingIcon, WaterIcon } from '@assets/icons';
 import { Progress } from '@components/molecules/Progress/progress';
-import { Box, VStack, Text, HStack, Badge } from 'native-base';
-import { useState } from 'react';
+import { Box, VStack, Text, HStack } from 'native-base';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useHome } from 'src/hooks/useHome';
 
@@ -11,34 +10,27 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
   // Safeguards and fallbacks to avoid runtime errors when data is missing
   const kcalCompleted = Number(trackerData?.kcal?.[0]?.kcal_completed) || 0;
   const stepsCompleted = Number(trackerData?.step?.[0]?.step_completed) || 0;
-  const nutritionCompleted = trackerData?.nutrition?.[0]?.nutrition_completed ?? [];
   const sleepCompleted = Number(trackerData?.sleep?.[0]?.sleep_completed) || 0;
   const sleepGoal = Number(trackerData?.sleep?.[0]?.sleep_goal) || 0;
   const hydrationCompleted = Number(trackerData?.hydration?.[0]?.hydration_completed) || 0;
   const hydrationGoal = Number(trackerData?.hydration?.[0]?.hydration_goal) || 0;
 
   function renderHydration() {
-    if (userTrackerData) {
-      const cards = Array.from({ length: 6 }, (_, i) => {
-        return i + 1;
-      });
+    // Define o goal padrão de 8 copos se não houver dados
+    const goal = hydrationGoal > 0 ? hydrationGoal : 8;
+    const completed = userTrackerData ? 0 : hydrationCompleted;
 
-      return cards.map((_, index) => {
-        return <Box key={index} bg={'gray.300'} h={2} borderRadius={10} flex={1} />;
-      });
-    } else if (hydrationGoal > 0) {
-      const cards = Array.from({ length: hydrationGoal }, (_, i) => i + 1);
+    const cards = Array.from({ length: goal }, (_, i) => i + 1);
 
-      return cards.map((card, index) => (
-        <Box
-          key={index}
-          bg={card <= hydrationCompleted ? 'ciano.300' : 'gray.300'}
-          h={2}
-          borderRadius={10}
-          flex={1}
-        />
-      ));
-    }
+    return cards.map((card, index) => (
+      <Box
+        key={index}
+        bg={card <= completed ? 'ciano.300' : 'gray.300'}
+        h={2}
+        borderRadius={10}
+        flex={1}
+      />
+    ));
   }
 
   return (
@@ -115,68 +107,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
         )}
       </Box>
 
-      <Box
-        bg={'white'}
-        w={'100%'}
-        p={3}
-        borderRadius={16}
-        flexDir={'row'}
-        alignItems={'center'}
-        justifyContent={'space-between'}
-      >
-        <Box bg={'gray.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
-          <AppleIcon size="24" />
-        </Box>
-
-        <VStack flex={1} ml={3}>
-          <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} mb={1}>
-            Nutrição
-          </Text>
-
-          {userTrackerData ? (
-            <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-              Você há dados sobre sua alimentação
-            </Text>
-          ) : (
-            <HStack space={2}>
-              {Array.isArray(nutritionCompleted) && nutritionCompleted.map((nutr, i) => {
-                if (i === 0) {
-                  return (
-                    <Badge
-                      key={i}
-                      borderRadius={6}
-                      bg={'dark_blue.200'}
-                      _text={{
-                        fontSize: 14,
-                        fontWeight: 600,
-                        letterSpacing: -0.12,
-                        color: 'dark_blue.50',
-                      }}
-                    >
-                      {nutr}
-                    </Badge>
-                  );
-                }
-                return (
-                  <Badge
-                    key={i}
-                    borderRadius={6}
-                    bg={'dark_blue.50'}
-                    _text={{
-                      fontSize: 14,
-                      fontWeight: 600,
-                      letterSpacing: -0.12,
-                      color: 'dark_blue.300',
-                    }}
-                  >
-                    {nutr}
-                  </Badge>
-                );
-              })}
-            </HStack>
-          )}
-        </VStack>
-      </Box>
+      {/* Card de Nutrição removido temporariamente */}
 
       <Box
         bg={'white'}
@@ -196,14 +127,13 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
             Sono
           </Text>
 
-          {userTrackerData ? (
+          {userTrackerData || (!sleepCompleted && !sleepGoal) ? (
             <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
               Sem registro do seu ciclo
             </Text>
           ) : (
             <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-              {Math.round(sleepCompleted)}/{Math.round(sleepGoal)} {'\n'}
-              Circadiano Mensal
+              {Math.round(sleepCompleted)}h de {Math.round(sleepGoal)}h
             </Text>
           )}
         </VStack>
@@ -213,17 +143,15 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
           lineCap="round"
           width={4}
           fill={
-            userTrackerData
+            userTrackerData || !sleepGoal
               ? 0
-              : sleepGoal
-              ? Math.round((sleepCompleted / sleepGoal) * 100)
-              : 0
+              : Math.min(Math.round((sleepCompleted / sleepGoal) * 100), 100)
           }
           children={() => (
             <Text fontSize={12} fontWeight={800} letterSpacing={1}>
-              {userTrackerData
+              {userTrackerData || !sleepGoal
                 ? '0%'
-                : `${sleepGoal ? (Math.round(sleepCompleted) / sleepGoal) * 100 : 0}%`}
+                : `${Math.min(Math.round((sleepCompleted / sleepGoal) * 100), 100)}%`}
             </Text>
           )}
           rotation={10}
@@ -254,10 +182,10 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
 
           <HStack justifyContent={'space-between'} mt={1}>
             <Text color={'gray.600'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-              {userTrackerData ? 0 : hydrationCompleted}
+              {userTrackerData ? 0 : hydrationCompleted} copos
             </Text>
             <Text color={'gray.600'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-              {userTrackerData ? 12 : hydrationGoal}
+              {hydrationGoal > 0 ? hydrationGoal : 8} copos
             </Text>
           </HStack>
         </VStack>

@@ -334,3 +334,46 @@ export async function updateNotificationPreferences(preferences: NotificationPre
     throw error;
   }
 }
+
+/**
+ * Verifica se o usuário completou o onboarding
+ * Endpoint: GET /user-personal-data/onboarding-status
+ *
+ * @returns Promise com o status do onboarding { hasCompletedOnboarding: boolean }
+ */
+export async function getOnboardingStatus(): Promise<{ hasCompletedOnboarding: boolean }> {
+  try {
+    console.log('📥 [USER_SERVICE] Verificando status do onboarding...');
+
+    const response = await api.get<{ data: { hasCompletedOnboarding: boolean } }>(
+      'user-personal-data/onboarding-status'
+    );
+
+    console.log('✅ [USER_SERVICE] Status do onboarding:', response.data.data);
+
+    return response.data.data;
+  } catch (error: any) {
+    console.error('❌ [USER_SERVICE] Erro ao verificar status do onboarding:', error);
+    // Em caso de erro, assumir que onboarding não foi completado
+    return { hasCompletedOnboarding: false };
+  }
+}
+
+/**
+ * Marca o onboarding como completo para o usuário
+ * Endpoint: POST /user-personal-data/complete-onboarding
+ *
+ * @returns Promise<void>
+ */
+export async function completeOnboarding(): Promise<void> {
+  try {
+    console.log('📤 [USER_SERVICE] Marcando onboarding como completo...');
+
+    await api.post('user-personal-data/complete-onboarding');
+
+    console.log('✅ [USER_SERVICE] Onboarding marcado como completo');
+  } catch (error: any) {
+    console.error('❌ [USER_SERVICE] Erro ao marcar onboarding como completo:', error);
+    throw error;
+  }
+}

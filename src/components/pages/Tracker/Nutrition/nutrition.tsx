@@ -1,111 +1,134 @@
-import { useRef, useState } from 'react';
-import { VStack, ScrollView, IScrollViewProps, Box, Text, HStack, Flex, Badge, Divider } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
+import { useRef, useMemo, useCallback } from 'react';
+import { VStack, ScrollView, IScrollViewProps, Box, Text, HStack, Divider } from 'native-base';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // components
-
-// assets
-import { HeaderTitle } from '@components/molecules';
-import { AppleIcon } from '@assets/icons';
+import { HeaderTitle, NutritionGrid } from '@components/molecules';
+import type { NutritionDayData, NutritionStatus } from '@components/molecules';
 import { Button } from '@components/atoms';
 
+// assets
+import { AppleIcon } from '@assets/icons';
+
+// hooks
+import { useHome } from 'src/hooks/useHome';
+import { useTabBar } from 'src/hooks/useTabBar';
+
 export function Nutrition() {
-  const [rangeSelected, setRangeSelected] = useState<1 | 2 | 3 | 4 | 5>(1);
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const { trackerData } = useHome();
+  const { hideTabBar, showTabBar } = useTabBar();
 
-  const data = [
-    { quarter: 1, earnings: 13000 },
-    { quarter: 2, earnings: 16500 },
-    { quarter: 3, earnings: 14250 },
-    { quarter: 4, earnings: 19000 },
-  ];
+  // Hide tab bar when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      hideTabBar();
+      return () => showTabBar();
+    }, [hideTabBar, showTabBar])
+  );
 
-  function handleContribuitionChart() {
-    const boxComponents: JSX.Element[] = [];
+  // Dados do contexto
+  const kcalGoal = Number(trackerData?.kcal?.[0]?.kcal_goal) || 2000;
+  const kcalCompleted = Number(trackerData?.kcal?.[0]?.kcal_completed) || 0;
 
-    const box = () => {
-      for (let i = 1; i <= 35; i++) {
-        boxComponents.push(
-          <Box bg="gray.100" rounded={8} size={10} alignItems={'center'} justifyContent={'center'} mb={2}></Box>
-        );
+  // Dados mock de nutrição para o mês atual
+  const nutritionData = useMemo<NutritionDayData[]>(() => {
+    const today = new Date();
+    const currentDay = today.getDate();
+    const data: NutritionDayData[] = [];
+
+    // Gera dados para os dias passados do mês
+    for (let day = 1; day <= currentDay; day++) {
+      const random = Math.random();
+      let status: NutritionStatus;
+
+      if (random < 0.6) {
+        status = 'within'; // 60% dentro da meta
+      } else if (random < 0.85) {
+        status = 'above'; // 25% acima da meta
+      } else {
+        status = 'none'; // 15% sem dados
       }
 
-      return boxComponents;
-    };
+      data.push({ day, status });
+    }
 
-    return (
-      <Flex align="center" mx={6} mt={8} justify="center">
-        <HStack flex={1} flexWrap="wrap" flexDir="row" space={2} w="100%" ml={8}>
-          {box()}
-        </HStack>
-      </Flex>
-    );
-  }
+    return data;
+  }, []);
 
   return (
-    <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-      <VStack flex={1} py={12} mb={16} width="100%">
-        <HeaderTitle withBackButton={() => navigation.navigate('homepage')} title="Nutrição" withMoreButton />
+    <VStack flex={1} py={16}>
+      <HeaderTitle withBackButton={() => navigation.navigate('tracker')} title="Nutrição" />
 
-        <VStack flex={1} mx={6} mt={2}>
-          <HStack space={2} alignItems="center">
-            <AppleIcon />
-            <Text fontSize={16} letterSpacing={-0.16} fontWeight={600}>
-              Sua Nutrição
-            </Text>
+      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+        <VStack flex={1} pb={32}>
+          {/* Header com meta */}
+          <VStack mx={6}>
+            <HStack space={2} alignItems="center">
+              <AppleIcon />
+              <Text fontFamily="Poligon" fontSize={16} letterSpacing={-0.16} fontWeight={600}>
+                Sua Nutrição
+              </Text>
+              <Box bg="ciano.200" px={2} py={1} borderRadius={8}>
+                <Text color="white" fontFamily="Poligon" fontSize={12} fontWeight={700}>
+                  META
+                </Text>
+              </Box>
+            </HStack>
 
-            <Badge background="ciano.200" _text={{ color: 'white', fontSize: 12 }} borderRadius={8} py={1}>
-              META
-            </Badge>
+            <HStack alignItems="flex-end" mt={2}>
+              <Text fontFamily="Poligon" fontSize={72} fontWeight={800} letterSpacing={-0.72} color="gray.900">
+                {kcalGoal.toLocaleString('pt-BR')}
+              </Text>
+              <Text fontFamily="Poligon" ml={2} mb={4} fontSize={24} fontWeight={600} letterSpacing={-0.24} color="gray.400">
+                kcal
+              </Text>
+            </HStack>
+          </VStack>
+
+          {/* Grid de nutrição - calendário do mês */}
+          <Box mx={6} mt={6}>
+            <NutritionGrid data={nutritionData} gap={6} />
+          </Box>
+
+          {/* Legenda */}
+          <HStack mt={8} justifyContent="center" alignItems="center">
+            <VStack alignItems="center" space={2}>
+              <Box bg="ciano.200" size={3} borderRadius={4} />
+              <Text fontFamily="Poligon" fontSize={12} fontWeight={700} color="gray.300">
+                Dentro da Meta
+              </Text>
+            </VStack>
+
+            <Divider bg="gray.100" orientation="vertical" mx={4} h={8} />
+
+            <VStack alignItems="center" space={2}>
+              <Box bg="red.400" size={3} borderRadius={4} />
+              <Text fontFamily="Poligon" fontSize={12} fontWeight={700} color="gray.300">
+                Acima da Meta
+              </Text>
+            </VStack>
+
+            <Divider bg="gray.100" orientation="vertical" mx={4} h={8} />
+
+            <VStack alignItems="center" space={2}>
+              <Box bg="gray.200" size={3} borderRadius={4} />
+              <Text fontFamily="Poligon" fontSize={12} fontWeight={700} color="gray.300">
+                Sem Dados
+              </Text>
+            </VStack>
           </HStack>
 
-          <HStack alignItems="flex-end">
-            <Text fontSize={72} fontWeight={800} letterSpacing={-0.16}>
-              2.000
-            </Text>
-            <Text ml={2} mb={4} fontSize={24} fontWeight={600} letterSpacing={-0.64} color={'gray.400'}>
-              kcal
-            </Text>
-          </HStack>
+          {/* Botão de ação */}
+          <VStack mx={6} mt={12}>
+            <Button title="Adicionar Kcal Ingeridas" variant="primary" size="full" />
+          </VStack>
         </VStack>
-
-        {handleContribuitionChart()}
-
-        <HStack mt={12} justifyContent="center">
-          <VStack alignItems="center" space={2}>
-            <Box background="ciano.200" size={3} rounded={4} />
-            <Text fontSize={12} fontWeight={700} color="gray.300">
-              Dentro da Meta
-            </Text>
-          </VStack>
-
-          <Divider bg="gray.100" orientation="vertical" mx={4} />
-
-          <VStack alignItems="center" space={2}>
-            <Box background="red.400" size={3} rounded={4} />
-            <Text fontSize={12} fontWeight={700} color="gray.300">
-              Acima da Meta
-            </Text>
-          </VStack>
-
-          <Divider bg="gray.100" orientation="vertical" mx={4} />
-
-          <VStack alignItems="center" space={2}>
-            <Box background="gray.100" size={3} rounded={4} />
-            <Text fontSize={12} fontWeight={700} color="gray.300">
-              Sem Dados
-            </Text>
-          </VStack>
-        </HStack>
-
-        <VStack mx={6}>
-          <Button title="Adicionar Kcal Ingeridas" variant="primary" size="full" mt={20} />
-        </VStack>
-      </VStack>
-    </ScrollView>
+      </ScrollView>
+    </VStack>
   );
 }

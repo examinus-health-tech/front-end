@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from 'src/services/api';
 import { OnboardingProps, stepProps } from 'src/@types/onboarding.type';
 import { DocumentPickerAsset } from 'expo-document-picker';
-import { saveUserPersonalData, getUserPersonalData } from '@services/userService';
+import { saveUserPersonalData, getUserPersonalData, getOnboardingStatus, completeOnboarding } from '@services/userService';
 
 export type OnboardingContextDataProps = {
   onboardingData: OnboardingProps;
@@ -185,110 +185,33 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
 
   const checkOnboardingCompletion = useCallback(async () => {
     try {
-      console.log('🔍 [ONBOARDING] Iniciando verificação de completude...');
+      console.log('🔍 [ONBOARDING] Verificando status do onboarding via endpoint...');
 
-      // SEMPRE buscar dados do servidor primeiro para garantir que são do usuário correto
-      console.log('🌐 [ONBOARDING] Buscando dados do servidor...');
-      try {
-        const serverPersonalData = await getUserPersonalData();
+      // Usar o endpoint dedicado do backend
+      const { hasCompletedOnboarding } = await getOnboardingStatus();
 
-        console.log('📥 [ONBOARDING] Dados do servidor recebidos:', {
-          hasData: !!serverPersonalData,
-          gender: serverPersonalData?.gender,
-          weight: serverPersonalData?.weight,
-          height: serverPersonalData?.height,
-          age: serverPersonalData?.age,
-        });
+      console.log('✅ [ONBOARDING] Status do onboarding:', { hasCompletedOnboarding });
 
-        if (serverPersonalData) {
-          // Normalizar altura de cm para metros
-          const normalizedData = normalizeHeightFromBackend(serverPersonalData);
+      setIsOnboardingComplete(hasCompletedOnboarding);
 
-          // Verificar se tem PELO MENOS UM dos campos principais do onboarding COM VALOR
-          // Não consideramos fullName/email/phone/location/birthDate/country pois são da tela Info
-          // Importante: verificar se tem valor não-null/undefined
-          const hasOnboardingData =
-            (normalizedData.gender !== null && normalizedData.gender !== undefined) ||
-            (normalizedData.weight !== null && normalizedData.weight !== undefined) ||
-            (normalizedData.height !== null && normalizedData.height !== undefined) ||
-            (normalizedData.age !== null && normalizedData.age !== undefined) ||
-            (normalizedData.workoutLevel !== null && normalizedData.workoutLevel !== undefined) ||
-            (normalizedData.physicalLevel !== null && normalizedData.physicalLevel !== undefined) ||
-            (normalizedData.eatingHabits !== null && normalizedData.eatingHabits !== undefined) ||
-            (normalizedData.moodLevel !== null && normalizedData.moodLevel !== undefined);
-
-          console.log('✅ [ONBOARDING] Análise dos dados do servidor:', {
-            hasOnboardingData,
-            gender: normalizedData.gender !== null && normalizedData.gender !== undefined,
-            weight: normalizedData.weight !== null && normalizedData.weight !== undefined,
-            height: normalizedData.height !== null && normalizedData.height !== undefined,
-            age: normalizedData.age !== null && normalizedData.age !== undefined,
-            workoutLevel: normalizedData.workoutLevel !== null && normalizedData.workoutLevel !== undefined,
-            eatingHabits: normalizedData.eatingHabits !== null && normalizedData.eatingHabits !== undefined,
-          });
-
-          // Só atualizar cache local se realmente tiver dados de onboarding
-          if (hasOnboardingData) {
+      // Se completou onboarding, buscar dados pessoais para o cache local
+      if (hasCompletedOnboarding) {
+        try {
+          const serverPersonalData = await getUserPersonalData();
+          if (serverPersonalData) {
+            const normalizedData = normalizeHeightFromBackend(serverPersonalData);
             await AsyncStorage.setItem('@app:personalData', JSON.stringify(normalizedData));
             setPersonalData(normalizedData);
-          } else {
-            console.log('ℹ️ [ONBOARDING] Dados existem mas estão todos null - considerando onboarding incompleto');
-            await AsyncStorage.removeItem('@app:personalData');
-            setPersonalData(undefined);
           }
-
-          setIsOnboardingComplete(hasOnboardingData);
-          return hasOnboardingData;
-        } else {
-          console.log('⚠️ [ONBOARDING] Servidor retornou resposta vazia');
+        } catch (dataError) {
+          console.log('⚠️ [ONBOARDING] Erro ao buscar dados pessoais:', dataError);
         }
-      } catch (serverError: any) {
-        console.log('⚠️ [ONBOARDING] Erro ao buscar dados do servidor:', {
-          message: serverError?.message,
-        });
-
-        // getUserPersonalData() já retorna null em caso de 404
-        // Se chegou aqui com erro, é um erro real (não 404)
-        console.log('❌ [ONBOARDING] Erro real ao buscar dados (não é 404)');
-        await AsyncStorage.removeItem('@app:personalData');
-        setIsOnboardingComplete(false);
+      } else {
         setPersonalData(undefined);
-
-        // Para outros erros, verificar cache local como fallback
-        console.log('🔄 [ONBOARDING] Verificando cache local como fallback...');
-        const storedPersonalData = await AsyncStorage.getItem('@app:personalData');
-
-        if (storedPersonalData) {
-          try {
-            const parsedData = JSON.parse(storedPersonalData);
-
-            // Verificar campos do onboarding COM VALOR (não campos da tela Info)
-            const hasOnboardingData =
-              parsedData &&
-              ((parsedData.gender !== null && parsedData.gender !== undefined) ||
-                (parsedData.weight !== null && parsedData.weight !== undefined) ||
-                (parsedData.height !== null && parsedData.height !== undefined) ||
-                (parsedData.age !== null && parsedData.age !== undefined) ||
-                (parsedData.workoutLevel !== null && parsedData.workoutLevel !== undefined) ||
-                (parsedData.physicalLevel !== null && parsedData.physicalLevel !== undefined) ||
-                (parsedData.eatingHabits !== null && parsedData.eatingHabits !== undefined) ||
-                (parsedData.moodLevel !== null && parsedData.moodLevel !== undefined));
-
-            console.log('📦 [ONBOARDING] Usando dados do cache local - onboarding completo:', hasOnboardingData);
-            setPersonalData(parsedData);
-            setIsOnboardingComplete(hasOnboardingData);
-            return hasOnboardingData;
-          } catch (parseError) {
-            console.log('❌ [ONBOARDING] Erro ao fazer parse do cache local:', parseError);
-            await AsyncStorage.removeItem('@app:personalData');
-          }
-        }
+        await AsyncStorage.removeItem('@app:personalData');
       }
 
-      console.log('❌ [ONBOARDING] Nenhum dado encontrado - onboarding incompleto');
-      setIsOnboardingComplete(false);
-      setPersonalData(undefined);
-      return false;
+      return hasCompletedOnboarding;
     } catch (error: any) {
       console.log('❌ [ONBOARDING] Erro na verificação:', error);
       setIsOnboardingComplete(false);
@@ -344,6 +267,14 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
       const response = await saveUserPersonalData(normalizedPayload);
 
       console.log('✅ [ONBOARDING] Dados salvos com sucesso no backend!');
+
+      // Marcar onboarding como completo no backend
+      try {
+        await completeOnboarding();
+        console.log('✅ [ONBOARDING] Flag de onboarding completo atualizada no backend');
+      } catch (completeError) {
+        console.warn('⚠️ [ONBOARDING] Erro ao marcar onboarding como completo:', completeError);
+      }
 
       // Atualizar cache local (manter altura em metros para o frontend)
       const dataForLocalStorage = {

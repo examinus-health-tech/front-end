@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Circle, Modal, Button as NativeBaseButton, Actionsheet, useDisclose } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Modal, Button as NativeBaseButton, Actionsheet, useDisclose } from 'native-base';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -112,6 +113,7 @@ type ExamDataProps = {
 
 export function ExamList() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const scrollRef = useRef<IScrollViewProps>(null);
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
@@ -137,6 +139,17 @@ export function ExamList() {
     endDate: '',
     status: '',
   });
+
+  // Garantir StatusBar dark quando a tela ganhar foco
+  useFocusEffect(
+    useCallback(() => {
+      const timer = setTimeout(() => {
+        StatusBar.setBarStyle('dark-content');
+      }, 100);
+      return () => clearTimeout(timer);
+    }, [])
+  );
+
   const [filteredExams, setFilteredExams] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -425,28 +438,14 @@ export function ExamList() {
       >
         <HStack
           justifyContent="space-between"
-          alignItems="flex-start"
+          alignItems="center"
           space={3}
           flex={1}
           opacity={isScoreComputed ? 1 : 0.7}
         >
-          {/* Ícone com indicador de status */}
-          <Box position="relative" mt={1}>
-            <Box bg="gray.100" borderRadius={16} w={16} h={14} alignItems="center" justifyContent="center">
-              <FlaskIcon size="32" variant="duotone" color={isScoreComputed ? undefined : 'gray.400'} />
-            </Box>
-            {/* Bolinha de status no canto */}
-            <Circle
-              size={4}
-              bg={statusColor}
-              position="absolute"
-              bottom={-1}
-              right={-1}
-              borderWidth={2}
-              borderColor="white"
-            >
-              {isProcessing && <Circle size={1.5} bg="white" />}
-            </Circle>
+          {/* Ícone */}
+          <Box bg="gray.100" borderRadius={16} w={16} h={14} alignItems="center" justifyContent="center">
+            <FlaskIcon size="32" variant="duotone" color={isScoreComputed ? undefined : 'gray.400'} />
           </Box>
 
           {/* Conteúdo central */}
@@ -457,31 +456,33 @@ export function ExamList() {
             </Text>
 
             {/* Linha 2: Data do exame */}
-            <HStack alignItems="center" space={1} mt={1}>
+            <HStack alignItems="center" space={1} mt={0.5}>
               <Text fontSize={12} fontWeight={600} color="gray.500">Exame</Text>
               <Text fontSize={13} fontWeight={600} color={exam.examDate ? "gray.700" : "gray.400"}>
                 {exam.examDate ? formatDateToBrazilian(exam.examDate) : 'Não identificada'}
               </Text>
             </HStack>
 
-            {/* Linha 3: Data de envio + Badge de status */}
-            <HStack alignItems="center" space={1} mt={1}>
+            {/* Linha 3: Data de envio */}
+            <HStack alignItems="center" space={1} mt={0}>
               <Text fontSize={11} fontWeight={500} color="gray.400">Enviado</Text>
               <Text fontSize={12} fontWeight={500} color="gray.500">
                 {formatDateToBrazilian(exam.createdDate)}
               </Text>
             </HStack>
+
+            {/* Linha 4: Status */}
+            <HStack alignItems="center" mt={0.5}>
+              <Box bg={statusColor} borderRadius={6} px={2} py={0.5}>
+                <Text fontSize={10} fontWeight={700} color="white">
+                  {statusMessage}
+                </Text>
+              </Box>
+            </HStack>
           </VStack>
 
-          {/* Lado direito: Badge + Ícone */}
-          <VStack alignItems="flex-end" justifyContent="center" space={2}>
-            {/* Badge de status */}
-            <Box bg={statusColor} borderRadius={6} px={2} py={0.5}>
-              <Text fontSize={10} fontWeight={700} color="white" textAlign="center">
-                {statusMessage}
-              </Text>
-            </Box>
-
+          {/* Lado direito: Ícone de ação */}
+          <VStack alignItems="flex-end" justifyContent="center">
             {/* Exames concluídos: apenas chevron */}
             {isScoreComputed && (
               <ChevronRightIcon color="#0CC1AF" size="28" />
@@ -538,7 +539,15 @@ export function ExamList() {
             <VStack flex={1} space={8} pt={2} pb={32}>
               <VStack mx={6} mt={4} space={8}>
                 {filteredExams && Array.isArray(filteredExams) && filteredExams.length > 0 ? (
-                  filteredExams.map((exam, index) => <Box key={index}>{renderExam(exam)}</Box>)
+                  filteredExams.map((exam, index) => (
+                    <Animated.View
+                      key={exam.medicalExamId || index}
+                      entering={!hasAnimated ? FadeInDown.duration(400).delay(index * 80) : undefined}
+                      onLayout={() => index === filteredExams.length - 1 && !hasAnimated && setHasAnimated(true)}
+                    >
+                      {renderExam(exam)}
+                    </Animated.View>
+                  ))
                 ) : examData && Array.isArray(examData) && examData.length > 0 ? (
                   <VStack alignItems="center" justifyContent="center" py={20} space={4}>
                     <Box bg="gray.100" borderRadius={16} w={20} h={16} alignItems="center" justifyContent="center">
