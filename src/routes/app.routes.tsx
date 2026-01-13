@@ -1,7 +1,8 @@
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import { Homepage, HealthWallet, HeartScore, UploadMain } from '@components/pages/Homepage';
-import { AboutUs, ConfigNotifications, ContactUs, Info, MyAccount, Preferences, Security } from '@components/pages/Settings';
+import { MentalHealthForm, MentalHealthResult } from '@components/pages/MentalHealth';
+import { AboutUs, ConfigNotifications, ContactUs, Info, MyAccount, Preferences, Security, SmartGoals } from '@components/pages/Settings';
 
 import { ExamList, Exam } from '@components/pages/Exam';
 
@@ -16,7 +17,7 @@ import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useState, useEffect } from 'react';
 import { Flex, Image } from 'native-base';
 
-import { Weight, Tracker, Calories, Nutrition, Steps, Hydration } from '@components/pages/Tracker';
+import { Weight, Tracker, Calories, Nutrition, Steps, Hydration, Sleep } from '@components/pages/Tracker';
 import {
   BiomConfig,
   EditProfile,
@@ -67,6 +68,9 @@ export type AppRoutes = {
   preferences: undefined;
   steps: undefined;
   hydration: undefined;
+  mentalHealthForm: undefined;
+  mentalHealthResult: { assessmentId?: string } | undefined;
+  smartGoals: undefined;
 };
 
 export type AppNavigatorRoutesProps = NativeStackNavigationProp<AppRoutes>;
@@ -286,6 +290,13 @@ function HomeTabsContent() {
           tabBarButton: () => null,
         }}
       />
+      <Tab.Screen
+        name="sleep"
+        component={Sleep}
+        options={{
+          tabBarButton: () => null,
+        }}
+      />
     </Tab.Navigator>
   );
 }
@@ -384,10 +395,15 @@ function AppRoutesContent() {
       {/* <Screen name="myAccount" component={MyAccount} /> */}
       <Screen name="configNotifications" component={ConfigNotifications} />
       <Screen name="preferences" component={Preferences} />
+      <Screen name="smartGoals" component={SmartGoals} />
       <Screen name="info" component={Info} />
       <Screen name="security" component={Security} />
       <Screen name="contactUs" component={ContactUs} />
       <Screen name="aboutUs" component={AboutUs} />
+
+      {/** MENTAL HEALTH */}
+      <Screen name="mentalHealthForm" component={MentalHealthForm} />
+      <Screen name="mentalHealthResult" component={MentalHealthResult} />
 
       {/** FITNESS TRACKER */}
       {/* <Screen name="calories" component={Calories} /> */}

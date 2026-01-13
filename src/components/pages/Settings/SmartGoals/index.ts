@@ -1,0 +1,1 @@
+export { SmartGoals } from './smartGoals';

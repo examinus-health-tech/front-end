@@ -91,9 +91,13 @@ export function WeightStepChart({
     const y = valueToY(point.value);
 
     if (index === 0) {
-      const nextRadius = index < displayData.length - 1
-        ? Math.min(maxRadius, Math.abs(valueToY(displayData[index + 1].value) - y) / 2, barWidth / 2)
-        : maxRadius;
+      // Se é o único ponto ou o primeiro de vários
+      const isOnlyPoint = displayData.length === 1;
+      const nextRadius = isOnlyPoint
+        ? 0  // Sem arredondamento para ponto único - linha reta até o final
+        : index < displayData.length - 1
+          ? Math.min(maxRadius, Math.abs(valueToY(displayData[index + 1].value) - y) / 2, barWidth / 2)
+          : 0;
       linePath = `M ${xStart} ${y}`;
       linePath += ` L ${xEnd - nextRadius} ${y}`;
     } else {
@@ -252,15 +256,15 @@ export function WeightStepChart({
               entering={FadeIn.delay(100 + index * 50).duration(200)}
               style={{
                 position: 'absolute',
-                left: indicator.x - 20,
+                left: indicator.x - 28,
                 top: indicator.y - 32,
-                width: 40,
+                minWidth: 56,
                 alignItems: 'center',
               }}
             >
               <Box bg="gray.800" px={2} py={1} borderRadius={6}>
-                <Text fontFamily="Poligon" fontSize={10} fontWeight={600} color="white">
-                  {indicator.value}
+                <Text fontFamily="Poligon" fontSize={12} fontWeight={600} color="white" numberOfLines={1}>
+                  {indicator.value.toLocaleString('pt-BR')}
                 </Text>
               </Box>
             </Animated.View>

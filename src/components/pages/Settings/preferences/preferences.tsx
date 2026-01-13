@@ -15,7 +15,7 @@ import { useHome } from 'src/hooks/useHome';
 import { isFitnessEnabled, setFitnessEnabled } from '@services/fitnessService';
 
 // icons
-import { BarbellIcon } from '@assets/icons';
+import { BarbellIcon, CompassTargetIcon } from '@assets/icons';
 
 export function Preferences() {
   const scrollRef = useRef<IScrollViewProps>(null);
@@ -101,22 +101,15 @@ export function Preferences() {
                 onSwitchChange={handleFitnessToggle}
                 disabled={isLoading}
               />
+              <Card
+                title="Metas Inteligentes"
+                subTitle="Configure suas metas de hidratação, calorias e passos baseadas no seu perfil"
+                variant="description"
+                action="chevron"
+                icon={<CompassTargetIcon color="#3D4966" size="24" />}
+                goTo={() => navigation.navigate('smartGoals')}
+              />
             </VStack>
-
-            {fitnessTrackerEnabled && (
-              <VStack mt={6}>
-                <Text fontSize={14} fontWeight={500} color={'gray.500'} lineHeight={20}>
-                  Com o Rastreador Fitness habilitado, você poderá:
-                </Text>
-                <VStack mt={2} space={1}>
-                  <Text fontSize={14} color={'gray.600'}>• Registrar passos e atividades físicas</Text>
-                  <Text fontSize={14} color={'gray.600'}>• Monitorar consumo de água</Text>
-                  <Text fontSize={14} color={'gray.600'}>• Acompanhar calorias consumidas e queimadas</Text>
-                  <Text fontSize={14} color={'gray.600'}>• Registrar qualidade do sono</Text>
-                  <Text fontSize={14} color={'gray.600'}>• Definir metas personalizadas</Text>
-                </VStack>
-              </VStack>
-            )}
           </VStack>
         </VStack>
       </ScrollView>

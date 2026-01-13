@@ -3,6 +3,7 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { ReactNode, createContext, useState, useEffect, useCallback } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 
+import { Platform } from 'react-native';
 import { api } from 'src/services/api';
 import { getFitnessDashboard, isFitnessEnabled, FitnessDashboard } from 'src/services/fitnessService';
 import {
@@ -12,6 +13,13 @@ import {
   syncHealthKitToBackend,
   HealthKitData
 } from 'src/services/healthKitService';
+import {
+  isHealthConnectAvailable,
+  initHealthConnect,
+  getHealthConnectDataForDate,
+  syncHealthConnectToBackend,
+  HealthConnectData
+} from 'src/services/healthConnectService';
 
 type homeProps = {
   medicalExamId: string;
@@ -152,7 +160,48 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       }],
       nutrition: [{
         calculation_date: today,
-        nutrition_completed: [],
+        nutrition_completed: 0,
+      }],
+      sleep: [{
+        calculation_date: today,
+        sleep_completed: String(Math.round((healthData.sleepMinutes || 0) / 60)),
+        sleep_goal: '8',
+      }],
+    };
+  }
+
+  // Converte dados do Health Connect (Android) para o formato trackerProps
+  function convertHealthConnectToTracker(healthData: HealthConnectData): trackerProps {
+    const today = new Date().toISOString().split('T')[0];
+
+    return {
+      kcal: [{
+        calculation_date: today,
+        kcal_completed: String(healthData.caloriesBurned || 0),
+        kcal_goal: '2000',
+      }],
+      step: [{
+        calculation_date: today,
+        step_completed: String(healthData.steps || 0),
+        step_goal: '10000',
+        distance_completed: String(healthData.distance?.toFixed(2) || '0'),
+        distance_goal: '5',
+        hour_completed: '0',
+        hour_goal: '1',
+      }],
+      weight: healthData.weightKg ? [{
+        calculation_date: today,
+        weight_completed: String(healthData.weightKg),
+        weight_goal: null,
+      }] : [],
+      hydration: [{
+        calculation_date: today,
+        hydration_completed: String(Math.floor((healthData.waterMl || 0) / 250)),
+        hydration_goal: '8', // 8 copos = 2L
+      }],
+      nutrition: [{
+        calculation_date: today,
+        nutrition_completed: 0,
       }],
       sleep: [{
         calculation_date: today,
@@ -191,10 +240,10 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         hydration_completed: String(Math.floor((dashboard.todayLog.waterMl || 0) / 250)), // Converte ml para copos (250ml)
         hydration_goal: String(Math.floor((dashboard.todayLog.waterGoalMl || 2000) / 250)),
       }] : [],
-      nutrition: [{
+      nutrition: dashboard.todayLog ? [{
         calculation_date: today,
-        nutrition_completed: [], // TODO: Integrar com dados de nutrição quando disponível
-      }],
+        nutrition_completed: dashboard.todayLog.caloriesConsumed || 0,
+      }] : [],
       sleep: dashboard.lastNightSleep ? [{
         calculation_date: today,
         sleep_completed: String(Math.round((dashboard.lastNightSleep.durationMinutes || 0) / 60)), // Converte minutos para horas
@@ -245,7 +294,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       }],
       nutrition: [{
         calculation_date: today,
-        nutrition_completed: backendData.nutrition?.[0]?.nutrition_completed || [],
+        nutrition_completed: backendData.nutrition?.[0]?.nutrition_completed || 0,
       }],
       sleep: [{
         calculation_date: today,
@@ -259,18 +308,18 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
     try {
       console.log('🏃 [HomeContext] Buscando dados de fitness...');
 
-      let healthKitData: trackerProps = {} as trackerProps;
+      let nativeHealthData: trackerProps = {} as trackerProps;
       let backendData: trackerProps = {} as trackerProps;
 
-      // 1. Tenta buscar dados do HealthKit (iOS)
-      if (isHealthKitAvailable()) {
+      // 1. Tenta buscar dados do HealthKit (iOS) ou Health Connect (Android)
+      if (Platform.OS === 'ios' && isHealthKitAvailable()) {
         try {
           console.log('📱 [HomeContext] Inicializando HealthKit...');
           await initHealthKit();
 
           const rawHealthData = await getHealthKitDataForDate(new Date());
-          healthKitData = convertHealthKitToTracker(rawHealthData);
-          console.log('✅ [HomeContext] Dados do HealthKit:', healthKitData);
+          nativeHealthData = convertHealthKitToTracker(rawHealthData);
+          console.log('✅ [HomeContext] Dados do HealthKit:', nativeHealthData);
 
           // Sincroniza com backend em background (não bloqueia UI)
           syncHealthKitToBackend().catch(err =>
@@ -278,6 +327,27 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
           );
         } catch (healthKitError) {
           console.warn('⚠️ [HomeContext] Erro ao buscar do HealthKit:', healthKitError);
+        }
+      } else if (Platform.OS === 'android') {
+        try {
+          const isAvailable = await isHealthConnectAvailable();
+          if (isAvailable) {
+            console.log('📱 [HomeContext] Inicializando Health Connect...');
+            await initHealthConnect();
+
+            const rawHealthData = await getHealthConnectDataForDate(new Date());
+            nativeHealthData = convertHealthConnectToTracker(rawHealthData);
+            console.log('✅ [HomeContext] Dados do Health Connect:', nativeHealthData);
+
+            // Sincroniza com backend em background (não bloqueia UI)
+            syncHealthConnectToBackend().catch(err =>
+              console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err)
+            );
+          } else {
+            console.log('📭 [HomeContext] Health Connect não disponível');
+          }
+        } catch (healthConnectError) {
+          console.warn('⚠️ [HomeContext] Erro ao buscar do Health Connect:', healthConnectError);
         }
       }
 
@@ -292,17 +362,17 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         console.warn('⚠️ [HomeContext] Erro ao buscar do backend:', backendError);
       }
 
-      // 3. Mescla os dados (HealthKit + Backend)
-      const hasHealthKit = Object.keys(healthKitData).length > 0;
+      // 3. Mescla os dados (HealthKit/Health Connect + Backend)
+      const hasNativeHealth = Object.keys(nativeHealthData).length > 0;
       const hasBackend = Object.keys(backendData).length > 0;
 
-      if (hasHealthKit && hasBackend) {
-        const mergedData = mergeTrackerData(healthKitData, backendData);
+      if (hasNativeHealth && hasBackend) {
+        const mergedData = mergeTrackerData(nativeHealthData, backendData);
         setTrackerData(mergedData);
-        console.log('✅ [HomeContext] Dados mesclados (HealthKit + Backend):', mergedData);
-      } else if (hasHealthKit) {
-        setTrackerData(healthKitData);
-        console.log('✅ [HomeContext] Usando apenas dados do HealthKit');
+        console.log('✅ [HomeContext] Dados mesclados (Native + Backend):', mergedData);
+      } else if (hasNativeHealth) {
+        setTrackerData(nativeHealthData);
+        console.log('✅ [HomeContext] Usando apenas dados nativos');
       } else if (hasBackend) {
         setTrackerData(backendData);
         console.log('✅ [HomeContext] Usando apenas dados do backend');

@@ -4,3 +4,4 @@ export { Calories } from './Calories/calories';
 export { Nutrition } from './Nutrition/nutrition';
 export { Steps } from './Steps/steps';
 export { Hydration } from './Hydration/hydration';
+export { Sleep } from './Sleep/sleep';

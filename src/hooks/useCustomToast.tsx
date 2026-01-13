@@ -72,7 +72,7 @@ export function useCustomToast() {
                 justifyContent="center"
                 flexShrink={0}
               >
-                <Text fontSize={11} fontWeight="800" color="white">
+                <Text fontSize={12} fontWeight="800" color="white">
                   {style.symbol}
                 </Text>
               </Box>

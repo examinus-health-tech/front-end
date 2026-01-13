@@ -21,14 +21,9 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
 import {
-  BarbellIcon,
-  BellIcon,
-  CalendarIcon,
   FigIcon,
   HeartIcon,
   ImuIcon,
-  MoreIcon,
-  MusIcon,
   PanIcon,
   RinIcon,
   SanIcon,
@@ -95,24 +90,25 @@ export function HealthWallet() {
       };
     } else if (score > 333 && score <= 666) {
       return {
-        title: 'risco normal',
-        bgColor: 'ciano.50',
-        color: '#0CC1AF',
+        title: 'normal',
+        bgColor: 'yellow.50',
+        color: '#F59E0B',
         text: (
           <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
-            Aí sim! Seu sistema digestivo está ótimo!
+            Sua saúde está normal. Alguns indicadores podem melhorar.
+            <Text color={'#F59E0B'}> Clique aqui</Text> para saber mais.
           </Text>
         ),
       };
     } else if (score > 666 && score <= 1000) {
       return {
         title: 'excelente',
-        bgColor: 'purple.50',
-        color: '#8A3FFC',
+        bgColor: 'green.50',
+        color: '#0CC1AF',
         text: (
           <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
             Está excelente. Mantenha o bom score fazendo um
-            <Text color={'#8A3FFC'}> check-up clicando aqui.</Text>
+            <Text color={'#0CC1AF'}> check-up clicando aqui.</Text>
           </Text>
         ),
       };
@@ -218,7 +214,7 @@ export function HealthWallet() {
   return (
     <VStack py={16} flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      <HeaderTitle title="Health Wallet" withBackButton={() => navigation.navigate('homepage')} />
+      <HeaderTitle title="Carteira de Saúde" withBackButton={() => navigation.navigate('homepage')} />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
         <VStack flex={1} space={8} pt={2} pb={32}>
@@ -278,7 +274,7 @@ export function HealthWallet() {
 
                 {/* Medical Disclaimer */}
                 <Box mt={2} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
-                  <Text fontSize={10} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
+                  <Text fontSize={12} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
                     ⚠️ Aviso Médico: Esta análise é apenas informativa e não substitui consulta médica. Sempre consulte
                     seu médico antes de tomar decisões sobre sua saúde.
                   </Text>
@@ -287,17 +283,11 @@ export function HealthWallet() {
               </Box>
             </Animated.View>
 
-            {/* Overview - animação 2 */}
+            {/* Visão Geral - animação 2 */}
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(100) : undefined}>
-              <HStack justifyContent={'space-between'} mt={6}>
-                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                  Overview
-                </Text>
-
-                <TouchableOpacity>
-                  <MoreIcon />
-                </TouchableOpacity>
-              </HStack>
+              <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color={'gray.900'} mt={6}>
+                Visão Geral
+              </Text>
 
               {renderSystems()}
             </Animated.View>
@@ -315,22 +305,22 @@ export function HealthWallet() {
                   </Text>
                   <VStack space={2}>
                     <TouchableOpacity onPress={() => Linking.openURL('https://www.who.int/health-topics')}>
-                      <Text fontSize={11} fontWeight={500} color="ciano.600">
+                      <Text fontSize={12} fontWeight={500} color="ciano.600">
                         ↗ Organização Mundial da Saúde (OMS)
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => Linking.openURL('https://www.gov.br/saude')}>
-                      <Text fontSize={11} fontWeight={500} color="ciano.600">
+                      <Text fontSize={12} fontWeight={500} color="ciano.600">
                         ↗ Ministério da Saúde (Brasil)
                       </Text>
                     </TouchableOpacity>
                     <TouchableOpacity onPress={() => Linking.openURL('https://www.mayocliniclabs.com')}>
-                      <Text fontSize={11} fontWeight={500} color="ciano.600">
+                      <Text fontSize={12} fontWeight={500} color="ciano.600">
                         ↗ Mayo Clinic Laboratories
                       </Text>
                     </TouchableOpacity>
                   </VStack>
-                  <Text fontSize={10} color="gray.500" mt={3}>
+                  <Text fontSize={12} color="gray.500" mt={3}>
                     Consulte seu médico para interpretação personalizada.
                   </Text>
                 </Box>

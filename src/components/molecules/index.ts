@@ -23,3 +23,8 @@ export { StepStatCard } from './StepStatCard';
 export type { StepStatCardProps, StepStatCardVariant } from './StepStatCard';
 export { WeeklyStepsChart } from './WeeklyStepsChart';
 export type { WeeklyStepsChartProps, DayData as StepsDayData } from './WeeklyStepsChart';
+export { NewsCarousel } from './NewsCarousel';
+export { SystemInsights } from './SystemInsights';
+export { FeatureBanner } from './FeatureBanner';
+export { SmartSuggestionCard } from './SmartSuggestionCard';
+export { DailyAnalysisCard } from './DailyAnalysisCard';

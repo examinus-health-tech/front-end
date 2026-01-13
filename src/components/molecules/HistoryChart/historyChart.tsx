@@ -27,7 +27,7 @@ export function HistoryChart({
   unit,
   referenceMin,
   referenceMax,
-  color = '#00B39D',
+  color = '#0CC1AF',
 }: HistoryChartProps) {
   const chartData = useMemo(() => {
     if (!historyData || historyData.length === 0) return [];
@@ -37,7 +37,7 @@ export function HistoryChart({
       label: point.label,
       dataPointText: point.value.toString(),
       dataPointLabelComponent: () => (
-        <Text fontSize={10} color="gray.600" mt={-4}>
+        <Text fontSize={12} color="gray.600" mt={-4}>
           {point.value}
         </Text>
       ),
@@ -107,7 +107,7 @@ export function HistoryChart({
           <Text fontSize={12} color="gray.600" textAlign="center">
             Valor atual: {historyData[0].value} {unit}
           </Text>
-          <Text fontSize={10} color="gray.400" textAlign="center" mt={1}>
+          <Text fontSize={12} color="gray.400" textAlign="center" mt={1}>
             {historyData[0].date}
           </Text>
         </Box>
@@ -211,7 +211,7 @@ export function HistoryChart({
 
       <HStack justifyContent="space-between" mt={3} px={2}>
         <VStack>
-          <Text fontSize={10} color="gray.400">
+          <Text fontSize={12} color="gray.400">
             Primeiro registro
           </Text>
           <Text fontSize={12} fontWeight={600} color="gray.700">
@@ -219,7 +219,7 @@ export function HistoryChart({
           </Text>
         </VStack>
         <VStack alignItems="flex-end">
-          <Text fontSize={10} color="gray.400">
+          <Text fontSize={12} color="gray.400">
             Ultimo registro
           </Text>
           <Text fontSize={12} fontWeight={600} color="gray.700">
@@ -238,7 +238,7 @@ export function HistoryChart({
                 ? 'Aumento'
                 : 'Estável'}
             </Text>
-            <Text fontSize={11} color="gray.500">
+            <Text fontSize={12} color="gray.500">
               Variação de {Math.abs(historyData[historyData.length - 1].value - historyData[0].value).toFixed(1)}{' '}
               {unit} desde o primeiro exame
             </Text>

@@ -13,7 +13,7 @@ export type Props = IButtonProps & {
   withMoreButton?: boolean;
   withFilterButton?: boolean;
   title?: string;
-  badgeVariant?: 'risco alto' | 'risco normal' | 'excelente';
+  badgeVariant?: 'risco alto' | 'normal' | 'excelente';
   filterButtonAction?: () => void;
   color?: string;
 };
@@ -45,14 +45,14 @@ export function HeaderTitle({
         );
       }
 
-      case 'risco normal': {
+      case 'normal': {
         return (
           <Badge
-            bg="ciano.100"
+            bg="yellow.100"
             borderRadius={6}
             _text={{
               textTransform: 'uppercase',
-              color: 'ciano.400',
+              color: 'yellow.600',
               fontSize: 10,
             }}
           >
@@ -64,11 +64,11 @@ export function HeaderTitle({
       case 'excelente': {
         return (
           <Badge
-            bg="purple.100"
+            bg="ciano.50"
             borderRadius={6}
             _text={{
               textTransform: 'uppercase',
-              color: 'purple.400',
+              color: 'ciano.400',
               fontSize: 10,
             }}
           >

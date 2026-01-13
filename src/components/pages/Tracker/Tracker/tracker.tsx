@@ -1,6 +1,7 @@
-import { useRef } from 'react';
+import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { VStack, ScrollView, IScrollViewProps, Box, Flex, Text, Image, HStack } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
+import { TouchableOpacity } from 'react-native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -8,30 +9,133 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 // components
 import { FitnessCard } from '@components/molecules/FitnessCard';
 import { Progress } from '@components/molecules/Progress/progress';
-import { HeaderTitle } from '@components/molecules';
+import { HeaderTitle, SmartSuggestionCard, DailyAnalysisCard } from '@components/molecules';
 
 // assets
 import Vector from '@assets/png/vector-12.png';
 
 // hooks
 import { useHome } from 'src/hooks/useHome';
-import { TouchableOpacity } from 'react-native';
+import { useOnboarding } from 'src/hooks/useOnboarding';
+
+// services
+import { generateSuggestions, GoalSuggestion } from 'src/services/goalCalculatorService';
+import { setHydrationGoal, getHydrationGoal, setCaloriesGoal, getCaloriesGoal, setStepsGoal, getStepsGoal } from 'src/services/fitnessService';
+import type { DailyFitnessData } from 'src/services/dailyAnalysisService';
+
+// utils
+import Toast from 'react-native-toast-message';
 
 export function Tracker() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const { trackerData } = useHome();
+  const { trackerData, refreshFitnessData } = useHome();
+  const { personalData } = useOnboarding();
+
+  // Estados para metas locais
+  const [currentGoals, setCurrentGoals] = useState({
+    hydration: 2000,
+    calories: 2000,
+    steps: 10000,
+  });
+
+  // Carrega metas salvas
+  useEffect(() => {
+    async function loadGoals() {
+      const [hydrationGoal, caloriesGoal, stepsGoalLocal] = await Promise.all([
+        getHydrationGoal(),
+        getCaloriesGoal(),
+        getStepsGoal(),
+      ]);
+      setCurrentGoals(prev => ({
+        ...prev,
+        hydration: hydrationGoal || 2000,
+        calories: caloriesGoal || 2000,
+        // Prioriza meta local, senão usa do backend
+        steps: stepsGoalLocal || Number(trackerData?.step?.[0]?.step_goal) || 10000,
+      }));
+    }
+    loadGoals();
+  }, []);
 
   // Dados do contexto
   const stepsCompleted = Number(trackerData?.step?.[0]?.step_completed) || 0;
   const stepsGoal = Number(trackerData?.step?.[0]?.step_goal) || 10000;
   const weightCompleted = Number(trackerData?.weight?.[0]?.weight_completed) || 0;
-  const kcalCompleted = Number(trackerData?.kcal?.[0]?.kcal_completed) || 0;
+  const kcalBurned = Number(trackerData?.kcal?.[0]?.kcal_completed) || 0;
   const sleepCompleted = Number(trackerData?.sleep?.[0]?.sleep_completed) || 0;
   const hydrationCompleted = Number(trackerData?.hydration?.[0]?.hydration_completed) || 0;
 
+  // Calorias consumidas (nutrição) - pode ser número ou array
+  const nutritionData = trackerData?.nutrition?.[0]?.nutrition_completed;
+  const nutritionCompleted = typeof nutritionData === 'number'
+    ? nutritionData
+    : Array.isArray(nutritionData)
+      ? nutritionData.reduce((acc: number, item: any) => acc + (Number(item.kcal) || 0), 0)
+      : 0;
+
   // Calcula progresso dos passos
   const stepsProgress = stepsGoal > 0 ? Math.min(Math.round((stepsCompleted / stepsGoal) * 100), 100) : 0;
+
+  // Gera sugestões baseadas no perfil do usuário
+  const suggestions = useMemo(() => {
+    const profile = personalData as {
+      weight?: number;
+      height?: number;
+      age?: number;
+      gender?: string;
+      workoutLevel?: number;
+    } | undefined;
+
+    if (!profile?.weight) return [];
+
+    return generateSuggestions(
+      {
+        weight: profile.weight,
+        height: profile.height,
+        age: profile.age,
+        gender: profile.gender as 'M' | 'F',
+        workoutLevel: profile.workoutLevel,
+      },
+      currentGoals
+    );
+  }, [personalData, currentGoals]);
+
+  // Aplica sugestão
+  const handleApplySuggestion = useCallback(async (suggestion: GoalSuggestion) => {
+    try {
+      switch (suggestion.type) {
+        case 'hydration':
+          await setHydrationGoal(suggestion.suggestedGoal);
+          setCurrentGoals(prev => ({ ...prev, hydration: suggestion.suggestedGoal }));
+          break;
+        case 'calories':
+          await setCaloriesGoal(suggestion.suggestedGoal);
+          setCurrentGoals(prev => ({ ...prev, calories: suggestion.suggestedGoal }));
+          break;
+        case 'steps':
+          await setStepsGoal(suggestion.suggestedGoal);
+          setCurrentGoals(prev => ({ ...prev, steps: suggestion.suggestedGoal }));
+          break;
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: 'Meta atualizada!',
+        text2: `Nova meta de ${suggestion.type === 'hydration' ? 'hidratação' : suggestion.type === 'calories' ? 'calorias' : 'passos'} aplicada`,
+      });
+
+      // Atualiza dados se necessário
+      await refreshFitnessData();
+    } catch (error) {
+      console.error('Erro ao aplicar sugestão:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro',
+        text2: 'Não foi possível aplicar a sugestão',
+      });
+    }
+  }, [refreshFitnessData]);
 
   // Mensagem motivacional baseada no progresso
   const getStepsMessage = () => {
@@ -40,6 +144,21 @@ export function Tracker() {
     if (stepsProgress >= 50) return 'Você está dando mais passos do que o normal. Isso aí!';
     return 'Continue assim, você está no caminho certo!';
   };
+
+  // Dados para análise diária
+  const dailyFitnessData: DailyFitnessData = useMemo(() => ({
+    steps: stepsCompleted,
+    stepsGoal: currentGoals.steps,
+    caloriesBurned: kcalBurned,
+    caloriesConsumed: nutritionCompleted,
+    caloriesGoal: currentGoals.calories,
+    hydrationMl: hydrationCompleted * 250, // copos para ml
+    hydrationGoalMl: currentGoals.hydration,
+    sleepHours: sleepCompleted,
+    sleepGoalHours: 8,
+    weight: weightCompleted > 0 ? weightCompleted : null,
+    weightGoal: null,
+  }), [stepsCompleted, currentGoals, kcalBurned, nutritionCompleted, hydrationCompleted, sleepCompleted, weightCompleted]);
 
   return (
     <VStack flex={1} py={16}>
@@ -79,6 +198,21 @@ export function Tracker() {
             </Box>
           </TouchableOpacity>
 
+          {/* Card de Sugestões Inteligentes */}
+          {(personalData as { weight?: number } | undefined)?.weight && (
+            <Box mt={4}>
+              <Text fontFamily="Poligon" fontSize={16} fontWeight={700} color="gray.900" mb={3}>
+                Sugestões para Você
+              </Text>
+              <SmartSuggestionCard
+                suggestions={suggestions}
+                onApply={handleApplySuggestion}
+                onConfigure={() => navigation.navigate('smartGoals')}
+                showEmptyState
+              />
+            </Box>
+          )}
+
           {/* Linha 1: Peso e Nutrição */}
           <HStack flex={1} mt={6} space={4} alignItems="center" justifyContent="space-between">
             <FitnessCard
@@ -90,7 +224,7 @@ export function Tracker() {
             />
             <FitnessCard
               title="Nutrição"
-              value={kcalCompleted > 0 ? kcalCompleted.toLocaleString('pt-BR') : '--'}
+              value={nutritionCompleted > 0 ? nutritionCompleted.toLocaleString('pt-BR') : '--'}
               unit="kcal"
               variant="nutrition"
               goTo={() => navigation.navigate('nutrition')}
@@ -101,7 +235,7 @@ export function Tracker() {
           <HStack flex={1} mt={4} space={4} alignItems="center" justifyContent="space-between">
             <FitnessCard
               title="Calorias"
-              value={kcalCompleted > 0 ? kcalCompleted.toLocaleString('pt-BR') : '--'}
+              value={kcalBurned > 0 ? kcalBurned.toLocaleString('pt-BR') : '--'}
               unit="kcal"
               variant="calories"
               goTo={() => navigation.navigate('calories')}
@@ -111,23 +245,32 @@ export function Tracker() {
               value={sleepCompleted > 0 ? sleepCompleted.toString() : '--'}
               unit="h"
               variant="sleep-grid"
+              goTo={() => navigation.navigate('sleep')}
             />
           </HStack>
 
-          {/* Linha 3: Hidratação e Adicionar Novo */}
-          <HStack flex={1} mt={4} space={4} alignItems="center" justifyContent="space-between">
+          {/* Linha 3: Hidratação */}
+          <Box mt={4}>
             <FitnessCard
               title="Hidratação"
               value={hydrationCompleted > 0 ? (hydrationCompleted * 250).toString() : '--'}
               unit="ml"
               variant="hydration"
               goTo={() => navigation.navigate('hydration')}
+              fullWidth
             />
-            <FitnessCard
-              title="Adicionar Novo"
-              variant="add-new"
+          </Box>
+
+          {/* Card de Análise do Dia */}
+          <Box mt={6}>
+            <Text fontFamily="Poligon" fontSize={16} fontWeight={700} color="gray.900" mb={3}>
+              Como está seu dia
+            </Text>
+            <DailyAnalysisCard
+              fitnessData={dailyFitnessData}
+              onRefresh={refreshFitnessData}
             />
-          </HStack>
+          </Box>
         </VStack>
       </ScrollView>
     </VStack>

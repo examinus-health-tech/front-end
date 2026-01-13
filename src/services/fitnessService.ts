@@ -1,8 +1,12 @@
 import { api } from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Storage key para preferência do fitness
+// Storage keys
 export const FITNESS_ENABLED_KEY = '@examinus:fitness_enabled';
+export const WEIGHT_GOAL_KEY = '@examinus:weight_goal';
+export const CALORIES_GOAL_KEY = '@examinus:calories_goal';
+export const HYDRATION_GOAL_KEY = '@examinus:hydration_goal';
+export const STEPS_GOAL_KEY = '@examinus:steps_goal';
 
 // Types baseados nos DTOs do backend
 export interface FitnessDailyLog {
@@ -300,5 +304,176 @@ export async function getActivities(startDate: string, endDate: string): Promise
     }
     console.error('[FITNESS_SERVICE] Erro ao buscar atividades:', error);
     throw error;
+  }
+}
+
+/**
+ * Busca histórico de logs diários para um período
+ * Usado para gráficos de hidratação, nutrição, sono e passos
+ */
+export async function getDailyLogsHistory(days: number = 30): Promise<FitnessDailyLog[]> {
+  try {
+    console.log(`[FITNESS_SERVICE] Buscando histórico de logs (${days} dias)...`);
+
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const response = await api.get<{ success: boolean; data: FitnessDailyLog[] }>(
+      `fitness/daily-logs?startDate=${startDate}&endDate=${endDate}`
+    );
+
+    console.log('[FITNESS_SERVICE] Histórico de logs recuperado');
+    return response.data.data || [];
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      return [];
+    }
+    console.error('[FITNESS_SERVICE] Erro ao buscar histórico de logs:', error);
+    return [];
+  }
+}
+
+/**
+ * Busca histórico de sono
+ */
+export async function getSleepHistory(days: number = 30): Promise<FitnessSleep[]> {
+  try {
+    console.log(`[FITNESS_SERVICE] Buscando histórico de sono (${days} dias)...`);
+
+    const endDate = new Date().toISOString().split('T')[0];
+    const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const response = await api.get<{ success: boolean; data: FitnessSleep[] }>(
+      `fitness/sleep?startDate=${startDate}&endDate=${endDate}`
+    );
+
+    console.log('[FITNESS_SERVICE] Histórico de sono recuperado');
+    return response.data.data || [];
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      return [];
+    }
+    console.error('[FITNESS_SERVICE] Erro ao buscar histórico de sono:', error);
+    return [];
+  }
+}
+
+/**
+ * Salva a meta de peso localmente
+ */
+export async function setWeightGoal(weightKg: number): Promise<void> {
+  try {
+    await AsyncStorage.setItem(WEIGHT_GOAL_KEY, weightKg.toString());
+    console.log(`[FITNESS_SERVICE] Meta de peso salva: ${weightKg} kg`);
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao salvar meta de peso:', error);
+    throw error;
+  }
+}
+
+/**
+ * Recupera a meta de peso salva localmente
+ */
+export async function getWeightGoal(): Promise<number | null> {
+  try {
+    const goal = await AsyncStorage.getItem(WEIGHT_GOAL_KEY);
+    if (goal) {
+      const value = parseFloat(goal);
+      return isNaN(value) ? null : value;
+    }
+    return null;
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao recuperar meta de peso:', error);
+    return null;
+  }
+}
+
+/**
+ * Salva a meta de calorias localmente
+ */
+export async function setCaloriesGoal(calories: number): Promise<void> {
+  try {
+    await AsyncStorage.setItem(CALORIES_GOAL_KEY, calories.toString());
+    console.log(`[FITNESS_SERVICE] Meta de calorias salva: ${calories} kcal`);
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao salvar meta de calorias:', error);
+    throw error;
+  }
+}
+
+/**
+ * Recupera a meta de calorias salva localmente
+ */
+export async function getCaloriesGoal(): Promise<number | null> {
+  try {
+    const goal = await AsyncStorage.getItem(CALORIES_GOAL_KEY);
+    if (goal) {
+      const value = parseInt(goal, 10);
+      return isNaN(value) ? null : value;
+    }
+    return null;
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao recuperar meta de calorias:', error);
+    return null;
+  }
+}
+
+/**
+ * Salva a meta de hidratação localmente
+ */
+export async function setHydrationGoal(ml: number): Promise<void> {
+  try {
+    await AsyncStorage.setItem(HYDRATION_GOAL_KEY, ml.toString());
+    console.log(`[FITNESS_SERVICE] Meta de hidratação salva: ${ml} ml`);
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao salvar meta de hidratação:', error);
+    throw error;
+  }
+}
+
+/**
+ * Recupera a meta de hidratação salva localmente
+ */
+export async function getHydrationGoal(): Promise<number | null> {
+  try {
+    const goal = await AsyncStorage.getItem(HYDRATION_GOAL_KEY);
+    if (goal) {
+      const value = parseInt(goal, 10);
+      return isNaN(value) ? null : value;
+    }
+    return null;
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao recuperar meta de hidratação:', error);
+    return null;
+  }
+}
+
+/**
+ * Salva a meta de passos localmente
+ */
+export async function setStepsGoal(steps: number): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STEPS_GOAL_KEY, steps.toString());
+    console.log(`[FITNESS_SERVICE] Meta de passos salva: ${steps}`);
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao salvar meta de passos:', error);
+    throw error;
+  }
+}
+
+/**
+ * Recupera a meta de passos salva localmente
+ */
+export async function getStepsGoal(): Promise<number | null> {
+  try {
+    const goal = await AsyncStorage.getItem(STEPS_GOAL_KEY);
+    if (goal) {
+      const value = parseInt(goal, 10);
+      return isNaN(value) ? null : value;
+    }
+    return null;
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao recuperar meta de passos:', error);
+    return null;
   }
 }

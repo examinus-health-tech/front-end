@@ -20,6 +20,29 @@ type NotificationGroup = {
   notifications: Notification[];
 };
 
+// Função auxiliar para parsear datas de forma segura
+function parseNotificationDate(dateString: string | undefined): Date | null {
+  if (!dateString) return null;
+
+  try {
+    // Tenta parsear a data diretamente
+    let date = new Date(dateString);
+
+    // Se for inválida, tenta outros formatos
+    if (isNaN(date.getTime())) {
+      // Tenta formato DD/MM/YYYY
+      const parts = dateString.split('/');
+      if (parts.length === 3) {
+        date = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      }
+    }
+
+    return isNaN(date.getTime()) ? null : date;
+  } catch {
+    return null;
+  }
+}
+
 // Função para agrupar notificações por período
 function groupNotificationsByPeriod(notifications: Notification[]): NotificationGroup[] {
   const now = new Date();
@@ -38,8 +61,25 @@ function groupNotificationsByPeriod(notifications: Notification[]): Notification
     older: [],
   };
 
-  notifications.forEach((notification) => {
-    const notifDate = new Date(notification.createdAt);
+  // Ordenar notificações por data (mais recentes primeiro)
+  const sortedNotifications = [...notifications].sort((a, b) => {
+    const dateA = parseNotificationDate(a.createdAt);
+    const dateB = parseNotificationDate(b.createdAt);
+    if (!dateA && !dateB) return 0;
+    if (!dateA) return 1;
+    if (!dateB) return -1;
+    return dateB.getTime() - dateA.getTime();
+  });
+
+  sortedNotifications.forEach((notification) => {
+    const notifDate = parseNotificationDate(notification.createdAt);
+
+    // Se não conseguiu parsear a data, coloca em "Recentes"
+    if (!notifDate) {
+      groups.today.push(notification);
+      return;
+    }
+
     const notifDay = new Date(notifDate.getFullYear(), notifDate.getMonth(), notifDate.getDate());
 
     if (notifDay.getTime() === today.getTime()) {
@@ -58,7 +98,7 @@ function groupNotificationsByPeriod(notifications: Notification[]): Notification
   const result: NotificationGroup[] = [];
 
   if (groups.today.length > 0) {
-    result.push({ title: 'Recentes', notifications: groups.today });
+    result.push({ title: 'Hoje', notifications: groups.today });
   }
   if (groups.yesterday.length > 0) {
     result.push({ title: 'Ontem', notifications: groups.yesterday });

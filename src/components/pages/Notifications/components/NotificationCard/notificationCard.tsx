@@ -46,7 +46,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
         <Box borderRadius={10} px={3} py={2.5} {...cardStyles} position="relative">
           {isUnread && (
             <Box position="absolute" top={1.5} right={1.5} bg="ciano.400" px={1.5} py={0.5} borderRadius={4}>
-              <Text fontSize={8} fontWeight={700} color="white">NOVO</Text>
+              <Text fontSize={12} fontWeight={700} color="white">NOVO</Text>
             </Box>
           )}
           <HStack space={3}>
@@ -60,7 +60,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
                 {notification.description}
               </Text>
               {notification.createdAt && (
-                <Text fontSize={10} fontWeight={400} color="gray.400">
+                <Text fontSize={12} fontWeight={400} color="gray.400">
                   {formatRelativeDate(notification.createdAt)}
                 </Text>
               )}
@@ -77,7 +77,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
         <Box borderRadius={10} px={3} py={2.5} {...cardStyles} position="relative">
           {isUnread && (
             <Box position="absolute" top={1.5} right={1.5} bg="ciano.400" px={1.5} py={0.5} borderRadius={4}>
-              <Text fontSize={8} fontWeight={700} color="white">NOVO</Text>
+              <Text fontSize={12} fontWeight={700} color="white">NOVO</Text>
             </Box>
           )}
           <VStack space={1}>
@@ -96,7 +96,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
                     <Text
                       ml={1.5}
                       color="gray.800"
-                      fontSize={10}
+                      fontSize={12}
                       fontWeight={700}
                       letterSpacing={0.5}
                       textTransform="uppercase"
@@ -107,7 +107,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
                 </TouchableOpacity>
               )}
               {notification.createdAt && (
-                <Text fontSize={10} fontWeight={400} color="gray.400">
+                <Text fontSize={12} fontWeight={400} color="gray.400">
                   {formatRelativeDate(notification.createdAt)}
                 </Text>
               )}
@@ -124,7 +124,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
         <Box borderRadius={10} px={3} py={2.5} {...cardStyles} position="relative">
           {isUnread && (
             <Box position="absolute" top={1.5} right={1.5} bg="ciano.400" px={1.5} py={0.5} borderRadius={4}>
-              <Text fontSize={8} fontWeight={700} color="white">NOVO</Text>
+              <Text fontSize={12} fontWeight={700} color="white">NOVO</Text>
             </Box>
           )}
           <VStack space={1}>
@@ -142,7 +142,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
             )}
 
             {notification.createdAt && (
-              <Text fontSize={10} fontWeight={400} color="gray.400">
+              <Text fontSize={12} fontWeight={400} color="gray.400">
                 {formatRelativeDate(notification.createdAt)}
               </Text>
             )}
@@ -158,7 +158,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
       <Box borderRadius={10} px={3} py={2.5} {...cardStyles} position="relative">
         {isUnread && (
           <Box position="absolute" top={1.5} right={1.5} bg="ciano.400" px={1.5} py={0.5} borderRadius={4}>
-            <Text fontSize={8} fontWeight={700} color="white">NOVO</Text>
+            <Text fontSize={12} fontWeight={700} color="white">NOVO</Text>
           </Box>
         )}
         <VStack space={1}>
@@ -169,7 +169,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
             {notification.description}
           </Text>
           {notification.createdAt && (
-            <Text fontSize={10} fontWeight={400} color="gray.400">
+            <Text fontSize={12} fontWeight={400} color="gray.400">
               {formatRelativeDate(notification.createdAt)}
             </Text>
           )}

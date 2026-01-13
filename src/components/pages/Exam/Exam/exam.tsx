@@ -162,15 +162,57 @@ export function Exam() {
     [buildHistoryData, handlePresentHistoryModal]
   );
 
+  /**
+   * Verifica se o valor está dentro da faixa de referência
+   * Retorna a cor corrigida baseada na posição do valor em relação à referência
+   */
+  function getCorrectedColor(
+    value: string,
+    referenceMin: number | null | undefined,
+    referenceMax: number | null | undefined,
+    backendColor: string
+  ): string {
+    const numericValue = parseFloat(value);
+
+    // Se não for numérico (Negativo, Positivo, etc), usa a cor do backend
+    if (isNaN(numericValue)) {
+      return backendColor;
+    }
+
+    // Verifica se está dentro da referência
+    const hasMin = referenceMin != null;
+    const hasMax = referenceMax != null;
+
+    if (hasMin && hasMax) {
+      // Tem min e max: verifica se está na faixa
+      if (numericValue >= referenceMin && numericValue <= referenceMax) {
+        return 'Green'; // Dentro da referência = Verde
+      }
+    } else if (hasMin && !hasMax) {
+      // Só tem min (ex: > 40)
+      if (numericValue >= referenceMin) {
+        return 'Green';
+      }
+    } else if (!hasMin && hasMax) {
+      // Só tem max (ex: até 100)
+      if (numericValue <= referenceMax) {
+        return 'Green';
+      }
+    }
+
+    // Se não está dentro da referência, usa a cor do backend
+    return backendColor;
+  }
+
   function getColor(color: string) {
     if (color === 'Green') {
-      return '#00B39D';
+      return '#0CC1AF'; // Ciano Examinus
     } else if (color === 'Yellow') {
-      return '#F59E0B'; // Amarelo para valores abaixo da referência
+      return '#F59E0B'; // Amarelo para atenção
     } else if (color === 'Red') {
-      return '#FA4D5E';
+      return '#FA4D5E'; // Vermelho para risco
     }
-    return '#00B39D';
+    return '#0CC1AF';
   }
 
   function formatReferenceValue(
@@ -182,25 +224,25 @@ export function Exam() {
     if (referenceMin != null && referenceMax != null) {
       return `${referenceMin} - ${referenceMax} ${unit}`;
     }
-    // Se só tem max (ex: "até 100")
+    // Se só tem max
     if (referenceMax != null) {
-      return `até ${referenceMax} ${unit}`;
+      return `< ${referenceMax} ${unit}`;
     }
-    // Se só tem min (ex: "> 40")
+    // Se só tem min
     if (referenceMin != null) {
       return `> ${referenceMin} ${unit}`;
     }
-    // Fallback: retorna apenas a unidade
-    return unit;
+    // Sem referência
+    return `-- ${unit}`;
   }
 
   /**
-   * Calcula a porcentagem de preenchimento do círculo baseado nos valores de referência
+   * Calcula a porcentagem de preenchimento do círculo baseado na cor/classificação
    *
-   * Lógica:
-   * - Verde (dentro da ref): 100% preenchido
-   * - Amarelo (abaixo da ref): proporcional - valor/referênciaMin
-   * - Vermelho (acima da ref): 100% preenchido
+   * Lógica visual:
+   * - Verde (normal): 100% preenchido - indica resultado ideal
+   * - Amarelo (atenção): 65% preenchido - indica que precisa de atenção
+   * - Vermelho (risco): 100% preenchido - indica alerta máximo
    * - Qualitativos (Negativo/Positivo): 100%
    */
   function getFillPercentage(
@@ -221,22 +263,14 @@ export function Exam() {
       return 100;
     }
 
-    // Vermelho: acima da referência - sempre 100%
+    // Vermelho: acima/abaixo crítico - sempre 100% (alerta máximo)
     if (color === 'Red') {
       return 100;
     }
 
-    // Amarelo: abaixo da referência - preenchimento proporcional
+    // Amarelo: atenção - preenchimento parcial fixo para indicar visualmente
     if (color === 'Yellow') {
-      // Usa referenceMin como alvo (o valor que deveria atingir)
-      const target = referenceMin ?? referenceMax;
-      if (target != null && target > 0) {
-        const percentage = (numericValue / target) * 100;
-        // Mínimo de 20% para não ficar visualmente estranho, máximo 95%
-        return Math.min(Math.max(percentage, 20), 95);
-      }
-      // Fallback: sem referência, mostra 50%
-      return 50;
+      return 65;
     }
 
     // Fallback geral
@@ -256,6 +290,28 @@ export function Exam() {
     }
 
     return examSelected.medicalExamItems.map((item: any, index: number) => {
+      // Log para identificar referências problemáticas
+      const hasValidReference = item.referenceMin != null && item.referenceMax != null;
+      const isInvalidPercentRef = item.referenceMax === 100 && item.medicalExamItemMeasureUnit === '%' && item.referenceMin == null;
+
+      if (!hasValidReference || isInvalidPercentRef) {
+        console.warn(`⚠️ [REFERÊNCIA FALTANDO] ${item.examItemDescription}:`, {
+          valor: item.medicalExamItemReferenceValue,
+          unidade: item.medicalExamItemMeasureUnit,
+          referenceMin: item.referenceMin,
+          referenceMax: item.referenceMax,
+          corBackend: item.medicalExamItemWeightColor,
+        });
+      }
+
+      // Corrige a cor baseado nos valores de referência
+      const correctedColor = getCorrectedColor(
+        item.medicalExamItemReferenceValue,
+        item.referenceMin,
+        item.referenceMax,
+        item.medicalExamItemWeightColor
+      );
+
       return (
         <>
           <VStack flex={1}>
@@ -273,10 +329,10 @@ export function Exam() {
                     item.medicalExamItemReferenceValue,
                     item.referenceMin,
                     item.referenceMax,
-                    item.medicalExamItemWeightColor
+                    correctedColor
                   )}
                   rotation={90}
-                  tintColor={getColor(item.medicalExamItemWeightColor) || '#00B39D'}
+                  tintColor={getColor(correctedColor) || '#0CC1AF'}
                   backgroundColor="#DCE1E8"
                   delay={10}
                 />
@@ -308,7 +364,7 @@ export function Exam() {
                   }}
                 >
                   <Text
-                    color={getColor(item.medicalExamItemWeightColor)}
+                    color={getColor(correctedColor)}
                     fontSize={(() => {
                       const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
                       return valueLength > 7 ? 32 : valueLength > 6 ? 36 : 42;
@@ -325,7 +381,7 @@ export function Exam() {
                     mt={-2}
                     mx={2}
                     color="gray.500"
-                    fontSize={10}
+                    fontSize={12}
                     fontWeight={600}
                     letterSpacing={0}
                     textAlign="center"
@@ -528,17 +584,17 @@ export function Exam() {
                 </Text>
                 <VStack space={2}>
                   <TouchableOpacity onPress={() => openExternalLink('https://www.who.int/health-topics')}>
-                    <Text fontSize={11} fontWeight={500} color="ciano.600">
+                    <Text fontSize={12} fontWeight={500} color="ciano.600">
                       ↗ Organização Mundial da Saúde (OMS)
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => openExternalLink('https://www.gov.br/saude')}>
-                    <Text fontSize={11} fontWeight={500} color="ciano.600">
+                    <Text fontSize={12} fontWeight={500} color="ciano.600">
                       ↗ Ministério da Saúde (Brasil)
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity onPress={() => openExternalLink('https://www.mayocliniclabs.com')}>
-                    <Text fontSize={11} fontWeight={500} color="ciano.600">
+                    <Text fontSize={12} fontWeight={500} color="ciano.600">
                       ↗ Mayo Clinic Laboratories
                     </Text>
                   </TouchableOpacity>
@@ -548,7 +604,7 @@ export function Exam() {
               <Box p={4} bg="orange.50" borderRadius={12}>
                 <HStack alignItems="flex-start" space={2}>
                   <Text fontSize={14}>⚠️</Text>
-                  <Text fontSize={11} fontWeight={500} color="gray.700" lineHeight={16} flex={1}>
+                  <Text fontSize={12} fontWeight={500} color="gray.700" lineHeight={16} flex={1}>
                     As informações fornecidas têm caráter informativo e não substituem orientação médica. Consulte um profissional de saúde.
                   </Text>
                 </HStack>
@@ -606,7 +662,7 @@ export function Exam() {
                 examItemDescription={historyItemDescription}
                 historyData={historyData}
                 unit={historyItemUnit}
-                color="#00B39D"
+                color="#0CC1AF"
               />
             </VStack>
           </BottomSheetScrollView>

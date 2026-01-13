@@ -1,5 +1,6 @@
-import { useRef, useMemo, useState, useCallback } from 'react';
-import { VStack, ScrollView, IScrollViewProps, Box, Text, HStack, Pressable } from 'native-base';
+import { useRef, useMemo, useState, useCallback, useEffect } from 'react';
+import { VStack, ScrollView, IScrollViewProps, Box, Text, HStack, Pressable, Skeleton } from 'native-base';
+import Animated, { FadeIn } from 'react-native-reanimated';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 // routes
@@ -9,13 +10,22 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { HeaderTitle, StepsProgress, StepStatCard, WeeklyStepsChart } from '@components/molecules';
 
 // assets
-import { EnergyBoltIcon, CompassTargetIcon, ClockSquareIcon, ChevronDownSmIcon, CalendarIcon } from '@assets/icons';
+import { EnergyBoltIcon, CompassTargetIcon, ClockSquareIcon, ChevronDownSmIcon, CalendarIcon, StepsIcon } from '@assets/icons';
 
 // hooks
 import { useHome } from 'src/hooks/useHome';
 import { useTabBar } from 'src/hooks/useTabBar';
 
+// services
+import { getDailyLogsHistory } from 'src/services/fitnessService';
+
 type PeriodType = 'Semanal' | 'Mensal' | 'Anual';
+
+type ChartDataPoint = {
+  label: string;
+  value: number;
+  isActive: boolean;
+};
 
 export function Steps() {
   const scrollRef = useRef<IScrollViewProps>(null);
@@ -23,6 +33,8 @@ export function Steps() {
   const { trackerData } = useHome();
   const { hideTabBar, showTabBar } = useTabBar();
   const [selectedRange, setSelectedRange] = useState<PeriodType>('Semanal');
+  const [isLoadingChart, setIsLoadingChart] = useState(true);
+  const [chartData, setChartData] = useState<ChartDataPoint[]>([]);
 
   // Hide tab bar when screen is focused
   useFocusEffect(
@@ -32,67 +44,135 @@ export function Steps() {
     }, [hideTabBar, showTabBar])
   );
 
-  // Dados do contexto ou mock
-  const stepsGoal = 10000;
-  const currentSteps = 1542;
-  const caloriesBurned = 500;
-  const distanceKm = 51;
-  const activeHours = 1;
+  // Dados do contexto
+  const stepData = trackerData?.step?.[0];
+  const stepsGoal = Number(stepData?.step_goal) || 10000;
+  const currentSteps = Number(stepData?.step_completed) || 0;
+  const distanceCompleted = Number(stepData?.distance_completed) || 0;
+  const distanceGoal = Number(stepData?.distance_goal) || 8;
+  const hoursCompleted = Number(stepData?.hour_completed) || 0;
+  const hoursGoal = Number(stepData?.hour_goal) || 2;
 
-  // Mock de dados semanais
-  const weeklyData = useMemo(
-    () => [
-      { label: 'Seg', value: 8500, isActive: false },
-      { label: 'Ter', value: 6200, isActive: false },
-      { label: 'Qua', value: 9800, isActive: false },
-      { label: 'Qui', value: 4500, isActive: true },
-      { label: 'Sex', value: 7200, isActive: false },
-      { label: 'Sáb', value: 3000, isActive: false },
-      { label: 'Dom', value: 5500, isActive: false },
-    ],
-    []
-  );
+  // Calorias do contexto kcal
+  const kcalData = trackerData?.kcal?.[0];
+  const caloriesBurned = Number(kcalData?.kcal_completed) || 0;
+  const caloriesGoal = Number(kcalData?.kcal_goal) || 500;
 
-  // Mock de dados mensais (semanas)
-  const monthlyData = useMemo(
-    () => [
-      { label: 'S1', value: 45000, isActive: false },
-      { label: 'S2', value: 62000, isActive: false },
-      { label: 'S3', value: 58000, isActive: true },
-      { label: 'S4', value: 71000, isActive: false },
-    ],
-    []
-  );
+  // Calcular progresso para os cards
+  const caloriesProgress = caloriesGoal > 0 ? Math.min((caloriesBurned / caloriesGoal) * 100, 100) : 0;
+  const distanceProgress = distanceGoal > 0 ? Math.min((distanceCompleted / distanceGoal) * 100, 100) : 0;
+  const hoursProgress = hoursGoal > 0 ? Math.min((hoursCompleted / hoursGoal) * 100, 100) : 0;
 
-  // Mock de dados anuais (meses)
-  const yearlyData = useMemo(
-    () => [
-      { label: 'Jan', value: 180000, isActive: false },
-      { label: 'Fev', value: 165000, isActive: false },
-      { label: 'Mar', value: 210000, isActive: false },
-      { label: 'Abr', value: 195000, isActive: false },
-      { label: 'Mai', value: 220000, isActive: false },
-      { label: 'Jun', value: 185000, isActive: false },
-      { label: 'Jul', value: 240000, isActive: false },
-      { label: 'Ago', value: 230000, isActive: false },
-      { label: 'Set', value: 200000, isActive: false },
-      { label: 'Out', value: 215000, isActive: false },
-      { label: 'Nov', value: 190000, isActive: false },
-      { label: 'Dez', value: 175000, isActive: true },
-    ],
-    []
-  );
-
-  const getChartData = () => {
-    switch (selectedRange) {
-      case 'Mensal':
-        return monthlyData;
-      case 'Anual':
-        return yearlyData;
-      default:
-        return weeklyData;
+  // Helper para obter dias/labels baseado no período
+  const getDaysForPeriod = (period: PeriodType): number => {
+    switch (period) {
+      case 'Semanal': return 7;
+      case 'Mensal': return 30;
+      case 'Anual': return 365;
+      default: return 7;
     }
   };
+
+  // Busca dados do histórico de passos da API
+  useEffect(() => {
+    async function fetchChartData() {
+      setIsLoadingChart(true);
+      try {
+        const days = getDaysForPeriod(selectedRange);
+        const history = await getDailyLogsHistory(days);
+
+        if (history.length > 0) {
+          let data: ChartDataPoint[] = [];
+
+          if (selectedRange === 'Semanal') {
+            // Agrupa por dia da semana
+            const dayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+            const today = new Date().getDay();
+            const adjustedToday = today === 0 ? 6 : today - 1;
+
+            // Pega os últimos 7 dias de dados
+            const last7Days = history.slice(-7);
+            data = dayLabels.map((label, index) => ({
+              label,
+              value: last7Days[index]?.steps || 0,
+              isActive: index === adjustedToday,
+            }));
+
+            // Se último dia tem dados, usa valor atual
+            if (data.length > 0 && adjustedToday < data.length) {
+              data[adjustedToday].value = currentSteps || data[adjustedToday].value;
+            }
+          } else if (selectedRange === 'Mensal') {
+            // Agrupa por semana
+            const weekLabels = ['S1', 'S2', 'S3', 'S4'];
+            const currentWeek = Math.floor(new Date().getDate() / 7);
+
+            // Agrupa logs por semana
+            const weeklyTotals = [0, 0, 0, 0];
+            history.forEach(log => {
+              const logDate = new Date(log.date);
+              const weekIndex = Math.min(Math.floor(logDate.getDate() / 7), 3);
+              weeklyTotals[weekIndex] += log.steps || 0;
+            });
+
+            data = weekLabels.map((label, index) => ({
+              label,
+              value: weeklyTotals[index],
+              isActive: index === currentWeek,
+            }));
+          } else if (selectedRange === 'Anual') {
+            // Agrupa por mês
+            const monthLabels = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+            const currentMonth = new Date().getMonth();
+
+            // Agrupa logs por mês
+            const monthlyTotals = new Array(12).fill(0);
+            history.forEach(log => {
+              const logDate = new Date(log.date);
+              const monthIndex = logDate.getMonth();
+              monthlyTotals[monthIndex] += log.steps || 0;
+            });
+
+            data = monthLabels.map((label, index) => ({
+              label,
+              value: monthlyTotals[index],
+              isActive: index === currentMonth,
+            }));
+          }
+
+          setChartData(data);
+        } else {
+          // Se não há dados, mostra estrutura vazia com valor atual
+          const dayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+          const today = new Date().getDay();
+          const adjustedToday = today === 0 ? 6 : today - 1;
+
+          const emptyData = dayLabels.map((label, index) => ({
+            label,
+            value: index === adjustedToday ? currentSteps : 0,
+            isActive: index === adjustedToday,
+          }));
+          setChartData(emptyData);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar histórico de passos:', error);
+        // Em caso de erro, mostra estrutura vazia
+        const dayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+        const today = new Date().getDay();
+        const adjustedToday = today === 0 ? 6 : today - 1;
+
+        setChartData(dayLabels.map((label, index) => ({
+          label,
+          value: index === adjustedToday ? currentSteps : 0,
+          isActive: index === adjustedToday,
+        })));
+      } finally {
+        setIsLoadingChart(false);
+      }
+    }
+
+    fetchChartData();
+  }, [selectedRange, currentSteps]);
 
   const getChartGoal = () => {
     switch (selectedRange) {
@@ -110,6 +190,17 @@ export function Steps() {
     const currentIndex = periods.indexOf(selectedRange);
     const nextIndex = (currentIndex + 1) % periods.length;
     setSelectedRange(periods[nextIndex]);
+  };
+
+  // Mensagem motivacional
+  const getMotivationalMessage = () => {
+    const progress = (currentSteps / stepsGoal) * 100;
+    if (currentSteps === 0) return 'Comece a caminhar para atingir sua meta!';
+    if (progress >= 100) return 'Parabéns! Você atingiu sua meta de hoje!';
+    if (progress >= 75) return 'Quase lá! Continue assim!';
+    if (progress >= 50) return 'Ótimo progresso! Você está na metade!';
+    if (progress >= 25) return 'Bom começo! Continue se movendo!';
+    return 'Cada passo conta! Vamos lá!';
   };
 
   return (
@@ -132,32 +223,45 @@ export function Steps() {
           </Text>
 
           {/* Progresso circular/retangular */}
-          <Box mx={16} mt={4} mb={8}>
+          <Box mx={16} mt={4} mb={4}>
             <StepsProgress steps={currentSteps} goal={stepsGoal} />
           </Box>
+
+          {/* Mensagem motivacional */}
+          <Text
+            fontFamily="Poligon"
+            fontSize={14}
+            fontWeight={500}
+            color="gray.500"
+            letterSpacing={-0.14}
+            textAlign="center"
+            mb={4}
+          >
+            {getMotivationalMessage()}
+          </Text>
 
           {/* Cards de estatísticas */}
           <HStack mx={6} space={3} mt={4}>
             <StepStatCard
-              value={caloriesBurned.toString()}
+              value={caloriesBurned > 0 ? caloriesBurned.toString() : '--'}
               unit="kcal"
               icon={<EnergyBoltIcon size="28" color="#FA4D5E" />}
               variant="orange"
-              progress={65}
+              progress={caloriesProgress}
             />
             <StepStatCard
-              value={distanceKm.toString()}
+              value={distanceCompleted > 0 ? distanceCompleted.toFixed(1) : '--'}
               unit="km"
               icon={<CompassTargetIcon size="28" color="#99BACE" />}
               variant="blue"
-              progress={80}
+              progress={distanceProgress}
             />
             <StepStatCard
-              value={activeHours.toString()}
+              value={hoursCompleted > 0 ? hoursCompleted.toFixed(1) : '--'}
               unit="h"
               icon={<ClockSquareIcon size="28" color="#8A3FFC" />}
               variant="purple"
-              progress={45}
+              progress={hoursProgress}
             />
           </HStack>
 
@@ -178,7 +282,38 @@ export function Steps() {
               </Pressable>
             </HStack>
 
-            <WeeklyStepsChart data={getChartData()} goal={getChartGoal()} />
+            {isLoadingChart ? (
+              <Box mt={4}>
+                <HStack justifyContent="space-between" alignItems="flex-end" h={120}>
+                  {[1, 2, 3, 4, 5, 6, 7].map((_, index) => (
+                    <Skeleton key={index} h={`${20 + Math.random() * 60}%`} w="10%" rounded="md" />
+                  ))}
+                </HStack>
+                <HStack justifyContent="space-between" mt={2}>
+                  {[1, 2, 3, 4, 5, 6, 7].map((_, index) => (
+                    <Skeleton key={index} h={3} w="10%" rounded="sm" />
+                  ))}
+                </HStack>
+              </Box>
+            ) : (
+              <Animated.View entering={FadeIn.duration(400)}>
+                <WeeklyStepsChart data={chartData} goal={getChartGoal()} />
+              </Animated.View>
+            )}
+          </Box>
+
+          {/* Info sobre sincronização */}
+          <Box mx={6} mt={6} bg="ciano.50" p={4} borderRadius={16}>
+            <HStack alignItems="center" space={2} mb={2}>
+              <StepsIcon size="20" color="#0CC1AF" />
+              <Text fontFamily="Poligon" fontSize={14} fontWeight={700} color="ciano.700">
+                Sincronização Automática
+              </Text>
+            </HStack>
+            <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="ciano.600">
+              Seus passos são sincronizados automaticamente do Apple Health ou do sensor do seu celular.
+              Mantenha o celular no bolso para contagem precisa!
+            </Text>
           </Box>
         </VStack>
       </ScrollView>

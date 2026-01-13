@@ -13,6 +13,7 @@ export type Props = {
   variant?: FitnessCardVariant;
   goTo?: () => void;
   data?: number[];
+  fullWidth?: boolean;
 };
 
 // Componente para gráfico de barras verticais (Peso) - tons de azul
@@ -296,7 +297,7 @@ function AddNewButton() {
   );
 }
 
-export function FitnessCard({ title, value, unit, variant = 'weight', goTo, data }: Props) {
+export function FitnessCard({ title, value, unit, variant = 'weight', goTo, data, fullWidth }: Props) {
   const isAddNew = variant === 'add-new';
 
   const renderVisualization = () => {
@@ -317,6 +318,51 @@ export function FitnessCard({ title, value, unit, variant = 'weight', goTo, data
         return <WeightChart />;
     }
   };
+
+  if (fullWidth) {
+    return (
+      <Box bg="white" rounded="2xl" h={100} w="100%" overflow="hidden">
+        <TouchableOpacity onPress={goTo} style={{ flex: 1 }}>
+          <Flex p={4} flex={1} direction="row" alignItems="center" justifyContent="space-between">
+            <VStack>
+              <Text color="gray.900" fontFamily="Poligon" fontSize={16} fontWeight={600} letterSpacing={-0.16}>
+                {title}
+              </Text>
+              <Flex direction="row" align="flex-end" mt={2}>
+                <Text
+                  color="gray.900"
+                  fontFamily="Poligon"
+                  fontSize={28}
+                  fontWeight={600}
+                  letterSpacing={-0.28}
+                  lineHeight={32}
+                >
+                  {value}
+                </Text>
+                {unit && (
+                  <Text
+                    color="gray.500"
+                    fontFamily="Poligon"
+                    fontSize={14}
+                    fontWeight={600}
+                    letterSpacing={-0.14}
+                    pl={1}
+                    lineHeight={20}
+                  >
+                    {unit}
+                  </Text>
+                )}
+              </Flex>
+            </VStack>
+
+            <Box w="40%">
+              {renderVisualization()}
+            </Box>
+          </Flex>
+        </TouchableOpacity>
+      </Box>
+    );
+  }
 
   return (
     <Box bg="white" rounded="2xl" h={230} w={156} flex={1} overflow="hidden">

@@ -26,6 +26,8 @@ import {
   IntestineIcon,
   UrinaIcon,
   FlaskIcon,
+  HeadHealthIcon,
+  EnergyIcon,
 } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 import Vector2 from '@assets/png/vector-30.png';
@@ -40,11 +42,21 @@ import Vector9 from '@assets/png/vector-44.png';
 import Vector10 from '@assets/png/vector-45.png';
 
 // components
-import { StatusCards } from '@components/molecules';
+import { StatusCards, FeatureBanner } from '@components/molecules';
+import { BarbellIcon } from '@assets/icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useAuth } from 'src/hooks/useAuth';
 import { useHome } from 'src/hooks/useHome';
 import { useTabBar } from 'src/hooks/useTabBar';
+
+// services
+import {
+  MentalHealthAssessment,
+  getLatestAssessment,
+  getColorByClassification,
+  formatAssessmentDate,
+} from '@services/mentalHealthService';
+import { setFitnessEnabled } from '@services/fitnessService';
 
 // Função helper para determinar o texto baseado no score
 function getScoreText(score: number): string {
@@ -57,16 +69,16 @@ function getScoreText(score: number): string {
   }
 }
 
-// Função helper para obter cor baseada no score (consistente com Health Wallet)
+// Função helper para obter cor baseada no score (alinhado com backend)
 function getScoreColor(score: number): string {
   if (score >= 0 && score <= 333) {
     return '#FA4D5E'; // Vermelho - risco alto
   } else if (score > 333 && score <= 666) {
-    return '#0CC1AF'; // Verde/Ciano - normal
+    return '#F59E0B'; // Amarelo - atenção
   } else if (score > 666 && score <= 1000) {
-    return '#8A3FFC'; // Roxo - excelente
+    return '#0CC1AF'; // Verde - excelente
   }
-  return '#0CC1AF';
+  return '#F59E0B';
 }
 
 export function Homepage() {
@@ -75,6 +87,7 @@ export function Homepage() {
   const [userTrackerData, setUserTrackerData] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [hasAnimated, setHasAnimated] = useState<boolean>(false);
+  const [mentalHealthAssessment, setMentalHealthAssessment] = useState<MentalHealthAssessment | null>(null);
   const scrollRef = useRef<any>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
@@ -82,6 +95,15 @@ export function Homepage() {
   const { getHomeData, homeData, trackerData, isLoadingHomeContext, fitnessEnabled, refreshFitnessData } = useHome();
   const { showTabBar } = useTabBar();
 
+  // Busca a última avaliação de saúde mental
+  async function fetchMentalHealthAssessment() {
+    try {
+      const assessment = await getLatestAssessment();
+      setMentalHealthAssessment(assessment);
+    } catch (error) {
+      console.error('Erro ao buscar avaliação de saúde mental:', error);
+    }
+  }
 
   async function onRefresh() {
     console.log('🔄 onRefresh chamado na homepage');
@@ -90,6 +112,7 @@ export function Homepage() {
       await getHomeData();
       await fetchUnreadCount();
       await refreshFitnessData();
+      await fetchMentalHealthAssessment();
     } catch (error) {
       console.error('Erro ao atualizar:', error);
     } finally {
@@ -159,6 +182,7 @@ export function Homepage() {
       showTabBar();
       getHomeData();
       fetchUnreadCount();
+      fetchMentalHealthAssessment();
 
       return () => clearTimeout(timer);
     }, [])
@@ -174,13 +198,13 @@ export function Homepage() {
 
     const getColorByScore = (score: number) => {
       if (score >= 0 && score <= 333) {
-        return { title: 'alto', bgColor: 'red.400' };
+        return { title: 'risco alto', bgColor: 'red.400' };
       } else if (score > 333 && score <= 666) {
-        return { title: 'normal', bgColor: 'ciano.300' };
+        return { title: 'normal', bgColor: 'yellow.500' };
       } else if (score > 666 && score <= 1000) {
-        return { title: 'excelente', bgColor: 'purple.600' };
+        return { title: 'excelente', bgColor: 'ciano.400' };
       }
-      return { title: 'risco normal', bgColor: 'ciano.300' };
+      return { title: 'normal', bgColor: 'yellow.500' };
     };
 
     // Mapeamento de ícones SVG por sistema (igual ao Health Wallet)
@@ -208,18 +232,21 @@ export function Homepage() {
 
         return (
           <TouchableOpacity key={index} onPress={() => navigation.navigate('healthWallet')}>
-            <Box bg={colorStyle.bgColor} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
-              <VStack space={2}>
+            <Box bg={colorStyle.bgColor} rounded="2xl" w={144} h={144} shadow={4} px={4} py={3}>
+              <VStack flex={1} justifyContent="space-between">
+                {/* Título no topo */}
                 <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                   {system.examOrganicSystemDescription}
                 </Text>
 
+                {/* Ícone centralizado */}
                 <Center>
                   {renderIcon(system.examOrganicSystemDescription)}
                 </Center>
 
+                {/* Risco embaixo */}
                 <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
-                  Risco: {colorStyle.title}
+                  {colorStyle.title}
                 </Text>
               </VStack>
             </Box>
@@ -234,47 +261,43 @@ export function Homepage() {
     <View flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       {isLoading || isLoadingHomeContext ? (
-        <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#d5d5d5" foregroundColor="#ebebeb">
+        <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#E8E8E8" foregroundColor="#F5F5F5">
           {/* Ícone de Notificação */}
-          <Rect x={width - 24 - 72} y={100} rx="14" ry="14" width={60} height={60} />
+          <Circle cx={width - 54} cy={110} r={24} />
 
           {/* Data e Calendário */}
-          <Rect x="24" y="96" rx="8" ry="8" width={120} height={16} />
+          <Rect x="24" y="96" rx="6" ry="6" width={100} height={12} />
 
           {/* Nome do usuário */}
-          <Rect x="24" y="128" rx="8" ry="8" width={200} height={32} />
+          <Rect x="24" y="118" rx="8" ry="8" width={220} height={28} />
 
           {/* Subtítulo */}
-          <Rect x="24" y="170" rx="8" ry="8" width={180} height={14} />
-          <Rect x="24" y="190" rx="8" ry="8" width={150} height={14} />
+          <Rect x="24" y="158" rx="6" ry="6" width={180} height={24} />
 
-          {/* Card Score X - layout centralizado igual Health Wallet */}
-          <Rect x="24" y="230" rx="12" ry="12" width={width - 48} height={260} />
-          {/* Círculo do Score dentro do card */}
-          <Circle cx={width / 2} cy={310} r={60} />
+          {/* Card Score X - fundo branco */}
+          <Rect x="24" y="200" rx="12" ry="12" width={width - 48} height={260} />
 
-          {/* Título Health Wallet */}
-          <Rect x="24" y="514" rx="8" ry="8" width={120} height={20} />
+          {/* Título Carteira de Saúde */}
+          <Rect x="24" y="484" rx="6" ry="6" width={140} height={18} />
 
-          {/* Cards Health Wallet - 3 cards lado a lado */}
-          <Rect x="24" y="544" rx="16" ry="16" width={144} height={144} />
-          <Rect x="180" y="544" rx="16" ry="16" width={144} height={144} />
-          <Rect x="336" y="544" rx="16" ry="16" width={144} height={144} />
+          {/* Cards Carteira de Saúde - 3 cards lado a lado */}
+          <Rect x="24" y="514" rx="16" ry="16" width={140} height={140} />
+          <Rect x="172" y="514" rx="16" ry="16" width={140} height={140} />
+          <Rect x="320" y="514" rx="16" ry="16" width={140} height={140} />
+
+          {/* Título Saúde Mental */}
+          <Rect x="24" y="678" rx="6" ry="6" width={120} height={18} />
+
+          {/* Card Saúde Mental */}
+          <Rect x="24" y="708" rx="12" ry="12" width={width - 48} height={100} />
 
           {/* Título Rastreador Fitness */}
-          <Rect x="24" y="704" rx="8" ry="8" width={150} height={20} />
+          <Rect x="24" y="832" rx="6" ry="6" width={150} height={18} />
 
-          {/* Cards Rastreador - 2 linhas com 2 cards cada */}
-          <Rect x="24" y="734" rx="12" ry="12" width={(width - 60) / 2} height={100} />
-          <Rect x={24 + (width - 60) / 2 + 12} y="734" rx="12" ry="12" width={(width - 60) / 2} height={100} />
-          <Rect x="24" y="846" rx="12" ry="12" width={(width - 60) / 2} height={100} />
-          <Rect x={24 + (width - 60) / 2 + 12} y="846" rx="12" ry="12" width={(width - 60) / 2} height={100} />
-
-          {/* Título Fale com Doutor X */}
-          <Rect x="24" y="966" rx="8" ry="8" width={180} height={20} />
-
-          {/* Card Chatbot */}
-          <Rect x="24" y="996" rx="12" ry="12" width={width - 48} height={150} />
+          {/* Cards Rastreador */}
+          <Rect x="24" y="862" rx="12" ry="12" width={width - 48} height={90} />
+          <Rect x="24" y="964" rx="12" ry="12" width={width - 48} height={90} />
+          <Rect x="24" y="1066" rx="12" ry="12" width={width - 48} height={90} />
         </ContentLoader>
       ) : (
         <ScrollView
@@ -328,7 +351,7 @@ export function Homepage() {
                         right={3}
                         top={3}
                       >
-                        <Text color={'white'} fontSize={10} fontWeight={800}>
+                        <Text color={'white'} fontSize={12} fontWeight={800}>
                           {unreadCount > 9 ? '9+' : unreadCount}
                         </Text>
                       </Box>
@@ -409,7 +432,7 @@ export function Homepage() {
                         </Text>
 
                         <Box mt={2} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
-                          <Text fontSize={10} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
+                          <Text fontSize={12} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
                             ⚠️ Aviso: Esta análise é apenas informativa e não substitui consulta médica.
                           </Text>
                         </Box>
@@ -424,7 +447,7 @@ export function Homepage() {
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(200) : undefined}>
               <HStack mt={6} justifyContent={'space-between'}>
                 <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
-                  Health Wallet
+                  Carteira de Saúde
                 </Text>
 
                 <TouchableOpacity onPress={() => navigation.navigate('healthWallet')}>
@@ -436,68 +459,44 @@ export function Homepage() {
               <ScrollView horizontal ref={scrollRef} mx={-6} showsHorizontalScrollIndicator={false}>
                 {userWithoutData ? (
                   <HStack space={3} mx={6} alignItems="center">
-                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
-                      <VStack space={2}>
+                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} py={3}>
+                      <VStack flex={1} justifyContent="space-between">
                         <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                           Hormônios
                         </Text>
-
                         <Center>
-                          <Image source={Vector6} alt="Vetor" resizeMode="contain" size={14} />
+                          <Image source={Vector6} alt="Vetor" resizeMode="contain" size={12} />
                         </Center>
-
-                        <Text
-                          color="white"
-                          fontSize={12}
-                          fontWeight={600}
-                          letterSpacing={-0.16}
-                          textTransform="uppercase"
-                        >
-                          Risco:
+                        <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
+                          -
                         </Text>
                       </VStack>
                     </Box>
 
-                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
-                      <VStack space={2}>
+                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} py={3}>
+                      <VStack flex={1} justifyContent="space-between">
                         <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                           Imunidade
                         </Text>
-
                         <Center>
-                          <Image source={Vector7} alt="Vetor" resizeMode="contain" size={14} />
+                          <Image source={Vector7} alt="Vetor" resizeMode="contain" size={12} />
                         </Center>
-
-                        <Text
-                          color="white"
-                          fontSize={12}
-                          fontWeight={600}
-                          letterSpacing={-0.16}
-                          textTransform="uppercase"
-                        >
-                          Risco:
+                        <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
+                          -
                         </Text>
                       </VStack>
                     </Box>
 
-                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} justifyContent="center">
-                      <VStack space={2}>
+                    <Box bg={'gray.300'} rounded="2xl" w={144} h={144} shadow={4} px={4} py={3}>
+                      <VStack flex={1} justifyContent="space-between">
                         <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                           Coração
                         </Text>
-
                         <Center>
-                          <Image source={Vector10} alt="Vetor" resizeMode="contain" size={14} />
+                          <Image source={Vector10} alt="Vetor" resizeMode="contain" size={12} />
                         </Center>
-
-                        <Text
-                          color="white"
-                          fontSize={12}
-                          fontWeight={600}
-                          letterSpacing={-0.16}
-                          textTransform="uppercase"
-                        >
-                          Risco:
+                        <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
+                          -
                         </Text>
                       </VStack>
                     </Box>
@@ -524,9 +523,89 @@ export function Homepage() {
               </HStack>
             </Animated.View>
 
+            {/* Saúde Mental - animação 3.5 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(250) : undefined}>
+              <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
+                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                  Saúde Mental
+                </Text>
+
+                <TouchableOpacity onPress={() => navigation.navigate('mentalHealthResult')}>
+                  <MoreIcon />
+                </TouchableOpacity>
+              </HStack>
+
+              {mentalHealthAssessment ? (
+                <TouchableOpacity onPress={() => navigation.navigate('mentalHealthResult')}>
+                  <Box bg="white" borderRadius={12} p={4} mt={4} shadow={2}>
+                    <HStack justifyContent="space-between" alignItems="center" mb={3}>
+                      <Text fontSize={12} fontWeight={500} color="gray.500">
+                        Última avaliação: {formatAssessmentDate(mentalHealthAssessment.date)}
+                      </Text>
+                      <ChevronRightIcon size="20" color="#0CC1AF" />
+                    </HStack>
+
+                    <HStack justifyContent="space-between" space={2}>
+                      {/* Depressão */}
+                      <Box flex={1} bg={getColorByClassification(mentalHealthAssessment.classifications.depression).bgColor} borderRadius={10} p={3} alignItems="center">
+                        <HeadHealthIcon size="24" color={getColorByClassification(mentalHealthAssessment.classifications.depression).color} />
+                        <Text fontSize={12} fontWeight={600} color="gray.700" mt={1}>
+                          Depressão
+                        </Text>
+                        <Text fontSize={12} fontWeight={700} color={getColorByClassification(mentalHealthAssessment.classifications.depression).color}>
+                          {getColorByClassification(mentalHealthAssessment.classifications.depression).label}
+                        </Text>
+                      </Box>
+
+                      {/* Ansiedade */}
+                      <Box flex={1} bg={getColorByClassification(mentalHealthAssessment.classifications.anxiety).bgColor} borderRadius={10} p={3} alignItems="center">
+                        <HeartIcon size="24" color={getColorByClassification(mentalHealthAssessment.classifications.anxiety).color} />
+                        <Text fontSize={12} fontWeight={600} color="gray.700" mt={1}>
+                          Ansiedade
+                        </Text>
+                        <Text fontSize={12} fontWeight={700} color={getColorByClassification(mentalHealthAssessment.classifications.anxiety).color}>
+                          {getColorByClassification(mentalHealthAssessment.classifications.anxiety).label}
+                        </Text>
+                      </Box>
+
+                      {/* Estresse */}
+                      <Box flex={1} bg={getColorByClassification(mentalHealthAssessment.classifications.stress).bgColor} borderRadius={10} p={3} alignItems="center">
+                        <EnergyIcon size="24" color={getColorByClassification(mentalHealthAssessment.classifications.stress).color} />
+                        <Text fontSize={12} fontWeight={600} color="gray.700" mt={1}>
+                          Estresse
+                        </Text>
+                        <Text fontSize={12} fontWeight={700} color={getColorByClassification(mentalHealthAssessment.classifications.stress).color}>
+                          {getColorByClassification(mentalHealthAssessment.classifications.stress).label}
+                        </Text>
+                      </Box>
+                    </HStack>
+                  </Box>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity onPress={() => navigation.navigate('mentalHealthForm')}>
+                  <Box bg="white" borderRadius={12} p={4} mt={4} shadow={2}>
+                    <HStack alignItems="center" space={3}>
+                      <Box bg="purple.50" w={12} h={12} borderRadius={12} alignItems="center" justifyContent="center">
+                        <HeadHealthIcon size="24" color="#8B5CF6" />
+                      </Box>
+                      <VStack flex={1}>
+                        <Text fontSize={14} fontWeight={700} color="gray.800">
+                          Avalie sua saúde mental
+                        </Text>
+                        <Text fontSize={12} fontWeight={400} color="gray.500" lineHeight={16}>
+                          Responda ao questionário DASS-21 e descubra como você está.
+                        </Text>
+                      </VStack>
+                      <ChevronRightIcon size="24" color="#8B5CF6" />
+                    </HStack>
+                  </Box>
+                </TouchableOpacity>
+              )}
+            </Animated.View>
+
             {/* Rastreador Fitness - animação 4 */}
-            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(300) : undefined}>
-              <HStack mt={4} justifyContent={'space-between'} alignItems={'center'}>
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(350) : undefined}>
+              <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
                 <HStack alignItems={'center'} space={2}>
                   <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
                     Rastreador Fitness
@@ -543,12 +622,31 @@ export function Homepage() {
                 </TouchableOpacity>
               </HStack>
 
+              {!fitnessEnabled && (
+                <Box mt={4}>
+                  <FeatureBanner
+                    id="fitness-tracker-enable"
+                    icon={<BarbellIcon size="24" color="#0CC1AF" />}
+                    title="Habilite o Rastreador Fitness"
+                    description="Acompanhe suas calorias, passos, sono e hidratação conectando com o Apple Health ou Health Connect."
+                    actionText="Habilitar agora"
+                    onAction={async () => {
+                      await setFitnessEnabled(true);
+                      await refreshFitnessData();
+                    }}
+                    bgColor="ciano.50"
+                    iconBgColor="ciano.100"
+                    actionColor="ciano.600"
+                  />
+                </Box>
+              )}
+
               {<StatusCards userTrackerData={!fitnessEnabled} />}
             </Animated.View>
 
             {/* Fale com Doutor X - animação 5 */}
             <Animated.View
-              entering={!hasAnimated ? FadeInDown.duration(400).delay(400) : undefined}
+              entering={!hasAnimated ? FadeInDown.duration(400).delay(450) : undefined}
               onLayout={() => !hasAnimated && setHasAnimated(true)}
             >
               <HStack mt={8} alignItems={'center'} space={2}>
@@ -571,15 +669,7 @@ export function Homepage() {
                 >
                   BÁSICO
                 </Badge>
-                <HStack alignItems="baseline" space={1}>
-                  <Text fontSize={32} fontWeight={800} color="gray.900">
-                    192
-                  </Text>
-                  <Text fontSize={14} fontWeight={500} color="gray.500">
-                    Total
-                  </Text>
-                </HStack>
-                <Text fontSize={14} fontWeight={600} lineHeight={18} color="gray.800">
+                <Text fontSize={14} fontWeight={600} lineHeight={18} color="gray.800" mt={2}>
                   Bate-papo sobre{'\n'}Saúde e bem estar
                 </Text>
               </VStack>

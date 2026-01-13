@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Modal, Button as NativeBaseButton, Actionsheet, useDisclose } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, IScrollViewProps, View, Modal, Button as NativeBaseButton, Actionsheet, useDisclose, Select, CheckIcon } from 'native-base';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import { BottomSheetModal, BottomSheetView, BottomSheetBackdrop } from '@gorhom/bottom-sheet';
+import BottomSheet, { BottomSheetView, BottomSheetBackdrop, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -9,11 +9,12 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 
 // assets
-import { ChevronRightIcon, FilterIcon, FlaskIcon, MoreIcon, RotateRightIcon, TrashIcon, UploadIcon } from '@assets/icons';
+import { ChevronRightIcon, FilterIcon, FlaskIcon, MoreIcon, RotateRightIcon, TrashIcon } from '@assets/icons';
 
 // components
-import { HeaderTitle, Input } from '@components/molecules';
-import { TouchableOpacity, useWindowDimensions, Keyboard, Pressable, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
+import { HeaderTitle } from '@components/molecules';
+import { useWindowDimensions, Keyboard, Pressable, StatusBar, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CustomRefreshControl } from '@components/atoms';
 import { Button } from '@components/atoms';
 import { Controller, useForm } from 'react-hook-form';
@@ -22,6 +23,7 @@ import { yupResolver } from '@hookform/resolvers/yup';
 import { useAuth } from 'src/hooks/useAuth';
 import { useExam } from 'src/hooks/useExam';
 import { useCustomToast } from 'src/hooks/useCustomToast';
+import { useTabBar } from 'src/hooks/useTabBar';
 import ContentLoader, { Rect } from 'react-content-loader/native';
 import { formatDateToBrazilian } from '@utils/dateFormatter';
 
@@ -115,12 +117,14 @@ export function ExamList() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const scrollRef = useRef<IScrollViewProps>(null);
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const bottomSheetRef = useRef<BottomSheet>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
   const { showExtractionError, showAnalysisError, showExamProcessing, showFiltersApplied, showFiltersCleared, showError, showSuccess, showInfo } = useCustomToast();
   const { user } = useAuth();
   const { getExamList, examData, setExamSelected, deleteExam, reprocessExam } = useExam();
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const { hideTabBar, showTabBar } = useTabBar();
 
   // Estados para exclusão de exame
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -153,7 +157,7 @@ export function ExamList() {
   const [filteredExams, setFilteredExams] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const snapPoints = useMemo(() => ['55%', '55%'], []);
+  const snapPoints = useMemo(() => ['60%'], []);
 
   const {
     control,
@@ -173,9 +177,23 @@ export function ExamList() {
     resolver: yupResolver(uploadFormSchema),
   });
 
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
+  const handleOpenSheet = useCallback(() => {
+    hideTabBar();
+    bottomSheetRef.current?.expand();
+  }, [hideTabBar]);
+
+  const handleCloseSheet = useCallback(() => {
+    Keyboard.dismiss();
+    bottomSheetRef.current?.close();
+    showTabBar();
+  }, [showTabBar]);
+
+  // Callback quando o sheet muda de estado (para detectar fechamento por swipe)
+  const handleSheetChange = useCallback((index: number) => {
+    if (index === -1) {
+      showTabBar();
+    }
+  }, [showTabBar]);
 
   // Backdrop animado para o BottomSheet
   const renderBackdrop = useCallback(
@@ -184,7 +202,8 @@ export function ExamList() {
         {...props}
         disappearsOnIndex={-1}
         appearsOnIndex={0}
-        opacity={0.6}
+        opacity={0.5}
+        style={[props.style, { zIndex: 9998 }]}
       />
     ),
     []
@@ -317,7 +336,7 @@ export function ExamList() {
     };
 
     setFilters(newFilters);
-    bottomSheetModalRef.current?.close();
+    handleCloseSheet();
 
     showFiltersApplied();
   }
@@ -457,38 +476,38 @@ export function ExamList() {
 
             {/* Linha 2: Data do exame */}
             <HStack alignItems="center" space={1} mt={0.5}>
-              <Text fontSize={12} fontWeight={600} color="gray.500">Exame</Text>
-              <Text fontSize={13} fontWeight={600} color={exam.examDate ? "gray.700" : "gray.400"}>
+              <Text fontSize={12} fontWeight={600} color="gray.500">Data do Exame:</Text>
+              <Text fontSize={13} fontWeight={700} color={exam.examDate ? "gray.800" : "gray.400"}>
                 {exam.examDate ? formatDateToBrazilian(exam.examDate) : 'Não identificada'}
               </Text>
             </HStack>
 
             {/* Linha 3: Data de envio */}
-            <HStack alignItems="center" space={1} mt={0}>
-              <Text fontSize={11} fontWeight={500} color="gray.400">Enviado</Text>
-              <Text fontSize={12} fontWeight={500} color="gray.500">
+            <HStack alignItems="center" space={1} mt={0.5}>
+              <Text fontSize={12} fontWeight={500} color="gray.400">Enviado em:</Text>
+              <Text fontSize={12} fontWeight={600} color="gray.500">
                 {formatDateToBrazilian(exam.createdDate)}
               </Text>
             </HStack>
 
-            {/* Linha 4: Status */}
-            <HStack alignItems="center" mt={0.5}>
+            {/* Linha 4: Badge de status */}
+            <Box alignSelf="flex-start" mt={1.5}>
               <Box bg={statusColor} borderRadius={6} px={2} py={0.5}>
-                <Text fontSize={10} fontWeight={700} color="white">
+                <Text fontSize={12} fontWeight={700} color="white">
                   {statusMessage}
                 </Text>
               </Box>
-            </HStack>
+            </Box>
           </VStack>
 
-          {/* Lado direito: Ícone de ação */}
+          {/* Lado direito: Ação */}
           <VStack alignItems="flex-end" justifyContent="center">
-            {/* Exames concluídos: apenas chevron */}
+            {/* Exames concluídos: seta */}
             {isScoreComputed && (
-              <ChevronRightIcon color="#0CC1AF" size="28" />
+              <ChevronRightIcon color="#9CA3AF" size="24" />
             )}
 
-            {/* Exames com erro/processando: 3 pontos como indicador visual */}
+            {/* Exames com erro/processando: 3 pontos verticais */}
             {!isScoreComputed && (
               <Box p={1}>
                 <MoreIcon color="#9CA3AF" size="24" />
@@ -512,7 +531,7 @@ export function ExamList() {
           title="Exames Realizados"
           withBackButton={() => navigation.navigate('homepage')}
           withFilterButton
-          filterButtonAction={handlePresentModalPress}
+          filterButtonAction={handleOpenSheet}
         />
 
         {isLoading ? (
@@ -594,143 +613,182 @@ export function ExamList() {
         )}
       </VStack>
 
-      <BottomSheetModal
-        ref={bottomSheetModalRef}
-        index={1}
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
         snapPoints={snapPoints}
+        enablePanDownToClose
         backdropComponent={renderBackdrop}
-        keyboardBehavior="extend"
+        keyboardBehavior="interactive"
         keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
+        topInset={insets.top + 50}
+        handleIndicatorStyle={{ backgroundColor: '#D1D5DB', width: 40 }}
+        backgroundStyle={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+        containerStyle={styles.bottomSheetContainer}
+        onChange={handleSheetChange}
       >
-        <BottomSheetView style={{ flex: 1 }}>
-          <KeyboardAvoidingView
-            style={{ flex: 1 }}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          >
-            <VStack flex={1}>
-              {/* Scrollable Content */}
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                flex={1}
-                keyboardShouldPersistTaps="handled"
-              >
-              <VStack mx={6} pb={4}>
-                {/* Header */}
-                <VStack mb={6}>
-                  <HStack justifyContent="space-between" alignItems="center" width="100%" mt={4} mb={2}>
-                    <Text fontSize={24} fontWeight={700} letterSpacing={-0.24} color="gray.900">
-                      Filtrar Exames
-                    </Text>
-                    <Box bg="gray.100" p={2} borderRadius={10}>
-                      <FilterIcon size="20" color="#374151" />
-                    </Box>
-                  </HStack>
+        <BottomSheetView style={{ flex: 1, paddingHorizontal: 24 }}>
+          {/* Header */}
+          <VStack mb={4}>
+            <HStack justifyContent="space-between" alignItems="center" width="100%" mt={2} mb={2}>
+              <Text fontSize={24} fontWeight={700} letterSpacing={-0.24} color="gray.900">
+                Filtrar Exames
+              </Text>
+              <Box bg="gray.100" p={2} borderRadius={10}>
+                <FilterIcon size="20" color="#374151" />
+              </Box>
+            </HStack>
 
-                  <Text fontSize={14} fontWeight={400} letterSpacing={-0.14} color="gray.500" width="100%">
-                    Configure os filtros para encontrar exames específicos
-                  </Text>
-                </VStack>
+            <Text fontSize={14} fontWeight={400} letterSpacing={-0.14} color="gray.500" width="100%">
+              Configure os filtros para encontrar exames específicos
+            </Text>
+          </VStack>
 
-                {/* Form Fields */}
-                <VStack width="100%" space={5}>
-                  {/* Período de datas */}
-                  <HStack space={3}>
-                    <Box flex={1}>
-                      <Controller
-                        control={control}
-                        name="start_date"
-                        render={({ field: { onChange, value } }) => (
-                          <Input
-                            label="Data Início"
-                            placeholder="DD/MM/AAAA"
-                            onChangeText={(text) => {
-                              const maskedValue = applyDateMask(text);
-                              onChange(maskedValue);
-                            }}
-                            value={value}
-                            keyboardType="numeric"
-                            maxLength={10}
-                          />
-                        )}
+          {/* Form Fields */}
+          <VStack width="100%" space={4}>
+            {/* Período de datas */}
+            <HStack space={3}>
+              <VStack flex={1}>
+                <Text color="gray.900" fontSize={15} fontWeight={800} letterSpacing={-0.14} mb={2}>
+                  Data Início
+                </Text>
+                <Controller
+                  control={control}
+                  name="start_date"
+                  render={({ field: { onChange, value } }) => (
+                    <HStack
+                      alignItems="center"
+                      bg="white"
+                      borderRadius={12}
+                      borderWidth={1}
+                      borderColor="#E5E7EB"
+                      px={4}
+                      py={3}
+                    >
+                      <BottomSheetTextInput
+                        value={value}
+                        onChangeText={(text: string) => {
+                          const maskedValue = applyDateMask(text);
+                          onChange(maskedValue);
+                        }}
+                        placeholder="DD/MM/AAAA"
+                        keyboardType="numeric"
+                        maxLength={10}
+                        style={{
+                          flex: 1,
+                          fontSize: 15,
+                          color: '#1F2937',
+                          fontFamily: 'Poligon-Medium',
+                        }}
+                        placeholderTextColor="#9CA3AF"
                       />
-                    </Box>
-
-                    <Box flex={1}>
-                      <Controller
-                        control={control}
-                        name="final_date"
-                        render={({ field: { onChange, value } }) => (
-                          <Input
-                            label="Data Final"
-                            placeholder="DD/MM/AAAA"
-                            onChangeText={(text) => {
-                              const maskedValue = applyDateMask(text);
-                              onChange(maskedValue);
-                            }}
-                            value={value}
-                            keyboardType="numeric"
-                            maxLength={10}
-                          />
-                        )}
-                      />
-                    </Box>
-                  </HStack>
-
-                  {/* Filtro por status - Dropdown */}
-                  <Controller
-                    control={control}
-                    name="status"
-                    render={({ field: { onChange, value } }) => (
-                      <Input
-                        label="Status"
-                        selectType
-                        selectedValue={value}
-                        onValueChange={onChange}
-                        placeholder="Todos os status"
-                        options={statusFilterOptions.map((option) => ({
-                          label: option.label,
-                          value: option.value,
-                        }))}
-                      />
-                    )}
-                  />
-                </VStack>
+                    </HStack>
+                  )}
+                />
               </VStack>
-            </ScrollView>
 
-            {/* Fixed Action Buttons */}
-            <VStack borderTopWidth={1} borderTopColor="gray.200" bg="white" px={6} pt={4} pb={12}>
-              <HStack width="100%" space={4}>
-                <Button
-                  flex={1}
-                  title="Limpar Filtros"
-                  size="md"
-                  variant="secondary"
-                  fontSize={16}
-                  h={12}
-                  borderRadius={12}
-                  onPress={handleClearFilters}
-                  _text={{
-                    color: 'red.500',
-                  }}
+              <VStack flex={1}>
+                <Text color="gray.900" fontSize={15} fontWeight={800} letterSpacing={-0.14} mb={2}>
+                  Data Final
+                </Text>
+                <Controller
+                  control={control}
+                  name="final_date"
+                  render={({ field: { onChange, value } }) => (
+                    <HStack
+                      alignItems="center"
+                      bg="white"
+                      borderRadius={12}
+                      borderWidth={1}
+                      borderColor="#E5E7EB"
+                      px={4}
+                      py={3}
+                    >
+                      <BottomSheetTextInput
+                        value={value}
+                        onChangeText={(text: string) => {
+                          const maskedValue = applyDateMask(text);
+                          onChange(maskedValue);
+                        }}
+                        placeholder="DD/MM/AAAA"
+                        keyboardType="numeric"
+                        maxLength={10}
+                        style={{
+                          flex: 1,
+                          fontSize: 15,
+                          color: '#1F2937',
+                          fontFamily: 'Poligon-Medium',
+                        }}
+                        placeholderTextColor="#9CA3AF"
+                      />
+                    </HStack>
+                  )}
                 />
-                <Button
-                  flex={1}
-                  title="Aplicar Filtros"
-                  size="md"
-                  variant="primary"
-                  fontSize={16}
-                  h={12}
-                  borderRadius={12}
-                  onPress={handleSubmit(handleApplyFilters)}
-                />
-              </HStack>
+              </VStack>
+            </HStack>
+
+            {/* Filtro por status - Select */}
+            <VStack>
+              <Text color="gray.900" fontSize={15} fontWeight={800} letterSpacing={-0.14} mb={2}>
+                Status
+              </Text>
+              <Controller
+                control={control}
+                name="status"
+                render={({ field: { onChange, value } }) => (
+                  <Select
+                    selectedValue={value}
+                    onValueChange={onChange}
+                    placeholder="Todos os status"
+                    bg="white"
+                    borderColor="gray.200"
+                    h={12}
+                    borderRadius={12}
+                    fontSize={15}
+                    fontWeight={600}
+                    _selectedItem={{
+                      bg: 'gray.100',
+                      endIcon: <CheckIcon size="5" />,
+                    }}
+                  >
+                    {statusFilterOptions.map((option) => (
+                      <Select.Item key={option.value} label={option.label} value={option.value} />
+                    ))}
+                  </Select>
+                )}
+              />
             </VStack>
           </VStack>
-          </KeyboardAvoidingView>
+
+          {/* Action Buttons */}
+          <HStack width="100%" space={4} mt={6} mb={4}>
+            <Button
+              flex={1}
+              title="Limpar"
+              size="md"
+              variant="secondary"
+              fontSize={16}
+              h={12}
+              borderRadius={12}
+              onPress={handleClearFilters}
+              _text={{
+                color: 'red.500',
+              }}
+            />
+            <Button
+              flex={1}
+              title="Aplicar"
+              size="md"
+              variant="primary"
+              fontSize={16}
+              h={12}
+              borderRadius={12}
+              onPress={handleSubmit(handleApplyFilters)}
+            />
+          </HStack>
         </BottomSheetView>
-      </BottomSheetModal>
+      </BottomSheet>
 
       {/* Modal de confirmação de exclusão */}
       <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
@@ -840,3 +898,10 @@ export function ExamList() {
     </VStack>
   );
 }
+
+const styles = StyleSheet.create({
+  bottomSheetContainer: {
+    zIndex: 9999,
+    elevation: 9999,
+  },
+});

@@ -1,0 +1,1 @@
+export { SmartSuggestionCard } from './smartSuggestionCard';
