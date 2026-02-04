@@ -22,13 +22,20 @@ export function formatExamValue(value: number | string | null | undefined): stri
     return '';
   }
 
+  // Tratar valores inválidos que são apenas pontos, vírgulas ou símbolos sem números
+  // Ex: ".", "..", ",", etc. - são valores inválidos que devem ser tratados como vazios
+  if (/^[.,\s]+$/.test(originalStr)) {
+    console.warn(`[formatExamValue] Valor inválido detectado: "${originalStr}"`);
+    return '--';
+  }
+
   // Tratar valores que começam com ponto (ex: ".9" -> "0.9")
   const normalizedStr = originalStr.startsWith('.') ? `0${originalStr}` : originalStr;
 
   // Converter para numero
   const numValue = parseFloat(normalizedStr);
 
-  // Se nao for numero valido, retornar como string original
+  // Se nao for numero valido, retornar como string original (pode ser qualitativo como "Negativo")
   if (isNaN(numValue)) {
     return originalStr;
   }

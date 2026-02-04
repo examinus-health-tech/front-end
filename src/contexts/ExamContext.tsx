@@ -12,6 +12,9 @@ type MedicalExamItemProps = {
   medicalExamItemWeightActionRecommendation: string;
   medicalExamItemWeightColor: string;
   medicalExamItemWeightDescription: string;
+  // Campos de referência para cálculo de cores e preenchimento
+  referenceMin?: number | null;
+  referenceMax?: number | null;
 };
 
 type MedicalExamOrganicSystemProps = {
@@ -63,6 +66,40 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
   async function getExamList() {
     try {
       const response = await api.get('/medical-exam/get-all-exams-upload-by-logged-user');
+
+      // Debug: ver estrutura dos dados retornados
+      if (response.data.data?.length > 0) {
+        const firstExam = response.data.data[0];
+        console.log('📋 [ExamContext] Primeiro exame - campos disponíveis:', Object.keys(firstExam));
+        console.log('📋 [ExamContext] Dados do médico:', {
+          doctorName: firstExam.doctorName,
+          doctor_name: firstExam.doctor_name,
+          requestingDoctorName: firstExam.requestingDoctorName,
+          responsibleDoctorName: firstExam.responsibleDoctorName,
+        });
+
+        // Debug: verificar itens com valores vazios ou zerados
+        response.data.data.forEach((exam: ExamDataProps) => {
+          if (exam.medicalExamItems?.length > 0) {
+            const emptyValueItems = exam.medicalExamItems.filter(
+              (item) =>
+                !item.medicalExamItemReferenceValue ||
+                item.medicalExamItemReferenceValue === '' ||
+                item.medicalExamItemReferenceValue === '0'
+            );
+            if (emptyValueItems.length > 0) {
+              console.warn('⚠️ [ExamContext] Exame com itens sem valor:', {
+                examId: exam.medicalExamId,
+                examDate: exam.createdDate,
+                itemsVazios: emptyValueItems.map((i) => ({
+                  nome: i.examItemDescription,
+                  valor: i.medicalExamItemReferenceValue,
+                })),
+              });
+            }
+          }
+        });
+      }
 
       setExamData(response.data.data);
       return response.data.data;
