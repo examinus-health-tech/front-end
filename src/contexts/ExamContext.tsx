@@ -31,7 +31,10 @@ type ExamDataProps = {
   medicalExamStatus: string;
   // Metadados extraídos do exame
   doctorName?: string;
+  requestingDoctorName?: string;
+  responsibleDoctorName?: string;
   laboratoryName?: string;
+  healthInsuranceName?: string;
   examDate?: string;
   medicalExamItems: MedicalExamItemProps[];
   medicalExamOrganicSystemsScore: MedicalExamOrganicSystemProps[];

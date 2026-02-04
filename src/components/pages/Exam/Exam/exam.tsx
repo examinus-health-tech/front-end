@@ -553,11 +553,32 @@ export function Exam() {
                   Enviado: {formatDateToBrazilian(examSelected.createdDate)}
                 </Text>
               </HStack>
-              {examSelected.doctorName && (
-                <Text fontSize={14} fontWeight={600} color="gray.700" textTransform="capitalize">
-                  Dr(a). {examSelected.doctorName.toLowerCase()}
+
+              {/* Médicos */}
+              {examSelected.requestingDoctorName && (
+                <Text fontSize={13} fontWeight={500} color="gray.600" mt={1}>
+                  Solicitante: {examSelected.requestingDoctorName}
                 </Text>
               )}
+              {examSelected.responsibleDoctorName && (
+                <Text fontSize={13} fontWeight={500} color="gray.600">
+                  Responsável: {examSelected.responsibleDoctorName}
+                </Text>
+              )}
+              {/* Fallback para o campo legado se não tiver os novos */}
+              {!examSelected.requestingDoctorName && !examSelected.responsibleDoctorName && examSelected.doctorName && (
+                <Text fontSize={13} fontWeight={500} color="gray.600" mt={1}>
+                  Médico: {examSelected.doctorName}
+                </Text>
+              )}
+
+              {/* Convênio */}
+              {examSelected.healthInsuranceName && (
+                <Text fontSize={13} fontWeight={500} color="gray.500">
+                  Convênio: {examSelected.healthInsuranceName}
+                </Text>
+              )}
+
               <Text fontSize={12} fontWeight={400} color="gray.400" mt={2} lineHeight={16}>
                 Dados extraídos e analisados automaticamente pela inteligência Examinus a partir do documento enviado.
               </Text>
