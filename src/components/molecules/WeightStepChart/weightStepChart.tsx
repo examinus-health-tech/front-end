@@ -23,6 +23,8 @@ export type Props = {
   lineColor?: string;
   gradientColor?: string;
   indicatorColor?: string;
+  goalValue?: number;
+  goalLineColor?: string;
 };
 
 export function WeightStepChart({
@@ -31,6 +33,8 @@ export function WeightStepChart({
   lineColor = '#00A38B',
   gradientColor = '#00A38B',
   indicatorColor = '#00A38B',
+  goalValue,
+  goalLineColor = '#EF4444',
 }: Props) {
   const [containerWidth, setContainerWidth] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -63,18 +67,30 @@ export function WeightStepChart({
   const numBars = displayData.length;
   const barWidth = chartWidth / numBars;
 
-  // Encontrar min e max para escala
+  // Encontrar min e max para escala (incluindo goalValue se existir)
   const values = displayData.map((d) => d.value);
-  const minValue = Math.floor(Math.min(...values) / 10) * 10 - 10;
-  const maxValue = Math.ceil(Math.max(...values) / 10) * 10 + 10;
-  const valueRange = maxValue - minValue;
+  if (goalValue !== undefined) {
+    values.push(goalValue);
+  }
+  const dataMin = Math.min(...values);
+  const dataMax = Math.max(...values);
+
+  // Arredondar para múltiplos de 10 com margem
+  const rawMin = Math.floor(dataMin / 10) * 10 - 10;
+  const rawMax = Math.ceil(dataMax / 10) * 10 + 10;
 
   // Gerar labels do eixo Y
   const yAxisLabels: number[] = [];
-  const step = Math.ceil(valueRange / 4 / 5) * 5;
-  for (let v = maxValue; v >= minValue; v -= step) {
+  const step = Math.ceil((rawMax - rawMin) / 4 / 5) * 5 || 10;
+  for (let v = rawMax; v >= rawMin; v -= step) {
     yAxisLabels.push(v);
   }
+
+  // Usar o primeiro e último label como os limites reais da escala
+  // Isso garante que a linha de meta fique alinhada com os valores do eixo Y
+  const maxValue = yAxisLabels[0];
+  const minValue = yAxisLabels[yAxisLabels.length - 1];
+  const valueRange = maxValue - minValue;
 
   // Converter valor para coordenada Y
   const valueToY = (value: number) => {
@@ -161,7 +177,15 @@ export function WeightStepChart({
       {containerWidth > 0 && (
         <Box position="relative" w="100%" h="100%">
           {/* Labels do eixo Y */}
-          <VStack position="absolute" left={0} top={0} h="100%" justifyContent="space-between" py={`${paddingTop}px`}>
+          <VStack
+            position="absolute"
+            left={0}
+            top={0}
+            h="100%"
+            justifyContent="space-between"
+            pt={`${paddingTop}px`}
+            pb={`${paddingBottom}px`}
+          >
             {yAxisLabels.map((label, index) => (
               <Text
                 key={index}
@@ -189,6 +213,10 @@ export function WeightStepChart({
                   <Stop offset="0%" stopColor={gradientColor} stopOpacity="0.2" />
                   <Stop offset="100%" stopColor={gradientColor} stopOpacity="0" />
                 </LinearGradient>
+                <LinearGradient id="goalGradient" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor={goalLineColor} stopOpacity="0.15" />
+                  <Stop offset="100%" stopColor={goalLineColor} stopOpacity="0" />
+                </LinearGradient>
               </Defs>
 
               {/* Linhas de grade horizontais */}
@@ -207,6 +235,28 @@ export function WeightStepChart({
                   />
                 );
               })}
+
+              {/* Área de gradiente abaixo da linha da meta */}
+              {goalValue !== undefined && (
+                <Path
+                  d={`M ${paddingLeft} ${valueToY(goalValue)} L ${containerWidth} ${valueToY(goalValue)} L ${containerWidth} ${height} L ${paddingLeft} ${height} Z`}
+                  fill="url(#goalGradient)"
+                />
+              )}
+
+              {/* Linha horizontal da meta */}
+              {goalValue !== undefined && (
+                <Line
+                  x1={paddingLeft}
+                  y1={valueToY(goalValue)}
+                  x2={containerWidth}
+                  y2={valueToY(goalValue)}
+                  stroke={goalLineColor}
+                  strokeWidth="2"
+                  strokeDasharray="6,4"
+                  opacity={0.8}
+                />
+              )}
 
               {/* Área do gradiente */}
               <Path d={areaPath} fill="url(#weightChartGradient)" />

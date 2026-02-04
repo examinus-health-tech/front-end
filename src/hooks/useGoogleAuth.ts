@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from './useAuth';
 import { getGoogleClientId, getGoogleIOSClientId, isGoogleAuthConfigured } from '../config/googleAuth';
+import { checkCampaignVoucher } from '@services/campaignService';
 
 export function useGoogleAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -71,6 +72,12 @@ export function useGoogleAuth() {
       try {
         if (isSignup) {
           await authSignUpWithGoogle(userInfo.data.idToken);
+
+          // Verifica se o email está em uma campanha promocional (voucher enviado por email)
+          const email = userInfo.data.user?.email;
+          if (email) {
+            checkCampaignVoucher(email).catch(() => {});
+          }
         } else {
           await authSignInWithGoogle(userInfo.data.idToken);
         }

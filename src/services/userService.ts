@@ -101,6 +101,7 @@ export async function updateUserPersonalData(data: UserPersonalDataDTO) {
   try {
     console.log('📤 [USER_SERVICE] Salvando perfil completo via PUT (UPSERT):', data);
     console.log('⏱️ [USER_SERVICE] Timeout configurado: 60 segundos');
+    console.log('🔗 [USER_SERVICE] URL completa:', `${process.env.EXPO_PUBLIC_API_URL}user-personal-data`);
 
     // Aumentar timeout para 60 segundos especificamente para esta operação
     const response = await api.put('user-personal-data', data, {
@@ -117,7 +118,29 @@ export async function updateUserPersonalData(data: UserPersonalDataDTO) {
       status: error.response?.status,
       statusText: error.response?.statusText,
       data: error.response?.data,
+      url: `${process.env.EXPO_PUBLIC_API_URL}user-personal-data`,
     });
+
+    // Se PUT retornou 404, tentar POST como fallback (criar novo registro)
+    if (error.response?.status === 404) {
+      console.log('🔄 [USER_SERVICE] PUT retornou 404, tentando POST como fallback...');
+      try {
+        const postResponse = await api.post('user-personal-data', data, {
+          timeout: 60000,
+        });
+        console.log('✅ [USER_SERVICE] POST bem sucedido:', postResponse.data);
+        return postResponse.data;
+      } catch (postError: any) {
+        console.error('❌ [USER_SERVICE] POST também falhou:', {
+          message: postError.message,
+          status: postError.response?.status,
+          data: postError.response?.data,
+        });
+        // Se POST também falhou, lançar o erro original
+        throw error;
+      }
+    }
+
     throw error;
   }
 }
@@ -170,17 +193,17 @@ export async function saveUserPersonalData(data: UserPersonalDataDTO) {
     const errorMessage = putError.message?.toLowerCase() || '';
     const status = putError.response?.status;
 
-    console.error('❌ [USER_SERVICE] PUT falhou:', {
+    console.error('❌ [USER_SERVICE] PUT/POST falhou:', {
       message: putError.message,
       status: status,
       data: putError.response?.data,
     });
 
-    // Se erro é "não encontrado", o backend tem bug mas os dados PODEM ter sido salvos
+    // Se erro é "não encontrado" (500 ou 404), o backend tem bug mas os dados PODEM ter sido salvos
     // Vamos tentar buscar os dados para confirmar
     if (
-      status === 500 &&
-      (errorMessage.includes('não encontrado') || errorMessage.includes('not found'))
+      (status === 500 || status === 404) &&
+      (errorMessage.includes('não encontrado') || errorMessage.includes('not found') || status === 404)
     ) {
       console.log('⚠️ [USER_SERVICE] Erro "não encontrado" - pode ser bug do backend');
       console.log('🔄 [USER_SERVICE] Verificando se dados foram salvos...');
@@ -335,33 +358,122 @@ export async function updateNotificationPreferences(preferences: NotificationPre
   }
 }
 
+const ONBOARDING_CACHE_KEY = '@app:onboarding_completed';
+
 /**
  * Verifica se o usuário completou o onboarding
  * Endpoint: GET /user-personal-data/onboarding-status
  *
+ * ESTRATÉGIA DE VERIFICAÇÃO (prioridade absoluta para cache local):
+ * 1. Se cache local indica completo -> retorna TRUE imediatamente (nunca mostra onboarding)
+ * 2. Se não tem cache -> busca do backend
+ * 3. Se backend confirma -> salva no cache e retorna
+ * 4. Se erro de rede/401/qualquer erro -> retorna TRUE para não forçar onboarding
+ *
+ * A filosofia é: uma vez que o onboarding foi completado, NUNCA deve reaparecer.
+ * É melhor pular o onboarding erroneamente do que mostrá-lo novamente.
+ *
  * @returns Promise com o status do onboarding { hasCompletedOnboarding: boolean }
  */
 export async function getOnboardingStatus(): Promise<{ hasCompletedOnboarding: boolean }> {
+  // 1. PRIORIDADE ABSOLUTA: Verificar cache local primeiro
   try {
-    console.log('📥 [USER_SERVICE] Verificando status do onboarding...');
+    const cachedStatus = await AsyncStorage.getItem(ONBOARDING_CACHE_KEY);
+    if (cachedStatus === 'true') {
+      console.log('📱 [USER_SERVICE] Cache local indica onboarding completo - retornando TRUE');
+      // Atualizar do backend em background (não bloqueia)
+      updateOnboardingCacheFromBackend();
+      return { hasCompletedOnboarding: true };
+    }
+    console.log('📱 [USER_SERVICE] Cache local não encontrado ou não é "true"');
+  } catch (cacheError) {
+    console.log('⚠️ [USER_SERVICE] Erro ao ler cache local:', cacheError);
+  }
 
+  // 2. Se não tem cache, buscar do backend
+  try {
+    console.log('📥 [USER_SERVICE] Verificando status do onboarding no backend...');
+
+    const response = await api.get<{ data: { hasCompletedOnboarding: boolean } }>(
+      'user-personal-data/onboarding-status',
+      { timeout: 10000 } // Timeout de 10 segundos
+    );
+
+    const hasCompleted = response.data.data?.hasCompletedOnboarding ?? false;
+    console.log('✅ [USER_SERVICE] Status do onboarding do backend:', hasCompleted);
+
+    // 3. Se o onboarding foi completado, salvar no cache local
+    if (hasCompleted) {
+      await AsyncStorage.setItem(ONBOARDING_CACHE_KEY, 'true');
+      console.log('💾 [USER_SERVICE] Cache de onboarding salvo');
+    }
+
+    return { hasCompletedOnboarding: hasCompleted };
+  } catch (error: any) {
+    console.error('❌ [USER_SERVICE] Erro ao verificar status do onboarding:', error?.message);
+
+    // 4. FALLBACK SEGURO: Em caso de QUALQUER erro, verificar cache novamente
+    // Se ainda não há cache, verificar se há dados pessoais como indicador secundário
+    try {
+      const cachedStatus = await AsyncStorage.getItem(ONBOARDING_CACHE_KEY);
+      if (cachedStatus === 'true') {
+        console.log('📱 [USER_SERVICE] Fallback: Cache local indica onboarding completo');
+        return { hasCompletedOnboarding: true };
+      }
+
+      // Verificar se há dados pessoais como indicador secundário
+      const personalData = await AsyncStorage.getItem('@app:personalData');
+      if (personalData) {
+        const parsed = JSON.parse(personalData);
+        // Se tem dados pessoais com campos obrigatórios, considera onboarding completo
+        if (parsed && (parsed.gender || parsed.weight || parsed.height)) {
+          console.log('📱 [USER_SERVICE] Fallback: Dados pessoais encontrados, considerando onboarding completo');
+          await AsyncStorage.setItem(ONBOARDING_CACHE_KEY, 'true');
+          return { hasCompletedOnboarding: true };
+        }
+      }
+    } catch (fallbackError) {
+      console.error('❌ [USER_SERVICE] Erro no fallback:', fallbackError);
+    }
+
+    // Último recurso: sem cache e sem dados pessoais, assumir não completado
+    console.log('⚠️ [USER_SERVICE] Nenhum indicador encontrado, onboarding será mostrado');
+    return { hasCompletedOnboarding: false };
+  }
+}
+
+/**
+ * Atualiza o cache de onboarding do backend em background
+ * Não bloqueia e não lança exceções
+ *
+ * IMPORTANTE: Só atualiza o cache para TRUE, nunca remove.
+ * A remoção do cache só deve acontecer em logout explícito.
+ * Isso evita que o onboarding reapareça devido a erros de sincronização
+ * ou respostas incorretas do backend.
+ */
+async function updateOnboardingCacheFromBackend(): Promise<void> {
+  try {
     const response = await api.get<{ data: { hasCompletedOnboarding: boolean } }>(
       'user-personal-data/onboarding-status'
     );
-
-    console.log('✅ [USER_SERVICE] Status do onboarding:', response.data.data);
-
-    return response.data.data;
-  } catch (error: any) {
-    console.error('❌ [USER_SERVICE] Erro ao verificar status do onboarding:', error);
-    // Em caso de erro, assumir que onboarding não foi completado
-    return { hasCompletedOnboarding: false };
+    if (response.data.data?.hasCompletedOnboarding) {
+      await AsyncStorage.setItem(ONBOARDING_CACHE_KEY, 'true');
+    }
+    // NÃO remover o cache se o backend retornar false
+    // O cache só deve ser invalidado em logout explícito para evitar
+    // que o onboarding reapareça indevidamente
+  } catch (error) {
+    // Silenciosamente ignora erros - é apenas uma atualização em background
+    console.log('⚠️ [USER_SERVICE] Falha ao atualizar cache de onboarding (background)');
   }
 }
 
 /**
  * Marca o onboarding como completo para o usuário
  * Endpoint: POST /user-personal-data/complete-onboarding
+ *
+ * Também salva no cache local para garantir que o status seja preservado
+ * mesmo em caso de falhas de rede futuras.
  *
  * @returns Promise<void>
  */
@@ -371,7 +483,10 @@ export async function completeOnboarding(): Promise<void> {
 
     await api.post('user-personal-data/complete-onboarding');
 
-    console.log('✅ [USER_SERVICE] Onboarding marcado como completo');
+    // Salvar no cache local para fallback em caso de erro de rede futuro
+    await AsyncStorage.setItem(ONBOARDING_CACHE_KEY, 'true');
+
+    console.log('✅ [USER_SERVICE] Onboarding marcado como completo e salvo no cache local');
   } catch (error: any) {
     console.error('❌ [USER_SERVICE] Erro ao marcar onboarding como completo:', error);
     throw error;

@@ -31,6 +31,7 @@ import { useAuth } from 'src/hooks/useAuth';
 import { useGoogleAuth } from 'src/hooks/useGoogleAuth';
 import { useAppleAuth } from 'src/hooks/useAppleAuth';
 import { useCustomToast } from 'src/hooks/useCustomToast';
+import { checkCampaignVoucher } from '@services/campaignService';
 import * as AppleAuthentication from 'expo-apple-authentication';
 
 type FormDataProps = {
@@ -79,10 +80,14 @@ export function SignUp() {
       setIsLoading(true);
       await signUp(name, email, password, confirm_password);
 
+      // Verifica se o email está em uma campanha promocional (voucher enviado por email)
+      checkCampaignVoucher(email).catch(() => {});
+
       showSuccess({
         title: 'Conta criada com sucesso',
         description: 'Você já pode fazer login.',
       });
+
       navigation.navigate('signIn');
     } catch (error: any) {
       console.log('❌ Erro capturado no SignUp:', error);

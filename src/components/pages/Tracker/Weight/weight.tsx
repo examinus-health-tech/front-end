@@ -1,7 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
-import { VStack, Box, Text, HStack, Actionsheet, useDisclose, Input, Pressable, Skeleton } from 'native-base';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { Keyboard } from 'react-native';
+import { VStack, Box, Text, HStack, Pressable, Skeleton } from 'native-base';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StatusBar, setStatusBarStyle } from 'expo-status-bar';
+import BottomSheet, { BottomSheetView, BottomSheetBackdrop, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import Animated, {
   useSharedValue,
   useAnimatedScrollHandler,
@@ -47,10 +50,26 @@ export function Weight() {
   const [localWeightGoal, setLocalWeightGoal] = useState<number>(70.0);
   const [isLoadingChart, setIsLoadingChart] = useState(true);
   const [chartData, setChartData] = useState<WeightDataPoint[]>([]);
-  const { isOpen, onOpen, onClose } = useDisclose();
   const navigation = useNavigation<AppNavigatorRoutesProps>();
   const { trackerData, refreshFitnessData } = useHome();
   const { hideTabBar, showTabBar } = useTabBar();
+  const insets = useSafeAreaInsets();
+
+  // Bottom sheet ref
+  const bottomSheetRef = useRef<BottomSheet>(null);
+  const snapPoints = useMemo(() => ['50%'], []);
+
+  const renderBackdrop = useCallback(
+    (props: any) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.5}
+      />
+    ),
+    []
+  );
 
   // Animated scroll value
   const scrollY = useSharedValue(0);
@@ -141,6 +160,24 @@ export function Weight() {
   const isAboveGoal = weightDiff > 0;
   const progressToGoal = localWeightGoal > 0 ? Math.min((localWeightGoal / weightCompleted) * 100, 100) : 0;
 
+  // Handlers do bottom sheet
+  const handleOpenSheet = useCallback((mode: EditMode) => {
+    setEditMode(mode);
+    if (mode === 'current') {
+      setWeightInput(weightCompleted.toFixed(1));
+    } else if (mode === 'goal') {
+      setWeightInput(localWeightGoal.toFixed(1));
+    }
+    bottomSheetRef.current?.expand();
+  }, [weightCompleted, localWeightGoal]);
+
+  const handleCloseSheet = useCallback(() => {
+    Keyboard.dismiss();
+    setEditMode(null);
+    setWeightInput('');
+    bottomSheetRef.current?.close();
+  }, []);
+
   // Helper para converter range em meses
   const getMonthsForRange = (range: TimeRange): number => {
     switch (range) {
@@ -182,21 +219,14 @@ export function Weight() {
     fetchChartData();
   }, [rangeSelected, weightCompleted]);
 
-  const handleOpenEdit = (mode: EditMode) => {
-    setEditMode(mode);
-    if (mode === 'current') {
-      setWeightInput(weightCompleted.toFixed(1));
-    } else if (mode === 'goal') {
-      setWeightInput(localWeightGoal.toFixed(1));
-    }
-    onOpen();
-  };
-
   const handleSaveWeight = async () => {
     if (!weightInput || !editMode) return;
 
     const value = parseFloat(weightInput);
     if (isNaN(value) || value <= 0) return;
+
+    // Fechar primeiro para melhor UX
+    handleCloseSheet();
 
     if (editMode === 'current') {
       setIsSaving(true);
@@ -246,17 +276,6 @@ export function Weight() {
         setIsSaving(false);
       }
     }
-
-    // Reset e fechar
-    setEditMode(null);
-    setWeightInput('');
-    onClose();
-  };
-
-  const handleCloseModal = () => {
-    setEditMode(null);
-    setWeightInput('');
-    onClose();
   };
 
   const getModalTitle = () => {
@@ -362,7 +381,7 @@ export function Weight() {
               </Box>
             ) : chartData.length > 0 ? (
               <Animated.View entering={FadeIn.duration(400)}>
-                <WeightStepChart data={chartData} />
+                <WeightStepChart data={chartData} goalValue={localWeightGoal} goalLineColor="#9CA3AF" />
               </Animated.View>
             ) : (
               <Box bg="white" rounded="2xl" p={6} alignItems="center">
@@ -392,7 +411,7 @@ export function Weight() {
 
           {/* Cards de Peso Atual e Meta - Editáveis */}
           <HStack mt={6} justifyContent="space-between" space={4}>
-            <Pressable flex={1} onPress={() => handleOpenEdit('current')}>
+            <Pressable flex={1} onPress={() => handleOpenSheet('current')}>
               <Box bg="white" rounded="2xl" p={4} borderWidth={2} borderColor="transparent" _pressed={{ borderColor: 'ciano.200' }}>
                 <Box size={12} background="#E6FFFA" rounded={12} alignItems="center" justifyContent="center">
                   <WeightScaleIcon size="24" color="#0CC1AF" />
@@ -414,7 +433,7 @@ export function Weight() {
               </Box>
             </Pressable>
 
-            <Pressable flex={1} onPress={() => handleOpenEdit('goal')}>
+            <Pressable flex={1} onPress={() => handleOpenSheet('goal')}>
               <Box bg="white" rounded="2xl" p={4} borderWidth={2} borderColor="transparent" _pressed={{ borderColor: 'red.200' }}>
                 <Box size={12} background="#FEF2F2" rounded={12} alignItems="center" justifyContent="center">
                   <WeightTargetIcon size="24" color="#EF4444" />
@@ -443,7 +462,7 @@ export function Weight() {
               title="Registrar Novo Peso"
               variant="primary"
               size="full"
-              onPress={() => handleOpenEdit('current')}
+              onPress={() => handleOpenSheet('current')}
             />
           </Box>
 
@@ -463,8 +482,20 @@ export function Weight() {
       </Animated.ScrollView>
 
       {/* Modal de edição */}
-      <Actionsheet isOpen={isOpen} onClose={handleCloseModal}>
-        <Actionsheet.Content bg="white" borderTopRadius={24} px={6} pb={8}>
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        enablePanDownToClose
+        backdropComponent={renderBackdrop}
+        keyboardBehavior="interactive"
+        keyboardBlurBehavior="restore"
+        android_keyboardInputMode="adjustResize"
+        topInset={insets.top + 50}
+        handleIndicatorStyle={{ backgroundColor: '#D1D5DB', width: 40 }}
+        backgroundStyle={{ borderTopLeftRadius: 24, borderTopRightRadius: 24 }}
+      >
+        <BottomSheetView style={{ paddingHorizontal: 24, paddingBottom: 32 }}>
           <Box w="100%" py={4}>
             <Text fontFamily="Poligon" fontSize={20} fontWeight={800} color="gray.900" textAlign="center">
               {getModalTitle()}
@@ -476,51 +507,85 @@ export function Weight() {
 
           {/* Input de peso */}
           <VStack w="100%" mt={4}>
-            <Input
-              value={weightInput}
-              onChangeText={setWeightInput}
-              placeholder="Ex: 75.5"
-              keyboardType="decimal-pad"
-              fontFamily="Poligon"
-              fontSize={32}
-              fontWeight={800}
-              textAlign="center"
-              py={4}
-              px={4}
+            <HStack
+              alignItems="center"
+              bg="#F9FAFB"
               borderRadius={16}
-              borderColor="gray.200"
-              bg="gray.50"
-              _focus={{
-                borderColor: editMode === 'goal' ? 'red.400' : 'ciano.300',
-                bg: 'white',
-              }}
-              InputRightElement={
-                <Text fontFamily="Poligon" fontSize={20} fontWeight={600} color="gray.400" mr={4}>
-                  kg
-                </Text>
-              }
-            />
+              borderWidth={1}
+              borderColor="#E5E7EB"
+              px={4}
+              py={4}
+            >
+              <BottomSheetTextInput
+                value={weightInput}
+                onChangeText={(text) => {
+                  // Permite apenas números e ponto decimal
+                  const filtered = text.replace(/[^0-9.]/g, '');
+                  // Evita múltiplos pontos
+                  const parts = filtered.split('.');
+                  if (parts.length > 2) {
+                    setWeightInput(parts[0] + '.' + parts.slice(1).join(''));
+                  } else {
+                    setWeightInput(filtered);
+                  }
+                }}
+                placeholder="Ex: 75.5"
+                keyboardType="decimal-pad"
+                inputMode="decimal"
+                style={{
+                  flex: 1,
+                  fontFamily: 'Poligon',
+                  fontSize: 32,
+                  fontWeight: '800',
+                  textAlign: 'center',
+                  color: '#111827',
+                }}
+                placeholderTextColor="#9CA3AF"
+              />
+              <Text fontFamily="Poligon" fontSize={20} fontWeight={600} color="gray.400">
+                kg
+              </Text>
+            </HStack>
           </VStack>
 
-          {/* Atalhos rápidos para ajuste */}
-          <HStack w="100%" justifyContent="center" mt={4} space={2}>
-            {[-1, -0.5, 0.5, 1].map((delta) => (
-              <Pressable
-                key={delta}
-                onPress={() => {
-                  const current = parseFloat(weightInput) || 0;
-                  setWeightInput((current + delta).toFixed(1));
-                }}
-                px={4}
-                py={2}
-                bg="gray.100"
-                borderRadius={8}
-              >
-                <Text fontFamily="Poligon" fontSize={14} fontWeight={600} color="gray.600">
-                  {delta > 0 ? '+' : ''}{delta}
-                </Text>
-              </Pressable>
-            ))}
+          {/* Botões de ajuste +/- 1kg */}
+          <HStack w="100%" justifyContent="center" mt={4} space={4}>
+            <Pressable
+              onPress={() => {
+                const current = parseFloat(weightInput) || 0;
+                if (current > 1) {
+                  setWeightInput((current - 1).toFixed(1));
+                }
+              }}
+              w={16}
+              h={16}
+              bg="gray.100"
+              borderRadius={16}
+              alignItems="center"
+              justifyContent="center"
+              _pressed={{ bg: 'gray.200' }}
+            >
+              <Text fontFamily="Poligon" fontSize={28} fontWeight={700} color="gray.600">
+                -
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => {
+                const current = parseFloat(weightInput) || 0;
+                setWeightInput((current + 1).toFixed(1));
+              }}
+              w={16}
+              h={16}
+              bg={editMode === 'goal' ? 'red.100' : 'ciano.100'}
+              borderRadius={16}
+              alignItems="center"
+              justifyContent="center"
+              _pressed={{ bg: editMode === 'goal' ? 'red.200' : 'ciano.200' }}
+            >
+              <Text fontFamily="Poligon" fontSize={28} fontWeight={700} color={editMode === 'goal' ? 'red.500' : 'ciano.400'}>
+                +
+              </Text>
+            </Pressable>
           </HStack>
 
           {/* Botões de ação */}
@@ -530,7 +595,7 @@ export function Weight() {
               variant="secondary"
               size="full"
               flex={1}
-              onPress={handleCloseModal}
+              onPress={handleCloseSheet}
             />
             <Button
               title={isSaving ? "Salvando..." : "Salvar"}
@@ -542,8 +607,8 @@ export function Weight() {
               isLoading={isSaving}
             />
           </HStack>
-        </Actionsheet.Content>
-      </Actionsheet>
+        </BottomSheetView>
+      </BottomSheet>
     </VStack>
   );
 }

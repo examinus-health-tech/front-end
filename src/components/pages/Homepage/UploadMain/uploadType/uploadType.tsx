@@ -114,7 +114,7 @@ export function UploadType({ onCameraOpen, onManualOpen, handleUploadFileProp }:
   return (
     <>
       <Center>
-        <VStack alignItems="center" mt={12} mx={4}>
+        <VStack alignItems="center" mt={12} mx={4} pb={Platform.OS === 'android' ? 8 : 4}>
           <Image source={Vector1} defaultSource={Vector1} alt="Vetor" resizeMode="stretch" h={56} />
 
           <Text mt={8} fontSize={24} fontWeight={800} letterSpacing={-0.24} textAlign="center">
@@ -126,7 +126,7 @@ export function UploadType({ onCameraOpen, onManualOpen, handleUploadFileProp }:
             possamos simplificar sua saúde:
           </Text>
 
-          <HStack space={4} mt={8}>
+          <HStack space={4} mt={8} mb={4}>
             <TouchableOpacity onPress={handleSelectFile}>
               <Box
                 bg="ciano.300"

@@ -116,10 +116,22 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
 
   const { user } = useAuth();
 
-  // Verifica se fitness está habilitado ao montar
+  // Reset de todos os dados quando o usuário mudar (login/logout/troca de conta)
   useEffect(() => {
-    checkFitnessEnabled();
-  }, []);
+    console.log('🔄 [HomeContext] Usuário mudou:', user?.userId);
+
+    // Limpa todos os dados do usuário anterior
+    setHomeData({} as homeProps);
+    setExamListData({} as homeProps);
+    setTrackerData({} as trackerProps);
+    setCurrentSystem(null);
+    setFitnessEnabled(false);
+
+    // Se tem usuário logado, busca os dados novos
+    if (user?.userId) {
+      checkFitnessEnabled();
+    }
+  }, [user?.userId]);
 
   async function checkFitnessEnabled() {
     const enabled = await isFitnessEnabled();
@@ -388,11 +400,9 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   const refreshFitnessData = useCallback(async () => {
     const enabled = await isFitnessEnabled();
     setFitnessEnabled(enabled);
-    if (enabled) {
-      await fetchFitnessData();
-    } else {
-      setTrackerData({} as trackerProps);
-    }
+    // Sempre buscar dados do backend independente do status de fitness nativo
+    // Isso garante que dados manuais (hidratação, nutrição) sejam sempre atualizados
+    await fetchFitnessData();
   }, []);
 
   async function getHomeData() {

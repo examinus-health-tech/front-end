@@ -55,17 +55,15 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
 
-        // Log detalhado apenas para /users/{id}
-        if (config.url?.includes('/users/')) {
-          console.log('🔐 [API] Request /users/ details:', {
+        // Log detalhado para debug
+        if (config.url?.includes('/users/') || config.url?.includes('/notifications')) {
+          console.log('🔐 [API] Request details:', {
             url: config.url,
             method: config.method,
             hasAuthHeader: !!config.headers.Authorization,
             tokenPrefix: token.substring(0, 30) + '...',
             userId: userDataParsed?.userId,
-            headers: config.headers,
             withCredentials: config.withCredentials,
-            fullURL: `${config.baseURL}${config.url}`,
           });
         }
       }

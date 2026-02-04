@@ -38,6 +38,8 @@
           "remote-notification"
         ],
         "ITSAppUsesNonExemptEncryption": false,
+        "NSHealthShareUsageDescription": "O Examinus acessa seus dados de saúde do Apple Health para monitorar passos, calorias, sono e frequência cardíaca, permitindo acompanhar seu progresso e gerar insights personalizados de bem-estar.",
+        "NSHealthUpdateUsageDescription": "O Examinus pode registrar dados de saúde no Apple Health para manter seu histórico de atividades sincronizado entre o app e o sistema de saúde do seu dispositivo.",
         "NSCameraUsageDescription": "O Examinus precisa acessar sua câmera para capturar fotos de exames laboratoriais que serão analisados por nossa inteligência artificial para gerar relatórios de saúde personalizados. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
         "NSMicrophoneUsageDescription": "O Examinus precisa acessar seu microfone para funcionalidades de áudio relacionadas à captura de exames laboratoriais.",
         "NSPhotoLibraryUsageDescription": "O Examinus precisa acessar sua galeria de fotos para que você possa selecionar imagens de exames laboratoriais já existentes no seu dispositivo. As imagens são processadas de forma segura e não são compartilhadas com terceiros.",
@@ -69,6 +71,7 @@
       "appleTeamId": "NLLSSU23C9"
     },
     "android": {
+      "minSdkVersion": 26,
       "versionCode": 16,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
@@ -108,6 +111,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      "./plugins/withMinSdkVersion.js",
       "expo-video",
       [
         "expo-document-picker",

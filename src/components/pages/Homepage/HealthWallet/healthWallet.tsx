@@ -31,6 +31,7 @@ import {
   IntestineIcon,
   UrinaIcon,
   FlaskIcon,
+  ChecklistIcon,
 } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 
@@ -260,8 +261,8 @@ export function HealthWallet() {
                   arcSweepAngle={180}
                 />
 
-                <Text mt={-12} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44}>
-                  {homeData.generalScore}
+                <Text mt={-12} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44} color={getColorByScore(homeData.generalScore)?.color ?? 'gray.900'}>
+                  {Math.round(homeData.generalScore || 0)}
                 </Text>
 
                 <Text mt={-2} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
@@ -290,6 +291,30 @@ export function HealthWallet() {
               </Text>
 
               {renderSystems()}
+
+              {/* Botão Ver Exames - só aparece se tiver dados na visão geral */}
+              {homeData.medicalExamOrganicSystemsScore?.length > 0 && (
+                <TouchableOpacity onPress={() => navigation.navigate('examList')}>
+                  <Box
+                    mt={4}
+                    bg="ciano.300"
+                    py={4}
+                    px={6}
+                    borderRadius={16}
+                    shadow={2}
+                    flexDir="row"
+                    alignItems="center"
+                    justifyContent="center"
+                  >
+                    <Box mr={3}>
+                      <ChecklistIcon color="white" size="24" />
+                    </Box>
+                    <Text fontSize={16} fontWeight={700} color="white" letterSpacing={-0.16}>
+                      Ver Todos os Exames
+                    </Text>
+                  </Box>
+                </TouchableOpacity>
+              )}
             </Animated.View>
 
             {/* Medical Information Sources - animação 3 */}

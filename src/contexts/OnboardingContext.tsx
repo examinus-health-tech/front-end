@@ -262,6 +262,7 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
       };
 
       console.log('📤 [ONBOARDING] Payload normalizado:', normalizedPayload);
+      console.log('🔗 [ONBOARDING] API Base URL:', process.env.EXPO_PUBLIC_API_URL);
 
       // Usar a função que sempre usa PUT (UPSERT - cria ou atualiza)
       const response = await saveUserPersonalData(normalizedPayload);

@@ -6,6 +6,7 @@ import {
   ShieldIcon,
   WarningIcon,
   ExclamationMarkSquareIcon,
+  CheckIcon,
 } from '@assets/icons';
 
 type MedicalExamItem = {
@@ -86,50 +87,84 @@ function generateInsights(
   // Adiciona insight geral do sistema se disponível
   if (systemScore) {
     const score = systemScore.organicSystemScore;
+    // Sistemas femininos usam "Sua" ao invés de "Seu"
+    const systemNameLower = systemName.toLowerCase();
+    const feminineSystems = ['imunidade', 'urina'];
+    const article = feminineSystems.includes(systemNameLower) ? 'Sua' : 'Seu';
+
     if (score >= 80) {
       insights.push({
-        text: `Seu ${systemName.toLowerCase()} está em excelente condição! Continue mantendo seus hábitos saudáveis.`,
+        text: `${article} ${systemNameLower} está em excelente condição! Continue mantendo seus hábitos saudáveis.`,
         status: 'good',
       });
     } else if (score >= 60) {
       insights.push({
-        text: `Seu ${systemName.toLowerCase()} está em condição moderada. Algumas melhorias podem ajudar.`,
+        text: `${article} ${systemNameLower} está em condição moderada. Algumas melhorias podem ajudar.`,
         status: 'attention',
       });
     } else {
       insights.push({
-        text: `Seu ${systemName.toLowerCase()} precisa de atenção. Consulte um médico para orientações.`,
+        text: `${article} ${systemNameLower} precisa de atenção. Consulte um médico para orientações.`,
         status: 'critical',
       });
     }
   }
 
+  // Remove duplicatas baseado na descrição do exame, com controle global
+  // para evitar que o mesmo biomarcador apareça em múltiplos insights
+  const mentionedBiomarkers = new Set<string>();
+
+  const uniqueByDescription = (items: MedicalExamItem[], excludeAlreadyMentioned = false) => {
+    const seen = new Set<string>();
+    return items.filter(item => {
+      const key = item.examItemDescription.toLowerCase();
+      // Se já foi mencionado em outro insight, pula
+      if (excludeAlreadyMentioned && mentionedBiomarkers.has(key)) return false;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  };
+
+  // Processa críticos primeiro (prioridade mais alta)
+  const uniqueCritical = uniqueByDescription(criticalItems, false);
+  // Marca os críticos como mencionados
+  uniqueCritical.forEach(item => mentionedBiomarkers.add(item.examItemDescription.toLowerCase()));
+
+  // Processa atenção excluindo os que já foram mencionados nos críticos
+  const uniqueAttention = uniqueByDescription(attentionItems, true);
+  // Marca os de atenção como mencionados
+  uniqueAttention.forEach(item => mentionedBiomarkers.add(item.examItemDescription.toLowerCase()));
+
+  // Processa bons excluindo os que já foram mencionados
+  const uniqueGood = uniqueByDescription(goodItems, true);
+
   // Adiciona insights específicos por biomarcador
-  if (criticalItems.length > 0) {
-    const criticalNames = criticalItems.slice(0, 2).map(item => item.examItemDescription).join(' e ');
+  if (uniqueCritical.length > 0) {
+    const criticalNames = uniqueCritical.slice(0, 2).map(item => item.examItemDescription).join(' e ');
     insights.push({
-      text: `${criticalNames} ${criticalItems.length === 1 ? 'está' : 'estão'} em níveis que requerem atenção médica.`,
+      text: `${criticalNames} ${uniqueCritical.length === 1 ? 'está' : 'estão'} em níveis que requerem atenção médica.`,
       status: 'critical',
     });
   }
 
-  if (attentionItems.length > 0) {
-    const attentionNames = attentionItems.slice(0, 2).map(item => item.examItemDescription).join(' e ');
+  if (uniqueAttention.length > 0) {
+    const attentionNames = uniqueAttention.slice(0, 2).map(item => item.examItemDescription).join(' e ');
     insights.push({
-      text: `${attentionNames} ${attentionItems.length === 1 ? 'apresenta' : 'apresentam'} valores fora do ideal. Monitore com atenção.`,
+      text: `${attentionNames} ${uniqueAttention.length === 1 ? 'apresenta' : 'apresentam'} valores fora do ideal. Monitore com atenção.`,
       status: 'attention',
     });
   }
 
-  if (goodItems.length > 0 && criticalItems.length === 0 && attentionItems.length === 0) {
-    const goodNames = goodItems.slice(0, 2).map(item => item.examItemDescription).join(' e ');
+  if (uniqueGood.length > 0 && uniqueCritical.length === 0 && uniqueAttention.length === 0) {
+    const goodNames = uniqueGood.slice(0, 2).map(item => item.examItemDescription).join(' e ');
     insights.push({
-      text: `${goodNames} ${goodItems.length === 1 ? 'está' : 'estão'} em níveis saudáveis!`,
+      text: `${goodNames} ${uniqueGood.length === 1 ? 'está' : 'estão'} em níveis saudáveis!`,
       status: 'good',
     });
-  } else if (goodItems.length > 0) {
+  } else if (uniqueGood.length > 0) {
     insights.push({
-      text: `${goodItems.length} ${goodItems.length === 1 ? 'biomarcador está' : 'biomarcadores estão'} em níveis normais.`,
+      text: `${uniqueGood.length} ${uniqueGood.length === 1 ? 'biomarcador está' : 'biomarcadores estão'} em níveis normais.`,
       status: 'good',
     });
   }
@@ -177,7 +212,7 @@ export function SystemInsights({ homeData, currentSystem }: SystemInsightsProps)
   const getStatusIcon = (status: 'good' | 'attention' | 'critical') => {
     switch (status) {
       case 'good':
-        return <ShieldIcon size="20" color="#0CC1AF" variant="solid" />;
+        return <CheckIcon size="20" color="#0CC1AF" />;
       case 'attention':
         return <WarningIcon size="20" color="#D97706" />;
       case 'critical':
@@ -196,10 +231,15 @@ export function SystemInsights({ homeData, currentSystem }: SystemInsightsProps)
     }
   };
 
+  // Determina artigo correto baseado no sistema
+  const systemNameLower = currentSystem?.sistema?.toLowerCase() || '';
+  const feminineSystems = ['imunidade', 'urina'];
+  const titleArticle = feminineSystems.includes(systemNameLower) ? 'sua' : 'seu';
+
   return (
     <VStack mt={4}>
       <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="gray.900" mb={3}>
-        Resumo do seu {currentSystem?.sistema}
+        Resumo do {titleArticle} {currentSystem?.sistema}
       </Text>
 
       <VStack space={2}>
@@ -215,16 +255,16 @@ export function SystemInsights({ homeData, currentSystem }: SystemInsightsProps)
               borderWidth={1}
               borderColor={colors.border}
             >
-              <HStack space={2} alignItems="flex-start">
-                <Box mt={0.5}>
+              <HStack space={2.5} alignItems="flex-start">
+                <Box pt={0.5}>
                   {getStatusIcon(insight.status)}
                 </Box>
                 <Text
                   flex={1}
-                  fontSize={12}
+                  fontSize={13}
                   fontWeight={500}
                   color={colors.text}
-                  lineHeight={16}
+                  lineHeight={18}
                 >
                   {insight.text}
                 </Text>

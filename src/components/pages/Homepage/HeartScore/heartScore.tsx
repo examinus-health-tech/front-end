@@ -481,27 +481,24 @@ export function HeartScore() {
   const { currentSystem, setCurrentSystem, homeData } = useHome();
   const { personalData } = useOnboarding();
 
+  // Verifica se o gênero é feminino (aceita várias formas)
+  const isFemale = useMemo(() => {
+    if (!personalData) return false;
+    const gender = (personalData as any).gender;
+    if (!gender) return false;
+    const genderLower = String(gender).toLowerCase();
+    return genderLower === 'f' || genderLower === 'female' || genderLower === 'feminino';
+  }, [personalData]);
+
   // Determina a imagem baseada no gênero do usuário (saúde boa)
   const genderImage = useMemo(() => {
-    if (personalData) {
-      const gender = (personalData as any).gender?.toLowerCase();
-      if (gender === 'f') {
-        return VectorFemale;
-      }
-    }
-    return VectorMale;
-  }, [personalData]);
+    return isFemale ? VectorFemale : VectorMale;
+  }, [isFemale]);
 
   // Determina a imagem baseada no gênero do usuário (em risco)
   const genderRiskImage = useMemo(() => {
-    if (personalData) {
-      const gender = (personalData as any).gender?.toLowerCase();
-      if (gender === 'f') {
-        return VectorRiskFemale;
-      }
-    }
-    return VectorRiskMale;
-  }, [personalData]);
+    return isFemale ? VectorRiskFemale : VectorRiskMale;
+  }, [isFemale]);
 
   useEffect(() => {
     return () => {
@@ -532,98 +529,71 @@ export function HeartScore() {
             <VStack flex={1} mx={6}>
               {/* Banner de status */}
               {currentSystem.nivel == 'excelente' ? (
-                <TouchableOpacity onPress={() => navigation.navigate('examList')}>
-                  <Box bg="ciano.400" pl={4} borderRadius={12} shadow={2} overflow="hidden">
-                    <HStack>
-                      <VStack flex={1} justifyContent="center" py={4}>
-                        <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white" lineHeight={22}>
-                          Woooow! {'\n'}Sua saúde está Top!
-                        </Text>
-                        <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white" mt={1}>
-                          Veja seus exames e mantenha o bom resultado:
-                        </Text>
+                <Box bg="ciano.400" pl={4} borderRadius={12} shadow={2} overflow="hidden">
+                  <HStack h={160}>
+                    <VStack flex={1} justifyContent="center" py={4}>
+                      <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white" lineHeight={22}>
+                        Woooow! {'\n'}Sua saúde está Top!
+                      </Text>
+                      <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white" mt={1}>
+                        Continue mantendo o bom resultado!
+                      </Text>
+                    </VStack>
 
-                        <Box bg="white" px={4} py={2} mt={3} borderRadius={8} alignSelf="flex-start">
-                          <Text fontSize={14} fontWeight={700} letterSpacing={-0.16} color="ciano.400">
-                            Ver detalhes
-                          </Text>
-                        </Box>
-                      </VStack>
-
-                      <Image
-                        flex={1}
-                        height="100%"
-                        source={genderImage}
-                        defaultSource={genderImage}
-                        alt="Vetor"
-                        resizeMode="stretch"
-                        alignSelf="stretch"
-                      />
-                    </HStack>
-                  </Box>
-                </TouchableOpacity>
+                    <Image
+                      flex={1}
+                      h={160}
+                      source={genderImage}
+                      defaultSource={genderImage}
+                      alt="Vetor"
+                      resizeMode="cover"
+                    />
+                  </HStack>
+                </Box>
               ) : currentSystem.nivel == 'normal' ? (
-                <TouchableOpacity onPress={() => navigation.navigate('examList')}>
-                  <Box bg="yellow.500" pl={4} borderRadius={12} shadow={2} overflow="hidden">
-                    <HStack>
-                      <VStack flex={1} justifyContent="center" py={4}>
-                        <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white" lineHeight={22}>
-                          Sua saúde{'\n'}está normal
-                        </Text>
-                        <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white" mt={1}>
-                          Veja quais exames precisam de atenção:
-                        </Text>
+                <Box bg="yellow.500" pl={4} borderRadius={12} shadow={2} overflow="hidden">
+                  <HStack h={160}>
+                    <VStack flex={1} justifyContent="center" py={4}>
+                      <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white" lineHeight={22}>
+                        Sua saúde{'\n'}está normal
+                      </Text>
+                      <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white" mt={1}>
+                        Alguns indicadores precisam de atenção.
+                      </Text>
+                    </VStack>
 
-                        <Box bg="white" px={4} py={2} mt={3} borderRadius={8} alignSelf="flex-start">
-                          <Text fontSize={14} fontWeight={700} letterSpacing={-0.16} color="yellow.600">
-                            Ver detalhes
-                          </Text>
-                        </Box>
-                      </VStack>
-
-                      <Image
-                        flex={1}
-                        height="100%"
-                        source={genderImage}
-                        defaultSource={genderImage}
-                        alt="Vetor"
-                        resizeMode="stretch"
-                        alignSelf="stretch"
-                      />
-                    </HStack>
-                  </Box>
-                </TouchableOpacity>
+                    <Image
+                      flex={1}
+                      h={160}
+                      source={genderImage}
+                      defaultSource={genderImage}
+                      alt="Vetor"
+                      resizeMode="cover"
+                    />
+                  </HStack>
+                </Box>
               ) : (
-                <TouchableOpacity onPress={() => navigation.navigate('examList')}>
-                  <Box bg="red.400" pl={4} borderRadius={12} shadow={2} overflow="hidden">
-                    <HStack>
-                      <VStack flex={1} justifyContent="center" py={4}>
-                        <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white" lineHeight={22}>
-                          Sua saúde{'\n'}está em risco!
-                        </Text>
-                        <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white" mt={2}>
-                          Veja quais exames precisam de atenção:
-                        </Text>
+                <Box bg="red.400" pl={4} borderRadius={12} shadow={2} overflow="hidden">
+                  <HStack h={160}>
+                    <VStack flex={1} justifyContent="center" py={4}>
+                      <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white" lineHeight={22}>
+                        Sua saúde{'\n'}está em risco!
+                      </Text>
+                      <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white" mt={2}>
+                        Alguns indicadores precisam de atenção urgente.
+                      </Text>
+                    </VStack>
 
-                        <Box bg="white" px={4} py={2} mt={3} borderRadius={8} alignSelf="flex-start">
-                          <Text fontSize={14} fontWeight={700} letterSpacing={-0.16} color="red.500">
-                            Ver detalhes
-                          </Text>
-                        </Box>
-                      </VStack>
-
-                      <Image
-                        flex={1}
-                        height="100%"
-                        source={genderRiskImage}
-                        defaultSource={genderRiskImage}
-                        alt="Vetor"
-                        resizeMode="stretch"
-                        alignSelf="stretch"
-                      />
-                    </HStack>
-                  </Box>
-                </TouchableOpacity>
+                    <Image
+                      flex={1}
+                      h={160}
+                      source={genderRiskImage}
+                      defaultSource={genderRiskImage}
+                      alt="Vetor"
+                      resizeMode="cover"
+                    />
+                  </HStack>
+                </Box>
               )}
 
             </VStack>
@@ -635,8 +605,32 @@ export function HeartScore() {
               </VStack>
             )}
 
-            {/* 2. Carrossel de Notícias de Saúde */}
-            <NewsCarousel title="Notícias de Saúde" />
+            {/* Botão Ver Exames - abaixo do resumo, acima das dicas */}
+            <VStack mx={6}>
+              <TouchableOpacity onPress={() => navigation.navigate('examList')}>
+                <Box
+                  mt={4}
+                  bg="ciano.300"
+                  py={3}
+                  px={5}
+                  borderRadius={12}
+                  shadow={1}
+                  flexDir="row"
+                  alignItems="center"
+                  justifyContent="center"
+                >
+                  <Text fontSize={14} fontWeight={700} color="white" letterSpacing={-0.14}>
+                    Ver Exames
+                  </Text>
+                </Box>
+              </TouchableOpacity>
+            </VStack>
+
+            {/* 2. Carrossel de Notícias de Saúde - Filtrado pelo sistema atual */}
+            <NewsCarousel
+              title={`Dicas para ${currentSystem?.sistema}`}
+              system={currentSystem?.sistema}
+            />
 
             <VStack flex={1} mx={6}>
               {/* 3. Título de serviços */}

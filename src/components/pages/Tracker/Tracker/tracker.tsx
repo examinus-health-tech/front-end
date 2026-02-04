@@ -234,7 +234,7 @@ export function Tracker() {
           {/* Linha 2: Calorias e Sono */}
           <HStack flex={1} mt={4} space={4} alignItems="center" justifyContent="space-between">
             <FitnessCard
-              title="Calorias"
+              title="Calorias Gastas"
               value={kcalBurned > 0 ? kcalBurned.toLocaleString('pt-BR') : '--'}
               unit="kcal"
               variant="calories"

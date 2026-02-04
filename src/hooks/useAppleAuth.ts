@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { useAuth } from './useAuth';
 import { isAppleAuthAvailable, getAppleConfig } from '../config/appleAuth';
+import { checkCampaignVoucher } from '@services/campaignService';
 
 export function useAppleAuth() {
   const [isLoading, setIsLoading] = useState(false);
@@ -64,6 +65,11 @@ export function useAppleAuth() {
       try {
         if (isSignup) {
           await authSignUpWithApple(credential.identityToken, credential.fullName, credential.email ?? null);
+
+          // Verifica se o email está em uma campanha promocional (voucher enviado por email)
+          if (credential.email) {
+            checkCampaignVoucher(credential.email).catch(() => {});
+          }
         } else {
           await authSignInWithApple(credential.identityToken, credential.fullName, credential.email ?? null);
         }

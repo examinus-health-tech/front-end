@@ -84,11 +84,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Limpar TODOS os dados armazenados do usuário
       await AsyncStorage.multiRemove([
+        // Auth e dados básicos
         '@app:user',
         '@app:personalData',
         '@app:onboardingData',
+        '@app:onboarding_completed',
         '@examinus:auth-token',
         '@examinus:user',
+        // Fitness e metas
+        '@examinus:fitness_enabled',
+        '@examinus:weight_goal',
+        '@examinus:weight_goal_type',
+        '@examinus:calories_goal',
+        '@examinus:hydration_goal',
+        '@examinus:steps_goal',
+        // Saúde mental
+        '@examinus:mental_health_assessments',
+        // Análise diária
+        '@examinus:daily_analysis',
+        '@examinus:daily_analysis_date',
+        // UI preferences
+        '@examinus:lastSeenVersion',
+        '@examinus:dismissed_banners',
+        '@examinus:notification_prefs',
       ]);
 
       console.log('✅ Dados do AsyncStorage removidos');
@@ -1438,11 +1456,70 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      await api.delete(`/users/${user.userId}`);
+      // Tenta deletar no backend (sem barra inicial para evitar double slash)
+      try {
+        await api.delete(`users/${user.userId}`);
+        console.log('✅ Conta deletada no backend');
+      } catch (deleteError: any) {
+        console.log('🔍 [DELETE] Erro capturado:', {
+          status: deleteError.response?.status,
+          message: deleteError.message,
+          hasResponse: !!deleteError.response,
+        });
 
-      // Clear user data after successful deletion
-      await AsyncStorage.removeItem('@app:user');
+        // Se usuário não existe (404), continua com a limpeza local
+        // já que o objetivo é remover a conta de qualquer forma
+        if (deleteError.response?.status === 404) {
+          console.log('⚠️ Usuário não encontrado no backend (404), prosseguindo com limpeza local');
+        } else {
+          // Para outros erros, propaga a exceção
+          throw deleteError;
+        }
+      }
+
+      // Desassocia o dispositivo do OneSignal
+      try {
+        console.log('📱 Desassociando dispositivo do OneSignal...');
+        OneSignal.logout();
+        console.log('✅ Dispositivo desassociado do OneSignal');
+      } catch (oneSignalError) {
+        console.warn('⚠️ Erro ao desassociar OneSignal (não crítico):', oneSignalError);
+      }
+
+      // Limpar TODOS os dados armazenados do usuário (igual ao signOut)
+      console.log('🧹 Limpando todos os dados locais...');
+      await AsyncStorage.multiRemove([
+        // Auth e dados básicos
+        '@app:user',
+        '@app:personalData',
+        '@app:onboardingData',
+        '@app:onboarding_completed',
+        '@examinus:auth-token',
+        '@examinus:user',
+        // Fitness e metas
+        '@examinus:fitness_enabled',
+        '@examinus:weight_goal',
+        '@examinus:weight_goal_type',
+        '@examinus:calories_goal',
+        '@examinus:hydration_goal',
+        '@examinus:steps_goal',
+        // Saúde mental
+        '@examinus:mental_health_assessments',
+        // Análise diária
+        '@examinus:daily_analysis',
+        '@examinus:daily_analysis_date',
+        // UI preferences
+        '@examinus:lastSeenVersion',
+        '@examinus:dismissed_banners',
+        '@examinus:notification_prefs',
+        // Biometria (diferente do signOut, deletar conta remove tudo)
+        '@examinus:biometric_token',
+        '@examinus:biometric_enabled',
+      ]);
+      console.log('✅ Dados locais removidos');
+
       setUser(null);
+      console.log('✅ Conta deletada com sucesso');
     } catch (error: any) {
       console.log('❌ Erro ao deletar conta:', error);
 
@@ -1451,8 +1528,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (error.response) {
         if (error.response.status === 401) {
           errorMessage = 'Não autorizado. Faça login novamente.';
-        } else if (error.response.status === 404) {
-          errorMessage = 'Usuário não encontrado.';
         } else if (error.response.status >= 500) {
           errorMessage = 'Erro no servidor. Tente novamente mais tarde.';
         } else {

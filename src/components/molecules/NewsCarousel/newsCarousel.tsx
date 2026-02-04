@@ -6,7 +6,7 @@ import { Box, Text, HStack, VStack, ScrollView, Pressable, Skeleton, Image } fro
 import { ChevronRightSmIcon, DocumentIcon } from '@assets/icons';
 
 // services
-import { NewsItem, fetchHealthNews, formatPubDate } from 'src/services/newsService';
+import { NewsItem, fetchHealthTipsNews, fetchNewsForSystem, formatPubDate } from 'src/services/newsService';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.82;
@@ -14,9 +14,10 @@ const IMAGE_SIZE = 88;
 
 type NewsCarouselProps = {
   title?: string;
+  system?: string; // Sistema orgânico para filtrar notícias (ex: "imunidade", "coração")
 };
 
-export function NewsCarousel({ title = 'Notícias de Saúde' }: NewsCarouselProps) {
+export function NewsCarousel({ title = 'Notícias de Saúde', system }: NewsCarouselProps) {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,7 +26,11 @@ export function NewsCarousel({ title = 'Notícias de Saúde' }: NewsCarouselProp
     try {
       setIsLoading(true);
       setError(null);
-      const newsItems = await fetchHealthNews();
+      // Se um sistema foi especificado, busca notícias filtradas para ele
+      // Caso contrário, busca notícias de dicas de saúde gerais
+      const newsItems = system
+        ? await fetchNewsForSystem(system)
+        : await fetchHealthTipsNews();
       setNews(newsItems);
     } catch (err) {
       console.error('Erro ao carregar notícias:', err);
@@ -33,7 +38,7 @@ export function NewsCarousel({ title = 'Notícias de Saúde' }: NewsCarouselProp
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [system]);
 
   useEffect(() => {
     loadNews();

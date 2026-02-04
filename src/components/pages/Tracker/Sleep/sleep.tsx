@@ -292,6 +292,8 @@ export function Sleep() {
                   lineColor="#7C3AED"
                   gradientColor="#7C3AED"
                   indicatorColor="#7C3AED"
+                  goalValue={sleepGoal}
+                  goalLineColor="#9CA3AF"
                 />
               </Animated.View>
             ) : (

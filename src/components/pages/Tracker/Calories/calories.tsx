@@ -99,7 +99,7 @@ export function Calories() {
 
   return (
     <VStack flex={1} pt={16}>
-      <HeaderTitle withBackButton={() => navigation.navigate('tracker')} title="Calorias" withMoreButton />
+      <HeaderTitle withBackButton={() => navigation.navigate('tracker')} title="Calorias Gastas" withMoreButton />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
         <VStack flex={1} pb={48}>

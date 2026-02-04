@@ -218,7 +218,7 @@ function CaloriesStepChart() {
   );
 }
 
-// Componente para grid de sono (heat map em tons de rosa/vermelho)
+// Componente para grid de sono (heat map em tons de roxo - igual à tela de sono)
 function SleepGrid() {
   const [containerWidth, setContainerWidth] = useState(0);
   const numCols = 7;
@@ -231,12 +231,12 @@ function SleepGrid() {
   // Calcula tamanho do quadrado baseado no espaço disponível
   const squareSize = containerWidth > 0 ? (containerWidth - gap * (numCols - 1)) / numCols : 14;
 
-  // Grid 7x4 com padrão de cores rosa/vermelho
+  // Grid 7x4 com padrão de cores roxo (alinhado com tela de sono purple.900)
   const pattern = [
-    ['#FFE5E5', '#FFB8B8', '#FF8A8A', '#F87171', '#FFB8B8', '#FFE5E5', '#F87171'],
-    ['#FFB8B8', '#991B1B', '#7F1D1D', '#FFB8B8', '#F87171', '#FFE5E5', '#FF8A8A'],
-    ['#FFE5E5', '#FFB8B8', '#F87171', '#FF8A8A', '#FFE5E5', '#F87171', '#FFB8B8'],
-    ['#F87171', '#FFE5E5', '#FFB8B8', '#F87171', '#FFB8B8', '#FF8A8A', '#F87171'],
+    ['#F3E8FF', '#DDD6FE', '#C4B5FD', '#A78BFA', '#DDD6FE', '#F3E8FF', '#A78BFA'],
+    ['#DDD6FE', '#7C3AED', '#6D28D9', '#DDD6FE', '#A78BFA', '#F3E8FF', '#C4B5FD'],
+    ['#F3E8FF', '#DDD6FE', '#A78BFA', '#C4B5FD', '#F3E8FF', '#A78BFA', '#DDD6FE'],
+    ['#A78BFA', '#F3E8FF', '#DDD6FE', '#A78BFA', '#DDD6FE', '#C4B5FD', '#A78BFA'],
   ];
 
   return (

@@ -318,9 +318,11 @@ import { Notifications } from '@components/pages/Notifications';
 import { useDeepLinking } from 'src/hooks/useDeepLinking';
 import { UploadBottomSheetProvider, useUploadBottomSheet } from 'src/contexts/UploadBottomSheetContext';
 import { GlobalUploadBottomSheet } from '@components/organisms/GlobalUploadBottomSheet/GlobalUploadBottomSheet';
+import { useAuth } from 'src/hooks/useAuth';
 
 function AppRoutesContent() {
   const { isOnboardingComplete, checkOnboardingCompletion } = useOnboarding();
+  const { user } = useAuth();
   const [initialRoute, setInitialRoute] = useState<keyof AppRoutes | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 
@@ -329,9 +331,17 @@ function AppRoutesContent() {
 
   useEffect(() => {
     async function determineInitialRoute() {
+      // IMPORTANTE: Só verificar onboarding se o usuário estiver logado
+      // Isso evita que o onboarding seja mostrado quando o token expira
+      if (!user) {
+        console.log('⚠️ [APP_ROUTES] Usuário não está logado, aguardando...');
+        return;
+      }
+
       try {
         console.log('🚀 [APP_ROUTES] Determinando rota inicial após login...');
         console.log('📍 [APP_ROUTES] Timestamp:', new Date().toISOString());
+        console.log('👤 [APP_ROUTES] Usuário logado:', user.userId);
 
         const isComplete = await checkOnboardingCompletion();
         console.log('📋 [APP_ROUTES] Resultado da verificação - onboarding completo:', isComplete);
@@ -346,8 +356,11 @@ function AppRoutesContent() {
           setInitialRoute('onboardingSteps');
         }
       } catch (error) {
-        console.log('❌ [APP_ROUTES] Erro ao determinar rota, redirecionando para onboarding:', error);
-        setInitialRoute('onboardingSteps');
+        // IMPORTANTE: Em caso de erro, NÃO redirecionar para onboarding
+        // É melhor mostrar a homepage e deixar o usuário usar o app
+        // do que forçá-lo a refazer o onboarding por causa de um erro de rede
+        console.log('❌ [APP_ROUTES] Erro ao determinar rota, redirecionando para HOMEPAGE (fallback seguro):', error);
+        setInitialRoute('homepage');
       } finally {
         console.log('✅ [APP_ROUTES] Verificação concluída, exibindo tela');
         setIsChecking(false);
@@ -355,7 +368,7 @@ function AppRoutesContent() {
     }
 
     determineInitialRoute();
-  }, [checkOnboardingCompletion]);
+  }, [checkOnboardingCompletion, user]);
 
   // Mostrar loading enquanto determina a rota inicial
   if (isChecking || !initialRoute) {

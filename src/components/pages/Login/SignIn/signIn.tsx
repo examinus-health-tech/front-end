@@ -1,4 +1,4 @@
-import { Divider, Flex, Text, VStack, Icon, HStack, Box, Spinner, Center } from 'native-base';
+import { Divider, Flex, Text, VStack, Icon, HStack, Box, Spinner, Center, ScrollView, KeyboardAvoidingView } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -18,7 +18,7 @@ import { Input, LegalFooter } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
-import { TouchableOpacity, View, Platform } from 'react-native';
+import { TouchableOpacity, View, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
 import { useAuth } from '../../../../hooks/useAuth';
@@ -231,7 +231,18 @@ export function SignIn() {
         </Center>
       )}
 
-      <VStack justifyContent="space-between" flex={1} mx={6} py={32}>
+      <KeyboardAvoidingView
+        flex={1}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView
+            flex={1}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
+          >
+            <VStack justifyContent="space-between" flex={1} mx={6} py={32}>
 
         <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
           Entre
@@ -413,7 +424,10 @@ export function SignIn() {
           <LegalFooter />
         </HStack>
       </VStack>
-    </VStack>
+            </VStack>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </>
   );
 }

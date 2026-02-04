@@ -1,24 +1,53 @@
+import { useState, useEffect } from 'react';
 import { BarbellIcon, BedIcon, CheckIcon, WalkingIcon, WaterIcon, AppleIcon } from '@assets/icons';
 import { Progress } from '@components/molecules/Progress/progress';
 import { Box, VStack, Text, HStack, Pressable } from 'native-base';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { useHome } from 'src/hooks/useHome';
+import { getCaloriesGoal, getHydrationGoal, getStepsGoal } from 'src/services/fitnessService';
+import { useCallback } from 'react';
 
 export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
   const { trackerData } = useHome();
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
+  // Estados para metas locais
+  const [localGoals, setLocalGoals] = useState({
+    calories: 2000,
+    hydration: 8,
+    steps: 10000,
+  });
+
+  // Carrega metas salvas localmente
+  useFocusEffect(
+    useCallback(() => {
+      async function loadGoals() {
+        const [caloriesGoal, hydrationGoal, stepsGoal] = await Promise.all([
+          getCaloriesGoal(),
+          getHydrationGoal(),
+          getStepsGoal(),
+        ]);
+        setLocalGoals({
+          calories: caloriesGoal || 2000,
+          hydration: hydrationGoal ? Math.round(hydrationGoal / 250) : 8, // Converte ml para copos
+          steps: stepsGoal || 10000,
+        });
+      }
+      loadGoals();
+    }, [])
+  );
+
   // Safeguards and fallbacks to avoid runtime errors when data is missing
   const kcalCompleted = Number(trackerData?.kcal?.[0]?.kcal_completed) || 0;
-  const kcalGoal = Number(trackerData?.kcal?.[0]?.kcal_goal) || 2000;
+  const kcalGoal = localGoals.calories;
   const stepsCompleted = Number(trackerData?.step?.[0]?.step_completed) || 0;
-  const stepsGoal = 10000; // Meta padrão de passos
+  const stepsGoal = localGoals.steps;
   const sleepCompleted = Number(trackerData?.sleep?.[0]?.sleep_completed) || 0;
   const sleepGoal = Number(trackerData?.sleep?.[0]?.sleep_goal) || 8;
   const hydrationCompleted = Number(trackerData?.hydration?.[0]?.hydration_completed) || 0;
-  const hydrationGoal = Number(trackerData?.hydration?.[0]?.hydration_goal) || 8;
+  const hydrationGoal = localGoals.hydration;
 
   // Dados de nutrição
   const nutritionData = trackerData?.nutrition?.[0];
@@ -31,7 +60,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
     }
     return Number(nutritionData.nutrition_completed) || 0;
   })();
-  const nutritionGoal = kcalGoal; // Meta de calorias ingeridas = meta de calorias
+  const nutritionGoal = localGoals.calories; // Meta de calorias ingeridas = meta de calorias
 
   function renderHydration() {
     const goal = hydrationGoal > 0 ? hydrationGoal : 8;

@@ -27,9 +27,24 @@ const SYSTEM_KEYWORDS: Record<string, string[]> = {
   sangue: ['sangue', 'hemoglobina', 'anemia', 'leucemia', 'doação de sangue', 'transfusão', 'hematologia'],
   intestino: ['intestino', 'intestinal', 'digestivo', 'gastro', 'colonoscopia', 'probiótico'],
   pâncreas: ['pâncreas', 'diabetes', 'glicemia', 'insulina', 'diabético'],
-  imunidade: ['imunidade', 'imunológico', 'vacina', 'anticorpo', 'imunização', 'defesa'],
+  imunidade: ['imunidade', 'imunológico', 'vacina', 'anticorpo', 'imunização', 'defesa', 'sistema imune'],
   urina: ['urinário', 'urina', 'bexiga', 'próstata', 'infecção urinária', 'urologia'],
 };
+
+// Palavras-chave para filtrar notícias por categorias de dicas de saúde
+const HEALTH_TIPS_KEYWORDS: string[] = [
+  // Imunidade
+  'imunidade', 'imunológico', 'sistema imune', 'defesa', 'anticorpo', 'vacina',
+  // Hábitos saudáveis
+  'hábito', 'rotina', 'estilo de vida', 'qualidade de vida', 'bem-estar', 'exercício', 'atividade física',
+  'sedentarismo', 'sedentário', 'caminhada', 'treino', 'academia',
+  // Alimentação
+  'alimentação', 'alimentar', 'dieta', 'nutrição', 'nutricional', 'comer', 'comida', 'alimento',
+  'fruta', 'verdura', 'legume', 'proteína', 'vitamina', 'mineral', 'saudável',
+  // Prevenção
+  'prevenção', 'prevenir', 'evitar', 'cuidado', 'check-up', 'exame preventivo', 'diagnóstico precoce',
+  'saúde mental', 'ansiedade', 'depressão', 'sono', 'dormir', 'hidratação', 'água',
+];
 
 /**
  * Extrai texto de uma tag XML
@@ -210,6 +225,32 @@ export function filterNewsBySystem(news: NewsItem[], system: string): NewsItem[]
 export async function fetchNewsForSystem(system: string): Promise<NewsItem[]> {
   const allNews = await fetchHealthNews();
   return filterNewsBySystem(allNews, system);
+}
+
+/**
+ * Filtra notícias por categorias de dicas de saúde (imunidade, hábitos, alimentação, prevenção)
+ */
+export function filterNewsByHealthTips(news: NewsItem[]): NewsItem[] {
+  const filtered = news.filter(item => {
+    const searchText = `${item.title} ${item.description}`.toLowerCase();
+    return HEALTH_TIPS_KEYWORDS.some(keyword => searchText.includes(keyword.toLowerCase()));
+  });
+
+  // Se encontrou notícias específicas, retorna elas
+  if (filtered.length > 0) {
+    return filtered;
+  }
+
+  // Se não encontrou, retorna as notícias originais
+  return news;
+}
+
+/**
+ * Busca notícias filtradas por categorias de dicas de saúde
+ */
+export async function fetchHealthTipsNews(): Promise<NewsItem[]> {
+  const allNews = await fetchHealthNews();
+  return filterNewsByHealthTips(allNews);
 }
 
 /**

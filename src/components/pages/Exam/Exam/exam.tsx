@@ -134,10 +134,12 @@ export function Exam() {
             const value = parseFloat(matchingItem.medicalExamItemReferenceValue);
             if (!isNaN(value)) {
               const date = new Date(exam.createdDate);
+              const day = date.getDate().toString().padStart(2, '0');
+              const month = (date.getMonth() + 1).toString().padStart(2, '0');
               history.push({
                 value,
                 date: formatDateToBrazilian(exam.createdDate),
-                label: `${date.getMonth() + 1}/${date.getFullYear().toString().slice(-2)}`,
+                label: `${day}/${month}`,
               });
             }
           }
@@ -320,76 +322,76 @@ export function Exam() {
             </Text>
 
             <HStack space={6} mt={2}>
-              <Box w={144} h={144} alignItems="center" justifyContent="center">
-                <AnimatedCircularProgress
-                  size={144}
-                  lineCap="round"
-                  width={20}
-                  fill={getFillPercentage(
-                    item.medicalExamItemReferenceValue,
-                    item.referenceMin,
-                    item.referenceMax,
-                    correctedColor
-                  )}
-                  rotation={90}
-                  tintColor={getColor(correctedColor) || '#0CC1AF'}
-                  backgroundColor="#DCE1E8"
-                  delay={10}
-                />
-                {/* Inset shadow effect - thin dark border on outer edge */}
-                <Box
-                  position="absolute"
-                  w={144}
-                  h={144}
-                  borderRadius={999}
-                  borderWidth={1}
-                  borderColor="rgba(0,0,0,0.08)"
-                  pointerEvents="none"
-                />
-                {/* Inner circle with shadow - positioned absolutely over the progress */}
-                <Box
-                  position="absolute"
-                  bg="white"
-                  borderRadius={999}
-                  w={100}
-                  h={100}
-                  alignItems="center"
-                  justifyContent="center"
-                  style={{
-                    shadowColor: '#000',
-                    shadowOffset: { width: 0, height: 3 },
-                    shadowOpacity: 0.35,
-                    shadowRadius: 10,
-                    elevation: 10,
-                  }}
-                >
-                  <Text
-                    color={getColor(correctedColor)}
-                    fontSize={(() => {
-                      const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
-                      return valueLength > 7 ? 32 : valueLength > 6 ? 36 : 42;
-                    })()}
-                    fontWeight={800}
-                    letterSpacing={-1}
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.7}
+              <VStack alignItems="center">
+                <Box w={144} h={144} alignItems="center" justifyContent="center">
+                  <AnimatedCircularProgress
+                    size={144}
+                    lineCap="round"
+                    width={20}
+                    fill={getFillPercentage(
+                      item.medicalExamItemReferenceValue,
+                      item.referenceMin,
+                      item.referenceMax,
+                      correctedColor
+                    )}
+                    rotation={90}
+                    tintColor={getColor(correctedColor) || '#0CC1AF'}
+                    backgroundColor="#DCE1E8"
+                    delay={10}
+                  />
+                  {/* Inset shadow effect - thin dark border on outer edge */}
+                  <Box
+                    position="absolute"
+                    w={144}
+                    h={144}
+                    borderRadius={999}
+                    borderWidth={1}
+                    borderColor="rgba(0,0,0,0.08)"
+                    pointerEvents="none"
+                  />
+                  {/* Inner circle with shadow - positioned absolutely over the progress */}
+                  <Box
+                    position="absolute"
+                    bg="white"
+                    borderRadius={999}
+                    w={100}
+                    h={100}
+                    alignItems="center"
+                    justifyContent="center"
+                    style={{
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 3 },
+                      shadowOpacity: 0.35,
+                      shadowRadius: 10,
+                      elevation: 10,
+                    }}
                   >
-                    {formatExamValue(item.medicalExamItemReferenceValue)}
-                  </Text>
-                  <Text
-                    mt={-2}
-                    mx={2}
-                    color="gray.500"
-                    fontSize={12}
-                    fontWeight={600}
-                    letterSpacing={0}
-                    textAlign="center"
-                  >
-                    Ref: {formatReferenceValue(item.referenceMin, item.referenceMax, item.medicalExamItemMeasureUnit)}
-                  </Text>
+                    <Text
+                      color={getColor(correctedColor)}
+                      fontSize={(() => {
+                        const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
+                        return valueLength > 7 ? 32 : valueLength > 6 ? 36 : 42;
+                      })()}
+                      fontWeight={800}
+                      letterSpacing={-1}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                    >
+                      {formatExamValue(item.medicalExamItemReferenceValue)}
+                    </Text>
+                  </Box>
                 </Box>
-              </Box>
+                <Text
+                  mt={2}
+                  color="gray.500"
+                  fontSize={12}
+                  fontWeight={600}
+                  textAlign="center"
+                >
+                  Ref: {formatReferenceValue(item.referenceMin, item.referenceMax, item.medicalExamItemMeasureUnit)}
+                </Text>
+              </VStack>
 
               <VStack flex={1} space={2} justifyContent="center">
                 <TouchableOpacity

@@ -124,18 +124,18 @@ export function MentalHealthForm() {
         />
 
         {/* Instrução e referência DASS-21 */}
-        <Box mx={6} mb={3} bg="blue.50" px={4} py={3} borderRadius={10}>
+        <Box mx={6} mb={3} bg="purple.50" px={4} py={3} borderRadius={10}>
           <HStack justifyContent="space-between" alignItems="center">
             <VStack flex={1}>
-              <Text fontSize={12} fontWeight={700} color="blue.800">
-                Questionário DASS-21
+              <Text fontSize={12} fontWeight={700} color="purple.800">
+                Bora cuidar da mente?
               </Text>
-              <Text fontSize={12} fontWeight={500} color="blue.600" mt={0.5}>
-                Baseado na última semana
+              <Text fontSize={12} fontWeight={500} color="purple.600" mt={0.5}>
+                Um teste rápido pra entender como você está por dentro.
               </Text>
             </VStack>
-            <Box bg="blue.100" px={3} py={1.5} borderRadius={8}>
-              <Text fontSize={13} fontWeight={800} color="blue.700">
+            <Box bg="purple.100" px={3} py={1.5} borderRadius={8}>
+              <Text fontSize={13} fontWeight={800} color="purple.700">
                 {answeredCount}/21
               </Text>
             </Box>
@@ -162,15 +162,15 @@ export function MentalHealthForm() {
                     borderRadius={10}
                     bg={
                       currentQuestion === index
-                        ? 'ciano.400'
+                        ? 'purple.400'
                         : answer !== undefined
-                        ? 'ciano.100'
+                        ? 'purple.100'
                         : 'gray.200'
                     }
                     alignItems="center"
                     justifyContent="center"
                     borderWidth={currentQuestion === index ? 2 : 0}
-                    borderColor="ciano.600"
+                    borderColor="purple.600"
                   >
                     <Text
                       fontSize={13}
@@ -179,7 +179,7 @@ export function MentalHealthForm() {
                         currentQuestion === index
                           ? 'white'
                           : answer !== undefined
-                          ? 'ciano.600'
+                          ? 'purple.600'
                           : 'gray.500'
                       }
                     >
@@ -202,7 +202,7 @@ export function MentalHealthForm() {
               {/* Número e pergunta */}
               <HStack alignItems="center" space={3} mb={4}>
                 <Box
-                  bg="ciano.400"
+                  bg="purple.500"
                   w={9}
                   h={9}
                   borderRadius={9}
@@ -235,9 +235,9 @@ export function MentalHealthForm() {
                       onPress={() => handleSelectAnswer(currentQuestion, option.value)}
                     >
                       <Box
-                        bg={isSelected ? 'ciano.50' : 'white'}
+                        bg={isSelected ? 'violet.50' : 'white'}
                         borderWidth={2}
-                        borderColor={isSelected ? 'ciano.400' : 'gray.200'}
+                        borderColor={isSelected ? 'violet.400' : 'gray.200'}
                         borderRadius={12}
                         p={4}
                         shadow={isSelected ? 2 : 0}
@@ -248,8 +248,8 @@ export function MentalHealthForm() {
                             h={6}
                             borderRadius={12}
                             borderWidth={2}
-                            borderColor={isSelected ? 'ciano.400' : 'gray.300'}
-                            bg={isSelected ? 'ciano.400' : 'transparent'}
+                            borderColor={isSelected ? 'violet.400' : 'gray.300'}
+                            bg={isSelected ? 'violet.400' : 'transparent'}
                             alignItems="center"
                             justifyContent="center"
                           >
@@ -261,7 +261,7 @@ export function MentalHealthForm() {
                             <Text
                               fontSize={14}
                               fontWeight={isSelected ? 700 : 500}
-                              color={isSelected ? 'ciano.700' : 'gray.700'}
+                              color={isSelected ? 'violet.700' : 'gray.700'}
                             >
                               {option.label}
                             </Text>

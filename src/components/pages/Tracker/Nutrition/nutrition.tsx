@@ -23,7 +23,7 @@ import type { TimeRange, WeightDataPoint } from '@components/molecules';
 import { Button } from '@components/atoms';
 
 // assets
-import { CoffeeIcon, DinnerIcon, PanIcon, AppleIcon } from '@assets/icons';
+import { CoffeeIcon, DinnerIcon, SunIcon, AppleIcon } from '@assets/icons';
 
 // hooks
 import { useHome } from 'src/hooks/useHome';
@@ -56,7 +56,7 @@ const mealOptions: MealOption[] = [
   {
     id: 'lunch',
     label: 'Almoço',
-    icon: <PanIcon size="24" color="#22C55E" />,
+    icon: <SunIcon size="24" color="#22C55E" />,
     color: '#22C55E',
     bgColor: '#F0FDF4',
   },
@@ -328,6 +328,9 @@ export function Nutrition() {
     const value = parseInt(goalInput, 10);
     if (isNaN(value) || value <= 0) return;
 
+    // Fecha o sheet primeiro para melhor UX
+    handleCloseGoalSheet();
+
     setIsSaving(true);
     try {
       await setCaloriesGoal(value);
@@ -348,8 +351,6 @@ export function Nutrition() {
     } finally {
       setIsSaving(false);
     }
-
-    handleCloseGoalSheet();
   };
 
   return (
@@ -466,6 +467,8 @@ export function Nutrition() {
                   lineColor="#F97316"
                   gradientColor="#F97316"
                   indicatorColor="#F97316"
+                  goalValue={localCaloriesGoal}
+                  goalLineColor="#9CA3AF"
                 />
               </Animated.View>
             )}

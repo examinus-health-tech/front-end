@@ -148,8 +148,21 @@ export function Notifications() {
       if (showFullLoading) {
         setIsLoading(true);
       }
-      const response = await api.get('/notifications');
+      // Limpa notificações antigas antes de buscar novas
+      setNotifications([]);
+
+      // Timestamp para forçar bypass de cache no iOS
+      // withCredentials: false para não enviar cookies antigos
+      const response = await api.get(`notifications?_t=${Date.now()}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+        withCredentials: false,
+      });
       const notificationsArray = ensureArray(response.data);
+      console.log('📬 Notificações recebidas:', notificationsArray.length, 'para userId:', user?.userId);
       setNotifications(notificationsArray);
     } catch (error) {
       console.error('Erro ao buscar notificações:', error);
@@ -164,7 +177,14 @@ export function Notifications() {
     console.log('🔄 onRefresh chamado nas notificações');
     setRefreshing(true);
     try {
-      const response = await api.get('/notifications');
+      const response = await api.get(`notifications?_t=${Date.now()}`, {
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+        },
+        withCredentials: false,
+      });
       const notificationsArray = ensureArray(response.data);
       setNotifications(notificationsArray);
     } catch (error) {
