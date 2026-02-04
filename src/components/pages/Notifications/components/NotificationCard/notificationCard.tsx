@@ -81,7 +81,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
             </Box>
           )}
           <VStack space={1}>
-            <Text fontSize={14} fontWeight={isUnread ? 700 : 600} letterSpacing={-0.14} color="gray.900" mr={14}>
+            <Text fontSize={14} fontWeight={isUnread ? 700 : 600} letterSpacing={-0.14} color="gray.900" pr={isUnread ? 16 : 0}>
               {notification.title}
             </Text>
             <Text fontSize={13} fontWeight={500} lineHeight={18} color="gray.600" numberOfLines={2}>
@@ -128,7 +128,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
             </Box>
           )}
           <VStack space={1}>
-            <Text fontSize={14} fontWeight={isUnread ? 700 : 600} letterSpacing={-0.14} color="gray.900" mr={14}>
+            <Text fontSize={14} fontWeight={isUnread ? 700 : 600} letterSpacing={-0.14} color="gray.900" pr={isUnread ? 16 : 0}>
               {notification.title}
             </Text>
             <Text fontSize={13} fontWeight={500} lineHeight={18} color="gray.600" numberOfLines={2}>
@@ -162,7 +162,7 @@ export function NotificationCard({ notification, onPressDownloadPdf, onPress }: 
           </Box>
         )}
         <VStack space={1}>
-          <Text fontSize={14} fontWeight={isUnread ? 700 : 600} letterSpacing={-0.14} color="gray.900" mr={14}>
+          <Text fontSize={14} fontWeight={isUnread ? 700 : 600} letterSpacing={-0.14} color="gray.900" pr={isUnread ? 16 : 0}>
             {notification.title}
           </Text>
           <Text fontSize={13} fontWeight={500} lineHeight={18} color="gray.600" numberOfLines={2}>
