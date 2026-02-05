@@ -5,6 +5,33 @@ import { LineChart } from 'react-native-gifted-charts';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
+/**
+ * Formata números grandes para exibição compacta no gráfico
+ * Ex: 12345 -> "12.3K", 1500000 -> "1.5M"
+ */
+function formatCompactNumber(value: number): string {
+  const absValue = Math.abs(value);
+
+  if (absValue >= 1000000) {
+    return (value / 1000000).toFixed(1).replace('.0', '') + 'M';
+  }
+
+  if (absValue >= 10000) {
+    return (value / 1000).toFixed(1).replace('.0', '') + 'K';
+  }
+
+  if (absValue >= 1000) {
+    return (value / 1000).toFixed(2).replace('.00', '').replace(/\.?0$/, '') + 'K';
+  }
+
+  // Para valores pequenos, limitar casas decimais
+  if (Number.isInteger(value)) {
+    return value.toString();
+  }
+
+  return value.toFixed(1).replace('.0', '');
+}
+
 type HistoryDataPoint = {
   value: number;
   date: string;
@@ -35,10 +62,17 @@ export function HistoryChart({
     return historyData.map((point, index) => ({
       value: point.value,
       label: point.label,
-      dataPointText: point.value.toString(),
+      dataPointText: formatCompactNumber(point.value),
       dataPointLabelComponent: () => (
-        <Text fontSize={12} color="gray.600" mt={-4}>
-          {point.value}
+        <Text
+          fontSize={10}
+          fontWeight={600}
+          color="gray.600"
+          mt={-4}
+          textAlign="center"
+          minW={10}
+        >
+          {formatCompactNumber(point.value)}
         </Text>
       ),
     }));
@@ -76,14 +110,21 @@ export function HistoryChart({
     };
   }, [historyData, referenceMin, referenceMax]);
 
-  // Formatar valores do eixo Y - mostrar decimais quando o range é pequeno
+  // Formatar valores do eixo Y - mostrar formato compacto para números grandes
   const formatYAxisLabel = (value: string | number) => {
     const numValue = typeof value === 'string' ? parseFloat(value) : value;
     const range = maxValue - minValue;
+
+    // Para números grandes, usar formato compacto
+    if (Math.abs(numValue) >= 10000) {
+      return formatCompactNumber(numValue);
+    }
+
     // Se o range é pequeno (menos de 5 unidades), mostrar 1 casa decimal
     if (range < 5) {
       return numValue.toFixed(1);
     }
+
     return Math.round(numValue).toString();
   };
 
@@ -179,7 +220,7 @@ export function HistoryChart({
               return (
                 <Box bg="gray.800" px={3} py={2} borderRadius={8}>
                   <Text fontSize={14} fontWeight={700} color="white">
-                    {items[0].value} {unit}
+                    {formatCompactNumber(items[0].value)} {unit}
                   </Text>
                 </Box>
               );
@@ -193,7 +234,7 @@ export function HistoryChart({
             dashWidth: 4,
             dashGap: 4,
             thickness: 1,
-            labelText: `Max: ${referenceMax}`,
+            labelText: `Max: ${referenceMax !== undefined ? formatCompactNumber(referenceMax) : ''}`,
             labelTextStyle: { color: '#FC8181', fontSize: 9 },
           }}
           showReferenceLine2={referenceMin !== undefined}
@@ -203,7 +244,7 @@ export function HistoryChart({
             dashWidth: 4,
             dashGap: 4,
             thickness: 1,
-            labelText: `Min: ${referenceMin}`,
+            labelText: `Min: ${referenceMin !== undefined ? formatCompactNumber(referenceMin) : ''}`,
             labelTextStyle: { color: '#68D391', fontSize: 9 },
           }}
         />
@@ -239,7 +280,7 @@ export function HistoryChart({
                 : 'Estável'}
             </Text>
             <Text fontSize={12} color="gray.500">
-              Variação de {Math.abs(historyData[historyData.length - 1].value - historyData[0].value).toFixed(1)}{' '}
+              Variação de {formatCompactNumber(Math.abs(historyData[historyData.length - 1].value - historyData[0].value))}{' '}
               {unit} desde o primeiro exame
             </Text>
           </VStack>

@@ -21,3 +21,23 @@ export function formatDateToBrazilian(dateString: string): string {
     return 'Data inválida';
   }
 }
+
+export function formatDateToBrazilianNoTime(dateString: string): string {
+  try {
+    const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return 'Data inválida';
+    }
+
+    // Format day and month with leading zeros
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    return 'Data inválida';
+  }
+}

@@ -25,7 +25,7 @@ import { useExam } from 'src/hooks/useExam';
 import { useCustomToast } from 'src/hooks/useCustomToast';
 import { useTabBar } from 'src/hooks/useTabBar';
 import ContentLoader, { Rect } from 'react-content-loader/native';
-import { formatDateToBrazilian } from '@utils/dateFormatter';
+import { formatDateToBrazilian, formatDateToBrazilianNoTime } from '@utils/dateFormatter';
 
 type FormDataProps = {
   search: string;
@@ -474,11 +474,18 @@ export function ExamList() {
               {exam.laboratoryName || 'Laboratório'}
             </Text>
 
-            {/* Linha 2: Data do exame */}
+            {/* Linha 2: Nome do médico */}
+            {(exam.doctorName || exam.requestingDoctorName || exam.responsibleDoctorName) && (
+              <Text fontSize={13} fontWeight={500} color="gray.600" numberOfLines={1} mt={0.5}>
+                Dr(a). {exam.doctorName || exam.requestingDoctorName || exam.responsibleDoctorName}
+              </Text>
+            )}
+
+            {/* Linha 3: Data do exame */}
             <HStack alignItems="center" space={1} mt={0.5}>
               <Text fontSize={12} fontWeight={600} color="gray.500">Data do Exame:</Text>
               <Text fontSize={13} fontWeight={700} color={exam.examDate ? "gray.800" : "gray.400"}>
-                {exam.examDate ? formatDateToBrazilian(exam.examDate) : 'Não identificada'}
+                {exam.examDate ? formatDateToBrazilianNoTime(exam.examDate) : 'Não identificada'}
               </Text>
             </HStack>
 
