@@ -83,7 +83,15 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_MEDIA_IMAGES",
         "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_DISTANCE",
+        "android.permission.health.READ_TOTAL_CALORIES_BURNED",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_HYDRATION",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.READ_HEART_RATE"
       ],
       "intentFilters": [
         {
@@ -112,6 +120,14 @@
     },
     "plugins": [
       "./plugins/withMinSdkVersion.js",
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "O Examinus acessa seus dados de saúde do Apple Health para monitorar passos, calorias, sono e frequência cardíaca, permitindo acompanhar seu progresso e gerar insights personalizados de bem-estar.",
+          "NSHealthUpdateUsageDescription": "O Examinus pode registrar dados de saúde no Apple Health para manter seu histórico de atividades sincronizado entre o app e o sistema de saúde do seu dispositivo.",
+          "background": false
+        }
+      ],
       "expo-video",
       [
         "expo-document-picker",
