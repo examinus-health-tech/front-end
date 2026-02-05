@@ -89,7 +89,7 @@ export function Input({
               borderWidth: 1,
               borderColor: !!errorMessage ? '#F87171' : '#E5E7EB',
               borderRadius: 12,
-              paddingLeft: leftIcon || InputLeftElement ? 48 : 16,
+              paddingLeft: leftIcon || InputLeftElement ? 48 : 18,
               paddingRight: rightIcon || InputRightElement ? 48 : 16,
               backgroundColor: 'white',
               fontSize: 15,
