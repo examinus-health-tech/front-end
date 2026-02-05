@@ -58,6 +58,7 @@ import {
   getColorByClassification,
   formatAssessmentDate,
 } from '@services/mentalHealthService';
+import { getUserPersonalData } from '@services/userService';
 import { setFitnessEnabled } from '@services/fitnessService';
 
 // Função helper para determinar o texto baseado no score
@@ -93,7 +94,7 @@ export function Homepage() {
   const scrollRef = useRef<any>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
-  const { user, getUserInfo, isLoading } = useAuth();
+  const { user, getUserInfo, isLoading, updateUserPhoto } = useAuth();
   const { getHomeData, homeData, trackerData, isLoadingHomeContext, fitnessEnabled, refreshFitnessData } = useHome();
   const { showTabBar } = useTabBar();
 
@@ -174,6 +175,20 @@ export function Homepage() {
     } else setUserTrackerData(false);
   }, [trackerData]);
 
+  // Função para carregar foto de perfil
+  async function loadProfilePhoto() {
+    if (user?.profilePhotoBase64) return; // Já tem foto
+
+    try {
+      const profileData = await getUserPersonalData();
+      if (profileData?.profilePhotoBase64) {
+        updateUserPhoto(profileData.profilePhotoBase64);
+      }
+    } catch (error) {
+      console.log('⚠️ [HOMEPAGE] Erro ao buscar foto de perfil:', error);
+    }
+  }
+
   // Reset de estados quando o usuário mudar (login/logout/troca de conta)
   useEffect(() => {
     console.log('🔄 Usuário mudou, resetando estados da homepage:', user?.userId);
@@ -186,6 +201,7 @@ export function Homepage() {
       getHomeData();
       fetchUnreadCount();
       fetchMentalHealthAssessment();
+      loadProfilePhoto();
     }
   }, [user?.userId]);
 
@@ -207,8 +223,11 @@ export function Homepage() {
       fetchUnreadCount();
       fetchMentalHealthAssessment();
 
+      // Busca foto de perfil se não tiver
+      loadProfilePhoto();
+
       return () => clearTimeout(timer);
-    }, [user?.userId])
+    }, [user?.userId, user?.profilePhotoBase64])
   );
 
   function renderCardSystems() {

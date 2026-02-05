@@ -33,6 +33,7 @@ import ArrowTopRightIcon from './components/arrowTopRight';
 import ArrowUpIcon from './components/arrowUp';
 import ArrowUpMdIcon from './components/arrowUpMd';
 import ArrowUpSmIcon from './components/arrowUpSm';
+import BalancedDietIcon from './components/balancedDiet';
 import BandAidIcon from './components/bandAid';
 import BandaidSingleIcon from './components/bandaidSingle';
 import BarbellIcon from './components/barbell';
@@ -167,6 +168,8 @@ import MobilePhoneIcon from './components/mobilePhone';
 import MobilePhoneHealthIcon from './components/mobilePhoneHealth';
 import MoonIcon from './components/moon';
 import MoreIcon from './components/more';
+import NoDietIcon from './components/noDiet';
+import NoneOfTheseIcon from './components/noneOfThese';
 import MoreHorizontalIcon from './components/moreHorizontal';
 import MoreVerticalIcon from './components/moreVertical';
 import MusIcon from './components/mus';
@@ -227,6 +230,7 @@ import UploadIcon from './components/upload';
 import UrinaIcon from './components/urina';
 import UserIcon from './components/user';
 import UserGroupIcon from './components/userGroup';
+import VegetarianIcon from './components/vegetarian';
 import VirusIcon from './components/virus';
 import WalkingIcon from './components/walking';
 import WarningIcon from './components/warning';
@@ -272,6 +276,7 @@ export {
   ArrowUpIcon,
   ArrowUpMdIcon,
   ArrowUpSmIcon,
+  BalancedDietIcon,
   BandAidIcon,
   BandaidSingleIcon,
   BarbellIcon,
@@ -406,6 +411,8 @@ export {
   MobilePhoneHealthIcon,
   MoonIcon,
   MoreIcon,
+  NoDietIcon,
+  NoneOfTheseIcon,
   MoreHorizontalIcon,
   MoreVerticalIcon,
   MusIcon,
@@ -466,6 +473,7 @@ export {
   UrinaIcon,
   UserIcon,
   UserGroupIcon,
+  VegetarianIcon,
   VirusIcon,
   WalkingIcon,
   WarningIcon,

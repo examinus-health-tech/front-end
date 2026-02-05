@@ -319,24 +319,34 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   async function fetchFitnessData() {
     try {
       console.log('🏃 [HomeContext] Buscando dados de fitness...');
+      console.log('🏃 [HomeContext] Platform:', Platform.OS);
 
       let nativeHealthData: trackerProps = {} as trackerProps;
       let backendData: trackerProps = {} as trackerProps;
 
       // 1. Tenta buscar dados do HealthKit (iOS) ou Health Connect (Android)
-      if (Platform.OS === 'ios' && isHealthKitAvailable()) {
+      if (Platform.OS === 'ios') {
         try {
-          console.log('📱 [HomeContext] Inicializando HealthKit...');
-          await initHealthKit();
+          const healthKitAvailable = await isHealthKitAvailable();
+          console.log('📱 [HomeContext] HealthKit disponível:', healthKitAvailable);
 
-          const rawHealthData = await getHealthKitDataForDate(new Date());
-          nativeHealthData = convertHealthKitToTracker(rawHealthData);
-          console.log('✅ [HomeContext] Dados do HealthKit:', nativeHealthData);
+          if (healthKitAvailable) {
+            console.log('📱 [HomeContext] Inicializando HealthKit...');
+            const initResult = await initHealthKit();
+            console.log('📱 [HomeContext] HealthKit inicializado:', initResult);
 
-          // Sincroniza com backend em background (não bloqueia UI)
-          syncHealthKitToBackend().catch(err =>
-            console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err)
-          );
+            console.log('📱 [HomeContext] Buscando dados do HealthKit para hoje...');
+            const rawHealthData = await getHealthKitDataForDate(new Date());
+            console.log('📱 [HomeContext] Dados brutos do HealthKit:', rawHealthData);
+
+            nativeHealthData = convertHealthKitToTracker(rawHealthData);
+            console.log('✅ [HomeContext] Dados convertidos do HealthKit:', nativeHealthData);
+
+            // Sincroniza com backend em background (não bloqueia UI)
+            syncHealthKitToBackend().catch(err =>
+              console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err)
+            );
+          }
         } catch (healthKitError) {
           console.warn('⚠️ [HomeContext] Erro ao buscar do HealthKit:', healthKitError);
         }

@@ -1,8 +1,15 @@
 import { useRef, useState, useCallback, useMemo, useEffect } from 'react';
-import { VStack, ScrollView, IScrollViewProps, Box, Text, HStack, Actionsheet, useDisclose, Pressable, Input, Skeleton } from 'native-base';
+import { VStack, Box, Text, HStack, Actionsheet, useDisclose, Pressable, Input, Skeleton } from 'native-base';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StatusBar, setStatusBarStyle } from 'expo-status-bar';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
+import Animated, {
+  FadeIn,
+  useSharedValue,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -45,14 +52,25 @@ const waterAmounts: WaterAmount[] = [
 // Função auxiliar para obter dias baseado no range
 const getDaysForRange = (range: TimeRange): number => {
   switch (range) {
-    case '1d': return 1;
-    case '1w': return 7;
-    case '1m': return 30;
-    case '1y': return 365;
-    case 'all': return 365 * 2;
-    default: return 7;
+    case '1d':
+      return 1;
+    case '1w':
+      return 7;
+    case '1m':
+      return 30;
+    case '1y':
+      return 365;
+    case 'all':
+      return 365 * 2;
+    default:
+      return 7;
   }
 };
+
+// Constantes para animação do header
+const HEADER_EXPANDED_HEIGHT = 290;
+const HEADER_COLLAPSED_HEIGHT = 160;
+const SCROLL_THRESHOLD = 120;
 
 export function Hydration() {
   const [rangeSelected, setRangeSelected] = useState<TimeRange>('1w');
@@ -64,8 +82,56 @@ export function Hydration() {
   const [goalInput, setGoalInput] = useState('');
   const [localHydrationGoal, setLocalHydrationGoal] = useState<number>(2000);
   const { isOpen, onOpen, onClose } = useDisclose();
-  const scrollRef = useRef<IScrollViewProps>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+
+  // Animated scroll value
+  const scrollY = useSharedValue(0);
+
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  // Animated style for header container
+  const headerAnimatedStyle = useAnimatedStyle(() => {
+    const height = interpolate(
+      scrollY.value,
+      [0, SCROLL_THRESHOLD],
+      [HEADER_EXPANDED_HEIGHT, HEADER_COLLAPSED_HEIGHT],
+      Extrapolation.CLAMP,
+    );
+
+    return {
+      height,
+    };
+  });
+
+  // Animated style for expanded content (fades out)
+  const expandedContentStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(scrollY.value, [0, SCROLL_THRESHOLD * 0.5], [1, 0], Extrapolation.CLAMP);
+
+    const translateY = interpolate(scrollY.value, [0, SCROLL_THRESHOLD], [0, -20], Extrapolation.CLAMP);
+
+    return {
+      opacity,
+      transform: [{ translateY }],
+    };
+  });
+
+  // Animated style for collapsed content (fades in)
+  const collapsedContentStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [SCROLL_THRESHOLD * 0.3, SCROLL_THRESHOLD * 0.7],
+      [0, 1],
+      Extrapolation.CLAMP,
+    );
+
+    return {
+      opacity,
+    };
+  });
   const { trackerData, refreshFitnessData } = useHome();
   const { hideTabBar, showTabBar } = useTabBar();
   const { personalData } = useOnboarding();
@@ -101,7 +167,7 @@ export function Hydration() {
         showTabBar();
         setStatusBarStyle('dark');
       };
-    }, [hideTabBar, showTabBar])
+    }, [hideTabBar, showTabBar]),
   );
 
   // Dados do contexto
@@ -125,7 +191,7 @@ export function Hydration() {
 
         if (history.length > 0) {
           // Converte dados do backend para formato do gráfico
-          const data = history.map(log => ({
+          const data = history.map((log) => ({
             value: log.waterMl || 0,
           }));
           setChartData(data);
@@ -170,7 +236,7 @@ export function Hydration() {
   const handleAddWater = async () => {
     if (!selectedAmount) return;
 
-    const amount = waterAmounts.find(a => a.id === selectedAmount);
+    const amount = waterAmounts.find((a) => a.id === selectedAmount);
     if (!amount) return;
 
     setIsSaving(true);
@@ -251,79 +317,116 @@ export function Hydration() {
   };
 
   return (
-    <VStack flex={1}>
+    <VStack flex={1} bg="#F5F5F5">
       <StatusBar style="light" />
-      {/* Header com fundo azul */}
-      <Box w="100%" bg="blue.500" borderBottomRadius={36} pt={16} pb={6}>
-        <HeaderTitle
-          withBackButton={() => navigation.navigate('tracker')}
-          title="Hidratação"
-          color="white"
-        />
+      {/* Header animado com fundo azul - posição absoluta */}
+      <Animated.View style={[headerAnimatedStyle, { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }]}>
+        <Box w="100%" h="100%" bg="blue.500" borderBottomRadius={36} pt={16} pb={6} overflow="hidden">
+          <HeaderTitle withBackButton={() => navigation.navigate('tracker')} title="Hidratação" color="white" />
 
-        <VStack mx={6}>
-          <HStack alignItems="center" space={2} mb={3}>
-            <WaterDropFilledIcon size="20" color="#93C5FD" />
-            <Text color="blue.200" fontFamily="Poligon" fontSize={16} fontWeight={500} letterSpacing={-0.16}>
-              Você bebeu hoje
-            </Text>
-          </HStack>
+          {/* Conteúdo expandido (some ao scrollar) */}
+          <Animated.View style={[expandedContentStyle, { position: 'absolute', top: 110, left: 24, right: 24 }]}>
+            <HStack alignItems="center" space={2} mb={2}>
+              <WaterDropFilledIcon size="18" color="#93C5FD" />
+              <Text color="blue.200" fontFamily="Poligon" fontSize={14} fontWeight={500} letterSpacing={-0.14}>
+                Você bebeu hoje
+              </Text>
+            </HStack>
 
-          <HStack alignItems="flex-end">
-            <Text color="white" fontFamily="Poligon" fontSize={72} fontWeight={800} letterSpacing={-0.72}>
-              {currentHydration.toLocaleString('pt-BR')}
-            </Text>
-            <Text fontFamily="Poligon" fontSize={36} letterSpacing={-0.36} color="blue.200" mb={3}>
-              ml
-            </Text>
-          </HStack>
+            <HStack alignItems="flex-end">
+              <Text color="white" fontFamily="Poligon" fontSize={64} fontWeight={800} letterSpacing={-0.64}>
+                {currentHydration.toLocaleString('pt-BR')}
+              </Text>
+              <Text fontFamily="Poligon" fontSize={28} letterSpacing={-0.28} color="blue.200" mb={2}>
+                ml
+              </Text>
+            </HStack>
 
-          {/* Barra de progresso */}
-          <Box w="100%" h={2} bg="blue.400" borderRadius={4} mt={2}>
-            <Box
-              w={`${percentage}%`}
-              h={2}
-              bg="white"
-              borderRadius={4}
-            />
-          </Box>
-          <HStack justifyContent="space-between" mt={1}>
-            <Text color="blue.200" fontFamily="Poligon" fontSize={12} fontWeight={500}>
-              {percentage.toFixed(0)}% da meta
-            </Text>
-            <Text color="blue.100" fontFamily="Poligon" fontSize={12} fontWeight={600}>
-              Faltam {remaining.toLocaleString('pt-BR')}ml
-            </Text>
-          </HStack>
-        </VStack>
-      </Box>
+            {/* Barra de progresso */}
+            <Box w="100%" h={2} bg="blue.400" borderRadius={4} mt={1}>
+              <Box w={`${percentage}%`} h={2} bg="white" borderRadius={4} />
+            </Box>
+            <HStack justifyContent="space-between" mt={1}>
+              <Text color="blue.200" fontFamily="Poligon" fontSize={12} fontWeight={500}>
+                {percentage.toFixed(0)}% da meta
+              </Text>
+              <Text color="blue.100" fontFamily="Poligon" fontSize={12} fontWeight={600}>
+                Faltam {remaining.toLocaleString('pt-BR')}ml
+              </Text>
+            </HStack>
+          </Animated.View>
 
-      <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+          {/* Conteúdo colapsado (aparece ao scrollar) */}
+          <Animated.View style={[collapsedContentStyle, { position: 'absolute', top: 100, left: 24, right: 24 }]}>
+            <HStack alignItems="center" justifyContent="space-between">
+              <HStack alignItems="center" space={3}>
+                <WaterDropFilledIcon size="20" color="#93C5FD" />
+                <VStack space={-1}>
+                  <Text
+                    color="white"
+                    fontFamily="Poligon"
+                    fontSize={28}
+                    fontWeight={800}
+                    letterSpacing={-0.28}
+                    lineHeight={32}
+                  >
+                    {currentHydration.toLocaleString('pt-BR')} ml
+                  </Text>
+                  <Text color="blue.200" fontFamily="Poligon" fontSize={12} fontWeight={500}>
+                    Meta: {hydrationGoal.toLocaleString('pt-BR')} ml
+                  </Text>
+                </VStack>
+              </HStack>
+            </HStack>
+          </Animated.View>
+        </Box>
+      </Animated.View>
+
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingTop: HEADER_EXPANDED_HEIGHT, flexGrow: 1 }}
+        style={{ flex: 1 }}
+      >
         {/* Conteúdo principal */}
-        <VStack flex={1} mx={6} mt={4} pb={32}>
+        <VStack flex={1} mx={6} mt={4} pb={32} bg="#F5F5F5">
           {/* Cards de Meta e Consumo */}
           <HStack mt={2} justifyContent="space-between" space={4}>
             <Pressable flex={1} onPress={handleOpenGoalModal}>
               {({ isPressed }) => (
-              <Box bg="white" rounded="2xl" p={4} borderWidth={2} borderColor={isPressed ? 'blue.200' : 'transparent'}>
-                <Box size={12} background="#DBEAFE" rounded={12} alignItems="center" justifyContent="center">
-                  <WaterIcon size="24" color="#3B82F6" />
+                <Box
+                  bg="white"
+                  rounded="2xl"
+                  p={4}
+                  borderWidth={2}
+                  borderColor={isPressed ? 'blue.200' : 'transparent'}
+                >
+                  <Box size={12} background="#DBEAFE" rounded={12} alignItems="center" justifyContent="center">
+                    <WaterIcon size="24" color="#3B82F6" />
+                  </Box>
+                  <Text
+                    fontFamily="Poligon"
+                    fontSize={28}
+                    letterSpacing={-0.28}
+                    fontWeight={800}
+                    mt={4}
+                    color="gray.900"
+                  >
+                    {hydrationGoal.toLocaleString('pt-BR')}{' '}
+                    <Text color="gray.300" fontFamily="Poligon" fontSize={16} letterSpacing={-0.16} fontWeight={800}>
+                      ml
+                    </Text>
+                  </Text>
+                  <HStack alignItems="center" justifyContent="space-between">
+                    <Text color="gray.300" fontFamily="Poligon" fontSize={14} letterSpacing={-0.14} fontWeight={500}>
+                      Meta Diária
+                    </Text>
+                    <Text color="blue.500" fontFamily="Poligon" fontSize={12} fontWeight={700}>
+                      Editar
+                    </Text>
+                  </HStack>
                 </Box>
-                <Text fontFamily="Poligon" fontSize={28} letterSpacing={-0.28} fontWeight={800} mt={4} color="gray.900">
-                  {hydrationGoal.toLocaleString('pt-BR')}{' '}
-                  <Text color="gray.300" fontFamily="Poligon" fontSize={16} letterSpacing={-0.16} fontWeight={800}>
-                    ml
-                  </Text>
-                </Text>
-                <HStack alignItems="center" justifyContent="space-between">
-                  <Text color="gray.300" fontFamily="Poligon" fontSize={14} letterSpacing={-0.14} fontWeight={500}>
-                    Meta Diária
-                  </Text>
-                  <Text color="blue.500" fontFamily="Poligon" fontSize={12} fontWeight={700}>
-                    Editar
-                  </Text>
-                </HStack>
-              </Box>
               )}
             </Pressable>
             <GoalCard
@@ -379,7 +482,15 @@ export function Hydration() {
               </Text>
             </HStack>
             <HStack alignItems="center" space={2}>
-              <Box w={3} h={3} bg="gray.300" borderRadius={2} borderWidth={1} borderColor="gray.400" borderStyle="dashed" />
+              <Box
+                w={3}
+                h={3}
+                bg="gray.300"
+                borderRadius={2}
+                borderWidth={1}
+                borderColor="gray.400"
+                borderStyle="dashed"
+              />
               <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="gray.500">
                 Meta ({(hydrationGoal / 1000).toFixed(1)}L)
               </Text>
@@ -393,6 +504,8 @@ export function Hydration() {
               variant="primary"
               size="full"
               onPress={handleOpenWaterModal}
+              bg="blue.500"
+              _pressed={{ bg: 'blue.600' }}
             />
           </Box>
 
@@ -405,12 +518,12 @@ export function Hydration() {
               </Text>
             </HStack>
             <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="blue.600">
-              Beber água regularmente ao longo do dia é mais eficaz do que beber grandes quantidades de uma vez.
-              Tente manter uma garrafa de água sempre por perto!
+              Beber água regularmente ao longo do dia é mais eficaz do que beber grandes quantidades de uma vez. Tente
+              manter uma garrafa de água sempre por perto!
             </Text>
           </Box>
         </VStack>
-      </ScrollView>
+      </Animated.ScrollView>
 
       {/* Modal de adicionar água / editar meta */}
       <Actionsheet isOpen={isOpen} onClose={handleCloseModal}>
@@ -429,12 +542,7 @@ export function Hydration() {
               {/* Opções de quantidade */}
               <HStack w="100%" justifyContent="space-between" mt={4}>
                 {waterAmounts.map((amount) => (
-                  <Pressable
-                    key={amount.id}
-                    onPress={() => handleAmountSelect(amount.id)}
-                    flex={1}
-                    mx={1}
-                  >
+                  <Pressable key={amount.id} onPress={() => handleAmountSelect(amount.id)} flex={1} mx={1}>
                     <VStack
                       alignItems="center"
                       p={3}
@@ -476,15 +584,9 @@ export function Hydration() {
 
               {/* Botões de ação */}
               <HStack w="100%" mt={6} space={4}>
+                <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} />
                 <Button
-                  title="Cancelar"
-                  variant="secondary"
-                  size="full"
-                  flex={1}
-                  onPress={handleCloseModal}
-                />
-                <Button
-                  title={isSaving ? "Salvando..." : "Adicionar"}
+                  title={isSaving ? 'Salvando...' : 'Adicionar'}
                   variant="primary"
                   size="full"
                   flex={1}
@@ -535,11 +637,7 @@ export function Hydration() {
 
               {/* Sugestão baseada no peso */}
               {suggestedHydration && userWeight && (
-                <Pressable
-                  w="100%"
-                  mt={3}
-                  onPress={() => setGoalInput(suggestedHydration.toString())}
-                >
+                <Pressable w="100%" mt={3} onPress={() => setGoalInput(suggestedHydration.toString())}>
                   <Box bg="blue.50" p={3} borderRadius={12}>
                     <HStack alignItems="center" space={2}>
                       <Box bg="blue.100" p={1.5} borderRadius={8}>
@@ -572,7 +670,12 @@ export function Hydration() {
                     bg={goalInput === preset.toString() ? 'blue.100' : 'gray.100'}
                     borderRadius={8}
                   >
-                    <Text fontFamily="Poligon" fontSize={14} fontWeight={600} color={goalInput === preset.toString() ? 'blue.600' : 'gray.600'}>
+                    <Text
+                      fontFamily="Poligon"
+                      fontSize={14}
+                      fontWeight={600}
+                      color={goalInput === preset.toString() ? 'blue.600' : 'gray.600'}
+                    >
                       {(preset / 1000).toFixed(1)}L
                     </Text>
                   </Pressable>
@@ -581,15 +684,9 @@ export function Hydration() {
 
               {/* Botões de ação */}
               <HStack w="100%" mt={6} space={4}>
+                <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} />
                 <Button
-                  title="Cancelar"
-                  variant="secondary"
-                  size="full"
-                  flex={1}
-                  onPress={handleCloseModal}
-                />
-                <Button
-                  title={isSaving ? "Salvando..." : "Salvar"}
+                  title={isSaving ? 'Salvando...' : 'Salvar'}
                   variant="primary"
                   size="full"
                   flex={1}

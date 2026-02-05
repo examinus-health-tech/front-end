@@ -74,7 +74,7 @@ export function HealthWallet() {
       }
 
       loadProfilePhotoIfNeeded();
-    }, [user?.profilePhotoBase64, updateUserPhoto])
+    }, [user?.profilePhotoBase64, updateUserPhoto]),
   );
 
   const getColorByScore = (score: number) => {
@@ -131,85 +131,88 @@ export function HealthWallet() {
     }
 
     function renderIcon(system: string, score: number) {
-        const color = getColorByScore(score)?.color ?? '#000';
+      const color = getColorByScore(score)?.color ?? '#000';
 
-        const healthWalletIconsMap = {
-          fígado: { icon: <FigIcon size="30" color={color} /> },
-          imunidade: { icon: <ImuIcon size="30" color={color} /> },
-          pâncreas: { icon: <PanIcon size="30" color={color} /> },
-          rins: { icon: <RinIcon size="30" color={color} /> },
-          sangue: { icon: <SanIcon size="30" color={color} /> },
-          coração: { icon: <HeartIcon size="30" color={color} /> },
-          intestino: { icon: <IntestineIcon size="30" color={color} /> },
-          urina: { icon: <UrinaIcon size="30" color={color} /> },
-        };
+      const healthWalletIconsMap = {
+        fígado: { icon: <FigIcon size="30" color={color} /> },
+        imunidade: { icon: <ImuIcon size="30" color={color} /> },
+        pâncreas: { icon: <PanIcon size="30" color={color} /> },
+        rins: { icon: <RinIcon size="30" color={color} /> },
+        sangue: { icon: <SanIcon size="30" color={color} /> },
+        coração: { icon: <HeartIcon size="30" color={color} /> },
+        intestino: { icon: <IntestineIcon size="30" color={color} /> },
+        urina: { icon: <UrinaIcon size="30" color={color} /> },
+      };
 
-        return healthWalletIconsMap[system.toLowerCase() as keyof typeof healthWalletIconsMap]?.icon
-          || <FlaskIcon size="30" color={color} />;
+      return (
+        healthWalletIconsMap[system.toLowerCase() as keyof typeof healthWalletIconsMap]?.icon || (
+          <FlaskIcon size="30" color={color} />
+        )
+      );
+    }
+
+    useEffect(() => {
+      if (currentSystem?.nivel && currentSystem?.sistema) {
+        navigation.navigate('heartScore');
       }
+    }, [currentSystem]);
 
-      useEffect(() => {
-        if (currentSystem?.nivel && currentSystem?.sistema) {
-          navigation.navigate('heartScore');
+    return systems.map((system) => (
+      <TouchableOpacity
+        onPress={() =>
+          setCurrentSystem({
+            sistema: system.examOrganicSystemDescription,
+            nivel: getColorByScore(system.organicSystemScore)?.title,
+          })
         }
-      }, [currentSystem]);
-
-      return systems.map((system) => (
-        <TouchableOpacity
-          onPress={() =>
-            setCurrentSystem({
-              sistema: system.examOrganicSystemDescription,
-              nivel: getColorByScore(system.organicSystemScore)?.title,
-            })
-          }
+      >
+        <Box
+          mt={4}
+          bg={'white'}
+          w={'100%'}
+          p={2}
+          shadow={1}
+          borderRadius={16}
+          flexDir={'row'}
+          alignItems={'center'}
+          justifyContent={'space-between'}
         >
           <Box
-            mt={4}
-            bg={'white'}
-            w={'100%'}
-            p={2}
-            shadow={1}
-            borderRadius={16}
-            flexDir={'row'}
+            bg={getColorByScore(system.organicSystemScore)?.bgColor}
+            w={20}
+            h={20}
+            borderRadius={10}
             alignItems={'center'}
-            justifyContent={'space-between'}
+            justifyContent={'center'}
           >
-            <Box
-              bg={getColorByScore(system.organicSystemScore)?.bgColor}
-              w={20}
-              h={20}
-              borderRadius={10}
-              alignItems={'center'}
-              justifyContent={'center'}
-            >
-              {renderIcon(system.examOrganicSystemDescription, system.organicSystemScore)}
-            </Box>
-
-            <VStack flex={1} ml={4} mr={3}>
-              <Text fontSize={20} fontWeight={800} letterSpacing={-0.16}>
-                {system.examOrganicSystemDescription}
-              </Text>
-
-              <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
-                {getColorByScore(system.organicSystemScore)?.text}
-              </Text>
-            </VStack>
-
-            <Badge
-              bg={getColorByScore(system.organicSystemScore)?.bgColor}
-              borderRadius={6}
-              ml={2}
-              _text={{
-                textTransform: 'uppercase',
-                color: getColorByScore(system.organicSystemScore)?.color,
-                fontSize: 10,
-              }}
-            >
-              {getColorByScore(system.organicSystemScore)?.title}
-            </Badge>
+            {renderIcon(system.examOrganicSystemDescription, system.organicSystemScore)}
           </Box>
-        </TouchableOpacity>
-      ));
+
+          <VStack flex={1} ml={4} mr={3}>
+            <Text fontSize={20} fontWeight={800} letterSpacing={-0.16}>
+              {system.examOrganicSystemDescription}
+            </Text>
+
+            <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+              {getColorByScore(system.organicSystemScore)?.text}
+            </Text>
+          </VStack>
+
+          <Badge
+            bg={getColorByScore(system.organicSystemScore)?.bgColor}
+            borderRadius={6}
+            ml={2}
+            _text={{
+              textTransform: 'uppercase',
+              color: getColorByScore(system.organicSystemScore)?.color,
+              fontSize: 10,
+            }}
+          >
+            {getColorByScore(system.organicSystemScore)?.title}
+          </Badge>
+        </Box>
+      </TouchableOpacity>
+    ));
   }
 
   return (
@@ -223,64 +226,70 @@ export function HealthWallet() {
             {/* Score X Card - animação 1 */}
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(0) : undefined}>
               <Box w="100%" h="auto" bg={'white'} px={4} py={5} borderRadius={12} shadow={2}>
-              <VStack alignItems={'center'}>
-                <AnimatedCircularProgress
-                  size={150}
-                  lineCap="round"
-                  width={18}
-                  fill={Math.round(homeData.generalScore / 10)}
-                  children={() => (
-                    <Avatar
-                      size="50px"
-                      mt={-4}
-                      bg="gray.300"
-                      source={
-                        user?.profilePhotoBase64 || user?.photoUrl
-                          ? { uri: user?.profilePhotoBase64 || user?.photoUrl }
-                          : undefined
-                      }
-                    >
-                      {!(user?.profilePhotoBase64 || user?.photoUrl) && (
-                        user?.fullName ? (
-                          user.fullName
-                            .split(' ')
-                            .filter(Boolean)
-                            .map((name) => name[0])
-                            .join('')
-                            .substring(0, 2)
-                            .toUpperCase()
-                        ) : (
-                          <UserIcon color="#6B7280" size="24" />
-                        )
-                      )}
-                    </Avatar>
-                  )}
-                  rotation={270}
-                  tintColor={getColorByScore(homeData.generalScore)?.color ?? '#0CC1AF'}
-                  backgroundColor="#DCE1E8"
-                  arcSweepAngle={180}
-                />
+                <VStack alignItems={'center'}>
+                  <AnimatedCircularProgress
+                    size={150}
+                    lineCap="round"
+                    width={18}
+                    fill={Math.round(homeData.generalScore / 10)}
+                    children={() => (
+                      <Avatar
+                        size="50px"
+                        mt={-4}
+                        bg="gray.300"
+                        source={
+                          user?.profilePhotoBase64 || user?.photoUrl
+                            ? { uri: user?.profilePhotoBase64 || user?.photoUrl }
+                            : undefined
+                        }
+                      >
+                        {!(user?.profilePhotoBase64 || user?.photoUrl) &&
+                          (user?.fullName ? (
+                            user.fullName
+                              .split(' ')
+                              .filter(Boolean)
+                              .map((name) => name[0])
+                              .join('')
+                              .substring(0, 2)
+                              .toUpperCase()
+                          ) : (
+                            <UserIcon color="#6B7280" size="24" />
+                          ))}
+                      </Avatar>
+                    )}
+                    rotation={270}
+                    tintColor={getColorByScore(homeData.generalScore)?.color ?? '#0CC1AF'}
+                    backgroundColor="#DCE1E8"
+                    arcSweepAngle={180}
+                  />
 
-                <Text mt={-12} fontSize={40} fontWeight={800} letterSpacing={-1.44} lineHeight={44} color={getColorByScore(homeData.generalScore)?.color ?? 'gray.900'}>
-                  {Math.round(homeData.generalScore || 0)}
-                </Text>
-
-                <Text mt={-2} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
-                  Score X
-                </Text>
-
-                <Text mt={2} color="gray.600" fontSize={12} fontWeight={500} lineHeight={19.2} textAlign="center">
-                  {homeData.generalScoreActionRecommendation?.replace('\r\n', '')}
-                </Text>
-
-                {/* Medical Disclaimer */}
-                <Box mt={2} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
-                  <Text fontSize={12} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
-                    ⚠️ Aviso Médico: Esta análise é apenas informativa e não substitui consulta médica. Sempre consulte
-                    seu médico antes de tomar decisões sobre sua saúde.
+                  <Text
+                    mt={-12}
+                    fontSize={40}
+                    fontWeight={800}
+                    letterSpacing={-1.44}
+                    lineHeight={44}
+                    color={getColorByScore(homeData.generalScore)?.color ?? 'gray.900'}
+                  >
+                    {Math.round(homeData.generalScore || 0)}
                   </Text>
-                </Box>
-              </VStack>
+
+                  <Text mt={-2} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
+                    Score X
+                  </Text>
+
+                  <Text mt={2} color="gray.600" fontSize={12} fontWeight={500} lineHeight={19.2} textAlign="center">
+                    {homeData.generalScoreActionRecommendation?.replace('\r\n', '')}
+                  </Text>
+
+                  {/* Medical Disclaimer */}
+                  <Box mt={2} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
+                    <Text fontSize={12} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
+                      ⚠️ Aviso Médico: Esta análise é apenas informativa e não substitui consulta médica. Sempre
+                      consulte seu médico antes de tomar decisões sobre sua saúde.
+                    </Text>
+                  </Box>
+                </VStack>
               </Box>
             </Animated.View>
 
@@ -291,30 +300,6 @@ export function HealthWallet() {
               </Text>
 
               {renderSystems()}
-
-              {/* Botão Ver Exames - só aparece se tiver dados na visão geral */}
-              {homeData.medicalExamOrganicSystemsScore?.length > 0 && (
-                <TouchableOpacity onPress={() => navigation.navigate('examList')}>
-                  <Box
-                    mt={4}
-                    bg="ciano.300"
-                    py={4}
-                    px={6}
-                    borderRadius={16}
-                    shadow={2}
-                    flexDir="row"
-                    alignItems="center"
-                    justifyContent="center"
-                  >
-                    <Box mr={3}>
-                      <ChecklistIcon color="white" size="24" />
-                    </Box>
-                    <Text fontSize={16} fontWeight={700} color="white" letterSpacing={-0.16}>
-                      Ver Todos os Exames
-                    </Text>
-                  </Box>
-                </TouchableOpacity>
-              )}
             </Animated.View>
 
             {/* Medical Information Sources - animação 3 */}

@@ -36,7 +36,7 @@ const colorVariant: ColorVariantProps = {
   outline: 'white',
 };
 
-export function Button({ title, icon, size, variant, fontSize, isLoading, ...rest }: Props) {
+export function Button({ title, icon, size, variant, fontSize, isLoading, textColor, ...rest }: Props) {
   return (
     <ButtonNativeBase
       w={buttonSize[size as keyof ButtonSizeProps]}
@@ -59,7 +59,7 @@ export function Button({ title, icon, size, variant, fontSize, isLoading, ...res
       {!isLoading && (
         <Row alignItems="center">
           <Text
-            color={colorVariant[variant as keyof ColorVariantProps]}
+            color={textColor || colorVariant[variant as keyof ColorVariantProps]}
             paddingRight={icon && title ? 4 : 0}
             fontWeight={700}
             fontSize={fontSize}

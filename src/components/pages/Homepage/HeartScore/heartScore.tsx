@@ -24,7 +24,7 @@ import {
   UrinaIcon,
   FlaskIcon,
   WarningIcon,
-  LightBulbIcon,
+  ChecklistIcon,
   ChartIcon,
   ShieldIcon,
   WaterIcon,
@@ -73,28 +73,32 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     info: [
       {
         title: 'Frequência Cardíaca em Repouso',
-        description: 'A FC em repouso normal para adultos varia entre 60 e 100 bpm. Atletas podem ter valores mais baixos (40-60 bpm), indicando boa saúde cardiovascular.',
+        description:
+          'A FC em repouso normal para adultos varia entre 60 e 100 bpm. Atletas podem ter valores mais baixos (40-60 bpm), indicando boa saúde cardiovascular.',
         iconComponent: <HeartIcon size="20" color="#EF4444" />,
         color: '#EF4444',
         bgColor: '#FEF2F2',
       },
       {
         title: 'FC Alta (Taquicardia)',
-        description: 'Acima de 100 bpm em repouso pode indicar estresse, ansiedade, desidratação, febre ou problemas cardíacos. Consulte um médico se persistir.',
+        description:
+          'Acima de 100 bpm em repouso pode indicar estresse, ansiedade, desidratação, febre ou problemas cardíacos. Consulte um médico se persistir.',
         iconComponent: <EnergyIcon size="20" color="#F97316" />,
         color: '#F97316',
         bgColor: '#FFF7ED',
       },
       {
         title: 'FC Baixa (Bradicardia)',
-        description: 'Abaixo de 60 bpm pode ser normal em atletas, mas também pode indicar problemas no sistema elétrico do coração. Avalie com um especialista.',
+        description:
+          'Abaixo de 60 bpm pode ser normal em atletas, mas também pode indicar problemas no sistema elétrico do coração. Avalie com um especialista.',
         iconComponent: <HeartbeatIcon size="20" color="#3B82F6" />,
         color: '#3B82F6',
         bgColor: '#EFF6FF',
       },
       {
         title: 'Variabilidade da FC',
-        description: 'Uma boa variabilidade entre batimentos indica saúde cardiovascular. Baixa variabilidade pode estar associada a estresse crônico.',
+        description:
+          'Uma boa variabilidade entre batimentos indica saúde cardiovascular. Baixa variabilidade pode estar associada a estresse crônico.',
         iconComponent: <ChartIcon size="20" color="#8B5CF6" />,
         color: '#8B5CF6',
         bgColor: '#F5F3FF',
@@ -119,28 +123,32 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     info: [
       {
         title: 'Função Hepática',
-        description: 'O fígado é responsável por filtrar toxinas, produzir bile para digestão e armazenar vitaminas e minerais essenciais.',
+        description:
+          'O fígado é responsável por filtrar toxinas, produzir bile para digestão e armazenar vitaminas e minerais essenciais.',
         iconComponent: <FigIcon size="20" color="#22C55E" />,
         color: '#22C55E',
         bgColor: '#F0FDF4',
       },
       {
         title: 'Enzimas Hepáticas (TGO/TGP)',
-        description: 'Níveis elevados de TGO e TGP podem indicar lesão hepática. Valores normais variam, mas geralmente são abaixo de 40 U/L.',
+        description:
+          'Níveis elevados de TGO e TGP podem indicar lesão hepática. Valores normais variam, mas geralmente são abaixo de 40 U/L.',
         iconComponent: <ChartIcon size="20" color="#F97316" />,
         color: '#F97316',
         bgColor: '#FFF7ED',
       },
       {
         title: 'Esteatose Hepática',
-        description: 'Acúmulo de gordura no fígado é comum e pode evoluir para problemas mais graves. Dieta e exercícios são fundamentais.',
+        description:
+          'Acúmulo de gordura no fígado é comum e pode evoluir para problemas mais graves. Dieta e exercícios são fundamentais.',
         iconComponent: <WarningIcon size="20" color="#EAB308" />,
         color: '#EAB308',
         bgColor: '#FEFCE8',
       },
       {
         title: 'Bilirrubina',
-        description: 'Níveis altos podem causar icterícia (pele amarelada). Indica problemas no fígado ou nas vias biliares.',
+        description:
+          'Níveis altos podem causar icterícia (pele amarelada). Indica problemas no fígado ou nas vias biliares.',
         iconComponent: <FlaskIcon size="20" color="#8B5CF6" />,
         color: '#8B5CF6',
         bgColor: '#F5F3FF',
@@ -165,28 +173,32 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     info: [
       {
         title: 'Função Renal',
-        description: 'Os rins filtram o sangue, removem toxinas, regulam a pressão arterial e mantêm o equilíbrio de eletrólitos.',
+        description:
+          'Os rins filtram o sangue, removem toxinas, regulam a pressão arterial e mantêm o equilíbrio de eletrólitos.',
         iconComponent: <RinIcon size="20" color="#3B82F6" />,
         color: '#3B82F6',
         bgColor: '#EFF6FF',
       },
       {
         title: 'Creatinina',
-        description: 'Valores normais: 0,7-1,3 mg/dL (homens) e 0,6-1,1 mg/dL (mulheres). Níveis altos indicam função renal comprometida.',
+        description:
+          'Valores normais: 0,7-1,3 mg/dL (homens) e 0,6-1,1 mg/dL (mulheres). Níveis altos indicam função renal comprometida.',
         iconComponent: <FlaskIcon size="20" color="#F97316" />,
         color: '#F97316',
         bgColor: '#FFF7ED',
       },
       {
         title: 'Taxa de Filtração (TFG)',
-        description: 'Mede a eficiência dos rins. Valores acima de 90 são normais. Abaixo de 60 pode indicar doença renal crônica.',
+        description:
+          'Mede a eficiência dos rins. Valores acima de 90 são normais. Abaixo de 60 pode indicar doença renal crônica.',
         iconComponent: <ChartIcon size="20" color="#22C55E" />,
         color: '#22C55E',
         bgColor: '#F0FDF4',
       },
       {
         title: 'Hidratação',
-        description: 'A água é essencial para o funcionamento renal. Urina clara indica boa hidratação; escura pode indicar desidratação.',
+        description:
+          'A água é essencial para o funcionamento renal. Urina clara indica boa hidratação; escura pode indicar desidratação.',
         iconComponent: <WaterIcon size="20" color="#0EA5E9" />,
         color: '#0EA5E9',
         bgColor: '#F0F9FF',
@@ -211,28 +223,32 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     info: [
       {
         title: 'Hemograma Completo',
-        description: 'Avalia glóbulos vermelhos, brancos e plaquetas. É fundamental para detectar anemias, infecções e distúrbios da coagulação.',
+        description:
+          'Avalia glóbulos vermelhos, brancos e plaquetas. É fundamental para detectar anemias, infecções e distúrbios da coagulação.',
         iconComponent: <BloodDripIcon size="20" color="#DC2626" />,
         color: '#DC2626',
         bgColor: '#FEF2F2',
       },
       {
         title: 'Hemoglobina',
-        description: 'Transporta oxigênio no sangue. Valores normais: 12-16 g/dL (mulheres) e 14-18 g/dL (homens). Baixa indica anemia.',
+        description:
+          'Transporta oxigênio no sangue. Valores normais: 12-16 g/dL (mulheres) e 14-18 g/dL (homens). Baixa indica anemia.',
         iconComponent: <SanIcon size="20" color="#F97316" />,
         color: '#F97316',
         bgColor: '#FFF7ED',
       },
       {
         title: 'Leucócitos (Glóbulos Brancos)',
-        description: 'Defendem o corpo contra infecções. Valores normais: 4.000-11.000/mm³. Alterações podem indicar infecção ou outras condições.',
+        description:
+          'Defendem o corpo contra infecções. Valores normais: 4.000-11.000/mm³. Alterações podem indicar infecção ou outras condições.',
         iconComponent: <ShieldIcon size="20" color="#22C55E" />,
         color: '#22C55E',
         bgColor: '#F0FDF4',
       },
       {
         title: 'Plaquetas',
-        description: 'Essenciais para coagulação. Valores normais: 150.000-400.000/mm³. Alterações afetam a capacidade de cicatrização.',
+        description:
+          'Essenciais para coagulação. Valores normais: 150.000-400.000/mm³. Alterações afetam a capacidade de cicatrização.',
         iconComponent: <ChartIcon size="20" color="#8B5CF6" />,
         color: '#8B5CF6',
         bgColor: '#F5F3FF',
@@ -257,28 +273,32 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     info: [
       {
         title: 'Saúde Intestinal',
-        description: 'O intestino é responsável pela absorção de nutrientes e é considerado o "segundo cérebro" devido à sua conexão com o sistema nervoso.',
+        description:
+          'O intestino é responsável pela absorção de nutrientes e é considerado o "segundo cérebro" devido à sua conexão com o sistema nervoso.',
         iconComponent: <IntestineIcon size="20" color="#F97316" />,
         color: '#F97316',
         bgColor: '#FFF7ED',
       },
       {
         title: 'Microbiota Intestinal',
-        description: 'Trilhões de bactérias benéficas vivem no intestino. Um microbioma equilibrado é essencial para imunidade e digestão.',
+        description:
+          'Trilhões de bactérias benéficas vivem no intestino. Um microbioma equilibrado é essencial para imunidade e digestão.',
         iconComponent: <VirusIcon size="20" color="#22C55E" />,
         color: '#22C55E',
         bgColor: '#F0FDF4',
       },
       {
         title: 'Trânsito Intestinal',
-        description: 'Evacuações regulares (1-3x ao dia) são saudáveis. Constipação ou diarreia frequentes merecem atenção médica.',
+        description:
+          'Evacuações regulares (1-3x ao dia) são saudáveis. Constipação ou diarreia frequentes merecem atenção médica.',
         iconComponent: <ChartIcon size="20" color="#3B82F6" />,
         color: '#3B82F6',
         bgColor: '#EFF6FF',
       },
       {
         title: 'Fibras na Alimentação',
-        description: 'Recomenda-se 25-30g de fibras por dia. Ajudam no trânsito intestinal e alimentam as bactérias benéficas.',
+        description:
+          'Recomenda-se 25-30g de fibras por dia. Ajudam no trânsito intestinal e alimentam as bactérias benéficas.',
         iconComponent: <LeafIcon size="20" color="#16A34A" />,
         color: '#16A34A',
         bgColor: '#F0FDF4',
@@ -303,28 +323,32 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     info: [
       {
         title: 'Função Pancreática',
-        description: 'O pâncreas produz insulina para controlar glicose e enzimas digestivas. É vital para metabolismo e digestão.',
+        description:
+          'O pâncreas produz insulina para controlar glicose e enzimas digestivas. É vital para metabolismo e digestão.',
         iconComponent: <PanIcon size="20" color="#8B5CF6" />,
         color: '#8B5CF6',
         bgColor: '#F5F3FF',
       },
       {
         title: 'Glicemia em Jejum',
-        description: 'Valores normais: 70-99 mg/dL. Entre 100-125 indica pré-diabetes. Acima de 126 pode indicar diabetes.',
+        description:
+          'Valores normais: 70-99 mg/dL. Entre 100-125 indica pré-diabetes. Acima de 126 pode indicar diabetes.',
         iconComponent: <FlaskIcon size="20" color="#F97316" />,
         color: '#F97316',
         bgColor: '#FFF7ED',
       },
       {
         title: 'Hemoglobina Glicada (HbA1c)',
-        description: 'Mostra a média de glicose nos últimos 3 meses. Normal: abaixo de 5,7%. Acima de 6,5% indica diabetes.',
+        description:
+          'Mostra a média de glicose nos últimos 3 meses. Normal: abaixo de 5,7%. Acima de 6,5% indica diabetes.',
         iconComponent: <ChartIcon size="20" color="#DC2626" />,
         color: '#DC2626',
         bgColor: '#FEF2F2',
       },
       {
         title: 'Insulina',
-        description: 'Hormônio que permite às células absorverem glicose. Resistência à insulina é precursora do diabetes tipo 2.',
+        description:
+          'Hormônio que permite às células absorverem glicose. Resistência à insulina é precursora do diabetes tipo 2.',
         iconComponent: <EnergyIcon size="20" color="#22C55E" />,
         color: '#22C55E',
         bgColor: '#F0FDF4',
@@ -349,28 +373,32 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     info: [
       {
         title: 'Sistema Imunológico',
-        description: 'Defende o corpo contra vírus, bactérias e outros invasores. Um sistema forte previne doenças e acelera recuperações.',
+        description:
+          'Defende o corpo contra vírus, bactérias e outros invasores. Um sistema forte previne doenças e acelera recuperações.',
         iconComponent: <ShieldIcon size="20" color="#0EA5E9" />,
         color: '#0EA5E9',
         bgColor: '#F0F9FF',
       },
       {
         title: 'Leucócitos',
-        description: 'Glóbulos brancos são os soldados do sistema imune. Valores normais: 4.000-11.000/mm³. Alterações indicam resposta imune.',
+        description:
+          'Glóbulos brancos são os soldados do sistema imune. Valores normais: 4.000-11.000/mm³. Alterações indicam resposta imune.',
         iconComponent: <ImuIcon size="20" color="#22C55E" />,
         color: '#22C55E',
         bgColor: '#F0FDF4',
       },
       {
         title: 'Inflamação',
-        description: 'PCR e VHS são marcadores de inflamação. Níveis elevados indicam que o corpo está combatendo algo.',
+        description:
+          'PCR e VHS são marcadores de inflamação. Níveis elevados indicam que o corpo está combatendo algo.',
         iconComponent: <ThermometerIcon size="20" color="#F97316" />,
         color: '#F97316',
         bgColor: '#FFF7ED',
       },
       {
         title: 'Anticorpos',
-        description: 'Imunoglobulinas (IgA, IgG, IgM) são proteínas que combatem infecções específicas e guardam memória imunológica.',
+        description:
+          'Imunoglobulinas (IgA, IgG, IgM) são proteínas que combatem infecções específicas e guardam memória imunológica.',
         iconComponent: <FlaskIcon size="20" color="#8B5CF6" />,
         color: '#8B5CF6',
         bgColor: '#F5F3FF',
@@ -395,28 +423,32 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     info: [
       {
         title: 'Exame de Urina',
-        description: 'Avalia cor, densidade, pH e presença de substâncias. É fundamental para detectar infecções, diabetes e problemas renais.',
+        description:
+          'Avalia cor, densidade, pH e presença de substâncias. É fundamental para detectar infecções, diabetes e problemas renais.',
         iconComponent: <UrinaIcon size="20" color="#EAB308" />,
         color: '#EAB308',
         bgColor: '#FEFCE8',
       },
       {
         title: 'Cor da Urina',
-        description: 'Amarelo claro indica boa hidratação. Muito escura pode indicar desidratação. Avermelhada requer atenção médica.',
+        description:
+          'Amarelo claro indica boa hidratação. Muito escura pode indicar desidratação. Avermelhada requer atenção médica.',
         iconComponent: <WaterIcon size="20" color="#3B82F6" />,
         color: '#3B82F6',
         bgColor: '#EFF6FF',
       },
       {
         title: 'Presença de Proteínas',
-        description: 'Normalmente não há proteínas na urina. Sua presença pode indicar problemas renais ou outras condições.',
+        description:
+          'Normalmente não há proteínas na urina. Sua presença pode indicar problemas renais ou outras condições.',
         iconComponent: <FlaskIcon size="20" color="#F97316" />,
         color: '#F97316',
         bgColor: '#FFF7ED',
       },
       {
         title: 'Infecção Urinária',
-        description: 'Leucócitos e bactérias na urina indicam infecção. Sintomas: ardência, urgência e frequência aumentada.',
+        description:
+          'Leucócitos e bactérias na urina indicam infecção. Sintomas: ardência, urgência e frequência aumentada.',
         iconComponent: <WarningIcon size="20" color="#DC2626" />,
         color: '#DC2626',
         bgColor: '#FEF2F2',
@@ -595,7 +627,6 @@ export function HeartScore() {
                   </HStack>
                 </Box>
               )}
-
             </VStack>
 
             {/* 1. Resumo Personalizado do Sistema */}
@@ -619,18 +650,18 @@ export function HeartScore() {
                   alignItems="center"
                   justifyContent="center"
                 >
-                  <Text fontSize={14} fontWeight={700} color="white" letterSpacing={-0.14}>
-                    Ver Exames
+                  <Box mr={3}>
+                    <ChecklistIcon color="white" size="24" />
+                  </Box>
+                  <Text fontSize={16} fontWeight={700} color="white" letterSpacing={-0.16}>
+                    Ver Todos os Exames
                   </Text>
                 </Box>
               </TouchableOpacity>
             </VStack>
 
             {/* 2. Carrossel de Notícias de Saúde - Filtrado pelo sistema atual */}
-            <NewsCarousel
-              title={`Dicas para ${currentSystem?.sistema}`}
-              system={currentSystem?.sistema}
-            />
+            <NewsCarousel title={`Dicas para ${currentSystem?.sistema}`} system={currentSystem?.sistema} />
 
             <VStack flex={1} mx={6}>
               {/* 3. Título de serviços */}

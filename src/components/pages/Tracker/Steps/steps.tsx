@@ -10,7 +10,14 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { HeaderTitle, StepsProgress, StepStatCard, WeeklyStepsChart } from '@components/molecules';
 
 // assets
-import { EnergyBoltIcon, CompassTargetIcon, ClockSquareIcon, ChevronDownSmIcon, CalendarIcon, StepsIcon } from '@assets/icons';
+import {
+  EnergyBoltIcon,
+  CompassTargetIcon,
+  ClockSquareIcon,
+  ChevronDownSmIcon,
+  CalendarIcon,
+  StepsIcon,
+} from '@assets/icons';
 
 // hooks
 import { useHome } from 'src/hooks/useHome';
@@ -41,7 +48,7 @@ export function Steps() {
     useCallback(() => {
       hideTabBar();
       return () => showTabBar();
-    }, [hideTabBar, showTabBar])
+    }, [hideTabBar, showTabBar]),
   );
 
   // Dados do contexto
@@ -66,10 +73,14 @@ export function Steps() {
   // Helper para obter dias/labels baseado no período
   const getDaysForPeriod = (period: PeriodType): number => {
     switch (period) {
-      case 'Semanal': return 7;
-      case 'Mensal': return 30;
-      case 'Anual': return 365;
-      default: return 7;
+      case 'Semanal':
+        return 7;
+      case 'Mensal':
+        return 30;
+      case 'Anual':
+        return 365;
+      default:
+        return 7;
     }
   };
 
@@ -109,7 +120,7 @@ export function Steps() {
 
             // Agrupa logs por semana
             const weeklyTotals = [0, 0, 0, 0];
-            history.forEach(log => {
+            history.forEach((log) => {
               const logDate = new Date(log.date);
               const weekIndex = Math.min(Math.floor(logDate.getDate() / 7), 3);
               weeklyTotals[weekIndex] += log.steps || 0;
@@ -127,7 +138,7 @@ export function Steps() {
 
             // Agrupa logs por mês
             const monthlyTotals = new Array(12).fill(0);
-            history.forEach(log => {
+            history.forEach((log) => {
               const logDate = new Date(log.date);
               const monthIndex = logDate.getMonth();
               monthlyTotals[monthIndex] += log.steps || 0;
@@ -161,11 +172,13 @@ export function Steps() {
         const today = new Date().getDay();
         const adjustedToday = today === 0 ? 6 : today - 1;
 
-        setChartData(dayLabels.map((label, index) => ({
-          label,
-          value: index === adjustedToday ? currentSteps : 0,
-          isActive: index === adjustedToday,
-        })));
+        setChartData(
+          dayLabels.map((label, index) => ({
+            label,
+            value: index === adjustedToday ? currentSteps : 0,
+            isActive: index === adjustedToday,
+          })),
+        );
       } finally {
         setIsLoadingChart(false);
       }
@@ -223,7 +236,7 @@ export function Steps() {
           </Text>
 
           {/* Progresso circular/retangular */}
-          <Box mx={16} mt={4} mb={4}>
+          <Box mx={16} mt={4} mb={6}>
             <StepsProgress steps={currentSteps} goal={stepsGoal} />
           </Box>
 
@@ -311,8 +324,8 @@ export function Steps() {
               </Text>
             </HStack>
             <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="ciano.600">
-              Seus passos são sincronizados automaticamente do Apple Health ou do sensor do seu celular.
-              Mantenha o celular no bolso para contagem precisa!
+              Seus passos são sincronizados automaticamente do Apple Health ou do sensor do seu celular. Mantenha o
+              celular no bolso para contagem precisa!
             </Text>
           </Box>
         </VStack>

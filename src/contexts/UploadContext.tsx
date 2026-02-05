@@ -98,10 +98,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
           validateStatus: () => true, // Aceitar qualquer status para capturar erro 500
         });
 
-        console.log('📡 Resposta recebida da API');
-        console.log('📊 Status:', response.status);
-        console.log('📦 Dados:', JSON.stringify(response.data, null, 2));
-        console.log('🔖 Headers:', JSON.stringify(response.headers, null, 2));
+        console.log('📡 Resposta recebida da API, status:', response.status);
 
         // Verificar se foi sucesso (2xx)
         if (response.status >= 200 && response.status < 300) {
@@ -111,10 +108,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
           setWithError(false);
         } else {
           // Erro do servidor (4xx, 5xx)
-          console.error('❌ Erro na resposta da API');
-          console.error('📛 Status HTTP:', response.status);
-          console.error('💬 Mensagem do servidor:', response.data?.message || response.data?.error || 'Sem mensagem');
-          console.error('📄 Resposta completa:', JSON.stringify(response.data, null, 2));
+          console.error('❌ Erro na resposta da API, status:', response.status);
 
           setWithSuccess(false);
           setWithError(true);
@@ -160,15 +154,11 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   }) => {
     setIsLoading(true);
 
-    console.log('📝 Iniciando upload manual:', JSON.stringify(payload, null, 2));
+    console.log('📝 Iniciando upload manual...');
 
     try {
-      console.log('🚀 Enviando para API /exam-maintenance...');
       const response = await api.post('/exam-maintenance', payload);
-
-      console.log('✅ Upload manual bem-sucedido!');
-      console.log('📊 Status:', response.status);
-      console.log('📦 Resposta completa:', JSON.stringify(response.data, null, 2));
+      console.log('✅ Upload manual bem-sucedido, status:', response.status);
 
       const data = response.data.data;
 
