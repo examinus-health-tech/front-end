@@ -12,7 +12,7 @@ import { HeaderDescription, HistoryChart } from '@components/molecules';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useExam } from 'src/hooks/useExam';
 import { useCustomToast } from 'src/hooks/useCustomToast';
-import { formatDateToBrazilian } from '@utils/dateFormatter';
+import { formatDateToBrazilian, formatDateToBrazilianNoTime } from '@utils/dateFormatter';
 import { formatExamValue } from '@utils/numberFormatter';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppNavigatorRoutesProps, AppRoutes } from '@routes/app.routes';
@@ -222,17 +222,20 @@ export function Exam() {
     referenceMax: number | null | undefined,
     unit: string
   ): string {
+    // Formata número com separador de milhar pt-BR
+    const formatNum = (n: number) => n.toLocaleString('pt-BR');
+
     // Se tem min e max, mostra a faixa
     if (referenceMin != null && referenceMax != null) {
-      return `${referenceMin} - ${referenceMax} ${unit}`;
+      return `${formatNum(referenceMin)} - ${formatNum(referenceMax)} ${unit}`;
     }
     // Se só tem max
     if (referenceMax != null) {
-      return `< ${referenceMax} ${unit}`;
+      return `< ${formatNum(referenceMax)} ${unit}`;
     }
     // Se só tem min
     if (referenceMin != null) {
-      return `> ${referenceMin} ${unit}`;
+      return `> ${formatNum(referenceMin)} ${unit}`;
     }
     // Sem referência
     return `-- ${unit}`;
@@ -369,14 +372,14 @@ export function Exam() {
                     <Text
                       color={getColor(correctedColor)}
                       fontSize={(() => {
-                        const valueLength = item.medicalExamItemReferenceValue?.toString().length || 0;
-                        return valueLength > 7 ? 32 : valueLength > 6 ? 36 : 42;
+                        const formatted = formatExamValue(item.medicalExamItemReferenceValue);
+                        const len = formatted?.length || 0;
+                        if (len > 6) return 24;
+                        if (len > 4) return 30;
+                        return 36;
                       })()}
                       fontWeight={800}
                       letterSpacing={-1}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.7}
                     >
                       {formatExamValue(item.medicalExamItemReferenceValue)}
                     </Text>
@@ -385,9 +388,10 @@ export function Exam() {
                 <Text
                   mt={2}
                   color="gray.500"
-                  fontSize={12}
+                  fontSize={16}
                   fontWeight={600}
                   textAlign="center"
+                  maxW={144}
                 >
                   Ref: {formatReferenceValue(item.referenceMin, item.referenceMax, item.medicalExamItemMeasureUnit)}
                 </Text>
@@ -543,7 +547,7 @@ export function Exam() {
               <HStack flexWrap="wrap" alignItems="center">
                 {examSelected.examDate && (
                   <Text fontSize={14} fontWeight={600} color="gray.700">
-                    Exame: {formatDateToBrazilian(examSelected.examDate)}
+                    Exame: {formatDateToBrazilianNoTime(examSelected.examDate)}
                   </Text>
                 )}
                 {examSelected.examDate && examSelected.createdDate && (
@@ -556,18 +560,18 @@ export function Exam() {
 
               {/* Médicos */}
               {examSelected.requestingDoctorName && (
-                <Text fontSize={13} fontWeight={500} color="gray.600" mt={1}>
+                <Text fontSize={13} fontWeight={500} color="gray.600" mt={1} numberOfLines={2} ellipsizeMode="tail">
                   Solicitante: {examSelected.requestingDoctorName}
                 </Text>
               )}
               {examSelected.responsibleDoctorName && (
-                <Text fontSize={13} fontWeight={500} color="gray.600">
+                <Text fontSize={13} fontWeight={500} color="gray.600" numberOfLines={2} ellipsizeMode="tail">
                   Responsável: {examSelected.responsibleDoctorName}
                 </Text>
               )}
               {/* Fallback para o campo legado se não tiver os novos */}
               {!examSelected.requestingDoctorName && !examSelected.responsibleDoctorName && examSelected.doctorName && (
-                <Text fontSize={13} fontWeight={500} color="gray.600" mt={1}>
+                <Text fontSize={13} fontWeight={500} color="gray.600" mt={1} numberOfLines={2} ellipsizeMode="tail">
                   Médico: {examSelected.doctorName}
                 </Text>
               )}
