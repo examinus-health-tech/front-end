@@ -153,7 +153,11 @@ api.registerInterceptTokenManager = (signOut) => {
       }
 
       // Handle unauthorized access
-      if (requestError.response?.status === 401) {
+      // IMPORTANTE: Não fazer logout em 401 nas rotas de autenticação
+      // pois isso significa credenciais inválidas, não sessão expirada
+      const isAuthRoute = requestError.config?.url?.includes('authentication');
+
+      if (requestError.response?.status === 401 && !isAuthRoute) {
         try {
           await AsyncStorage.removeItem('@app:user');
         } catch (error) {

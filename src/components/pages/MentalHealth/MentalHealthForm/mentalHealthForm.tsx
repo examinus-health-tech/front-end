@@ -1,13 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { StatusBar } from 'react-native';
-import {
-  VStack,
-  Text,
-  Box,
-  HStack,
-  ScrollView,
-  Pressable,
-} from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, Pressable } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
@@ -20,11 +13,7 @@ import { HeaderTitle } from '@components/molecules';
 import { Button } from '@components/atoms';
 
 // Services
-import {
-  DASS21_QUESTIONS,
-  RESPONSE_OPTIONS,
-  saveAssessment,
-} from '@services/mentalHealthService';
+import { DASS21_QUESTIONS, RESPONSE_OPTIONS, saveAssessment } from '@services/mentalHealthService';
 
 // Hooks
 import { useCustomToast } from 'src/hooks/useCustomToast';
@@ -36,9 +25,7 @@ export function MentalHealthForm() {
   const { showSuccess, showError } = useCustomToast();
 
   // Estado das respostas (21 perguntas, inicialmente undefined)
-  const [answers, setAnswers] = useState<(number | undefined)[]>(
-    new Array(21).fill(undefined)
-  );
+  const [answers, setAnswers] = useState<(number | undefined)[]>(new Array(21).fill(undefined));
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -118,10 +105,7 @@ export function MentalHealthForm() {
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <VStack pt={16} flex={1}>
-        <HeaderTitle
-          title="Saúde Mental"
-          withBackButton={() => navigation.goBack()}
-        />
+        <HeaderTitle title="Saúde Mental" withBackButton={() => navigation.goBack()} />
 
         {/* Instrução e referência DASS-21 */}
         <Box mx={6} mb={3} bg="purple.50" px={4} py={3} borderRadius={10}>
@@ -152,21 +136,12 @@ export function MentalHealthForm() {
           >
             <HStack space={2} alignItems="center">
               {answers.map((answer, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() => handleGoToQuestion(index)}
-                >
+                <Pressable key={index} onPress={() => handleGoToQuestion(index)}>
                   <Box
                     w={9}
                     h={9}
                     borderRadius={10}
-                    bg={
-                      currentQuestion === index
-                        ? 'purple.400'
-                        : answer !== undefined
-                        ? 'purple.100'
-                        : 'gray.200'
-                    }
+                    bg={currentQuestion === index ? 'purple.400' : answer !== undefined ? 'purple.100' : 'gray.200'}
                     alignItems="center"
                     justifyContent="center"
                     borderWidth={currentQuestion === index ? 2 : 0}
@@ -175,13 +150,7 @@ export function MentalHealthForm() {
                     <Text
                       fontSize={13}
                       fontWeight={700}
-                      color={
-                        currentQuestion === index
-                          ? 'white'
-                          : answer !== undefined
-                          ? 'purple.600'
-                          : 'gray.500'
-                      }
+                      color={currentQuestion === index ? 'white' : answer !== undefined ? 'purple.600' : 'gray.500'}
                     >
                       {index + 1}
                     </Text>
@@ -194,10 +163,7 @@ export function MentalHealthForm() {
 
         {/* Conteúdo da pergunta atual */}
         <ScrollView ref={scrollRef} flex={1} showsVerticalScrollIndicator={false}>
-          <Animated.View
-            key={currentQuestion}
-            entering={FadeInRight.duration(300)}
-          >
+          <Animated.View key={currentQuestion} entering={FadeInRight.duration(300)}>
             <VStack mx={6} mb={4}>
               {/* Número e pergunta */}
               <HStack alignItems="center" space={3} mb={4}>
@@ -214,13 +180,7 @@ export function MentalHealthForm() {
                     {currentQuestion + 1}
                   </Text>
                 </Box>
-                <Text
-                  flex={1}
-                  fontSize={15}
-                  fontWeight={600}
-                  color="gray.800"
-                  lineHeight={22}
-                >
+                <Text flex={1} fontSize={15} fontWeight={600} color="gray.800" lineHeight={22}>
                   {DASS21_QUESTIONS[currentQuestion]}
                 </Text>
               </HStack>
@@ -230,10 +190,7 @@ export function MentalHealthForm() {
                 {RESPONSE_OPTIONS.map((option) => {
                   const isSelected = answers[currentQuestion] === option.value;
                   return (
-                    <Pressable
-                      key={option.value}
-                      onPress={() => handleSelectAnswer(currentQuestion, option.value)}
-                    >
+                    <Pressable key={option.value} onPress={() => handleSelectAnswer(currentQuestion, option.value)}>
                       <Box
                         bg={isSelected ? 'violet.50' : 'white'}
                         borderWidth={2}
@@ -253,9 +210,7 @@ export function MentalHealthForm() {
                             alignItems="center"
                             justifyContent="center"
                           >
-                            {isSelected && (
-                              <Box w={2} h={2} borderRadius={4} bg="white" />
-                            )}
+                            {isSelected && <Box w={2} h={2} borderRadius={4} bg="white" />}
                           </Box>
                           <VStack flex={1}>
                             <Text
@@ -282,6 +237,9 @@ export function MentalHealthForm() {
               variant="secondary"
               size="md"
               flex={1}
+              bg="purple.100"
+              textColor="purple.600"
+              _pressed={{ bg: 'purple.200' }}
               isDisabled={currentQuestion === 0}
               onPress={() => handleGoToQuestion(currentQuestion - 1)}
             />
@@ -291,12 +249,16 @@ export function MentalHealthForm() {
                 variant="primary"
                 size="md"
                 flex={1}
+                bg="purple.500"
+                _pressed={{ bg: 'purple.600' }}
                 isLoading={isSubmitting}
                 isDisabled={answers[currentQuestion] === undefined}
                 onPress={handleSubmit}
               />
             ) : (
               <Button
+                bg="purple.500"
+                _pressed={{ bg: 'purple.600' }}
                 title="Próxima"
                 variant="primary"
                 size="md"

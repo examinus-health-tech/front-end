@@ -31,7 +31,8 @@ export function NewsCarousel({ title = 'Notícias de Saúde', system }: NewsCaro
       const newsItems = system
         ? await fetchNewsForSystem(system)
         : await fetchHealthTipsNews();
-      setNews(newsItems);
+
+      setNews(newsItems || []);
     } catch (err) {
       console.error('Erro ao carregar notícias:', err);
       setError('Não foi possível carregar as notícias');
@@ -45,7 +46,7 @@ export function NewsCarousel({ title = 'Notícias de Saúde', system }: NewsCaro
   }, [loadNews]);
 
   const handleOpenNews = (url: string) => {
-    Linking.openURL(url).catch(err => {
+    Linking.openURL(url).catch((err) => {
       console.error('Erro ao abrir link:', err);
     });
   };
@@ -77,14 +78,7 @@ export function NewsCarousel({ title = 'Notícias de Saúde', system }: NewsCaro
             // Loading skeletons
             <>
               {[1, 2, 3].map((_, index) => (
-                <Box
-                  key={index}
-                  width={CARD_WIDTH}
-                  bg="white"
-                  borderRadius={14}
-                  p={3}
-                  shadow={2}
-                >
+                <Box key={index} width={CARD_WIDTH} bg="white" borderRadius={14} p={3} shadow={2}>
                   <HStack space={3}>
                     <Skeleton w={IMAGE_SIZE} h={IMAGE_SIZE} rounded="lg" />
                     <VStack flex={1} justifyContent="space-between" h={IMAGE_SIZE}>
@@ -102,10 +96,7 @@ export function NewsCarousel({ title = 'Notícias de Saúde', system }: NewsCaro
           ) : news.length > 0 ? (
             // News cards
             news.slice(0, 10).map((item) => (
-              <Pressable
-                key={item.id}
-                onPress={() => handleOpenNews(item.link)}
-              >
+              <Pressable key={item.id} onPress={() => handleOpenNews(item.link)}>
                 {({ isPressed }) => (
                   <Box
                     width={CARD_WIDTH}

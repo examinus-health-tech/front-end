@@ -4,7 +4,7 @@ import { VStack, Text, Box, HStack, View } from 'native-base';
 // routes
 
 // assets
-import { ArrowIcon, AppleIcon, CoffeIcon, DinnerIcon, BoneIcon } from '@assets/icons';
+import { ArrowIcon, NoDietIcon, BalancedDietIcon, VegetarianIcon, NoneOfTheseIcon } from '@assets/icons';
 
 // components
 import { Button } from '@components/atoms';
@@ -95,7 +95,7 @@ export function Habits() {
             minH={160}
           >
             <View position="absolute" right={3} top={3}>
-              <AppleIcon color={selectedHabit == 'X' ? 'white' : '#444444'} />
+              <NoDietIcon color={selectedHabit == 'X' ? 'white' : '#444444'} />
             </View>
             <Text
               position="absolute"
@@ -123,7 +123,7 @@ export function Habits() {
             minH={160}
           >
             <View position="absolute" right={3} top={3}>
-              <CoffeIcon color={selectedHabit == 'B' ? 'white' : '#444444'} />
+              <BalancedDietIcon color={selectedHabit == 'B' ? 'white' : '#444444'} />
             </View>
             <Text
               position="absolute"
@@ -153,7 +153,7 @@ export function Habits() {
             minH={160}
           >
             <View position="absolute" right={3} top={3}>
-              <DinnerIcon color={selectedHabit == 'V' ? 'white' : '#444444'} />
+              <VegetarianIcon color={selectedHabit == 'V' ? 'white' : '#444444'} />
             </View>
             <Text
               position="absolute"
@@ -181,7 +181,7 @@ export function Habits() {
             minH={160}
           >
             <View position="absolute" right={3} top={3}>
-              <BoneIcon color={selectedHabit == 'N' ? 'white' : '#444444'} />
+              <NoneOfTheseIcon color={selectedHabit == 'N' ? 'white' : '#444444'} />
             </View>
             <Text
               position="absolute"

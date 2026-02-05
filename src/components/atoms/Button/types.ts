@@ -4,6 +4,7 @@ export type Props = IButtonProps & {
   title?: string;
   icon?: JSX.Element;
   fontSize?: number;
+  textColor?: string;
   size: 'xs' | 'sm' | 'md' | 'lg' | 'fab' | 'full';
   variant:
     | 'primary'

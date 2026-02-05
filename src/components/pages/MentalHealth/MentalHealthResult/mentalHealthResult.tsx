@@ -1,14 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { TouchableOpacity, StatusBar, Linking } from 'react-native';
-import {
-  VStack,
-  Text,
-  Box,
-  HStack,
-  ScrollView,
-  Badge,
-  Divider,
-} from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, Badge, Divider } from 'native-base';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -56,22 +48,12 @@ function DomainCard({
       <Box bg="white" borderRadius={16} p={4} shadow={2} mb={4}>
         <HStack alignItems="center" justifyContent="space-between" mb={3}>
           <HStack alignItems="center" space={3}>
-            <Box
-              bg={colorInfo.bgColor}
-              w={12}
-              h={12}
-              borderRadius={12}
-              alignItems="center"
-              justifyContent="center"
-            >
+            <Box bg={colorInfo.bgColor} w={12} h={12} borderRadius={12} alignItems="center" justifyContent="center">
               {icon}
             </Box>
             <VStack>
               <Text fontSize={16} fontWeight={700} color="gray.800">
                 {title}
-              </Text>
-              <Text fontSize={12} fontWeight={500} color="gray.500">
-                Score: {score} pontos
               </Text>
             </VStack>
           </HStack>
@@ -201,10 +183,7 @@ export function MentalHealthResult() {
       <VStack flex={1} bg="gray.50">
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
         <VStack pt={16} flex={1}>
-          <HeaderTitle
-            title="Resultado"
-            withBackButton={() => navigation.goBack()}
-          />
+          <HeaderTitle title="Resultado" withBackButton={() => navigation.goBack()} />
           <VStack flex={1} alignItems="center" justifyContent="center" px={6}>
             <Text fontSize={16} fontWeight={600} color="gray.600" textAlign="center">
               Nenhuma avaliação encontrada.
@@ -228,10 +207,7 @@ export function MentalHealthResult() {
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <VStack pt={16} flex={1}>
-        <HeaderTitle
-          title="Saúde Mental"
-          withBackButton={() => navigation.goBack()}
-        />
+        <HeaderTitle title="Saúde Mental" withBackButton={() => navigation.goBack()} />
 
         <ScrollView showsVerticalScrollIndicator={false}>
           <VStack mx={6} pb={32}>
@@ -250,14 +226,7 @@ export function MentalHealthResult() {
             {/* Alerta se necessário */}
             {hasWarning() && (
               <Animated.View entering={FadeInDown.duration(400).delay(100)}>
-                <Box
-                  bg="red.50"
-                  borderRadius={12}
-                  p={4}
-                  mb={4}
-                  borderWidth={1}
-                  borderColor="red.200"
-                >
+                <Box bg="red.50" borderRadius={12} p={4} mb={4} borderWidth={1} borderColor="red.200">
                   <HStack alignItems="flex-start" space={3}>
                     <WarningIcon size="24" color="#DC2626" />
                     <VStack flex={1}>
@@ -265,13 +234,10 @@ export function MentalHealthResult() {
                         Atenção Importante
                       </Text>
                       <Text fontSize={12} fontWeight={500} color="red.600" lineHeight={18}>
-                        Seus resultados indicam que você pode estar enfrentando dificuldades
-                        significativas. Recomendamos fortemente que procure ajuda profissional.
+                        Seus resultados indicam que você pode estar enfrentando dificuldades significativas.
+                        Recomendamos fortemente que procure ajuda profissional.
                       </Text>
-                      <TouchableOpacity
-                        onPress={() => Linking.openURL('tel:188')}
-                        style={{ marginTop: 8 }}
-                      >
+                      <TouchableOpacity onPress={() => Linking.openURL('tel:188')} style={{ marginTop: 8 }}>
                         <Text fontSize={12} fontWeight={700} color="red.700">
                           CVV - Ligue 188 (24h)
                         </Text>
@@ -287,7 +253,12 @@ export function MentalHealthResult() {
               title="Depressão"
               score={assessment.scores.depression}
               classification={assessment.classifications.depression}
-              icon={<HeadHealthIcon size="24" color={getColorByClassification(assessment.classifications.depression).color} />}
+              icon={
+                <HeadHealthIcon
+                  size="24"
+                  color={getColorByClassification(assessment.classifications.depression).color}
+                />
+              }
               description={getDepressionDescription(assessment.classifications.depression)}
               delay={200}
             />
@@ -320,9 +291,8 @@ export function MentalHealthResult() {
                       Sobre o DASS-21
                     </Text>
                     <Text fontSize={12} fontWeight={500} color="blue.600" lineHeight={16}>
-                      O DASS-21 é um instrumento validado cientificamente para avaliação de
-                      sintomas de depressão, ansiedade e estresse. Esta ferramenta não substitui
-                      uma avaliação profissional.
+                      O DASS-21 é um instrumento validado cientificamente para avaliação de sintomas de depressão,
+                      ansiedade e estresse. Esta ferramenta não substitui uma avaliação profissional.
                     </Text>
                   </VStack>
                 </HStack>
@@ -355,8 +325,8 @@ export function MentalHealthResult() {
             <Animated.View entering={FadeInDown.duration(400).delay(700)}>
               <Box mt={4} px={3} py={2} bg="orange.50" borderRadius={8} borderWidth={1} borderColor="orange.200">
                 <Text fontSize={12} fontWeight={500} color="gray.700" textAlign="center" lineHeight={14}>
-                  Esta avaliação é apenas informativa e não substitui diagnóstico médico.
-                  Se você está enfrentando dificuldades, procure ajuda profissional.
+                  Esta avaliação é apenas informativa e não substitui diagnóstico médico. Se você está enfrentando
+                  dificuldades, procure ajuda profissional.
                 </Text>
               </Box>
             </Animated.View>

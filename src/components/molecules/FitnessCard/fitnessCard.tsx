@@ -16,10 +16,10 @@ export type Props = {
   fullWidth?: boolean;
 };
 
-// Componente para gráfico de barras verticais (Peso) - tons de azul
+// Componente para gráfico de barras verticais (Peso) - tons de ciano
 function WeightChart() {
-  const lightColor = '#DCF0FF';
-  const darkColor = '#99BACE';
+  const lightColor = '#DCF0FF'; // ciano/verde claro
+  const darkColor = '#0CC1AF'; // ciano.300
 
   // [altura clara, altura escura] em percentual
   const bars = [
@@ -46,7 +46,7 @@ function WeightChart() {
   );
 }
 
-// Componente placeholder para Nutrição (retângulo com borda arredondada e progress)
+// Componente placeholder para Nutrição (retângulo com borda arredondada e progress) - tons de laranja
 function NutritionPlaceholder() {
   const [containerWidth, setContainerWidth] = useState(0);
   const progress = 65; // percentual de progresso
@@ -87,18 +87,12 @@ function NutritionPlaceholder() {
     <Box mt="auto" h={`${height}px`} w="100%" onLayout={handleLayout}>
       {containerWidth > 0 && (
         <Svg width={width} height={height}>
-          {/* Borda clara (fundo) */}
+          {/* Borda clara (fundo)  */}
+          <Path d={pathD} strokeWidth={strokeWidth} stroke="#ffd1ab" fill="none" strokeLinecap="round" />
+          {/* Progress escuro - laranja */}
           <Path
             d={pathD}
-            stroke="#DCE1E8"
-            strokeWidth={strokeWidth}
-            fill="none"
-            strokeLinecap="round"
-          />
-          {/* Progress escuro */}
-          <Path
-            d={pathD}
-            stroke="#818BA0"
+            stroke="#FB923C"
             strokeWidth={strokeWidth}
             fill="none"
             strokeLinecap="butt"
@@ -196,14 +190,14 @@ function CaloriesStepChart() {
         <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
           <Defs>
             <LinearGradient id="stepGradient" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="#8B5CF6" stopOpacity="0.25" />
-              <Stop offset="100%" stopColor="#8B5CF6" stopOpacity="0" />
+              <Stop offset="0%" stopColor="#8A3FFC" stopOpacity="0.25" />
+              <Stop offset="100%" stopColor="#8A3FFC" stopOpacity="0" />
             </LinearGradient>
           </Defs>
           <Path d={areaPath} fill="url(#stepGradient)" />
           <Path
             d={linePath}
-            stroke="#8B5CF6"
+            stroke="#8A3FFC"
             strokeWidth="2.5"
             fill="none"
             strokeLinejoin="round"
@@ -211,7 +205,7 @@ function CaloriesStepChart() {
           />
           {/* Indicador quadrado arredondado com borda branca - centralizado na última barra */}
           <Rect x={indicatorX - 7} y={indicatorY - 7} width={14} height={14} rx={5} ry={5} fill="white" />
-          <Rect x={indicatorX - 5} y={indicatorY - 5} width={10} height={10} rx={3} ry={3} fill="#8B5CF6" />
+          <Rect x={indicatorX - 5} y={indicatorY - 5} width={10} height={10} rx={3} ry={3} fill="#8A3FFC" />
         </Svg>
       )}
     </Box>
@@ -253,21 +247,21 @@ function SleepGrid() {
   );
 }
 
-// Componente para barras horizontais de hidratação (grid 2x3 estilo)
+// Componente para barras horizontais de hidratação (grid 2x3 estilo) - tons de azul
 function HydrationBars() {
-  // Layout 3 linhas x 2 colunas de barras com proporções (flex)
+  // Layout 3 linhas x 2 colunas de barras com proporções (flex) - azul para combinar com tela de hidratação
   const rows = [
     [
-      { flex: 2, color: '#0CC1AF' },
-      { flex: 8, color: '#ABE4DD' },
+      { flex: 2, color: '#3B82F6' },
+      { flex: 8, color: '#93C5FD' },
     ],
     [
-      { flex: 4, color: '#ABE4DD' },
-      { flex: 6, color: '#0CC1AF' },
+      { flex: 4, color: '#93C5FD' },
+      { flex: 6, color: '#3B82F6' },
     ],
     [
-      { flex: 7, color: '#0CC1AF' },
-      { flex: 3, color: '#ABE4DD' },
+      { flex: 7, color: '#3B82F6' },
+      { flex: 3, color: '#93C5FD' },
     ],
   ];
 
@@ -355,9 +349,7 @@ export function FitnessCard({ title, value, unit, variant = 'weight', goTo, data
               </Flex>
             </VStack>
 
-            <Box w="40%">
-              {renderVisualization()}
-            </Box>
+            <Box w="40%">{renderVisualization()}</Box>
           </Flex>
         </TouchableOpacity>
       </Box>
