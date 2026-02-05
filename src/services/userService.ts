@@ -55,19 +55,10 @@ export async function getUserPersonalData(): Promise<UserPersonalDataResponseDTO
       return null;
     }
 
-    console.log('📦 [USER_SERVICE] Response completo:', JSON.stringify(response.data, null, 2));
-
     // O backend retorna { data: { fullName, email, phone, ... } }
     const userData = (response.data as any).data || response.data;
 
-    console.log('✅ [USER_SERVICE] Perfil completo recuperado:', userData);
-    console.log('📊 [USER_SERVICE] Campos extraídos:', {
-      fullName: userData?.fullName,
-      email: userData?.email,
-      gender: userData?.gender,
-      weight: userData?.weight,
-      height: userData?.height,
-    });
+    console.log('✅ [USER_SERVICE] Perfil recuperado para:', userData?.fullName || userData?.email);
 
     return userData as UserPersonalDataResponseDTO;
   } catch (error: any) {
@@ -185,7 +176,6 @@ export async function saveUserPersonalData(data: UserPersonalDataDTO) {
 
     // 3. Salvar dados merged
     console.log('🔄 [USER_SERVICE] Salvando perfil completo (PUT)...');
-    console.log('📊 [USER_SERVICE] Payload final sendo enviado:', JSON.stringify(mergedData, null, 2));
     const result = await updateUserPersonalData(mergedData);
     console.log('✅ [USER_SERVICE] Perfil salvo com sucesso via PUT');
     return result;

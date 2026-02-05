@@ -33,6 +33,7 @@ interface BiometricUserData {
 interface AuthContextData {
   user?: User | null;
   isLoading: boolean;
+  isAuthReady: boolean; // Indica se a verificação inicial de autenticação foi concluída
   error: string | null;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithBiometric: (userData: BiometricUserData) => Promise<void>;
@@ -62,6 +63,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [resetCode, setResetCode] = useState<string | null>(null);
   const [resetEmail, setResetEmail] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthReady, setIsAuthReady] = useState(false); // Só muda uma vez, após verificação inicial
   const [error, setError] = useState<string | null>(null);
 
   // Referência para o AppState anterior
@@ -258,6 +260,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } finally {
       logger.auth('LoadStoredUser completed, setting isLoading = false');
       setIsLoading(false);
+      setIsAuthReady(true); // Marca que a verificação inicial foi concluída
     }
   }
 
@@ -1575,6 +1578,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       error,
       clearError,
       isLoading,
+      isAuthReady,
       signIn,
       signInWithBiometric,
       signInWithGoogle,
@@ -1594,6 +1598,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       user,
       error,
       isLoading,
+      isAuthReady,
       clearError,
       signIn,
       signInWithGoogle,

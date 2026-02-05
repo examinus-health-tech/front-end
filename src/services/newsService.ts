@@ -21,15 +21,24 @@ const RSS_URLS = {
 
 // Palavras-chave para filtrar notícias por sistema orgânico
 const SYSTEM_KEYWORDS: Record<string, string[]> = {
-  coração: ['coração', 'cardíaco', 'cardiovascular', 'infarto', 'pressão arterial', 'hipertensão', 'arritmia', 'AVC'],
-  fígado: ['fígado', 'hepático', 'hepatite', 'cirrose', 'fígado gorduroso', 'esteatose'],
-  rins: ['rim', 'renal', 'diálise', 'transplante renal', 'insuficiência renal', 'nefrologia'],
-  sangue: ['sangue', 'hemoglobina', 'anemia', 'leucemia', 'doação de sangue', 'transfusão', 'hematologia'],
-  intestino: ['intestino', 'intestinal', 'digestivo', 'gastro', 'colonoscopia', 'probiótico'],
-  pâncreas: ['pâncreas', 'diabetes', 'glicemia', 'insulina', 'diabético'],
-  imunidade: ['imunidade', 'imunológico', 'vacina', 'anticorpo', 'imunização', 'defesa', 'sistema imune'],
-  urina: ['urinário', 'urina', 'bexiga', 'próstata', 'infecção urinária', 'urologia'],
+  coração: ['coração', 'cardíaco', 'cardiovascular', 'infarto', 'pressão arterial', 'hipertensão', 'arritmia', 'AVC', 'colesterol', 'triglicérides', 'artéria', 'coronária'],
+  fígado: ['fígado', 'hepático', 'hepatite', 'cirrose', 'fígado gorduroso', 'esteatose', 'enzimas hepáticas', 'TGO', 'TGP', 'bilirrubina'],
+  rins: ['rim', 'renal', 'diálise', 'transplante renal', 'insuficiência renal', 'nefrologia', 'creatinina', 'ureia', 'filtração'],
+  sangue: ['sangue', 'hemoglobina', 'anemia', 'leucemia', 'doação de sangue', 'transfusão', 'hematologia', 'hemograma', 'plaqueta', 'leucócito', 'glóbulos', 'ferro', 'ferritina', 'vitamina B12', 'ácido fólico'],
+  intestino: ['intestino', 'intestinal', 'digestivo', 'gastro', 'colonoscopia', 'probiótico', 'flora intestinal', 'microbioma', 'constipação', 'diarreia'],
+  pâncreas: ['pâncreas', 'diabetes', 'glicemia', 'insulina', 'diabético', 'açúcar no sangue', 'hemoglobina glicada', 'pré-diabetes'],
+  imunidade: ['imunidade', 'imunológico', 'vacina', 'anticorpo', 'imunização', 'defesa', 'sistema imune', 'gripe', 'resfriado', 'infecção', 'vírus', 'bactéria', 'vitamina C', 'vitamina D', 'zinco', 'própolis'],
+  urina: ['urinário', 'urina', 'bexiga', 'próstata', 'infecção urinária', 'urologia', 'cistite', 'urocultura'],
 };
+
+// Palavras-chave para EXCLUIR notícias (golpes, política, etc)
+const EXCLUDED_KEYWORDS: string[] = [
+  'golpe', 'golpista', 'fraude', 'criminoso', 'crime', 'polícia', 'prisão', 'preso',
+  'assassinato', 'morte violenta', 'homicídio', 'roubo', 'assalto', 'sequestro',
+  'político', 'política', 'eleição', 'deputado', 'senador', 'presidente', 'governo',
+  'dinheiro', 'banco', 'empréstimo', 'investimento', 'bitcoin', 'criptomoeda',
+  'celebridade', 'famoso', 'fofoca', 'reality', 'bbb',
+];
 
 // Palavras-chave para filtrar notícias por categorias de dicas de saúde
 const HEALTH_TIPS_KEYWORDS: string[] = [
@@ -195,25 +204,38 @@ export async function fetchHealthNews(): Promise<NewsItem[]> {
 }
 
 /**
+ * Remove notícias com conteúdo não relacionado à saúde (golpes, política, etc)
+ */
+function filterOutExcludedNews(news: NewsItem[]): NewsItem[] {
+  return news.filter(item => {
+    const searchText = `${item.title} ${item.description}`.toLowerCase();
+    return !EXCLUDED_KEYWORDS.some(keyword => searchText.includes(keyword.toLowerCase()));
+  });
+}
+
+/**
  * Filtra notícias por sistema orgânico
  */
 export function filterNewsBySystem(news: NewsItem[], system: string): NewsItem[] {
+  // Primeiro remove notícias não relacionadas à saúde
+  const cleanNews = filterOutExcludedNews(news);
+
   const systemLower = system.toLowerCase();
   const keywords = SYSTEM_KEYWORDS[systemLower];
 
   if (!keywords || keywords.length === 0) {
-    // Se não há keywords para o sistema, retorna todas as notícias
-    return news;
+    // Se não há keywords para o sistema, retorna notícias limpas
+    return cleanNews.slice(0, 10);
   }
 
-  const filtered = news.filter(item => {
+  const filtered = cleanNews.filter(item => {
     const searchText = `${item.title} ${item.description}`.toLowerCase();
     return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
   });
 
-  // Se não encontrou notícias específicas, retorna as 5 primeiras gerais
+  // Se não encontrou notícias específicas, retorna as 5 primeiras limpas
   if (filtered.length === 0) {
-    return news.slice(0, 5);
+    return cleanNews.slice(0, 5);
   }
 
   return filtered;
@@ -231,7 +253,10 @@ export async function fetchNewsForSystem(system: string): Promise<NewsItem[]> {
  * Filtra notícias por categorias de dicas de saúde (imunidade, hábitos, alimentação, prevenção)
  */
 export function filterNewsByHealthTips(news: NewsItem[]): NewsItem[] {
-  const filtered = news.filter(item => {
+  // Primeiro remove notícias não relacionadas à saúde
+  const cleanNews = filterOutExcludedNews(news);
+
+  const filtered = cleanNews.filter(item => {
     const searchText = `${item.title} ${item.description}`.toLowerCase();
     return HEALTH_TIPS_KEYWORDS.some(keyword => searchText.includes(keyword.toLowerCase()));
   });
@@ -241,8 +266,8 @@ export function filterNewsByHealthTips(news: NewsItem[]): NewsItem[] {
     return filtered;
   }
 
-  // Se não encontrou, retorna as notícias originais
-  return news;
+  // Se não encontrou, retorna as notícias limpas (sem golpes)
+  return cleanNews.slice(0, 10);
 }
 
 /**
