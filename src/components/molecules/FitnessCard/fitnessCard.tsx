@@ -315,7 +315,7 @@ export function FitnessCard({ title, value, unit, variant = 'weight', goTo, data
 
   if (fullWidth) {
     return (
-      <Box bg="white" rounded="2xl" h={100} w="100%" overflow="hidden">
+      <Box bg="white" rounded="2xl" h={100} w="100%" overflow="hidden" shadow={2}>
         <TouchableOpacity onPress={goTo} style={{ flex: 1 }}>
           <Flex p={4} flex={1} direction="row" alignItems="center" justifyContent="space-between">
             <VStack>
@@ -357,7 +357,7 @@ export function FitnessCard({ title, value, unit, variant = 'weight', goTo, data
   }
 
   return (
-    <Box bg="white" rounded="2xl" h={230} w={156} flex={1} overflow="hidden">
+    <Box bg="white" rounded="2xl" h={230} w={156} flex={1} overflow="hidden" shadow={2}>
       <TouchableOpacity onPress={goTo} style={{ flex: 1 }}>
         <Flex p={4} flex={1}>
           <Flex direction="row" justify="space-between" alignItems="center">

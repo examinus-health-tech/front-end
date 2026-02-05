@@ -8,7 +8,7 @@
       "fallbackToCacheTimeout": 3000,
       "url": "https://u.expo.dev/29aa665e-a9a4-4a0b-9ead-a75ede66e041"
     },
-    "version": "1.2.12",
+    "version": "1.3.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -25,7 +25,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "16",
+      "buildNumber": "17",
       "supportsTablet": true,
       "bundleIdentifier": "com.examinus.app",
       "jsEngine": "jsc",
@@ -72,10 +72,15 @@
     },
     "android": {
       "minSdkVersion": 26,
-      "versionCode": 16,
+      "versionCode": 17,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "splash": {
+        "image": "./assets/splash-icon-android.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#0CC1AF"
       },
       "jsEngine": "jsc",
       "permissions": [

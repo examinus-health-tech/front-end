@@ -462,6 +462,8 @@ export function Hydration() {
                   lineColor="#3B82F6"
                   gradientColor="#3B82F6"
                   indicatorColor="#3B82F6"
+                  goalValue={hydrationGoal}
+                  goalLineColor="#9CA3AF"
                 />
               </Animated.View>
             ) : (

@@ -5,7 +5,7 @@ import { useAuth } from 'src/hooks/useAuth';
 
 import { Platform } from 'react-native';
 import { api } from 'src/services/api';
-import { getFitnessDashboard, isFitnessEnabled, FitnessDashboard } from 'src/services/fitnessService';
+import { getFitnessDashboard, isFitnessEnabled, setFitnessEnabled as setFitnessEnabledService, FitnessDashboard } from 'src/services/fitnessService';
 import {
   isHealthKitAvailable,
   initHealthKit,
@@ -134,10 +134,17 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   }, [user?.userId]);
 
   async function checkFitnessEnabled() {
-    const enabled = await isFitnessEnabled();
-    setFitnessEnabled(enabled);
-    if (enabled) {
-      await fetchFitnessData();
+    try {
+      const enabled = await isFitnessEnabled();
+      setFitnessEnabled(enabled);
+      if (enabled) {
+        await fetchFitnessData();
+      }
+    } catch (error) {
+      console.error('❌ [HomeContext] Erro ao verificar fitness, desabilitando:', error);
+      // Se der erro, desabilita o fitness para evitar crash loop
+      await setFitnessEnabledService(false);
+      setFitnessEnabled(false);
     }
   }
 

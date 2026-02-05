@@ -38,6 +38,8 @@ import VectorMale from '@assets/png/vector-46.png';
 import VectorFemale from '@assets/png/vector-33.png';
 import VectorRiskMale from '@assets/png/vector-47.png';
 import VectorRiskFemale from '@assets/png/vector-23.png';
+import AlertMale from '@assets/png/alert-man.png';
+import AlertFemale from '@assets/png/alert-woman.png';
 
 // components
 import { HeaderTitle, NewsCarousel, SystemInsights } from '@components/molecules';
@@ -532,6 +534,11 @@ export function HeartScore() {
     return isFemale ? VectorRiskFemale : VectorRiskMale;
   }, [isFemale]);
 
+  // Determina a imagem baseada no gênero do usuário (alerta/atenção)
+  const genderAlertImage = useMemo(() => {
+    return isFemale ? AlertFemale : AlertMale;
+  }, [isFemale]);
+
   useEffect(() => {
     return () => {
       setCurrentSystem(null);
@@ -583,24 +590,24 @@ export function HeartScore() {
                   </HStack>
                 </Box>
               ) : currentSystem.nivel == 'normal' ? (
-                <Box bg="yellow.500" pl={4} borderRadius={12} shadow={2} overflow="hidden">
+                <Box bg="#FFD099" pl={4} borderRadius={12} shadow={2} overflow="hidden">
                   <HStack h={160}>
                     <VStack flex={1} justifyContent="center" py={4}>
-                      <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="white" lineHeight={22}>
-                        Sua saúde{'\n'}está normal
+                      <Text fontSize={18} fontWeight={800} letterSpacing={-0.16} color="#C06702" lineHeight={22}>
+                        Sua saúde{'\n'}precisa de atenção!
                       </Text>
-                      <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="white" mt={1}>
-                        Alguns indicadores precisam de atenção.
+                      <Text fontSize={14} fontWeight={500} letterSpacing={-0.16} color="#3D4966" mt={1}>
+                        Alguns indicadores estão{'\n'}fora do normal
                       </Text>
                     </VStack>
 
                     <Image
                       flex={1}
                       h={160}
-                      source={genderImage}
-                      defaultSource={genderImage}
-                      alt="Vetor"
-                      resizeMode="cover"
+                      source={genderAlertImage}
+                      defaultSource={genderAlertImage}
+                      alt="Alerta"
+                      resizeMode="contain"
                     />
                   </HStack>
                 </Box>
@@ -638,14 +645,13 @@ export function HeartScore() {
 
             {/* Botão Ver Exames - abaixo do resumo, acima das dicas */}
             <VStack mx={6}>
-              <TouchableOpacity onPress={() => navigation.navigate('examList')}>
+              <TouchableOpacity activeOpacity={0.8} onPress={() => navigation.navigate('examList')}>
                 <Box
                   mt={4}
                   bg="ciano.300"
                   py={3}
                   px={5}
                   borderRadius={12}
-                  shadow={1}
                   flexDir="row"
                   alignItems="center"
                   justifyContent="center"

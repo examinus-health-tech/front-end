@@ -85,6 +85,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
           flexDir={'row'}
           alignItems={'center'}
           justifyContent={'space-between'}
+          shadow={2}
         >
           <Box bg={'red.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
             <BarbellIcon size="24" color="#EF4444" />
@@ -124,6 +125,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
           flexDir={'row'}
           alignItems={'center'}
           justifyContent={'space-between'}
+          shadow={2}
         >
           <Box bg={'orange.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
             <AppleIcon size="24" color="#F97316" />
@@ -163,6 +165,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
           flexDir={'row'}
           alignItems={'center'}
           justifyContent={'space-between'}
+          shadow={2}
         >
           <Box bg={'ciano.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
             <WalkingIcon size="24" color="#0CC1AF" />
@@ -202,6 +205,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
           flexDir={'row'}
           alignItems={'center'}
           justifyContent={'space-between'}
+          shadow={2}
         >
           <Box bg={'purple.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
             <BedIcon size="24" color="#8B5CF6" />
@@ -252,6 +256,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
           flexDir={'row'}
           alignItems={'center'}
           justifyContent={'space-between'}
+          shadow={2}
         >
           <Box bg={'blue.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
             <WaterIcon size="24" color="#3B82F6" />
