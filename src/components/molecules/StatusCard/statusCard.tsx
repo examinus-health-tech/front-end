@@ -36,7 +36,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
         });
       }
       loadGoals();
-    }, [])
+    }, []),
   );
 
   // Safeguards and fallbacks to avoid runtime errors when data is missing
@@ -69,13 +69,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
     const cards = Array.from({ length: goal }, (_, i) => i + 1);
 
     return cards.map((card, index) => (
-      <Box
-        key={index}
-        bg={card <= completed ? 'ciano.300' : 'gray.300'}
-        h={2}
-        borderRadius={10}
-        flex={1}
-      />
+      <Box key={index} bg={card <= completed ? 'ciano.300' : 'gray.300'} h={2} borderRadius={10} flex={1} />
     ));
   }
 
@@ -170,8 +164,8 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
           alignItems={'center'}
           justifyContent={'space-between'}
         >
-          <Box bg={'blue.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
-            <WalkingIcon size="24" color="#3B82F6" />
+          <Box bg={'ciano.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
+            <WalkingIcon size="24" color="#0CC1AF" />
           </Box>
 
           <VStack flex={1} ml={3}>
@@ -182,8 +176,8 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
             <Progress
               value={userTrackerData ? 0 : Math.min(Math.round((stepsCompleted / stepsGoal) * 100), 100)}
               sizeW={100}
-              filledColor="blue.400"
-              bgColor={userTrackerData ? 'gray.100' : 'blue.100'}
+              filledColor="ciano.400"
+              bgColor={userTrackerData ? 'gray.100' : 'ciano.100'}
             />
 
             <HStack justifyContent={'space-between'} mt={1}>
@@ -233,11 +227,7 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
             size={56}
             lineCap="round"
             width={4}
-            fill={
-              userTrackerData || !sleepGoal
-                ? 0
-                : Math.min(Math.round((sleepCompleted / sleepGoal) * 100), 100)
-            }
+            fill={userTrackerData || !sleepGoal ? 0 : Math.min(Math.round((sleepCompleted / sleepGoal) * 100), 100)}
             children={() => (
               <Text fontSize={12} fontWeight={800} letterSpacing={1}>
                 {userTrackerData || !sleepGoal
@@ -263,8 +253,8 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
           alignItems={'center'}
           justifyContent={'space-between'}
         >
-          <Box bg={'ciano.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
-            <WaterIcon size="24" color="#0CC1AF" />
+          <Box bg={'blue.50'} w={16} h={16} borderRadius={10} alignItems={'center'} justifyContent={'center'}>
+            <WaterIcon size="24" color="#3B82F6" />
           </Box>
 
           <VStack flex={1} ml={3}>

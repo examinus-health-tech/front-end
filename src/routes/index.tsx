@@ -7,7 +7,7 @@ import { ForceUpdateScreen } from '@components/pages/ForceUpdate';
 import { checkForceUpdate, VersionInfo } from '@services/versionService';
 
 export function Routes() {
-  const { user, isLoading } = useAuth();
+  const { user, isAuthReady } = useAuth();
   const [isCheckingVersion, setIsCheckingVersion] = useState(true);
   const [needsUpdate, setNeedsUpdate] = useState(false);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
@@ -28,8 +28,9 @@ export function Routes() {
     }
   }
 
-  // Enquanto está verificando autenticação ou versão, mostrar loading
-  if (isLoading || isCheckingVersion) {
+  // Enquanto está verificando autenticação inicial ou versão, mostrar loading
+  // Usa isAuthReady para não desmontar rotas durante operações de login
+  if (!isAuthReady || isCheckingVersion) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F5F5F5' }}>
         <ActivityIndicator size="large" color="#0CC1AF" />

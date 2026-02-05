@@ -134,7 +134,7 @@ export function Nutrition() {
         style={[props.style, { zIndex: 100 }]}
       />
     ),
-    []
+    [],
   );
 
   // Animated scroll value
@@ -152,7 +152,7 @@ export function Nutrition() {
       scrollY.value,
       [0, SCROLL_THRESHOLD],
       [HEADER_EXPANDED_HEIGHT, HEADER_COLLAPSED_HEIGHT],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     );
 
     return {
@@ -178,7 +178,7 @@ export function Nutrition() {
       scrollY.value,
       [SCROLL_THRESHOLD * 0.3, SCROLL_THRESHOLD * 0.7],
       [0, 1],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     );
 
     return {
@@ -205,7 +205,7 @@ export function Nutrition() {
         showTabBar();
         setStatusBarStyle('dark');
       };
-    }, [hideTabBar, showTabBar])
+    }, [hideTabBar, showTabBar]),
   );
 
   // Dados do contexto
@@ -229,12 +229,18 @@ export function Nutrition() {
   // Helper para converter range em dias
   const getDaysForRange = (range: TimeRange): number => {
     switch (range) {
-      case '1d': return 1;
-      case '1w': return 7;
-      case '1m': return 30;
-      case '1y': return 365;
-      case 'all': return 365;
-      default: return 7;
+      case '1d':
+        return 1;
+      case '1w':
+        return 7;
+      case '1m':
+        return 30;
+      case '1y':
+        return 365;
+      case 'all':
+        return 365;
+      default:
+        return 7;
     }
   };
 
@@ -248,7 +254,7 @@ export function Nutrition() {
 
         if (history.length > 0) {
           // Converte logs para formato do gráfico (caloriesConsumed)
-          const data = history.map(log => ({
+          const data = history.map((log) => ({
             value: log.caloriesConsumed || 0,
           }));
           setChartData(data);
@@ -277,7 +283,7 @@ export function Nutrition() {
     const calories = parseInt(caloriesInput, 10);
     if (isNaN(calories) || calories <= 0) return;
 
-    const mealLabel = mealOptions.find(m => m.id === selectedMeal)?.label || 'Refeição';
+    const mealLabel = mealOptions.find((m) => m.id === selectedMeal)?.label || 'Refeição';
 
     // Reset e fechar primeiro
     setSelectedMeal(null);
@@ -412,7 +418,14 @@ export function Nutrition() {
           {/* Cards de Meta e Consumo */}
           <HStack mt={2} justifyContent="space-between" space={4}>
             <Pressable flex={1} onPress={handleOpenGoalSheet}>
-              <Box bg="white" rounded="2xl" p={4} borderWidth={2} borderColor="transparent" _pressed={{ borderColor: 'orange.200' }}>
+              <Box
+                bg="white"
+                rounded="2xl"
+                p={4}
+                borderWidth={2}
+                borderColor="transparent"
+                _pressed={{ borderColor: 'orange.200' }}
+              >
                 <Box size={12} background="#FFF7ED" rounded={12} alignItems="center" justifyContent="center">
                   <AppleIcon size="24" color="#F97316" />
                 </Box>
@@ -500,7 +513,14 @@ export function Nutrition() {
 
           {/* Botão de adicionar */}
           <Box mt={8}>
-            <Button title="Adicionar Refeição" variant="primary" size="full" onPress={handleOpenSheet} />
+            <Button
+              title="Adicionar Refeição"
+              variant="primary"
+              size="full"
+              onPress={handleOpenSheet}
+              bg="orange.400"
+              _pressed={{ bg: 'orange.500' }}
+            />
           </Box>
         </VStack>
       </Animated.ScrollView>
@@ -629,7 +649,7 @@ export function Nutrition() {
           <HStack w="100%" mt={6} space={4}>
             <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} />
             <Button
-              title={isSaving ? "Salvando..." : "Adicionar"}
+              title={isSaving ? 'Salvando...' : 'Adicionar'}
               variant="primary"
               size="full"
               flex={1}
@@ -711,7 +731,12 @@ export function Nutrition() {
                 borderWidth={1}
                 borderColor={goalInput === value.toString() ? 'orange.300' : 'transparent'}
               >
-                <Text fontFamily="Poligon" fontSize={12} fontWeight={600} color={goalInput === value.toString() ? 'orange.600' : 'gray.600'}>
+                <Text
+                  fontFamily="Poligon"
+                  fontSize={12}
+                  fontWeight={600}
+                  color={goalInput === value.toString() ? 'orange.600' : 'gray.600'}
+                >
                   {value}
                 </Text>
               </Pressable>
@@ -722,7 +747,7 @@ export function Nutrition() {
           <HStack w="100%" mt={6} space={4}>
             <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseGoalSheet} />
             <Button
-              title={isSaving ? "Salvando..." : "Salvar"}
+              title={isSaving ? 'Salvando...' : 'Salvar'}
               variant="primary"
               size="full"
               flex={1}
