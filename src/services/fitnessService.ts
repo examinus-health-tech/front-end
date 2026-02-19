@@ -196,6 +196,22 @@ export async function getFitnessDashboard(): Promise<FitnessDashboard | null> {
 }
 
 /**
+ * Busca o log diário de uma data específica
+ */
+export async function getDailyLogByDate(date: string): Promise<FitnessDailyLog | null> {
+  try {
+    const response = await api.get<{ success: boolean; data: FitnessDailyLog }>(`fitness/daily-log/${date}`);
+    return response.data.data || null;
+  } catch (error: any) {
+    if (error.response?.status === 404) {
+      return null;
+    }
+    console.error('[FITNESS_SERVICE] Erro ao buscar log do dia:', error);
+    return null;
+  }
+}
+
+/**
  * Cria ou atualiza o log diário
  */
 export async function saveDailyLog(data: Partial<FitnessDailyLog>): Promise<FitnessDailyLog> {
@@ -319,7 +335,7 @@ export async function getDailyLogsHistory(days: number = 30): Promise<FitnessDai
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
     const response = await api.get<{ success: boolean; data: FitnessDailyLog[] }>(
-      `fitness/daily-logs?startDate=${startDate}&endDate=${endDate}`
+      `fitness/daily-log?startDate=${startDate}&endDate=${endDate}`
     );
 
     console.log('[FITNESS_SERVICE] Histórico de logs recuperado');
@@ -358,122 +374,135 @@ export async function getSleepHistory(days: number = 30): Promise<FitnessSleep[]
   }
 }
 
+// Enum alinhado com o backend (FitnessGoalTypeEnum)
+enum GoalType {
+  DailySteps = 1,
+  TargetWeight = 2,
+  DailyWater = 3,
+  DailySleep = 4,
+  DailyCalories = 5,
+  DailyCaloriesBurned = 6,
+}
+
 /**
- * Salva a meta de peso localmente
+ * Salva uma meta no backend e no AsyncStorage (cache)
+ */
+async function saveGoal(goalType: GoalType, value: number, unit: string, storageKey: string): Promise<void> {
+  // Salva no cache local imediatamente
+  await AsyncStorage.setItem(storageKey, value.toString());
+
+  // Salva no backend em background
+  try {
+    await api.post('fitness/goals', {
+      goalType,
+      targetValue: value,
+      unit,
+    });
+    console.log(`[FITNESS_SERVICE] Meta ${GoalType[goalType]} salva no backend: ${value} ${unit}`);
+  } catch (error) {
+    console.warn(`[FITNESS_SERVICE] Erro ao salvar meta no backend (cache local preservado):`, error);
+  }
+}
+
+/**
+ * Recupera uma meta do AsyncStorage (cache) ou do backend
+ */
+async function getGoal(storageKey: string, parseAsFloat = false): Promise<number | null> {
+  try {
+    const cached = await AsyncStorage.getItem(storageKey);
+    if (cached) {
+      const value = parseAsFloat ? parseFloat(cached) : parseInt(cached, 10);
+      return isNaN(value) ? null : value;
+    }
+    return null;
+  } catch (error) {
+    console.error('[FITNESS_SERVICE] Erro ao recuperar meta:', error);
+    return null;
+  }
+}
+
+/**
+ * Busca todas as metas do backend e atualiza o cache local
+ */
+export async function syncGoalsFromBackend(): Promise<void> {
+  try {
+    const response = await api.get<{ success: boolean; data: { goalType: number; targetValue: number }[] }>('fitness/goals');
+    const goals = response.data.data || [];
+
+    for (const goal of goals) {
+      switch (goal.goalType) {
+        case GoalType.TargetWeight:
+          await AsyncStorage.setItem(WEIGHT_GOAL_KEY, goal.targetValue.toString());
+          break;
+        case GoalType.DailyCalories:
+          await AsyncStorage.setItem(CALORIES_GOAL_KEY, goal.targetValue.toString());
+          break;
+        case GoalType.DailyWater:
+          await AsyncStorage.setItem(HYDRATION_GOAL_KEY, goal.targetValue.toString());
+          break;
+        case GoalType.DailySteps:
+          await AsyncStorage.setItem(STEPS_GOAL_KEY, goal.targetValue.toString());
+          break;
+      }
+    }
+    console.log(`[FITNESS_SERVICE] ${goals.length} metas sincronizadas do backend`);
+  } catch (error) {
+    console.warn('[FITNESS_SERVICE] Erro ao sincronizar metas do backend (usando cache local):', error);
+  }
+}
+
+/**
+ * Salva a meta de peso
  */
 export async function setWeightGoal(weightKg: number): Promise<void> {
-  try {
-    await AsyncStorage.setItem(WEIGHT_GOAL_KEY, weightKg.toString());
-    console.log(`[FITNESS_SERVICE] Meta de peso salva: ${weightKg} kg`);
-  } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao salvar meta de peso:', error);
-    throw error;
-  }
+  await saveGoal(GoalType.TargetWeight, weightKg, 'kg', WEIGHT_GOAL_KEY);
 }
 
 /**
- * Recupera a meta de peso salva localmente
+ * Recupera a meta de peso
  */
 export async function getWeightGoal(): Promise<number | null> {
-  try {
-    const goal = await AsyncStorage.getItem(WEIGHT_GOAL_KEY);
-    if (goal) {
-      const value = parseFloat(goal);
-      return isNaN(value) ? null : value;
-    }
-    return null;
-  } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao recuperar meta de peso:', error);
-    return null;
-  }
+  return getGoal(WEIGHT_GOAL_KEY, true);
 }
 
 /**
- * Salva a meta de calorias localmente
+ * Salva a meta de calorias
  */
 export async function setCaloriesGoal(calories: number): Promise<void> {
-  try {
-    await AsyncStorage.setItem(CALORIES_GOAL_KEY, calories.toString());
-    console.log(`[FITNESS_SERVICE] Meta de calorias salva: ${calories} kcal`);
-  } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao salvar meta de calorias:', error);
-    throw error;
-  }
+  await saveGoal(GoalType.DailyCalories, calories, 'kcal', CALORIES_GOAL_KEY);
 }
 
 /**
- * Recupera a meta de calorias salva localmente
+ * Recupera a meta de calorias
  */
 export async function getCaloriesGoal(): Promise<number | null> {
-  try {
-    const goal = await AsyncStorage.getItem(CALORIES_GOAL_KEY);
-    if (goal) {
-      const value = parseInt(goal, 10);
-      return isNaN(value) ? null : value;
-    }
-    return null;
-  } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao recuperar meta de calorias:', error);
-    return null;
-  }
+  return getGoal(CALORIES_GOAL_KEY);
 }
 
 /**
- * Salva a meta de hidratação localmente
+ * Salva a meta de hidratação
  */
 export async function setHydrationGoal(ml: number): Promise<void> {
-  try {
-    await AsyncStorage.setItem(HYDRATION_GOAL_KEY, ml.toString());
-    console.log(`[FITNESS_SERVICE] Meta de hidratação salva: ${ml} ml`);
-  } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao salvar meta de hidratação:', error);
-    throw error;
-  }
+  await saveGoal(GoalType.DailyWater, ml, 'ml', HYDRATION_GOAL_KEY);
 }
 
 /**
- * Recupera a meta de hidratação salva localmente
+ * Recupera a meta de hidratação
  */
 export async function getHydrationGoal(): Promise<number | null> {
-  try {
-    const goal = await AsyncStorage.getItem(HYDRATION_GOAL_KEY);
-    if (goal) {
-      const value = parseInt(goal, 10);
-      return isNaN(value) ? null : value;
-    }
-    return null;
-  } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao recuperar meta de hidratação:', error);
-    return null;
-  }
+  return getGoal(HYDRATION_GOAL_KEY);
 }
 
 /**
- * Salva a meta de passos localmente
+ * Salva a meta de passos
  */
 export async function setStepsGoal(steps: number): Promise<void> {
-  try {
-    await AsyncStorage.setItem(STEPS_GOAL_KEY, steps.toString());
-    console.log(`[FITNESS_SERVICE] Meta de passos salva: ${steps}`);
-  } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao salvar meta de passos:', error);
-    throw error;
-  }
+  await saveGoal(GoalType.DailySteps, steps, 'steps', STEPS_GOAL_KEY);
 }
 
 /**
- * Recupera a meta de passos salva localmente
+ * Recupera a meta de passos
  */
 export async function getStepsGoal(): Promise<number | null> {
-  try {
-    const goal = await AsyncStorage.getItem(STEPS_GOAL_KEY);
-    if (goal) {
-      const value = parseInt(goal, 10);
-      return isNaN(value) ? null : value;
-    }
-    return null;
-  } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao recuperar meta de passos:', error);
-    return null;
-  }
+  return getGoal(STEPS_GOAL_KEY);
 }

@@ -108,7 +108,7 @@ export function Nutrition() {
 
   const handleCloseSheet = useCallback(() => {
     Keyboard.dismiss();
-    bottomSheetRef.current?.close();
+    bottomSheetRef.current?.forceClose();
   }, []);
 
   const handleOpenGoalSheet = useCallback(() => {
@@ -121,7 +121,7 @@ export function Nutrition() {
     Keyboard.dismiss();
     setIsEditingGoal(false);
     setGoalInput('');
-    goalSheetRef.current?.close();
+    goalSheetRef.current?.forceClose();
   }, []);
 
   const renderBackdrop = useCallback(
@@ -285,11 +285,7 @@ export function Nutrition() {
 
     const mealLabel = mealOptions.find((m) => m.id === selectedMeal)?.label || 'Refeição';
 
-    // Reset e fechar primeiro
-    setSelectedMeal(null);
-    setCaloriesInput('');
-    handleCloseSheet();
-
+    Keyboard.dismiss();
     setIsSaving(true);
     try {
       // Calcula o novo total de calorias consumidas (atual + quantidade adicionada)
@@ -319,6 +315,9 @@ export function Nutrition() {
       });
     } finally {
       setIsSaving(false);
+      setSelectedMeal(null);
+      setCaloriesInput('');
+      bottomSheetRef.current?.forceClose();
     }
   };
 
@@ -334,9 +333,7 @@ export function Nutrition() {
     const value = parseInt(goalInput, 10);
     if (isNaN(value) || value <= 0) return;
 
-    // Fecha o sheet primeiro para melhor UX
-    handleCloseGoalSheet();
-
+    Keyboard.dismiss();
     setIsSaving(true);
     try {
       await setCaloriesGoal(value);
@@ -356,6 +353,9 @@ export function Nutrition() {
       });
     } finally {
       setIsSaving(false);
+      setIsEditingGoal(false);
+      setGoalInput('');
+      goalSheetRef.current?.forceClose();
     }
   };
 
@@ -647,7 +647,7 @@ export function Nutrition() {
 
           {/* Botões de ação */}
           <HStack w="100%" mt={6} space={4}>
-            <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} />
+            <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} bg="orange.50" textColor="orange.400" _pressed={{ bg: 'orange.100' }} />
             <Button
               title={isSaving ? 'Salvando...' : 'Adicionar'}
               variant="primary"
@@ -656,6 +656,9 @@ export function Nutrition() {
               onPress={handleAddCalories}
               isDisabled={!selectedMeal || !caloriesInput || isSaving}
               isLoading={isSaving}
+              bg="orange.400"
+              _pressed={{ bg: 'orange.500' }}
+              _loading={{ bg: 'orange.400' }}
             />
           </HStack>
         </BottomSheetView>
@@ -745,7 +748,7 @@ export function Nutrition() {
 
           {/* Botões de ação */}
           <HStack w="100%" mt={6} space={4}>
-            <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseGoalSheet} />
+            <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseGoalSheet} bg="orange.50" textColor="orange.400" _pressed={{ bg: 'orange.100' }} />
             <Button
               title={isSaving ? 'Salvando...' : 'Salvar'}
               variant="primary"
@@ -754,6 +757,9 @@ export function Nutrition() {
               onPress={handleSaveGoal}
               isDisabled={!goalInput || parseInt(goalInput, 10) <= 0 || isSaving}
               isLoading={isSaving}
+              bg="orange.400"
+              _pressed={{ bg: 'orange.500' }}
+              _loading={{ bg: 'orange.400' }}
             />
           </HStack>
         </BottomSheetView>

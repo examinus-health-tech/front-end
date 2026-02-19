@@ -13,7 +13,6 @@ import { HeaderTitle, StepsProgress, StepStatCard, WeeklyStepsChart } from '@com
 import {
   EnergyBoltIcon,
   CompassTargetIcon,
-  ClockSquareIcon,
   ChevronDownSmIcon,
   CalendarIcon,
   StepsIcon,
@@ -57,18 +56,15 @@ export function Steps() {
   const currentSteps = Number(stepData?.step_completed) || 0;
   const distanceCompleted = Number(stepData?.distance_completed) || 0;
   const distanceGoal = Number(stepData?.distance_goal) || 8;
-  const hoursCompleted = Number(stepData?.hour_completed) || 0;
-  const hoursGoal = Number(stepData?.hour_goal) || 2;
-
   // Calorias do contexto kcal
   const kcalData = trackerData?.kcal?.[0];
   const caloriesBurned = Number(kcalData?.kcal_completed) || 0;
   const caloriesGoal = Number(kcalData?.kcal_goal) || 500;
 
+
   // Calcular progresso para os cards
   const caloriesProgress = caloriesGoal > 0 ? Math.min((caloriesBurned / caloriesGoal) * 100, 100) : 0;
   const distanceProgress = distanceGoal > 0 ? Math.min((distanceCompleted / distanceGoal) * 100, 100) : 0;
-  const hoursProgress = hoursGoal > 0 ? Math.min((hoursCompleted / hoursGoal) * 100, 100) : 0;
 
   // Helper para obter dias/labels baseado no período
   const getDaysForPeriod = (period: PeriodType): number => {
@@ -217,11 +213,11 @@ export function Steps() {
   };
 
   return (
-    <VStack flex={1} py={16}>
+    <VStack flex={1} pt={16}>
       <HeaderTitle withBackButton={() => navigation.navigate('tracker')} title="Passos" withMoreButton />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-        <VStack flex={1} pb={32}>
+        <VStack flex={1} pb={8}>
           {/* Texto de introdução */}
           <Text
             fontFamily="Poligon"
@@ -268,13 +264,6 @@ export function Steps() {
               icon={<CompassTargetIcon size="28" color="#99BACE" />}
               variant="blue"
               progress={distanceProgress}
-            />
-            <StepStatCard
-              value={hoursCompleted > 0 ? hoursCompleted.toFixed(1) : '--'}
-              unit="h"
-              icon={<ClockSquareIcon size="28" color="#8A3FFC" />}
-              variant="purple"
-              progress={hoursProgress}
             />
           </HStack>
 

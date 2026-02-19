@@ -1,5 +1,5 @@
 import { Platform } from 'react-native';
-import { FitnessSyncDataRequestDTO } from './fitnessService';
+import { FitnessSyncDataRequestDTO, saveDailyLog, createWeight, getDailyLogByDate } from './fitnessService';
 
 // Tipo para dados do HealthKit (compatível com HomeContext)
 export interface HealthKitData {
@@ -198,8 +198,9 @@ export async function getHealthKitDataForDate(date: Date): Promise<HealthKitData
     const steps = Math.round(sumSamples(stepsResult));
     const distance = sumSamples(distanceResult); // já vem em metros
     const activeEnergy = sumSamples(activeEnergyResult);
-    const basalEnergy = sumSamples(basalEnergyResult);
-    const caloriesBurned = Math.round(activeEnergy + basalEnergy);
+    // Usa apenas activeEnergy (calorias de exercício) - basalEnergy cresce ao longo do dia
+    // e causa instabilidade nos valores exibidos
+    const caloriesBurned = Math.round(activeEnergy);
     const waterMl = Math.round(sumSamples(waterResult) * 1000); // L para ml
 
     // Peso (mais recente)
@@ -306,7 +307,46 @@ export async function syncHealthKitToBackend(): Promise<boolean> {
     return false;
   }
 
-  // A sincronização real é feita pelo fitnessService
-  console.log('[HealthKit] Dados preparados para sync');
-  return true;
+  try {
+    // Salva o daily log com dados do HealthKit, preservando dados manuais
+    if (syncData.dailyLog) {
+      // Busca o log atual do backend para não sobrescrever dados manuais
+      const currentLog = await getDailyLogByDate(syncData.dailyLog.date);
+
+      // Usa o maior valor entre HealthKit e backend para dados cumulativos (nunca diminui)
+      const safeMax = (a: number, b: number | undefined) => Math.max(a, Number(b) || 0);
+
+      await saveDailyLog({
+        date: syncData.dailyLog.date,
+        // Dados cumulativos: sempre usa o maior valor (HealthKit vs backend)
+        steps: safeMax(syncData.dailyLog.steps, currentLog?.steps),
+        caloriesBurned: safeMax(syncData.dailyLog.caloriesBurned, currentLog?.caloriesBurned),
+        sleepMinutes: safeMax(syncData.dailyLog.sleepMinutes, currentLog?.sleepMinutes),
+        // Metas
+        stepsGoal: syncData.dailyLog.stepsGoal,
+        sleepGoalMinutes: syncData.dailyLog.sleepGoalMinutes,
+        // Dados manuais (preserva do backend se existirem)
+        caloriesConsumed: currentLog?.caloriesConsumed ?? syncData.dailyLog.caloriesConsumed,
+        caloriesGoal: currentLog?.caloriesGoal ?? syncData.dailyLog.caloriesGoal,
+        waterMl: currentLog?.waterMl ?? syncData.dailyLog.waterMl,
+        waterGoalMl: currentLog?.waterGoalMl ?? syncData.dailyLog.waterGoalMl,
+      });
+      console.log('[HealthKit] Daily log sincronizado com backend (dados protegidos)');
+    }
+
+    // Salva o peso se disponível
+    if (syncData.weight) {
+      await createWeight({
+        weightKg: syncData.weight.weightKg,
+        recordedAt: syncData.weight.recordedAt,
+      });
+      console.log('[HealthKit] Peso sincronizado com backend');
+    }
+
+    console.log('[HealthKit] Sincronização com backend concluída');
+    return true;
+  } catch (error) {
+    console.error('[HealthKit] Erro ao sincronizar com backend:', error);
+    return false;
+  }
 }

@@ -16,7 +16,6 @@ export interface HealthConnectData {
   sleepMinutes: number;
   waterMl: number;
   weightKg: number | null;
-  heartRate: number | null;
   date: Date;
 }
 
@@ -28,7 +27,13 @@ export async function isHealthConnectAvailable(): Promise<boolean> {
   }
 
   try {
-    const status = await getSdkStatus();
+    // Timeout de segurança para evitar travamento caso o SDK não responda
+    const statusPromise = getSdkStatus();
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout ao verificar SDK status')), 5000)
+    );
+
+    const status = await Promise.race([statusPromise, timeoutPromise]);
     if (status === SdkAvailabilityStatus.SDK_AVAILABLE) {
       console.log('[HEALTH_CONNECT] SDK disponível');
       return true;
@@ -45,38 +50,109 @@ export async function isHealthConnectAvailable(): Promise<boolean> {
   }
 }
 
+// Flag para evitar múltiplas tentativas de inicialização simultâneas
+let isInitializing = false;
+let isInitialized = false;
+
 // Inicializa o Health Connect e solicita permissões
 export async function initHealthConnect(): Promise<boolean> {
   if (Platform.OS !== 'android') {
     return false;
   }
 
+  // Evita inicialização duplicada
+  if (isInitialized) {
+    return true;
+  }
+
+  if (isInitializing) {
+    console.log('[HEALTH_CONNECT] Já está inicializando, aguardando...');
+    // Aguarda a inicialização em andamento
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return isInitialized;
+  }
+
+  isInitializing = true;
+
   try {
-    // Inicializa o SDK
-    const initialized = await initialize();
+    // Inicializa o SDK com timeout de segurança
+    let initialized = false;
+    try {
+      const initPromise = initialize();
+      const timeoutPromise = new Promise<boolean>((resolve) =>
+        setTimeout(() => resolve(false), 5000)
+      );
+      initialized = await Promise.race([initPromise, timeoutPromise]);
+    } catch (initError) {
+      console.error('[HEALTH_CONNECT] Exceção ao inicializar SDK:', initError);
+      isInitializing = false;
+      return false;
+    }
+
     if (!initialized) {
-      console.error('[HEALTH_CONNECT] Falha ao inicializar');
+      console.error('[HEALTH_CONNECT] Falha ao inicializar (timeout ou retorno false)');
+      isInitializing = false;
       return false;
     }
 
     console.log('[HEALTH_CONNECT] SDK inicializado');
 
-    // Solicita permissões
-    const permissions = await requestPermission([
-      { accessType: 'read', recordType: 'Steps' },
-      { accessType: 'read', recordType: 'Distance' },
-      { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
-      { accessType: 'read', recordType: 'TotalCaloriesBurned' },
-      { accessType: 'read', recordType: 'SleepSession' },
-      { accessType: 'read', recordType: 'Hydration' },
-      { accessType: 'read', recordType: 'Weight' },
-      { accessType: 'read', recordType: 'HeartRate' },
-    ]);
+    // Solicita permissões com retry em caso de erro de inicialização do delegate
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        const permPromise = requestPermission([
+          { accessType: 'read', recordType: 'Steps' },
+          { accessType: 'read', recordType: 'Distance' },
+          { accessType: 'read', recordType: 'ActiveCaloriesBurned' },
+          { accessType: 'read', recordType: 'TotalCaloriesBurned' },
+          { accessType: 'read', recordType: 'SleepSession' },
+          { accessType: 'read', recordType: 'Hydration' },
+          { accessType: 'read', recordType: 'Weight' },
+        ]);
 
-    console.log('[HEALTH_CONNECT] Permissões concedidas:', permissions);
-    return true;
+        // Timeout para requestPermission - pode travar se o Health Connect não responder
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Timeout ao solicitar permissões')), 10000)
+        );
+
+        const permissions = await Promise.race([permPromise, timeoutPromise]);
+
+        console.log('[HEALTH_CONNECT] Permissões concedidas:', permissions);
+        isInitialized = true;
+        isInitializing = false;
+        return true;
+      } catch (permError: any) {
+        const errorMsg = permError?.message || '';
+        // Erro específico de lateinit property não inicializada ou timeout
+        if (errorMsg.includes('lateinit property') ||
+            errorMsg.includes('requestPermission has not been initialized') ||
+            errorMsg.includes('Timeout')) {
+          console.warn(`[HEALTH_CONNECT] Tentativa ${4 - retries}/3 falhou: ${errorMsg}`);
+          retries--;
+          // Aguarda antes de tentar novamente (delay crescente)
+          await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
+          // Tenta reinicializar o SDK
+          try {
+            await initialize();
+          } catch (reinitError) {
+            console.warn('[HEALTH_CONNECT] Erro ao reinicializar:', reinitError);
+          }
+        } else {
+          console.error('[HEALTH_CONNECT] Erro não recuperável em permissões:', permError);
+          isInitializing = false;
+          return false;
+        }
+      }
+    }
+
+    // Se chegou aqui, não conseguiu após retries
+    console.warn('[HEALTH_CONNECT] Não foi possível solicitar permissões após 3 tentativas');
+    isInitializing = false;
+    return false;
   } catch (error) {
-    console.error('[HEALTH_CONNECT] Erro ao inicializar:', error);
+    console.error('[HEALTH_CONNECT] Erro fatal ao inicializar:', error);
+    isInitializing = false;
     return false;
   }
 }
@@ -252,91 +328,63 @@ async function getWeight(startDate: Date, endDate: Date): Promise<number | null>
   }
 }
 
-// Busca frequência cardíaca média do dia
-async function getHeartRate(startDate: Date, endDate: Date): Promise<number | null> {
-  try {
-    const result = await readRecords('HeartRate', {
-      timeRangeFilter: {
-        operator: 'between',
-        startTime: startDate.toISOString(),
-        endTime: endDate.toISOString(),
-      },
-    });
-
-    if (result.records.length === 0) {
-      return null;
-    }
-
-    // Calcula média de todas as amostras
-    let totalBpm = 0;
-    let count = 0;
-
-    result.records.forEach((record: any) => {
-      if (record.samples) {
-        record.samples.forEach((sample: any) => {
-          totalBpm += sample.beatsPerMinute || 0;
-          count++;
-        });
-      }
-    });
-
-    return count > 0 ? Math.round(totalBpm / count) : null;
-  } catch (error) {
-    console.warn('[HEALTH_CONNECT] Erro ao buscar frequência cardíaca:', error);
-    return null;
-  }
+// Dados vazios padrão
+function emptyHealthData(date: Date): HealthConnectData {
+  return {
+    steps: 0,
+    distance: 0,
+    caloriesBurned: 0,
+    sleepMinutes: 0,
+    waterMl: 0,
+    weightKg: null,
+    date,
+  };
 }
 
 // Busca todos os dados de saúde do dia
 export async function getHealthConnectDataForDate(date: Date = new Date()): Promise<HealthConnectData> {
-  const isAvailable = await isHealthConnectAvailable();
+  try {
+    const isAvailable = await isHealthConnectAvailable();
 
-  if (!isAvailable) {
-    return {
-      steps: 0,
-      distance: 0,
-      caloriesBurned: 0,
-      sleepMinutes: 0,
-      waterMl: 0,
-      weightKg: null,
-      heartRate: null,
+    if (!isAvailable) {
+      return emptyHealthData(date);
+    }
+
+    console.log('[HEALTH_CONNECT] Buscando dados para:', date.toISOString());
+
+    // Define intervalo do dia
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // Busca todos os dados em paralelo
+    const [steps, distance, caloriesBurned, sleepMinutes, waterMl, weightKg] = await Promise.all([
+      getSteps(startOfDay, endOfDay),
+      getDistance(startOfDay, endOfDay),
+      getCaloriesBurned(startOfDay, endOfDay),
+      getSleep(startOfDay, endOfDay),
+      getWater(startOfDay, endOfDay),
+      getWeight(startOfDay, endOfDay),
+    ]);
+
+    const data: HealthConnectData = {
+      steps,
+      distance,
+      caloriesBurned,
+      sleepMinutes,
+      waterMl,
+      weightKg,
       date,
     };
+
+    console.log('[HEALTH_CONNECT] Dados coletados:', data);
+    return data;
+  } catch (error) {
+    console.error('[HEALTH_CONNECT] Erro fatal ao buscar dados do dia:', error);
+    return emptyHealthData(date);
   }
-
-  console.log('[HEALTH_CONNECT] Buscando dados para:', date.toISOString());
-
-  // Define intervalo do dia
-  const startOfDay = new Date(date);
-  startOfDay.setHours(0, 0, 0, 0);
-
-  const endOfDay = new Date(date);
-  endOfDay.setHours(23, 59, 59, 999);
-
-  // Busca todos os dados em paralelo
-  const [steps, distance, caloriesBurned, sleepMinutes, waterMl, weightKg, heartRate] = await Promise.all([
-    getSteps(startOfDay, endOfDay),
-    getDistance(startOfDay, endOfDay),
-    getCaloriesBurned(startOfDay, endOfDay),
-    getSleep(startOfDay, endOfDay),
-    getWater(startOfDay, endOfDay),
-    getWeight(startOfDay, endOfDay),
-    getHeartRate(startOfDay, endOfDay),
-  ]);
-
-  const data: HealthConnectData = {
-    steps,
-    distance,
-    caloriesBurned,
-    sleepMinutes,
-    waterMl,
-    weightKg,
-    heartRate,
-    date,
-  };
-
-  console.log('[HEALTH_CONNECT] Dados coletados:', data);
-  return data;
 }
 
 // Converte dados do Health Connect para o formato de sincronização do backend
@@ -367,7 +415,6 @@ export function convertToSyncData(healthData: HealthConnectData): FitnessSyncDat
       caloriesBurned: healthData.caloriesBurned,
       distanceKm: healthData.distance,
       steps: healthData.steps,
-      avgHeartRate: healthData.heartRate || undefined,
       startedAt: healthData.date.toISOString(),
     }] : [],
   };
@@ -389,13 +436,46 @@ export async function syncHealthConnectToBackend(): Promise<void> {
     // Converte para formato do backend
     const syncData = convertToSyncData(healthData);
 
-    console.log('[HEALTH_CONNECT] Dados para sincronizar:', syncData);
+    if (!syncData.dailyLog && !syncData.weight) {
+      console.log('[HEALTH_CONNECT] Nenhum dado para sincronizar');
+      return;
+    }
 
-    // Importa api dinamicamente para evitar dependência circular
-    const { api } = await import('./api');
+    const { saveDailyLog, createWeight, getDailyLogByDate } = await import('./fitnessService');
 
-    // Envia para o backend
-    await api.post('fitness/sync', syncData);
+    // Salva o daily log, preservando dados manuais
+    if (syncData.dailyLog) {
+      const currentLog = await getDailyLogByDate(syncData.dailyLog.date);
+
+      // Usa o maior valor entre Health Connect e backend para dados cumulativos (nunca diminui)
+      const safeMax = (a: number, b: number | undefined) => Math.max(a, Number(b) || 0);
+
+      await saveDailyLog({
+        date: syncData.dailyLog.date,
+        // Dados cumulativos: sempre usa o maior valor (Health Connect vs backend)
+        steps: safeMax(syncData.dailyLog.steps, currentLog?.steps),
+        caloriesBurned: safeMax(syncData.dailyLog.caloriesBurned, currentLog?.caloriesBurned),
+        sleepMinutes: safeMax(syncData.dailyLog.sleepMinutes, currentLog?.sleepMinutes),
+        // Metas
+        stepsGoal: syncData.dailyLog.stepsGoal,
+        sleepGoalMinutes: syncData.dailyLog.sleepGoalMinutes,
+        // Dados manuais (preserva do backend se existirem)
+        caloriesConsumed: currentLog?.caloriesConsumed ?? syncData.dailyLog.caloriesConsumed,
+        caloriesGoal: currentLog?.caloriesGoal ?? syncData.dailyLog.caloriesGoal,
+        waterMl: currentLog?.waterMl ?? syncData.dailyLog.waterMl,
+        waterGoalMl: currentLog?.waterGoalMl ?? syncData.dailyLog.waterGoalMl,
+      });
+      console.log('[HEALTH_CONNECT] Daily log sincronizado com backend (dados protegidos)');
+    }
+
+    // Salva o peso se disponível
+    if (syncData.weight) {
+      await createWeight({
+        weightKg: syncData.weight.weightKg,
+        recordedAt: syncData.weight.recordedAt,
+      });
+      console.log('[HEALTH_CONNECT] Peso sincronizado com backend');
+    }
 
     console.log('[HEALTH_CONNECT] Sincronização concluída com sucesso');
   } catch (error) {

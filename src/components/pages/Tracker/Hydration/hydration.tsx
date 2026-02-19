@@ -586,7 +586,7 @@ export function Hydration() {
 
               {/* Botões de ação */}
               <HStack w="100%" mt={6} space={4}>
-                <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} />
+                <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} bg="blue.100" textColor="blue.500" />
                 <Button
                   title={isSaving ? 'Salvando...' : 'Adicionar'}
                   variant="primary"
@@ -595,6 +595,9 @@ export function Hydration() {
                   onPress={handleAddWater}
                   isDisabled={!selectedAmount || isSaving}
                   isLoading={isSaving}
+                  bg="blue.500"
+                  _pressed={{ bg: 'blue.600' }}
+                  _loading={{ bg: 'blue.500' }}
                 />
               </HStack>
             </>
@@ -686,7 +689,7 @@ export function Hydration() {
 
               {/* Botões de ação */}
               <HStack w="100%" mt={6} space={4}>
-                <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} />
+                <Button title="Cancelar" variant="secondary" size="full" flex={1} onPress={handleCloseModal} bg="blue.100" textColor="blue.500" />
                 <Button
                   title={isSaving ? 'Salvando...' : 'Salvar'}
                   variant="primary"
@@ -695,6 +698,9 @@ export function Hydration() {
                   onPress={handleSaveGoal}
                   isDisabled={!goalInput || parseInt(goalInput, 10) <= 0 || isSaving}
                   isLoading={isSaving}
+                  bg="blue.500"
+                  _pressed={{ bg: 'blue.600' }}
+                  _loading={{ bg: 'blue.500' }}
                 />
               </HStack>
             </>

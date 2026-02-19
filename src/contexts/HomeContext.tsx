@@ -1,11 +1,18 @@
 import { useNavigation } from '@react-navigation/native';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
-import { ReactNode, createContext, useState, useEffect, useCallback } from 'react';
+import { ReactNode, createContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from 'src/hooks/useAuth';
 
-import { Platform } from 'react-native';
+import { Platform, AppState, AppStateStatus } from 'react-native';
+
+// ⚠️ FLAG TEMPORÁRIA: Desabilita integração Health Connect no Android
+// Motivo: Crash no Android por bug do lateinit property com New Architecture (Bridgeless mode)
+// O fix nativo (MainActivity.kt) requer novo build. Até lá, Android usa apenas dados do backend.
+// iOS (HealthKit) continua funcionando normalmente.
+// TODO: Remover após publicação do novo build nativo na Play Store
+const DISABLE_ANDROID_HEALTH_CONNECT = true;
 import { api } from 'src/services/api';
-import { getFitnessDashboard, isFitnessEnabled, setFitnessEnabled as setFitnessEnabledService, FitnessDashboard } from 'src/services/fitnessService';
+import { getFitnessDashboard, isFitnessEnabled, setFitnessEnabled as setFitnessEnabledService, FitnessDashboard, syncGoalsFromBackend } from 'src/services/fitnessService';
 import {
   isHealthKitAvailable,
   initHealthKit,
@@ -115,6 +122,33 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   const [fitnessEnabled, setFitnessEnabled] = useState<boolean>(false);
 
   const { user } = useAuth();
+  const appState = useRef(AppState.currentState);
+
+  // Sync ao mudar de estado do app (foreground/background)
+  useEffect(() => {
+    const handleAppStateChange = (nextState: AppStateStatus) => {
+      if (!user?.userId) return;
+
+      if (appState.current === 'active' && nextState.match(/inactive|background/)) {
+        // App indo para background → sync dados para não perder
+        console.log('📤 [HomeContext] App em background, sincronizando dados...');
+        fetchFitnessData().catch(err =>
+          console.warn('⚠️ [HomeContext] Erro ao sincronizar no background:', err)
+        );
+      } else if (appState.current.match(/inactive|background/) && nextState === 'active') {
+        // App voltando para foreground → atualiza dados
+        console.log('📥 [HomeContext] App em foreground, atualizando dados...');
+        fetchFitnessData().catch(err =>
+          console.warn('⚠️ [HomeContext] Erro ao atualizar no foreground:', err)
+        );
+      }
+
+      appState.current = nextState;
+    };
+
+    const subscription = AppState.addEventListener('change', handleAppStateChange);
+    return () => subscription.remove();
+  }, [user?.userId]);
 
   // Reset de todos os dados quando o usuário mudar (login/logout/troca de conta)
   useEffect(() => {
@@ -138,6 +172,10 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       const enabled = await isFitnessEnabled();
       setFitnessEnabled(enabled);
       if (enabled) {
+        // Sincroniza metas do backend para cache local
+        syncGoalsFromBackend().catch(err =>
+          console.warn('⚠️ [HomeContext] Erro ao sincronizar metas:', err)
+        );
         await fetchFitnessData();
       }
     } catch (error) {
@@ -162,7 +200,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         calculation_date: today,
         step_completed: String(healthData.steps || 0),
         step_goal: '10000',
-        distance_completed: String(healthData.distance?.toFixed(2) || '0'),
+        distance_completed: String(((healthData.distance || 0) / 1000).toFixed(2)),
         distance_goal: '5',
         hour_completed: '0',
         hour_goal: '1',
@@ -203,7 +241,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         calculation_date: today,
         step_completed: String(healthData.steps || 0),
         step_goal: '10000',
-        distance_completed: String(healthData.distance?.toFixed(2) || '0'),
+        distance_completed: String(((healthData.distance || 0) / 1000).toFixed(2)),
         distance_goal: '5',
         hour_completed: '0',
         hour_goal: '1',
@@ -303,7 +341,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       }],
       weight: (healthKitData.weight?.length || backendData.weight?.length) ? [{
         calculation_date: today,
-        weight_completed: healthKitData.weight?.[0]?.weight_completed || backendData.weight?.[0]?.weight_completed || '0',
+        weight_completed: backendData.weight?.[0]?.weight_completed || healthKitData.weight?.[0]?.weight_completed || '0',
         weight_goal: null,
       }] : [],
       hydration: [{
@@ -358,25 +396,33 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
           console.warn('⚠️ [HomeContext] Erro ao buscar do HealthKit:', healthKitError);
         }
       } else if (Platform.OS === 'android') {
-        try {
-          const isAvailable = await isHealthConnectAvailable();
-          if (isAvailable) {
-            console.log('📱 [HomeContext] Inicializando Health Connect...');
-            await initHealthConnect();
+        if (DISABLE_ANDROID_HEALTH_CONNECT) {
+          console.log('⚠️ [HomeContext] Health Connect desabilitado no Android (aguardando build nativo)');
+        } else {
+          try {
+            const isAvailable = await isHealthConnectAvailable();
+            if (isAvailable) {
+              console.log('📱 [HomeContext] Inicializando Health Connect...');
+              const initSuccess = await initHealthConnect();
 
-            const rawHealthData = await getHealthConnectDataForDate(new Date());
-            nativeHealthData = convertHealthConnectToTracker(rawHealthData);
-            console.log('✅ [HomeContext] Dados do Health Connect:', nativeHealthData);
+              if (initSuccess) {
+                const rawHealthData = await getHealthConnectDataForDate(new Date());
+                nativeHealthData = convertHealthConnectToTracker(rawHealthData);
+                console.log('✅ [HomeContext] Dados do Health Connect:', nativeHealthData);
 
-            // Sincroniza com backend em background (não bloqueia UI)
-            syncHealthConnectToBackend().catch(err =>
-              console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err)
-            );
-          } else {
-            console.log('📭 [HomeContext] Health Connect não disponível');
+                // Sincroniza com backend em background (não bloqueia UI)
+                syncHealthConnectToBackend().catch(err =>
+                  console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err)
+                );
+              } else {
+                console.warn('⚠️ [HomeContext] Health Connect não inicializou, usando apenas backend');
+              }
+            } else {
+              console.log('📭 [HomeContext] Health Connect não disponível');
+            }
+          } catch (healthConnectError) {
+            console.warn('⚠️ [HomeContext] Erro ao buscar do Health Connect:', healthConnectError);
           }
-        } catch (healthConnectError) {
-          console.warn('⚠️ [HomeContext] Erro ao buscar do Health Connect:', healthConnectError);
         }
       }
 

@@ -225,10 +225,16 @@ export function Weight() {
     const value = parseFloat(weightInput);
     if (isNaN(value) || value <= 0) return;
 
-    // Fechar primeiro para melhor UX
-    handleCloseSheet();
+    // Captura valores antes de fechar (handleCloseSheet reseta editMode e weightInput)
+    const currentMode = editMode;
 
-    if (editMode === 'current') {
+    // Fechar bottom sheet
+    Keyboard.dismiss();
+    bottomSheetRef.current?.close();
+    setEditMode(null);
+    setWeightInput('');
+
+    if (currentMode === 'current') {
       setIsSaving(true);
       try {
         await createWeight({
@@ -254,7 +260,7 @@ export function Weight() {
       } finally {
         setIsSaving(false);
       }
-    } else if (editMode === 'goal') {
+    } else if (currentMode === 'goal') {
       setIsSaving(true);
       try {
         await setWeightGoal(value);
@@ -605,6 +611,7 @@ export function Weight() {
               onPress={handleSaveWeight}
               isDisabled={!weightInput || parseFloat(weightInput) <= 0 || isSaving}
               isLoading={isSaving}
+              _loading={{ bg: 'ciano.300' }}
             />
           </HStack>
         </BottomSheetView>
