@@ -76,7 +76,7 @@ export function useGoogleAuth() {
           // Verifica se o email está em uma campanha promocional (voucher enviado por email)
           const email = userInfo.data.user?.email;
           if (email) {
-            checkCampaignVoucher(email).catch(() => {});
+            checkCampaignVoucher(email, true).catch(() => {});
           }
         } else {
           await authSignInWithGoogle(userInfo.data.idToken);

@@ -101,22 +101,26 @@ export function UploadError() {
   return (
     <VStack flex={1} space={8} py={24} bg="white">
       <Center flex={1} mx={6} mt={-32} alignItems="center">
-        <Text fontSize={24} fontWeight={800} lineHeight={25.6} textAlign="center" mt={40} color={'red.500'}>
-          Xiii, deu ruim! :(
+        <Text fontSize={24} fontWeight={800} lineHeight={25.6} textAlign="center" mt={40} color={'orange.500'}>
+          Não foi possível processar
         </Text>
 
-        <Text fontSize={14} fontWeight={500} lineHeight={25.6} textAlign="center" color={'gray.400'}>
-          Seu exame não foi processado.{'\n'} Verifique os dados enviado.
+        <Text fontSize={14} fontWeight={500} lineHeight={22} textAlign="center" color={'gray.500'} mt={2} px={4}>
+          Alguns tipos de exames ainda não são suportados pelo Examinus, como laudos de imagem, ECG, ou exames sem valores numéricos.
         </Text>
 
-        <Image source={Vector} defaultSource={Vector} alt="Vetor" resizeMode="contain" w="100%" h={300} mt={8} />
+        <Text fontSize={13} fontWeight={400} lineHeight={20} textAlign="center" color={'gray.400'} mt={3} px={6}>
+          Estamos trabalhando para suportar mais tipos em breve! Por enquanto, tente enviar exames laboratoriais como hemograma, glicemia, colesterol, etc.
+        </Text>
 
-        <HStack space={3} w="100%" mt={12} px={6}>
+        <Image source={Vector} defaultSource={Vector} alt="Vetor" resizeMode="contain" w="100%" h={260} mt={6} />
+
+        <HStack space={3} w="100%" mt={8} px={6}>
           <Button
             flex={1}
             variant="primary"
             size="lg"
-            title="Cancelar"
+            title="Voltar"
             onPress={handleCancel}
             bgColor="white"
             borderWidth={1}
@@ -128,11 +132,11 @@ export function UploadError() {
             flex={1}
             variant="primary"
             size="lg"
-            title="Tentar novamente"
+            title="Enviar outro"
             icon={<ArrowIcon />}
             onPress={handleTryAgain}
-            bgColor="red.500"
-            _pressed={{ bgColor: 'red.600' }}
+            bgColor="ciano.500"
+            _pressed={{ bgColor: 'ciano.600' }}
           />
         </HStack>
       </Center>

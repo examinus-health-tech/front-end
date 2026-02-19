@@ -34,20 +34,33 @@ export function UploadError() {
           lineHeight={25.6}
           textAlign="center"
           mt={40}
-          color={'red.500'}
+          color={'orange.500'}
         >
-          Xiii, deu ruim! :(
+          Não foi possível processar
         </Text>
 
         <Text
           fontSize={14}
           fontWeight={500}
-          lineHeight={25.6}
+          lineHeight={22}
+          textAlign="center"
+          color={'gray.500'}
+          mt={2}
+          px={4}
+        >
+          Alguns tipos de exames ainda não são suportados pelo Examinus, como laudos de imagem, ECG, ou exames sem valores numéricos.
+        </Text>
+
+        <Text
+          fontSize={13}
+          fontWeight={400}
+          lineHeight={20}
           textAlign="center"
           color={'gray.400'}
+          mt={3}
+          px={6}
         >
-          Seu exame não foi processado.{'\n'} Verifique o formato do arquivo
-          enviado.
+          Tente enviar exames laboratoriais como hemograma, glicemia, colesterol, etc.
         </Text>
 
         <Image
@@ -56,15 +69,15 @@ export function UploadError() {
           alt="Vetor"
           resizeMode="contain"
           w="100%"
-          h={300}
-          mt={8}
+          h={260}
+          mt={6}
         />
 
         <Button
-          mt={16}
+          mt={12}
           variant="primary"
           size="lg"
-          title="Tentar novamente"
+          title="Tentar outro exame"
           icon={<ArrowIcon />}
           onPress={handlePreviousStep}
         />
@@ -75,7 +88,7 @@ export function UploadError() {
             fontSize={16}
             fontWeight={600}
             letterSpacing={-0.16}
-            color="gray.200"
+            color="gray.400"
           >
             fazer isso mais tarde
           </Text>

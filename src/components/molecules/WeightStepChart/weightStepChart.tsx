@@ -76,13 +76,26 @@ export function WeightStepChart({
   const dataMax = Math.max(...values);
 
   // Arredondar para múltiplos de 10 com margem
-  const rawMin = Math.floor(dataMin / 10) * 10 - 10;
+  // Se o menor valor é próximo de 0 (ex: hidratação), começar do 0
+  const rawMin = dataMin < 100 ? 0 : Math.floor(dataMin / 10) * 10 - 10;
   const rawMax = Math.ceil(dataMax / 10) * 10 + 10;
 
   // Gerar labels do eixo Y
   const yAxisLabels: number[] = [];
-  const step = Math.ceil((rawMax - rawMin) / 4 / 5) * 5 || 10;
-  for (let v = rawMax; v >= rawMin; v -= step) {
+  const range = rawMax - rawMin;
+  // Escolher step adequado ao range para ter ~4-5 labels
+  let step: number;
+  if (range <= 50) step = 10;
+  else if (range <= 100) step = 25;
+  else if (range <= 500) step = 100;
+  else if (range <= 1000) step = 250;
+  else if (range <= 2500) step = 500;
+  else step = Math.ceil(range / 4 / 500) * 500 || 500;
+
+  // Alinhar rawMax ao step
+  const alignedMax = Math.ceil(rawMax / step) * step;
+  const alignedMin = Math.floor(rawMin / step) * step;
+  for (let v = alignedMax; v >= alignedMin; v -= step) {
     yAxisLabels.push(v);
   }
 
@@ -193,7 +206,7 @@ export function WeightStepChart({
                 fontSize={12}
                 fontWeight={500}
                 color="gray.300"
-                w={8}
+                w={9}
                 textAlign="right"
               >
                 {label}
@@ -300,14 +313,16 @@ export function WeightStepChart({
           </Animated.View>
 
           {/* Labels dos valores nos indicadores */}
-          {!isAnimating && indicators.map((indicator, index) => (
+          {!isAnimating && indicators.map((indicator, index) => {
+            const showBelow = indicator.y < paddingTop + 35;
+            return (
             <Animated.View
               key={`${index}-${indicator.value}`}
               entering={FadeIn.delay(100 + index * 50).duration(200)}
               style={{
                 position: 'absolute',
                 left: indicator.x - 28,
-                top: indicator.y - 32,
+                top: showBelow ? indicator.y + 14 : indicator.y - 32,
                 minWidth: 56,
                 alignItems: 'center',
               }}
@@ -318,7 +333,8 @@ export function WeightStepChart({
                 </Text>
               </Box>
             </Animated.View>
-          ))}
+          );
+          })}
         </Box>
       )}
     </Box>

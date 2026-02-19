@@ -81,7 +81,7 @@ export function SignUp() {
       await signUp(name, email, password, confirm_password);
 
       // Verifica se o email está em uma campanha promocional (voucher enviado por email)
-      checkCampaignVoucher(email).catch(() => {});
+      checkCampaignVoucher(email, true).catch(() => {});
 
       showSuccess({
         title: 'Conta criada com sucesso',

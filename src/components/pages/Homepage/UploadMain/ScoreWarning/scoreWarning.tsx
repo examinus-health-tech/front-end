@@ -56,8 +56,8 @@ export function ScoreWarning({ onClose }: ScoreWarningProps = {}) {
       if (showTabBar) {
         showTabBar();
       }
-      navigation.navigate('homepage');
     }
+    navigation.navigate('examList');
   }
 
   return (

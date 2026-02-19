@@ -33,6 +33,8 @@ import {
   ThermometerIcon,
   BloodDripIcon,
   VirusIcon,
+  HormonioIcon,
+  TireoideIcon,
 } from '@assets/icons';
 import VectorMale from '@assets/png/vector-46.png';
 import VectorFemale from '@assets/png/vector-33.png';
@@ -467,6 +469,106 @@ const systemEducationalContent: Record<string, SystemEducationalData> = {
     tipsTitle: 'Dicas para Saúde Urinária',
     tipsBgColor: 'yellow.50',
     tipsTextColor: 'yellow',
+  },
+  hormônios: {
+    sectionTitle: 'Entenda seus Hormônios',
+    mainIcon: <HormonioIcon size="24" color="#8B5CF6" />,
+    mainColor: '#8B5CF6',
+    info: [
+      {
+        title: 'Sistema Hormonal',
+        description:
+          'Hormônios são mensageiros químicos que regulam crescimento, metabolismo, humor e reprodução.',
+        iconComponent: <HormonioIcon size="20" color="#8B5CF6" />,
+        color: '#8B5CF6',
+        bgColor: '#F5F3FF',
+      },
+      {
+        title: 'Cortisol',
+        description:
+          'Hormônio do estresse. Níveis alterados podem causar fadiga, ganho de peso e alterações de humor.',
+        iconComponent: <WarningIcon size="20" color="#F97316" />,
+        color: '#F97316',
+        bgColor: '#FFF7ED',
+      },
+      {
+        title: 'Vitamina D',
+        description:
+          'Atua como hormônio no corpo. Deficiência pode causar fraqueza óssea, fadiga e baixa imunidade.',
+        iconComponent: <EnergyIcon size="20" color="#EAB308" />,
+        color: '#EAB308',
+        bgColor: '#FEFCE8',
+      },
+      {
+        title: 'Hormônios Sexuais',
+        description:
+          'Testosterona, estrogênio e progesterona regulam função reprodutiva, massa muscular e bem-estar.',
+        iconComponent: <HeartIcon size="20" color="#EC4899" />,
+        color: '#EC4899',
+        bgColor: '#FDF2F8',
+      },
+    ],
+    tips: [
+      'Durma 7-9 horas por noite',
+      'Gerencie o estresse com atividades relaxantes',
+      'Mantenha alimentação equilibrada',
+      'Pratique exercícios regularmente',
+      'Tome sol pela manhã (vitamina D)',
+      'Consulte um endocrinologista se necessário',
+    ],
+    tipsTitle: 'Dicas para Equilíbrio Hormonal',
+    tipsBgColor: 'purple.50',
+    tipsTextColor: 'purple',
+  },
+  tireóide: {
+    sectionTitle: 'Entenda sua Tireóide',
+    mainIcon: <TireoideIcon size="24" color="#0891B2" />,
+    mainColor: '#0891B2',
+    info: [
+      {
+        title: 'Função da Tireóide',
+        description:
+          'A tireóide produz hormônios T3 e T4 que regulam metabolismo, temperatura corporal e energia.',
+        iconComponent: <TireoideIcon size="20" color="#0891B2" />,
+        color: '#0891B2',
+        bgColor: '#ECFEFF',
+      },
+      {
+        title: 'TSH (Hormônio Estimulante)',
+        description:
+          'Valores normais: 0,4-4,0 mIU/L. Níveis alterados indicam hipotireoidismo ou hipertireoidismo.',
+        iconComponent: <FlaskIcon size="20" color="#8B5CF6" />,
+        color: '#8B5CF6',
+        bgColor: '#F5F3FF',
+      },
+      {
+        title: 'Hipotireoidismo',
+        description:
+          'Tireóide lenta causa fadiga, ganho de peso, pele seca e sensibilidade ao frio. TSH elevado.',
+        iconComponent: <WarningIcon size="20" color="#F97316" />,
+        color: '#F97316',
+        bgColor: '#FFF7ED',
+      },
+      {
+        title: 'Hipertireoidismo',
+        description:
+          'Tireóide acelerada causa perda de peso, ansiedade, tremores e palpitações. TSH baixo.',
+        iconComponent: <EnergyIcon size="20" color="#DC2626" />,
+        color: '#DC2626',
+        bgColor: '#FEF2F2',
+      },
+    ],
+    tips: [
+      'Consuma iodo adequadamente (sal iodado, frutos do mar)',
+      'Evite excesso de soja se tiver problemas na tireóide',
+      'Faça exames de TSH anualmente',
+      'Tome medicação no mesmo horário (se prescrita)',
+      'Aguarde 30-60 min antes de comer (após medicação)',
+      'Consulte um endocrinologista regularmente',
+    ],
+    tipsTitle: 'Dicas para Saúde da Tireóide',
+    tipsBgColor: 'cyan.50',
+    tipsTextColor: 'cyan',
   },
 };
 

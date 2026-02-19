@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BarbellIcon, BedIcon, CheckIcon, WalkingIcon, WaterIcon, AppleIcon } from '@assets/icons';
+import { BarbellIcon, BedIcon, CheckIcon, WalkingIcon, WaterIcon, AppleIcon, HeartIcon } from '@assets/icons';
 import { Progress } from '@components/molecules/Progress/progress';
 import { Box, VStack, Text, HStack, Pressable } from 'native-base';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
@@ -8,6 +8,7 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { useHome } from 'src/hooks/useHome';
 import { getCaloriesGoal, getHydrationGoal, getStepsGoal } from 'src/services/fitnessService';
 import { useCallback } from 'react';
+import { Platform } from 'react-native';
 
 export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
   const { trackerData } = useHome();
@@ -73,8 +74,36 @@ export function StatusCards({ userTrackerData }: { userTrackerData: boolean }) {
     ));
   }
 
+  // Nome da fonte de dados de saúde baseado na plataforma
+  // ⚠️ Temporariamente desabilitado - integração nativa pausada
+  const DISABLE_HEALTH_SOURCE_INDICATORS = true;
+  const healthSourceName = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
+  const healthSourceColor = Platform.OS === 'ios' ? '#FF2D55' : '#4285F4';
+
   return (
     <VStack mt={4} space={3}>
+      {/* Indicador de fonte de dados - HealthKit/Health Connect */}
+      {!userTrackerData && !DISABLE_HEALTH_SOURCE_INDICATORS && (
+        <HStack
+          bg="gray.50"
+          px={3}
+          py={1.5}
+          borderRadius={8}
+          alignItems="center"
+          space={1.5}
+        >
+          <HeartIcon size="14" color={healthSourceColor} />
+          <Text
+            color="gray.500"
+            fontFamily="Poligon"
+            fontSize={11}
+            fontWeight={500}
+          >
+            Dados via {healthSourceName}
+          </Text>
+        </HStack>
+      )}
+
       {/* Card Calorias Queimadas */}
       <Pressable onPress={() => navigation.navigate('calories')}>
         <Box

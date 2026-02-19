@@ -68,7 +68,7 @@ export function useAppleAuth() {
 
           // Verifica se o email está em uma campanha promocional (voucher enviado por email)
           if (credential.email) {
-            checkCampaignVoucher(credential.email).catch(() => {});
+            checkCampaignVoucher(credential.email, true).catch(() => {});
           }
         } else {
           await authSignInWithApple(credential.identityToken, credential.fullName, credential.email ?? null);

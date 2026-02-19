@@ -1,7 +1,7 @@
 import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { VStack, ScrollView, IScrollViewProps, Box, Flex, Text, Image, HStack } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, Platform } from 'react-native';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -13,6 +13,7 @@ import { HeaderTitle, SmartSuggestionCard, DailyAnalysisCard } from '@components
 
 // assets
 import Vector from '@assets/png/vector-12.png';
+import { HeartIcon } from '@assets/icons';
 
 // hooks
 import { useHome } from 'src/hooks/useHome';
@@ -160,12 +161,40 @@ export function Tracker() {
     weightGoal: null,
   }), [stepsCompleted, currentGoals, kcalBurned, nutritionCompleted, hydrationCompleted, sleepCompleted, weightCompleted]);
 
+  // Nome da fonte de dados de saúde baseado na plataforma
+  // ⚠️ Temporariamente desabilitado - integração nativa pausada
+  const DISABLE_HEALTH_SOURCE_INDICATORS = true;
+  const healthSourceName = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
+  const healthSourceColor = Platform.OS === 'ios' ? '#FF2D55' : '#4285F4';
+
   return (
     <VStack flex={1} py={16}>
       <HeaderTitle withBackButton={() => navigation.navigate('homepage')} title="Rastreador Fitness" />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
         <VStack flex={1} mx={6} mt={2} pb={32}>
+          {/* Indicador de fonte de dados - HealthKit/Health Connect */}
+          {!DISABLE_HEALTH_SOURCE_INDICATORS && (
+            <HStack
+              bg="gray.50"
+              px={3}
+              py={2}
+              mb={4}
+              borderRadius={8}
+              alignItems="center"
+              space={2}
+            >
+              <HeartIcon size="16" color={healthSourceColor} />
+              <Text
+                color="gray.600"
+                fontFamily="Poligon"
+                fontSize={12}
+                fontWeight={500}
+              >
+                Dados sincronizados com {healthSourceName}
+              </Text>
+            </HStack>
+          )}
           {/* Card principal de Passos */}
           <TouchableOpacity onPress={() => navigation.navigate('steps')}>
             <Box bg="ciano.300" rounded="2xl" h={206} position="relative">
@@ -179,6 +208,26 @@ export function Tracker() {
                 right={-16}
                 h="100%"
               />
+
+              {/* Badge indicando fonte de dados */}
+              {!DISABLE_HEALTH_SOURCE_INDICATORS && (
+                <HStack
+                  position="absolute"
+                  top={3}
+                  right={3}
+                  bg="rgba(255,255,255,0.2)"
+                  px={2}
+                  py={1}
+                  borderRadius={6}
+                  alignItems="center"
+                  space={1}
+                >
+                  <HeartIcon size="12" color="#FFFFFF" />
+                  <Text color="white" fontFamily="Poligon" fontSize={10} fontWeight={600}>
+                    {healthSourceName}
+                  </Text>
+                </HStack>
+              )}
 
               <Flex p={6}>
                 <Text color="white" fontFamily="Poligon" fontSize={16} fontWeight={800} letterSpacing={-0.16} mb={3}>

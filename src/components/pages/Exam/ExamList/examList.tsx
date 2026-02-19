@@ -46,15 +46,26 @@ function getStatusMessage(status: string) {
   const statusMap = {
     Received: 'Recebido',
     Extracted: 'Extraído',
-    ExtractedFailed: 'Erro extração',
+    ExtractedFailed: 'Não suportado',
     Analyzed: 'Analisado',
-    AnalyzedFailed: 'Erro análise',
+    AnalyzedFailed: 'Não suportado',
     ScoreComputed: 'Concluído',
-    ScoreComputedFailed: 'Erro processamento',
+    ScoreComputedFailed: 'Não suportado',
     ProcessingTimeout: 'Tempo excedido',
   };
 
   return statusMap[status as keyof typeof statusMap] || status;
+}
+
+// Função para obter descrição detalhada do erro
+function getErrorDescription(status: string) {
+  if (status === 'ExtractedFailed' || status === 'AnalyzedFailed' || status === 'ScoreComputedFailed') {
+    return 'Este tipo de exame ainda não é suportado pela Examinus. Estamos trabalhando para suportar mais tipos em breve.';
+  }
+  if (status === 'ProcessingTimeout') {
+    return 'O processamento demorou mais que o esperado. Você pode tentar reprocessar.';
+  }
+  return 'O exame está sendo processado. Aguarde alguns instantes.';
 }
 
 // Função para obter a cor do status
@@ -62,11 +73,11 @@ function getStatusColor(status: string) {
   const colorMap = {
     Received: 'blue.500',
     Extracted: 'blue.600',
-    ExtractedFailed: 'red.500',
+    ExtractedFailed: 'orange.500',
     Analyzed: 'orange.500',
-    AnalyzedFailed: 'red.500',
+    AnalyzedFailed: 'orange.500',
     ScoreComputed: 'ciano.500',
-    ScoreComputedFailed: 'red.500',
+    ScoreComputedFailed: 'orange.500',
     ProcessingTimeout: 'orange.600',
   };
 
@@ -266,17 +277,8 @@ export function ExamList() {
       filtered = filtered.filter((exam) => new Date(exam.createdDate) <= new Date(filters.endDate));
     }
 
-    // Ordenação: primeiro por status (ScoreComputed primeiro), depois por data (mais recentes primeiro)
+    // Ordenação por data de envio (mais recente primeiro)
     filtered.sort((a, b) => {
-      // Primeiro priorizar status ScoreComputed (concluídos)
-      const priorityStatuses = ['ScoreComputed', 'Analyzed'];
-      const aIsPriority = priorityStatuses.includes(a.medicalExamStatus);
-      const bIsPriority = priorityStatuses.includes(b.medicalExamStatus);
-
-      if (aIsPriority && !bIsPriority) return -1;
-      if (!aIsPriority && bIsPriority) return 1;
-
-      // Dentro do mesmo grupo de prioridade, ordenar por data (mais recente primeiro)
       const dateA = new Date(a.createdDate).getTime();
       const dateB = new Date(b.createdDate).getTime();
       return dateB - dateA;
@@ -542,16 +544,22 @@ export function ExamList() {
         />
 
         {isLoading ? (
-          <View maxW="100%" w="100%">
-            <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#d5d5d5" foregroundColor="#ebebeb">
-              <Rect key="rect-1" y="20" rx="12" ry="12" width="85%" height={100} />
-              <Rect key="rect-2" y="140" rx="12" ry="12" width="85%" height={100} />
-              <Rect key="rect-3" y="260" rx="12" ry="12" width="85%" height={100} />
-              <Rect key="rect-4" y="380" rx="12" ry="12" width="85%" height={100} />
-              <Rect key="rect-5" y="500" rx="12" ry="12" width="85%" height={100} />
-              <Rect key="rect-6" y="620" rx="12" ry="12" width="85%" height={100} />
-              <Rect key="rect-7" y="740" rx="12" ry="12" width="85%" height={100} />
-              <Rect key="rect-8" y="860" rx="12" ry="12" width="85%" height={100} />
+          <View style={{ flex: 1, alignItems: 'center', paddingHorizontal: 24 }}>
+            <ContentLoader
+              width={width - 48}
+              height={height}
+              viewBox={`0 0 ${width - 48} ${height}`}
+              backgroundColor="#d5d5d5"
+              foregroundColor="#ebebeb"
+            >
+              <Rect key="rect-1" y="20" rx="12" ry="12" width={width - 48} height={100} />
+              <Rect key="rect-2" y="140" rx="12" ry="12" width={width - 48} height={100} />
+              <Rect key="rect-3" y="260" rx="12" ry="12" width={width - 48} height={100} />
+              <Rect key="rect-4" y="380" rx="12" ry="12" width={width - 48} height={100} />
+              <Rect key="rect-5" y="500" rx="12" ry="12" width={width - 48} height={100} />
+              <Rect key="rect-6" y="620" rx="12" ry="12" width={width - 48} height={100} />
+              <Rect key="rect-7" y="740" rx="12" ry="12" width={width - 48} height={100} />
+              <Rect key="rect-8" y="860" rx="12" ry="12" width={width - 48} height={100} />
             </ContentLoader>
           </View>
         ) : (
@@ -860,28 +868,49 @@ export function ExamList() {
             <Text fontSize={16} fontWeight={700} color="gray.700" textAlign="center">
               {selectedExamForAction?.laboratoryName || 'Exame'}
             </Text>
-            <Text fontSize={12} fontWeight={400} color="gray.400" textAlign="center" mt={1}>
+
+            {/* Mensagem contextual baseada no status */}
+            {selectedExamForAction && isErrorStatus(selectedExamForAction.medicalExamStatus) && (
+              <Box bg="orange.50" borderRadius={10} p={3} mt={3} mx={2}>
+                <Text fontSize={13} fontWeight={500} color="orange.700" textAlign="center" lineHeight={18}>
+                  {getErrorDescription(selectedExamForAction.medicalExamStatus)}
+                </Text>
+              </Box>
+            )}
+
+            {selectedExamForAction && isProcessingStatus(selectedExamForAction.medicalExamStatus) && !isErrorStatus(selectedExamForAction.medicalExamStatus) && (
+              <Box bg="blue.50" borderRadius={10} p={3} mt={3} mx={2}>
+                <Text fontSize={13} fontWeight={500} color="blue.700" textAlign="center" lineHeight={18}>
+                  {getErrorDescription(selectedExamForAction.medicalExamStatus)}
+                </Text>
+              </Box>
+            )}
+
+            <Text fontSize={12} fontWeight={400} color="gray.400" textAlign="center" mt={3}>
               O que deseja fazer com este exame?
             </Text>
           </Box>
 
-          <Actionsheet.Item
-            onPress={handleReprocessExam}
-            isDisabled={isReprocessing}
-            _pressed={{ bg: 'blue.50' }}
-          >
-            <HStack space={3} alignItems="center">
-              <RotateRightIcon color="#3B82F6" size="22" />
-              <VStack>
-                <Text fontSize={16} fontWeight={600} color="blue.600">
-                  {isReprocessing ? 'Reprocessando...' : 'Reprocessar'}
-                </Text>
-                <Text fontSize={12} fontWeight={400} color="gray.500">
-                  Enviar novamente para processamento
-                </Text>
-              </VStack>
-            </HStack>
-          </Actionsheet.Item>
+          {/* Só mostra reprocessar se for timeout - exames não suportados não vão funcionar com reprocessamento */}
+          {selectedExamForAction?.medicalExamStatus === 'ProcessingTimeout' && (
+            <Actionsheet.Item
+              onPress={handleReprocessExam}
+              isDisabled={isReprocessing}
+              _pressed={{ bg: 'blue.50' }}
+            >
+              <HStack space={3} alignItems="center">
+                <RotateRightIcon color="#3B82F6" size="22" />
+                <VStack>
+                  <Text fontSize={16} fontWeight={600} color="blue.600">
+                    {isReprocessing ? 'Reprocessando...' : 'Reprocessar'}
+                  </Text>
+                  <Text fontSize={12} fontWeight={400} color="gray.500">
+                    Enviar novamente para processamento
+                  </Text>
+                </VStack>
+              </HStack>
+            </Actionsheet.Item>
+          )}
 
           <Actionsheet.Item
             onPress={handleDeleteFromActionSheet}

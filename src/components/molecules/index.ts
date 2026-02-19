@@ -28,3 +28,4 @@ export { SystemInsights } from './SystemInsights';
 export { FeatureBanner } from './FeatureBanner';
 export { SmartSuggestionCard } from './SmartSuggestionCard';
 export { DailyAnalysisCard } from './DailyAnalysisCard';
+export { ReviewBottomSheet } from './ReviewBottomSheet';

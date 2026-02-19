@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { VStack, Text, ScrollView, IScrollViewProps, View, StatusBar } from 'native-base';
+import { Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 // routes
@@ -16,6 +17,9 @@ import { isFitnessEnabled, setFitnessEnabled } from '@services/fitnessService';
 
 // icons
 import { BarbellIcon, CompassTargetIcon } from '@assets/icons';
+
+// Toggle do fitness desabilitado no Android até novo build nativo com fix do Health Connect
+const DISABLE_FITNESS_TOGGLE = Platform.OS === 'android';
 
 export function Preferences() {
   const scrollRef = useRef<IScrollViewProps>(null);
@@ -93,13 +97,15 @@ export function Preferences() {
             <VStack mt={4} space={3}>
               <Card
                 title="Rastreador Fitness"
-                subTitle="Acompanhe seus passos, calorias, sono e hidratação diariamente"
+                subTitle={DISABLE_FITNESS_TOGGLE
+                  ? "Temporariamente indisponível. Em breve estará de volta!"
+                  : "Acompanhe seus passos, calorias, sono e hidratação diariamente"}
                 variant="description"
                 action="switch"
                 icon={<BarbellIcon color="#3D4966" size="24" />}
-                switchValue={fitnessTrackerEnabled}
-                onSwitchChange={handleFitnessToggle}
-                disabled={isLoading}
+                switchValue={DISABLE_FITNESS_TOGGLE ? false : fitnessTrackerEnabled}
+                onSwitchChange={DISABLE_FITNESS_TOGGLE ? () => {} : handleFitnessToggle}
+                disabled={isLoading || DISABLE_FITNESS_TOGGLE}
               />
               <Card
                 title="Metas Inteligentes"

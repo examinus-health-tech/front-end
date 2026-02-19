@@ -32,6 +32,8 @@ import {
   UrinaIcon,
   FlaskIcon,
   ChecklistIcon,
+  HormonioIcon,
+  TireoideIcon,
 } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 
@@ -142,6 +144,8 @@ export function HealthWallet() {
         coração: { icon: <HeartIcon size="30" color={color} /> },
         intestino: { icon: <IntestineIcon size="30" color={color} /> },
         urina: { icon: <UrinaIcon size="30" color={color} /> },
+        hormônios: { icon: <HormonioIcon size="30" color={color} /> },
+        tireóide: { icon: <TireoideIcon size="30" color={color} /> },
       };
 
       return (
@@ -278,7 +282,7 @@ export function HealthWallet() {
                     Score X
                   </Text>
 
-                  <Text mt={2} color="gray.600" fontSize={12} fontWeight={500} lineHeight={19.2} textAlign="center">
+                  <Text mt={2} color="gray.600" fontSize={14} fontWeight={500} lineHeight={21} textAlign="center">
                     {homeData.generalScoreActionRecommendation?.replace('\r\n', '')}
                   </Text>
 

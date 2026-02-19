@@ -22,14 +22,12 @@ export function ContactUs() {
       <VStack mt={24} mb={16} space={3} alignItems={'center'}>
         <Image source={Logo} defaultSource={Logo} alt="Vetor" resizeMode="stretch" />
         <Text color="gray.900" fontSize={28} fontWeight={800} lineHeight={32} letterSpacing={-0.96}>
-          Examinus v1.2.5
+          Examinus v1.3.0
         </Text>
       </VStack>
 
       <VStack space={3}>
-        {/* <Card title="+55 11 " variant="primary" icon={<TelephoneIcon size="30" />} /> */}
         <Card title="contato@examinus.com.br" variant="primary" icon={<TelephoneIcon size="30" />} />
-        <Card title="Av. Ibirapuera, 2120 - Moema - SP" variant="primary" icon={<TelephoneIcon size="30" />} />
       </VStack>
     </VStack>
   );

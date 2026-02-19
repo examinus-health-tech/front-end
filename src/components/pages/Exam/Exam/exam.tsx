@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState, useEffect } from 'react';
-import { VStack, Text, HStack, ScrollView, IScrollViewProps, Badge, Divider, Box, Modal, Button as NativeBaseButton } from 'native-base';
+import { VStack, Text, HStack, ScrollView, IScrollViewProps, Badge, Divider, Box, Modal, Button as NativeBaseButton, useDisclose } from 'native-base';
 
 // routes
 
@@ -17,11 +17,19 @@ import { formatExamValue } from '@utils/numberFormatter';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { AppNavigatorRoutesProps, AppRoutes } from '@routes/app.routes';
 import { Alert, Linking } from 'react-native';
+import { shouldShowReviewPromptOnPositiveAction } from '@services/reviewService';
+import { ReviewBottomSheet } from '@components/molecules';
 
 type HistoryDataPoint = {
   value: number;
   date: string;
   label: string;
+};
+
+type QualitativeHistoryPoint = {
+  value: string;
+  date: string;
+  color: string;
 };
 
 type ExamScreenRouteProp = RouteProp<AppRoutes, 'exam'>;
@@ -39,6 +47,9 @@ export function Exam() {
 
   // Estado para loading quando vem de push notification
   const [isLoadingExam, setIsLoadingExam] = useState(false);
+
+  // Estado para prompt de avaliação
+  const { isOpen: isReviewOpen, onOpen: onReviewOpen, onClose: onReviewClose } = useDisclose();
 
   // Se vier examId por parâmetro (ex: via push notification), seleciona o exame
   useEffect(() => {
@@ -74,6 +85,24 @@ export function Exam() {
     loadExamFromParams();
   }, [examIdFromParams]);
 
+  // Verifica se deve mostrar prompt de avaliação após visualizar exame (ação positiva)
+  useEffect(() => {
+    async function checkReviewPrompt() {
+      // Só verifica se o exame foi carregado com sucesso e tem itens
+      if (!examSelected?.medicalExamId || !examSelected?.medicalExamItems?.length) return;
+
+      const shouldShow = await shouldShowReviewPromptOnPositiveAction();
+      if (shouldShow) {
+        // Delay para o usuário ter tempo de ver o conteúdo
+        setTimeout(() => {
+          onReviewOpen();
+        }, 3000);
+      }
+    }
+
+    checkReviewPrompt();
+  }, [examSelected?.medicalExamId]);
+
   const [bottomSheetText, setBottomSheetText] = useState<string>('');
   const [bottomSheetTitle, setBottomSheetTitle] = useState<string>('');
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -81,8 +110,10 @@ export function Exam() {
 
   // Estado para o gráfico de histórico
   const [historyData, setHistoryData] = useState<HistoryDataPoint[]>([]);
+  const [qualitativeHistoryData, setQualitativeHistoryData] = useState<QualitativeHistoryPoint[]>([]);
   const [historyItemDescription, setHistoryItemDescription] = useState<string>('');
   const [historyItemUnit, setHistoryItemUnit] = useState<string>('');
+  const [isQualitativeHistory, setIsQualitativeHistory] = useState(false);
 
   const snapPoints = useMemo(() => ['40%', '60%', '80%'], []);
   const historySnapPoints = useMemo(() => ['70%', '90%'], []);
@@ -151,17 +182,59 @@ export function Exam() {
     [examData]
   );
 
+  // Função para construir o histórico qualitativo de um item
+  const buildQualitativeHistoryData = useCallback(
+    (itemDescription: string) => {
+      if (!examData || examData.length === 0) return [];
+
+      const history: QualitativeHistoryPoint[] = [];
+      const sortedExams = [...examData].sort(
+        (a, b) => new Date(a.createdDate).getTime() - new Date(b.createdDate).getTime()
+      );
+
+      sortedExams.forEach((exam) => {
+        if (exam.medicalExamItems && Array.isArray(exam.medicalExamItems)) {
+          const matchingItem = exam.medicalExamItems.find(
+            (item: any) => item.examItemDescription.toLowerCase() === itemDescription.toLowerCase()
+          );
+
+          if (matchingItem && matchingItem.medicalExamItemReferenceValue) {
+            history.push({
+              value: matchingItem.medicalExamItemReferenceValue,
+              date: formatDateToBrazilian(exam.createdDate),
+              color: matchingItem.medicalExamItemWeightColor,
+            });
+          }
+        }
+      });
+
+      return history;
+    },
+    [examData]
+  );
+
   // Handler para abrir o gráfico de histórico
   const handleOpenHistory = useCallback(
-    (itemDescription: string, itemUnit: string) => {
-      const history = buildHistoryData(itemDescription, itemUnit);
+    (itemDescription: string, itemUnit: string, currentValue: string) => {
+      const isQualitative = isNaN(parseFloat(currentValue));
 
-      setHistoryData(history);
+      if (isQualitative) {
+        const qualHistory = buildQualitativeHistoryData(itemDescription);
+        setQualitativeHistoryData(qualHistory);
+        setIsQualitativeHistory(true);
+        setHistoryData([]);
+      } else {
+        const history = buildHistoryData(itemDescription, itemUnit);
+        setHistoryData(history);
+        setIsQualitativeHistory(false);
+        setQualitativeHistoryData([]);
+      }
+
       setHistoryItemDescription(itemDescription);
       setHistoryItemUnit(itemUnit);
       handlePresentHistoryModal();
     },
-    [buildHistoryData, handlePresentHistoryModal]
+    [buildHistoryData, buildQualitativeHistoryData, handlePresentHistoryModal]
   );
 
   /**
@@ -236,6 +309,11 @@ export function Exam() {
     // Se só tem min
     if (referenceMin != null) {
       return `> ${formatNum(referenceMin)} ${unit}`;
+    }
+    // Exames qualitativos não possuem faixa de referência numérica
+    // A unidade pode vir como "Qualitativo" ou vazia (quando o PDF não traz unidade)
+    if (!unit || unit.trim() === '' || unit.toLowerCase() === 'qualitativo') {
+      return 'Qualitativo';
     }
     // Sem referência
     return `-- ${unit}`;
@@ -385,16 +463,18 @@ export function Exam() {
                     </Text>
                   </Box>
                 </Box>
-                <Text
-                  mt={2}
-                  color="gray.500"
-                  fontSize={16}
-                  fontWeight={600}
-                  textAlign="center"
-                  maxW={144}
-                >
-                  Ref: {formatReferenceValue(item.referenceMin, item.referenceMax, item.medicalExamItemMeasureUnit)}
-                </Text>
+                {(item.referenceMin != null || item.referenceMax != null) && (
+                  <Text
+                    mt={2}
+                    color="gray.500"
+                    fontSize={16}
+                    fontWeight={600}
+                    textAlign="center"
+                    maxW={144}
+                  >
+                    Ref: {formatReferenceValue(item.referenceMin, item.referenceMax, item.medicalExamItemMeasureUnit)}
+                  </Text>
+                )}
               </VStack>
 
               <VStack flex={1} space={2} justifyContent="center">
@@ -447,7 +527,7 @@ export function Exam() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => handleOpenHistory(item.examItemDescription, item.medicalExamItemMeasureUnit)}
+                  onPress={() => handleOpenHistory(item.examItemDescription, item.medicalExamItemMeasureUnit, item.medicalExamItemReferenceValue)}
                 >
                   <HStack space={2} alignItems="center">
                     <ChartIcon size="28" duotone />
@@ -681,16 +761,57 @@ export function Exam() {
             <VStack mx={6} pb={8}>
               <HStack justifyContent="space-between" alignItems="center" width="100%" mt={2} mb={4}>
                 <Text fontSize={20} fontWeight={700} letterSpacing={-0.16} color="gray.800">
-                  Gráfico Evolutivo
+                  {isQualitativeHistory ? 'Histórico de Resultados' : 'Gráfico Evolutivo'}
                 </Text>
               </HStack>
 
-              <HistoryChart
-                examItemDescription={historyItemDescription}
-                historyData={historyData}
-                unit={historyItemUnit}
-                color="#0CC1AF"
-              />
+              {isQualitativeHistory ? (
+                qualitativeHistoryData.length === 0 ? (
+                  <VStack flex={1} alignItems="center" justifyContent="center" py={8}>
+                    <Text fontSize={14} color="gray.500" textAlign="center">
+                      Nenhum dado disponível para{'\n'}mostrar o histórico
+                    </Text>
+                  </VStack>
+                ) : (
+                  <VStack space={0}>
+                    <Text fontSize={18} fontWeight={700} color="gray.800" mb={4}>
+                      {historyItemDescription}
+                    </Text>
+                    {[...qualitativeHistoryData].reverse().map((point, index, arr) => (
+                      <HStack key={index} alignItems="stretch" space={3}>
+                        {/* Linha vertical da timeline */}
+                        <VStack alignItems="center" w={4}>
+                          {index > 0 && <Box w={2} flex={1} bg="gray.200" />}
+                          <Box w={4} h={4} borderRadius={999} bg={getColor(point.color)} borderWidth={2} borderColor="white" style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.15, shadowRadius: 2, elevation: 2 }} />
+                          {index < arr.length - 1 && <Box w={2} flex={1} bg="gray.200" />}
+                        </VStack>
+                        <VStack flex={1} py={3}>
+                          <HStack alignItems="center" space={2}>
+                            <Text fontSize={16} fontWeight={700} color={getColor(point.color)}>
+                              {point.value}
+                            </Text>
+                            {index === 0 && (
+                              <Badge borderRadius={8} bg="gray.100" _text={{ fontSize: 10, color: 'gray.500', fontWeight: 600 }} px={2} py={0}>
+                                Mais recente
+                              </Badge>
+                            )}
+                          </HStack>
+                          <Text fontSize={13} color="gray.400" mt={1}>
+                            {point.date}
+                          </Text>
+                        </VStack>
+                      </HStack>
+                    ))}
+                  </VStack>
+                )
+              ) : (
+                <HistoryChart
+                  examItemDescription={historyItemDescription}
+                  historyData={historyData}
+                  unit={historyItemUnit}
+                  color="#0CC1AF"
+                />
+              )}
             </VStack>
           </BottomSheetScrollView>
         </BottomSheetModal>
@@ -747,6 +868,9 @@ export function Exam() {
           </Modal.Body>
         </Modal.Content>
       </Modal>
+
+      {/* Bottom Sheet de Avaliação */}
+      <ReviewBottomSheet isOpen={isReviewOpen} onClose={onReviewClose} />
     </>
   );
 }

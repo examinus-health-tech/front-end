@@ -35,6 +35,7 @@ import {
   LockIcon,
   MoreIcon,
   QuestionIcon,
+  StarIcon,
   TelephoneIcon,
   TrashIcon,
   UserIcon,
@@ -48,6 +49,9 @@ import { Button } from '@components/atoms';
 import { useAuth } from 'src/hooks/useAuth';
 import { useHome } from 'src/hooks/useHome';
 import { getUserPersonalData } from '@services/userService';
+
+// Cor da Labi
+const LABI_PURPLE = '#7B2E8E';
 
 export function MyAccount() {
   const { isOpen: isSignOutOpen, onOpen: onSignOutOpen, onClose: onSignOutClose } = useDisclose();
@@ -247,8 +251,27 @@ export function MyAccount() {
             </VStack>
           </Animated.View>
 
-          {/* Suporte - animação 3 */}
+          {/* Promoções - animação 3 */}
           <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(200) : undefined}>
+            <VStack>
+              <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                Promoções
+              </Text>
+
+              <VStack mt={4} space={3}>
+                <Card
+                  title="Meu Voucher"
+                  variant="primary"
+                  action="chevron"
+                  goTo={() => navigation.navigate('bonus')}
+                  icon={<StarIcon color={LABI_PURPLE} size="30" />}
+                />
+              </VStack>
+            </VStack>
+          </Animated.View>
+
+          {/* Acessibilidade - animação 4 */}
+          <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(300) : undefined}>
             <VStack>
               <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
                 Acessibilidade
@@ -273,8 +296,8 @@ export function MyAccount() {
             </VStack>
           </Animated.View>
 
-          {/* Ajuda & Suporte - animação 4 */}
-          <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(300) : undefined}>
+          {/* Ajuda & Suporte - animação 5 */}
+          <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(400) : undefined}>
             <VStack>
               <Text mt={8} fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
                 Ajuda & Suporte
@@ -306,9 +329,9 @@ export function MyAccount() {
             </VStack>
           </Animated.View>
 
-          {/* Desconectar - animação 5 */}
+          {/* Desconectar - animação 6 */}
           <Animated.View
-            entering={!hasAnimated ? FadeInDown.duration(400).delay(400) : undefined}
+            entering={!hasAnimated ? FadeInDown.duration(400).delay(500) : undefined}
             onLayout={() => !hasAnimated && setHasAnimated(true)}
           >
             <VStack>

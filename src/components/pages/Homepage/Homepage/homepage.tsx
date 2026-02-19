@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { TouchableOpacity, useWindowDimensions, StatusBar } from 'react-native';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { TouchableOpacity, useWindowDimensions, StatusBar, Platform } from 'react-native';
 import { CustomRefreshControl } from '@components/atoms';
-import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center, Avatar } from 'native-base';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center, Avatar, useDisclose } from 'native-base';
+import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { api } from 'src/services/api';
 import ContentLoader, { Rect, Circle } from 'react-content-loader/native';
@@ -30,6 +30,10 @@ import {
   FlaskIcon,
   HeadHealthIcon,
   EnergyIcon,
+  HormonioIcon,
+  TireoideIcon,
+  StarIcon,
+  ChevronRightSmIcon,
 } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 import Vector2 from '@assets/png/vector-30.png';
@@ -60,6 +64,14 @@ import {
 } from '@services/mentalHealthService';
 import { getUserPersonalData } from '@services/userService';
 import { setFitnessEnabled } from '@services/fitnessService';
+import { checkCampaignVoucher } from '@services/campaignService';
+import { incrementAppOpenCount, shouldShowReviewPromptOnOpen } from '@services/reviewService';
+import { ReviewBottomSheet } from '@components/molecules';
+
+// ⚠️ FLAG TEMPORÁRIA: Desabilita opção de habilitar fitness no Android
+// Motivo: Crash do Health Connect com New Architecture, aguardando build nativo
+// TODO: Remover após publicação do novo build na Play Store
+const DISABLE_FITNESS_FEATURE = Platform.OS === 'android';
 
 // Função helper para determinar o texto baseado no score
 function getScoreText(score: number): string {
@@ -86,17 +98,28 @@ function getScoreColor(score: number): string {
 
 export function Homepage() {
   const [unreadCount, setUnreadCount] = useState<number>(0);
-  const [userWithoutData, setUserWithoutData] = useState<boolean>(true);
   const [userTrackerData, setUserTrackerData] = useState<boolean>(false);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [hasAnimated, setHasAnimated] = useState<boolean>(false);
+  const [dataLoadedForCurrentFocus, setDataLoadedForCurrentFocus] = useState<boolean>(false);
+
+  const isFocused = useIsFocused();
   const [mentalHealthAssessment, setMentalHealthAssessment] = useState<MentalHealthAssessment | null>(null);
+  const [voucherCode, setVoucherCode] = useState<string | null>(null);
   const scrollRef = useRef<any>(null);
+  const { isOpen: isReviewOpen, onOpen: onReviewOpen, onClose: onReviewClose } = useDisclose();
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { user, getUserInfo, isLoading, updateUserPhoto } = useAuth();
   const { getHomeData, homeData, trackerData, isLoadingHomeContext, fitnessEnabled, refreshFitnessData } = useHome();
   const { showTabBar } = useTabBar();
+
+  // Calcula userWithoutData de forma síncrona (durante o render) para evitar flicker
+  const userWithoutData = useMemo(() => {
+    const hasNoGeneralScore = !homeData.generalScore;
+    const hasNoSystemsScore = !homeData.medicalExamOrganicSystemsScore?.length;
+    return hasNoGeneralScore && hasNoSystemsScore;
+  }, [homeData.generalScore, homeData.medicalExamOrganicSystemsScore?.length]);
 
   // Busca a última avaliação de saúde mental
   async function fetchMentalHealthAssessment() {
@@ -108,6 +131,22 @@ export function Homepage() {
     }
   }
 
+  // Busca voucher da campanha
+  async function fetchVoucher() {
+    if (!user?.email) return;
+    try {
+      const result = await checkCampaignVoucher(user.email);
+      if (result.success && result.voucher) {
+        setVoucherCode(result.voucher);
+      } else {
+        setVoucherCode(null);
+      }
+    } catch (error) {
+      console.log('📢 [HOME] Erro ao buscar voucher:', error);
+      setVoucherCode(null);
+    }
+  }
+
   async function onRefresh() {
     console.log('🔄 onRefresh chamado na homepage');
     setIsRefreshing(true);
@@ -116,6 +155,7 @@ export function Homepage() {
       await fetchUnreadCount();
       await refreshFitnessData();
       await fetchMentalHealthAssessment();
+      await fetchVoucher();
     } catch (error) {
       console.error('Erro ao atualizar:', error);
     } finally {
@@ -156,13 +196,6 @@ export function Homepage() {
   }
 
   useEffect(() => {
-    const hasNoGeneralScore = !homeData.generalScore;
-    const hasNoSystemsScore = !homeData.medicalExamOrganicSystemsScore?.length;
-
-    setUserWithoutData(hasNoGeneralScore && hasNoSystemsScore);
-  }, [homeData.generalScore, homeData.medicalExamOrganicSystemsScore?.length]);
-
-  useEffect(() => {
     if (
       !trackerData.kcal ||
       !trackerData.step ||
@@ -194,16 +227,44 @@ export function Homepage() {
     console.log('🔄 Usuário mudou, resetando estados da homepage:', user?.userId);
     setUnreadCount(0);
     setMentalHealthAssessment(null);
-    setUserWithoutData(true);
     setHasAnimated(false);
+    setVoucherCode(null);
 
     if (user?.userId) {
       getHomeData();
       fetchUnreadCount();
       fetchMentalHealthAssessment();
+      fetchVoucher();
       loadProfilePhoto();
     }
   }, [user?.userId]);
+
+  // Incrementa contador de aberturas e verifica se deve mostrar prompt de review
+  useEffect(() => {
+    async function checkReviewPrompt() {
+      if (!user?.userId) return;
+
+      await incrementAppOpenCount();
+      const shouldShow = await shouldShowReviewPromptOnOpen();
+
+      if (shouldShow) {
+        // Pequeno delay para não mostrar imediatamente ao abrir
+        setTimeout(() => {
+          onReviewOpen();
+        }, 2000);
+      }
+    }
+
+    checkReviewPrompt();
+  }, [user?.userId]);
+
+  // Reset do estado de dados carregados quando perde foco
+  useEffect(() => {
+    if (!isFocused) {
+      setDataLoadedForCurrentFocus(false);
+      setHasAnimated(false);
+    }
+  }, [isFocused]);
 
   // Rola para o topo e recarrega dados quando a tela ganhar foco
   useFocusEffect(
@@ -222,13 +283,23 @@ export function Homepage() {
       getHomeData();
       fetchUnreadCount();
       fetchMentalHealthAssessment();
+      fetchVoucher();
 
       // Busca foto de perfil se não tiver
       loadProfilePhoto();
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+      };
     }, [user?.userId, user?.profilePhotoBase64])
   );
+
+  // Marca dados como carregados quando o loading terminar
+  useEffect(() => {
+    if (!isLoadingHomeContext && isFocused) {
+      setDataLoadedForCurrentFocus(true);
+    }
+  }, [isLoadingHomeContext, isFocused]);
 
   function renderCardSystems() {
     const systems = homeData.medicalExamOrganicSystemsScore;
@@ -264,6 +335,10 @@ export function Homepage() {
       if (system?.includes('intestino')) return <IntestineIcon size={iconSize} color={iconColor} />;
       if (system?.includes('urina') || system?.includes('urinário'))
         return <UrinaIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('hormônio') || system?.includes('hormonio'))
+        return <HormonioIcon size={iconSize} color={iconColor} />;
+      if (system?.includes('tireóide') || system?.includes('tireoide'))
+        return <TireoideIcon size={iconSize} color={iconColor} />;
 
       // Ícone padrão para sistemas não mapeados
       return <FlaskIcon size={iconSize} color={iconColor} />;
@@ -301,10 +376,10 @@ export function Homepage() {
   return (
     <View flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      {isLoading || isLoadingHomeContext ? (
+      {isLoading || isLoadingHomeContext || !dataLoadedForCurrentFocus ? (
         <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#E8E8E8" foregroundColor="#F5F5F5">
           {/* Ícone de Notificação */}
-          <Circle cx={width - 54} cy={110} r={24} />
+          <Rect x={width - 82} y={106} rx="16" ry="16" width={64} height={64} />
 
           {/* Data e Calendário */}
           <Rect x="24" y="96" rx="6" ry="6" width={100} height={12} />
@@ -473,7 +548,9 @@ export function Homepage() {
                     ) : (
                       <VStack alignItems="center" mt={2}>
                         <Text color="gray.600" fontSize={14} fontWeight={500} lineHeight={20} textAlign="center">
-                          {homeData.generalScoreActionRecommendation?.replace('\r\n', '') ||
+                          {homeData.generalScoreActionRecommendation
+                            ?.replace('\r\n', '')
+                            ?.replace(/acimada/gi, 'acima da') ||
                             getScoreText(homeData.generalScore || 0)}
                         </Text>
 
@@ -596,6 +673,43 @@ export function Homepage() {
                 </ScrollView>
               </HStack>
             </Animated.View>
+
+            {/* Card Voucher - só aparece se tiver voucher */}
+            {voucherCode && (
+              <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(220) : undefined}>
+                <TouchableOpacity onPress={() => navigation.navigate('bonus')} activeOpacity={0.8}>
+                  <Box
+                    mt={6}
+                    bg="#7B2E8E"
+                    borderRadius={16}
+                    p={4}
+                    shadow={3}
+                  >
+                    <HStack alignItems="center" justifyContent="space-between">
+                      <HStack alignItems="center" space={3} flex={1}>
+                        <Box bg="white" p={2} borderRadius={12}>
+                          <StarIcon size="24" color="#7B2E8E" />
+                        </Box>
+                        <VStack flex={1}>
+                          <Text fontSize={14} fontWeight={700} color="white">
+                            Você tem um voucher!
+                          </Text>
+                          <Text fontSize={12} fontWeight={500} color="white" opacity={0.9}>
+                            Hemograma gratuito disponível
+                          </Text>
+                        </VStack>
+                      </HStack>
+                      <HStack alignItems="center" space={1}>
+                        <Text fontSize={12} fontWeight={600} color="white">
+                          Ver
+                        </Text>
+                        <ChevronRightSmIcon size="16" color="white" />
+                      </HStack>
+                    </HStack>
+                  </Box>
+                </TouchableOpacity>
+              </Animated.View>
+            )}
 
             {/* Saúde Mental - animação 3.5 */}
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(250) : undefined}>
@@ -735,7 +849,7 @@ export function Homepage() {
                 </TouchableOpacity>
               </HStack>
 
-              {!fitnessEnabled && (
+              {!fitnessEnabled && !DISABLE_FITNESS_FEATURE && (
                 <Box mt={4}>
                   <FeatureBanner
                     id="fitness-tracker-enable"
@@ -744,8 +858,13 @@ export function Homepage() {
                     description="Acompanhe suas calorias, passos, sono e hidratação conectando com o Apple Health ou Health Connect."
                     actionText="Habilitar agora"
                     onAction={async () => {
-                      await setFitnessEnabled(true);
-                      await refreshFitnessData();
+                      try {
+                        await setFitnessEnabled(true);
+                        await refreshFitnessData();
+                      } catch (error) {
+                        console.warn('⚠️ [HOMEPAGE] Erro ao habilitar fitness:', error);
+                        // Mesmo com erro no Health Connect, mantém habilitado para usar dados do backend
+                      }
                     }}
                     bgColor="ciano.50"
                     iconBgColor="ciano.100"
@@ -805,6 +924,9 @@ export function Homepage() {
           </VStack>
         </ScrollView>
       )}
+
+      {/* Bottom Sheet de Avaliação */}
+      <ReviewBottomSheet isOpen={isReviewOpen} onClose={onReviewClose} />
     </View>
   );
 }

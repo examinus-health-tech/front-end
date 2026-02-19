@@ -82,6 +82,30 @@ const SYSTEM_BIOMARKERS: Record<string, string[]> = {
     'nitrito',
     'urina',
   ],
+  hormônios: [
+    'testosterona',
+    'estradiol',
+    'progesterona',
+    'prolactina',
+    'fsh',
+    'lh',
+    'dhea',
+    'cortisol',
+    'vitamina d',
+    'hormônio',
+    'hormonio',
+  ],
+  tireóide: [
+    'tsh',
+    't3',
+    't4',
+    't4 livre',
+    't3 livre',
+    'tireoide',
+    'tireóide',
+    'tiroxina',
+    'triiodotironina',
+  ],
 };
 
 // Gera insights personalizados baseados nos biomarcadores
@@ -123,7 +147,7 @@ function generateInsights(
     const score = systemScore.organicSystemScore;
     // Sistemas femininos usam "Sua" ao invés de "Seu"
     const systemNameLower = systemName.toLowerCase();
-    const feminineSystems = ['imunidade', 'urina'];
+    const feminineSystems = ['imunidade', 'urina', 'tireóide'];
     const article = feminineSystems.includes(systemNameLower) ? 'Sua' : 'Seu';
 
     if (score >= 80) {
@@ -276,7 +300,7 @@ export function SystemInsights({ homeData, currentSystem }: SystemInsightsProps)
 
   // Determina artigo correto baseado no sistema
   const systemNameLower = currentSystem?.sistema?.toLowerCase() || '';
-  const feminineSystems = ['imunidade', 'urina'];
+  const feminineSystems = ['imunidade', 'urina', 'tireóide'];
   const titleArticle = feminineSystems.includes(systemNameLower) ? 'sua' : 'seu';
 
   return (

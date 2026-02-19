@@ -50,7 +50,7 @@ export function ScoreWarning() {
             title="Bora ficar saudável"
             icon={<ArrowIcon />}
             mt={4}
-            onPress={() => navigation.navigate('homepage')}
+            onPress={() => navigation.navigate('examList')}
           />
         </VStack>
       </Box>

@@ -138,6 +138,7 @@ import HeadHealthIcon from './components/headHealth';
 import HeadHealtthIcon from './components/headHealtth';
 import HeartIcon from './components/heart';
 import HeartbeatIcon from './components/heartbeat';
+import HormonioIcon from './components/hormonio';
 import HeartbeatMobileIcon from './components/heartbeatMobile';
 import HomeIcon from './components/home';
 import HomeHealthIcon from './components/homeHealth';
@@ -221,6 +222,7 @@ import TaskHealthIcon from './components/taskHealth';
 import TelephoneIcon from './components/telephone';
 import TestTubeIcon from './components/testTube';
 import ThermometerIcon from './components/thermometer';
+import TireoideIcon from './components/tireoide';
 import ToothIcon from './components/tooth';
 import ToothbrushIcon from './components/toothbrush';
 import TransgenderIcon from './components/transgender';
@@ -382,6 +384,7 @@ export {
   HeartIcon,
   HeartbeatIcon,
   HeartbeatMobileIcon,
+  HormonioIcon,
   HomeIcon,
   HomeHealthIcon,
   HospitalIcon,
@@ -464,6 +467,7 @@ export {
   TelephoneIcon,
   TestTubeIcon,
   ThermometerIcon,
+  TireoideIcon,
   ToothIcon,
   ToothbrushIcon,
   TransgenderIcon,
