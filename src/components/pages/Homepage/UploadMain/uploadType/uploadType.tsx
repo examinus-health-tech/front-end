@@ -127,7 +127,7 @@ export function UploadType({ onCameraOpen, onManualOpen, handleUploadFileProp }:
           </Text>
 
           <HStack space={4} mt={8} mb={4}>
-            <TouchableOpacity onPress={handleSelectFile}>
+            <TouchableOpacity testID="btn-upload-pdf" onPress={handleSelectFile}>
               <Box
                 bg="ciano.300"
                 w={40}
@@ -146,7 +146,7 @@ export function UploadType({ onCameraOpen, onManualOpen, handleUploadFileProp }:
               </Box>
             </TouchableOpacity>
 
-            <TouchableOpacity onPress={onCameraOpen}>
+            <TouchableOpacity testID="btn-upload-image" onPress={onCameraOpen}>
               <Box w={40} h={20} py={2} px={4} rounded="2xl" alignItems="center" borderWidth={4} borderColor="gray.50">
                 <EditIcon color="#052B3B" />
                 <Text fontSize={18} fontWeight={700} letterSpacing={-0.18} color="gray.400" mt={1}>

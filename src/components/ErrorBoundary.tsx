@@ -1,13 +1,16 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { captureError, addBreadcrumb } from '@services/sentryService';
 
 interface Props {
   children: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorInfo: ErrorInfo | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -16,10 +19,11 @@ class ErrorBoundary extends Component<Props, State> {
     this.state = {
       hasError: false,
       error: null,
+      errorInfo: null,
     };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return {
       hasError: true,
       error,
@@ -27,6 +31,20 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    this.setState({ errorInfo });
+
+    // Reportar ao Sentry com contexto completo
+    captureError(error, {
+      componentStack: errorInfo.componentStack,
+      platform: Platform.OS,
+      timestamp: new Date().toISOString(),
+    });
+
+    addBreadcrumb('error-boundary', 'Erro capturado pelo ErrorBoundary', {
+      errorMessage: error.message,
+      componentStack: errorInfo.componentStack?.substring(0, 500),
+    }, 'error');
+
     console.error('❌ [Error Boundary] Erro capturado:', {
       error: error.toString(),
       componentStack: errorInfo.componentStack,
@@ -34,26 +52,38 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = () => {
+    addBreadcrumb('error-boundary', 'Usuário clicou em Tentar Novamente');
+
     this.setState({
       hasError: false,
       error: null,
+      errorInfo: null,
     });
   };
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
       return (
         <View style={styles.container}>
           <View style={styles.content}>
             <Text style={styles.emoji}>⚠️</Text>
             <Text style={styles.title}>Algo deu errado</Text>
             <Text style={styles.message}>
-              Encontramos um erro inesperado. Por favor, tente novamente.
+              Encontramos um erro inesperado. O problema já foi reportado automaticamente.
             </Text>
 
             {__DEV__ && this.state.error && (
               <View style={styles.errorDetails}>
                 <Text style={styles.errorText}>{this.state.error.toString()}</Text>
+                {this.state.errorInfo?.componentStack && (
+                  <Text style={styles.stackText}>
+                    {this.state.errorInfo.componentStack.substring(0, 300)}
+                  </Text>
+                )}
               </View>
             )}
 
@@ -122,6 +152,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#DC2626',
     fontFamily: 'monospace',
+  },
+  stackText: {
+    fontSize: 10,
+    color: '#991B1B',
+    fontFamily: 'monospace',
+    marginTop: 8,
   },
   button: {
     backgroundColor: '#0CC1AF',

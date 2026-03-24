@@ -8,6 +8,7 @@ import { logger } from '@utils/debugLogger';
 import { decodeJwtPayload } from '@utils/jwt';
 import { registerDeviceOnBackend } from 'src/services/register-device-backend';
 import { OneSignal } from 'react-native-onesignal';
+import { setSentryUser, clearSentryUser, addBreadcrumb } from '@services/sentryService';
 
 // Chave para armazenamento seguro de biometria (apenas alfanumericos, ".", "-" e "_")
 const BIOMETRIC_TOKEN_KEY = 'examinus_biometric_token';
@@ -122,11 +123,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await new Promise<void>((resolve) => setTimeout(resolve, 800));
 
       setUser(null);
+      clearSentryUser();
+      addBreadcrumb('auth', 'Logout realizado');
       console.log('✅ Logout concluído');
     } catch (error) {
       console.error('❌ Erro ao fazer logout:', error);
       // Silent fail - user will be signed out anyway
       setUser(null);
+      clearSentryUser();
     }
   }, []);
 
@@ -366,6 +370,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Agora sim, setar o usuário e disparar navegação
       setUser(formattedUserData);
+
+      // Identificar usuário no Sentry
+      setSentryUser({
+        id: formattedUserData.userId,
+        email: formattedUserData.email,
+        name: formattedUserData.name,
+      });
+      addBreadcrumb('auth', 'Login realizado com sucesso', { method: 'email' });
 
       // Registra dispositivo no backend em background (não bloqueia)
       registerDeviceOnBackend().catch((deviceError) => {

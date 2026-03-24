@@ -158,6 +158,7 @@ export function Physical() {
       <Image source={Vector} defaultSource={Vector} alt="Vetor" resizeMode="stretch" w={96} h={72} />
 
       <Button
+        testID="btn-onboarding-continue"
         position="absolute"
         bottom={-50}
         variant="primary"

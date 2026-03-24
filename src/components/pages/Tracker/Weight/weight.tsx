@@ -297,7 +297,7 @@ export function Weight() {
   };
 
   return (
-    <VStack flex={1} bg="#F5F5F5">
+    <VStack testID="screen-weight" flex={1} bg="#F5F5F5">
       <StatusBar style="light" />
       {/* Header animado com fundo ciano - posição absoluta */}
       <Animated.View style={[headerAnimatedStyle, { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }]}>

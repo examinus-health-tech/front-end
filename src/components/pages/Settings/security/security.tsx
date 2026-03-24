@@ -112,12 +112,12 @@ export function Security() {
   };
 
   return (
-    <View flex={1}>
+    <View testID="screen-security" flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Header fixo */}
       <VStack pt={16} mx={6}>
-        <Header title="Segurança" handleBackTo={() => navigation.navigate('myAccount')} />
+        <Header title="Segurança" handleBackTo={() => navigation.goBack()} />
       </VStack>
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

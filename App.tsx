@@ -6,17 +6,24 @@ import * as Font from 'expo-font';
 import * as Updates from 'expo-updates';
 import * as SplashScreen from 'expo-splash-screen';
 import { OneSignal, LogLevel } from 'react-native-onesignal';
+import { initSentry, captureError, addBreadcrumb } from '@services/sentryService';
+import * as Sentry from '@sentry/react-native';
+
+// Inicializar Sentry antes de qualquer outra coisa
+initSentry();
 
 OneSignal.initialize('c101b9a0-32fe-43ad-8a87-820c766b136e');
 OneSignal.Debug.setLogLevel(LogLevel.Verbose);
 
-// Solicitar permissão e fazer opt-in
+// Solicitar permissão e fazer opt-in (apenas se ainda não foi decidido)
 (async () => {
   try {
-    const hasPermission = await OneSignal.Notifications.requestPermission(true);
-    console.log('[OneSignal] Permission granted:', hasPermission);
+    const alreadyHasPermission = await OneSignal.Notifications.getPermissionAsync();
+    if (!alreadyHasPermission) {
+      const granted = await OneSignal.Notifications.requestPermission(false);
+      console.log('[OneSignal] Permission granted:', granted);
+    }
 
-    // Fazer opt-in para receber notificações push
     await OneSignal.User.pushSubscription.optIn();
     console.log('[OneSignal] Opted in to push notifications');
   } catch (error) {
@@ -44,6 +51,7 @@ import { AuthProvider } from '@contexts/AuthContext';
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
 import { UploadContextProvider } from '@contexts/UploadContext';
 import { HomeContextProvider } from '@contexts/HomeContext';
+import { MedicationContextProvider } from '@contexts/MedicationContext';
 import { Splash } from '@components/pages/Splash/splash';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
@@ -54,11 +62,53 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { navigationRef } from './src/services/navigationService';
 import { linking } from './src/config/linking';
 import { api } from './src/services/api';
+import { setupNotificationChannel, addNotificationResponseListener } from './src/services/medicationNotificationService';
 
-export default function App() {
+function App() {
   const [ready, setReady] = useState(false);
   const [splashVideoFinish, setSplashVideoFinish] = useState<boolean>(false);
   const [additionalFontsLoaded, setAdditionalFontsLoaded] = useState<boolean>(false);
+
+  // Capturar erros de promises não tratadas globalmente
+  useEffect(() => {
+    const handleUnhandledRejection = (event: any) => {
+      const error = event?.reason || event;
+      captureError(
+        error instanceof Error ? error : new Error(String(error)),
+        { source: 'unhandledRejection' }
+      );
+      addBreadcrumb('global', 'Unhandled promise rejection', {
+        reason: String(error),
+      }, 'error');
+    };
+
+    // @ts-ignore - ErrorUtils é global no React Native
+    const originalHandler = global.ErrorUtils?.getGlobalHandler();
+    // @ts-ignore
+    global.ErrorUtils?.setGlobalHandler((error: Error, isFatal: boolean) => {
+      captureError(error, { isFatal, source: 'globalErrorHandler' });
+      addBreadcrumb('global', 'Erro global capturado', {
+        errorMessage: error.message,
+        isFatal: String(isFatal),
+      }, 'fatal');
+      // Chamar handler original para não quebrar o fluxo
+      originalHandler?.(error, isFatal);
+    });
+
+    // Polyfill para unhandled rejection tracking
+    const tracking = require('promise/setimmediate/rejection-tracking');
+    tracking.enable({
+      allRejections: true,
+      onUnhandled: (_id: number, error: any) => handleUnhandledRejection({ reason: error }),
+      onHandled: () => {},
+    });
+
+    return () => {
+      // @ts-ignore
+      if (originalHandler) global.ErrorUtils?.setGlobalHandler(originalHandler);
+      tracking.disable();
+    };
+  }, []);
 
   useEffect(() => {
     const onClick = async (event: any) => {
@@ -87,6 +137,7 @@ export default function App() {
         exam: 'exam',
         examList: 'examList',
         notifications: 'notifications',
+        medicationTimeline: 'medicationTimeline',
       };
 
       const backendScreen = data?.screen || 'notifications';
@@ -137,15 +188,7 @@ export default function App() {
           console.log('=============================');
 
           if (!pushToken) {
-            console.warn('⚠️ [OneSignal] Push Token vazio! Notificações não funcionarão.');
-            console.log('💡 [OneSignal] Tentando opt-in manualmente...');
-            await OneSignal.User.pushSubscription.optIn();
-
-            // Verificar novamente após opt-in
-            setTimeout(async () => {
-              const newToken = await OneSignal.User.pushSubscription.getTokenAsync();
-              console.log('[OneSignal] Push Token após opt-in:', newToken);
-            }, 2000);
+            console.warn('[OneSignal] Push Token vazio — normal no simulador.');
           }
         }, 3000);
       } catch (error) {
@@ -154,6 +197,28 @@ export default function App() {
     };
 
     checkOneSignalStatus();
+  }, []);
+
+  // Set up expo-notifications channel and response listener
+  useEffect(() => {
+    setupNotificationChannel();
+
+    const subscription = addNotificationResponseListener((response: any) => {
+      const data = response?.notification?.request?.content?.data;
+
+      // Only handle medication local notifications, not OneSignal
+      if (data?.type !== 'medication_reminder') return;
+
+      if (!navigationRef.isReady()) {
+        console.log('[ExpoNotifications] Navigation not ready yet');
+        return;
+      }
+
+      console.log('[ExpoNotifications] Medication notification tapped, navigating to medicationTimeline');
+      navigationRef.navigate('medicationTimeline' as never);
+    });
+
+    return () => subscription?.remove();
   }, []);
 
   // Load essential fonts first
@@ -243,9 +308,14 @@ export default function App() {
     };
   }, []);
 
-  // Load additional fonts after app is ready
+  // Load additional fonts after app is ready (com timeout de segurança)
   useEffect(() => {
     if (fontsLoaded) {
+      const fontTimeout = setTimeout(() => {
+        console.warn('⚠️ [Fonts] Timeout ao carregar fonts adicionais — continuando sem elas');
+        setAdditionalFontsLoaded(true);
+      }, 10000);
+
       Font.loadAsync({
         PoligonBlack: require('@assets/fonts/Poligon-Regular.ttf'),
         PoligonExtraBold: require('@assets/fonts/Poligon-ExtraBold.ttf'),
@@ -253,6 +323,11 @@ export default function App() {
         PoligonLight: require('@assets/fonts/Poligon-Light.ttf'),
         PoligonThin: require('@assets/fonts/Poligon-Thin.ttf'),
       }).then(() => {
+        clearTimeout(fontTimeout);
+        setAdditionalFontsLoaded(true);
+      }).catch((err) => {
+        clearTimeout(fontTimeout);
+        console.warn('⚠️ [Fonts] Erro ao carregar fonts adicionais:', err);
         setAdditionalFontsLoaded(true);
       });
     }
@@ -286,6 +361,16 @@ export default function App() {
         onReady={() => {
           console.log('✅ [Navigation] Navigation ready');
         }}
+        onStateChange={(state) => {
+          // Breadcrumb de navegação para o Sentry
+          const currentRoute = state?.routes?.[state.index ?? 0];
+          if (currentRoute?.name) {
+            addBreadcrumb('navigation', `Navegou para ${currentRoute.name}`, {
+              route: currentRoute.name,
+              params: currentRoute.params ? JSON.stringify(currentRoute.params) : undefined,
+            });
+          }
+        }}
       >
       <NativeBaseProvider theme={THEME}>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
@@ -297,7 +382,9 @@ export default function App() {
                 <GestureHandlerRootView>
                   <BottomSheetModalProvider>
                     <HomeContextProvider>
-                      {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
+                      <MedicationContextProvider>
+                        {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
+                      </MedicationContextProvider>
                     </HomeContextProvider>
                   </BottomSheetModalProvider>
                 </GestureHandlerRootView>
@@ -310,3 +397,6 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
+// Sentry.wrap adiciona performance monitoring automático e captura de erros no nível do app
+export default Sentry.wrap(App);

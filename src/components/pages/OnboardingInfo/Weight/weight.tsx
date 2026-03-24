@@ -67,6 +67,7 @@ export function Weight() {
       </Center>
 
       <Button
+        testID="btn-onboarding-continue"
         position="absolute"
         bottom={-50}
         variant="primary"

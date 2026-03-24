@@ -50,6 +50,7 @@ function getStatusMessage(status: string) {
     Analyzed: 'Analisado',
     AnalyzedFailed: 'Não suportado',
     ScoreComputed: 'Concluído',
+    ScoreComputedNull: 'Não processado',
     ScoreComputedFailed: 'Não suportado',
     ProcessingTimeout: 'Tempo excedido',
   };
@@ -61,6 +62,9 @@ function getStatusMessage(status: string) {
 function getErrorDescription(status: string) {
   if (status === 'ExtractedFailed' || status === 'AnalyzedFailed' || status === 'ScoreComputedFailed') {
     return 'Este tipo de exame ainda não é suportado pela Examinus. Estamos trabalhando para suportar mais tipos em breve.';
+  }
+  if (status === 'ScoreComputedNull') {
+    return 'Não localizamos os itens deste exame na nossa base de dados. Estamos trabalhando para incluí-los e o exame poderá ser reprocessado futuramente.';
   }
   if (status === 'ProcessingTimeout') {
     return 'O processamento demorou mais que o esperado. Você pode tentar reprocessar.';
@@ -77,6 +81,7 @@ function getStatusColor(status: string) {
     Analyzed: 'orange.500',
     AnalyzedFailed: 'orange.500',
     ScoreComputed: 'ciano.500',
+    ScoreComputedNull: 'red.500',
     ScoreComputedFailed: 'orange.500',
     ProcessingTimeout: 'orange.600',
   };
@@ -86,7 +91,7 @@ function getStatusColor(status: string) {
 
 // Função para verificar se é um status de erro
 function isErrorStatus(status: string) {
-  return status.includes('Failed');
+  return status.includes('Failed') || status === 'ScoreComputedNull';
 }
 
 // Função para verificar se é status de processamento
@@ -114,7 +119,7 @@ const statusFilterMap: Record<string, string[]> = {
   '': [], // Todos
   processing: ['Received', 'Extracted', 'Analyzed', 'ProcessingTimeout'],
   completed: ['ScoreComputed'],
-  error: ['ExtractedFailed', 'AnalyzedFailed', 'ScoreComputedFailed'],
+  error: ['ExtractedFailed', 'AnalyzedFailed', 'ScoreComputedFailed', 'ScoreComputedNull'],
 };
 
 type ExamDataProps = {
@@ -533,7 +538,7 @@ export function ExamList() {
   }, []);
 
   return (
-    <VStack flex={1}>
+    <VStack flex={1} testID="screen-exam-list">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <VStack py={16} flex={1}>
         <HeaderTitle
@@ -870,7 +875,15 @@ export function ExamList() {
             </Text>
 
             {/* Mensagem contextual baseada no status */}
-            {selectedExamForAction && isErrorStatus(selectedExamForAction.medicalExamStatus) && (
+            {selectedExamForAction && selectedExamForAction.medicalExamStatus === 'ScoreComputedNull' && (
+              <Box bg="red.50" borderRadius={10} p={3} mt={3} mx={2}>
+                <Text fontSize={13} fontWeight={600} color="red.600" textAlign="center" lineHeight={18}>
+                  {getErrorDescription(selectedExamForAction.medicalExamStatus)}
+                </Text>
+              </Box>
+            )}
+
+            {selectedExamForAction && isErrorStatus(selectedExamForAction.medicalExamStatus) && selectedExamForAction.medicalExamStatus !== 'ScoreComputedNull' && (
               <Box bg="orange.50" borderRadius={10} p={3} mt={3} mx={2}>
                 <Text fontSize={13} fontWeight={500} color="orange.700" textAlign="center" lineHeight={18}>
                   {getErrorDescription(selectedExamForAction.medicalExamStatus)}
@@ -891,8 +904,8 @@ export function ExamList() {
             </Text>
           </Box>
 
-          {/* Só mostra reprocessar se for timeout - exames não suportados não vão funcionar com reprocessamento */}
-          {selectedExamForAction?.medicalExamStatus === 'ProcessingTimeout' && (
+          {/* Mostra reprocessar para timeout e ScoreComputedNull (itens não encontrados na base, podem ser adicionados futuramente) */}
+          {(selectedExamForAction?.medicalExamStatus === 'ProcessingTimeout' || selectedExamForAction?.medicalExamStatus === 'ScoreComputedNull') && (
             <Actionsheet.Item
               onPress={handleReprocessExam}
               isDisabled={isReprocessing}

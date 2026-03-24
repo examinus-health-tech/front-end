@@ -152,12 +152,12 @@ export function AboutUs() {
   };
 
   return (
-    <View flex={1}>
+    <View testID="screen-about-us" flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Header fixo */}
       <VStack pt={16} mx={6}>
-        <Header title="Sobre nós" handleBackTo={() => navigation.navigate('myAccount')} />
+        <Header title="Sobre nós" handleBackTo={() => navigation.goBack()} />
       </VStack>
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

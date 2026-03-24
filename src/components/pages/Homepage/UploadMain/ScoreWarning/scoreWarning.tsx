@@ -1,6 +1,7 @@
 import { VStack, Text, Image, Center } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
+import { trackUserAction, trackSilentFailure } from '@services/sentryService';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -41,6 +42,14 @@ export function ScoreWarning({ onClose }: ScoreWarningProps = {}) {
 
   function handleGoToHomepage() {
     console.log('🏠 Fechando modal de sucesso');
+
+    trackUserAction('bora_ficar_saudavel_click', 'ScoreWarning', {
+      hasOnClose: !!onClose,
+      hasSetWithSuccess: !!setWithSuccess,
+      hasShowTabBar: !!showTabBar,
+      navigationReady: !!navigation,
+    });
+
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(err =>
       console.log('Haptics não disponível:', err)
     );
@@ -52,16 +61,25 @@ export function ScoreWarning({ onClose }: ScoreWarningProps = {}) {
       // Senão, usa o comportamento antigo (UploadMain do onboarding)
       if (setWithSuccess) {
         setWithSuccess(false);
+      } else {
+        trackSilentFailure('bora_ficar_saudavel_click', 'ScoreWarning', 'setWithSuccess não disponível');
       }
       if (showTabBar) {
         showTabBar();
       }
     }
-    navigation.navigate('examList');
+
+    try {
+      navigation.navigate('examList');
+    } catch (err) {
+      trackSilentFailure('bora_ficar_saudavel_click', 'ScoreWarning', 'navigation.navigate falhou', {
+        error: String(err),
+      });
+    }
   }
 
   return (
-    <VStack flex={1} space={8} py={24} bg={'purple.500'}>
+    <VStack testID="screen-score-warning" flex={1} space={8} py={24} bg={'purple.500'}>
       <Image source={Vector} defaultSource={Vector} alt="X examinus Logo" resizeMode="stretch" w="100%" h={400} />
 
       <Center flex={1} alignItems="center">
@@ -85,6 +103,7 @@ export function ScoreWarning({ onClose }: ScoreWarningProps = {}) {
         </Text>
 
         <Button
+          testID="btn-score-continue"
           variant="outline"
           size="md"
           title="Bora ficar saudável"

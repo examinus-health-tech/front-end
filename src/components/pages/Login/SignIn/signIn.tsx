@@ -31,6 +31,7 @@ import { useState, useEffect } from 'react';
 import { logger } from '@utils/debugLogger';
 import NetworkDiagnosticsHelper from '@utils/networkDiagnostics';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import { trackUserAction, trackSilentFailure } from '@services/sentryService';
 
 type FormDataProps = {
   email: string;
@@ -101,6 +102,7 @@ export function SignIn() {
   async function handleSignIn(data: FormDataProps) {
     try {
       setIsLoading(true);
+      trackUserAction('login_email_click', 'SignIn', { email: data.email });
       logger.auth('Starting sign in from UI', { email: data.email, screen: 'SignIn' });
 
       // Run network diagnostics before attempting login
@@ -148,6 +150,7 @@ export function SignIn() {
 
   async function handleGoogleSignIn() {
     try {
+      trackUserAction('login_google_click', 'SignIn');
       await signInWithGoogle();
     } catch (error: any) {
       console.log('❌ Erro no login Google:', error);
@@ -160,6 +163,7 @@ export function SignIn() {
 
   async function handleAppleSignIn() {
     try {
+      trackUserAction('login_apple_click', 'SignIn');
       await signInWithApple();
     } catch (error: any) {
       console.log('❌ Erro no login Apple:', error);
@@ -173,6 +177,7 @@ export function SignIn() {
   async function handleBiometricSignIn() {
     try {
       setIsLoading(true);
+      trackUserAction('login_biometric_click', 'SignIn', { biometricType });
       console.log('👆 [SIGNIN] Iniciando login biometrico...');
 
       const result = await authenticateWithBiometric();
@@ -235,14 +240,14 @@ export function SignIn() {
         flex={1}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView
             flex={1}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
           >
-            <VStack justifyContent="space-between" flex={1} mx={6} py={32}>
+            <VStack testID="screen-login" justifyContent="space-between" flex={1} mx={6} py={32}>
 
         <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
           Entre
@@ -258,6 +263,7 @@ export function SignIn() {
           name="email"
           render={({ field: { onChange, value } }) => (
             <Input
+              testID="input-email"
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
                   <Icon as={<MailIcon solid color={!!errors.email?.message ? 'red' : 'black'} />} w="full" />
@@ -279,6 +285,7 @@ export function SignIn() {
           name="password"
           render={({ field: { onChange, value } }) => (
             <Input
+              testID="input-password"
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
                   <Icon as={<LockIcon solid color={!!errors.password?.message ? 'red' : 'black'} />} w="full" />
@@ -310,6 +317,7 @@ export function SignIn() {
         <HStack mt={-2} space={3} alignItems="center">
           <Box flex={1}>
             <Button
+              testID="btn-login"
               variant="primary"
               size="full"
               title="Conecte-se"

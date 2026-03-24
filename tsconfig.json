@@ -1,6 +1,7 @@
 {
   "extends": "expo/tsconfig.base",
   "include": ["styled-components.d.ts", "src/@types/png.d.ts", "src/@types/jsx.d.ts", "src"],
+  "exclude": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts", "**/*.spec.tsx", "__tests__", "__mocks__", "jest.setup.ts", "jest.config.js"],
   "compilerOptions": {
     "strict": false,
     "baseUrl": "./",

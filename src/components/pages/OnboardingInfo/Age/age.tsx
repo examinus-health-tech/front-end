@@ -165,6 +165,7 @@ export function Age() {
       </VStack>
 
       <Button
+        testID="btn-onboarding-continue"
         position="absolute"
         bottom={-50}
         variant="primary"

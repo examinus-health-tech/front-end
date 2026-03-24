@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { captureError, addBreadcrumb } from '@services/sentryService';
 
 interface UseErrorHandlerReturn {
   error: string | null;
@@ -12,6 +13,7 @@ export function useErrorHandler(): UseErrorHandlerReturn {
 
   const showError = useCallback((message: string) => {
     setError(message);
+    addBreadcrumb('ui.error', message);
   }, []);
 
   const clearError = useCallback(() => {
@@ -31,6 +33,15 @@ export function useErrorHandler(): UseErrorHandlerReturn {
       // Erro como string
       errorMessage = error;
     }
+
+    // Reportar ao Sentry
+    captureError(
+      error instanceof Error ? error : new Error(errorMessage),
+      {
+        source: 'useErrorHandler',
+        originalError: typeof error === 'object' ? JSON.stringify(error) : error,
+      }
+    );
 
     setError(errorMessage);
   }, []);

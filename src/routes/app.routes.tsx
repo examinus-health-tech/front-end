@@ -11,6 +11,7 @@ import { ChartIcon, ChecklistIcon, ExaminusIcon, HomeIcon, UserIcon } from '@ass
 import { Box, View } from 'native-base';
 import { TouchableOpacity } from 'react-native';
 import { OnboardingSteps } from '@components/pages/OnboardingInfo/onboarding';
+import { MedicationTimeline, MedicationForm as MedicationFormScreen, MedicationDetail, MedicationAdherence } from '@components/pages/Medication';
 import { TabBarContextProvider } from '@contexts/TabBarContext';
 import { useTabBar } from 'src/hooks/useTabBar';
 import { useOnboarding } from 'src/hooks/useOnboarding';
@@ -72,6 +73,10 @@ export type AppRoutes = {
   mentalHealthResult: { assessmentId?: string } | undefined;
   smartGoals: undefined;
   bonus: undefined;
+  medicationTimeline: undefined;
+  medicationForm: { medicationId?: string } | undefined;
+  medicationDetail: { medicationId: string };
+  medicationAdherence: undefined;
 };
 
 export type AppNavigatorRoutesProps = NativeStackNavigationProp<AppRoutes>;
@@ -81,7 +86,7 @@ const { Navigator, Screen } = createNativeStackNavigator<AppRoutes>();
 const Tab = createBottomTabNavigator<AppRoutes>();
 
 const CustomTabExaminusButton = ({ children, onPress }: BottomTabBarButtonProps) => (
-  <TouchableOpacity style={{}} onPress={onPress}>
+  <TouchableOpacity testID="tab-upload" style={{}} onPress={onPress}>
     <View
       style={{
         top: -40,
@@ -147,6 +152,7 @@ function HomeTabsContent() {
         name="homepage"
         component={Homepage}
         options={{
+          tabBarTestID: 'tab-home',
           tabBarIcon: ({ focused }) => (
             <View>
               <Box
@@ -168,6 +174,7 @@ function HomeTabsContent() {
         component={ExamList}
         options={{
           unmountOnBlur: true,
+          tabBarTestID: 'tab-exams',
           tabBarIcon: ({ focused }) => (
             <View>
               <Box
@@ -189,6 +196,7 @@ function HomeTabsContent() {
         component={UploadMain}
         options={{
           unmountOnBlur: true,
+          tabBarTestID: 'tab-upload',
           tabBarIcon: () => <ExaminusIcon />,
           tabBarButton: ({ children }) => (
             <View>
@@ -210,6 +218,7 @@ function HomeTabsContent() {
         component={HealthWallet}
         options={{
           unmountOnBlur: true,
+          tabBarTestID: 'tab-wallet',
           tabBarIcon: ({ focused }) => (
             <View>
               <Box
@@ -231,6 +240,7 @@ function HomeTabsContent() {
         component={MyAccount}
         options={{
           unmountOnBlur: true,
+          tabBarTestID: 'tab-account',
           tabBarIcon: ({ focused }) => (
             <View>
               <Box
@@ -419,6 +429,12 @@ function AppRoutesContent() {
       {/** MENTAL HEALTH */}
       <Screen name="mentalHealthForm" component={MentalHealthForm} />
       <Screen name="mentalHealthResult" component={MentalHealthResult} />
+
+      {/** MEDICATION */}
+      <Screen name="medicationTimeline" component={MedicationTimeline} />
+      <Screen name="medicationForm" component={MedicationFormScreen} />
+      <Screen name="medicationDetail" component={MedicationDetail} />
+      <Screen name="medicationAdherence" component={MedicationAdherence} />
 
       {/** FITNESS TRACKER */}
       {/* <Screen name="calories" component={Calories} /> */}

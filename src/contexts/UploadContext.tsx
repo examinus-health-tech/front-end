@@ -2,6 +2,7 @@ import { ReactNode, createContext, useEffect, useState, useMemo, useCallback } f
 import { DocumentPickerAsset } from 'expo-document-picker';
 import { api } from 'src/services/api';
 import { AppError } from '@utils/AppErrors';
+import { trackUserAction, trackSilentFailure, captureError } from '@services/sentryService';
 
 type ExamProps = {
   exam_id: number;
@@ -48,6 +49,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
 
   const handleUploadFile = useCallback(async ({ name, mimeType, uri, file, size }: DocumentPickerAsset) => {
     setIsLoading(true);
+    trackUserAction('exam_upload_start', 'UploadContext', { name, mimeType, size });
     console.log('📤 Iniciando upload:', {
       name,
       mimeType,
@@ -103,13 +105,19 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
         // Verificar se foi sucesso (2xx)
         if (response.status >= 200 && response.status < 300) {
           console.log('✅ Upload bem-sucedido!');
+          trackUserAction('exam_upload_success', 'UploadContext', { name: finalName });
           setFile(uploadFile);
           setWithSuccess(true);
           setWithError(false);
         } else {
           // Erro do servidor (4xx, 5xx)
           console.error('❌ Erro na resposta da API, status:', response.status);
-
+          captureError(new Error(`Upload falhou com status ${response.status}`), {
+            fileName: finalName,
+            fileType: finalType,
+            status: response.status,
+            responseData: response.data,
+          });
           setWithSuccess(false);
           setWithError(true);
           throw new Error(response.data?.message || `Erro ${response.status} no servidor`);

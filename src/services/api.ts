@@ -2,6 +2,7 @@ import axios, { AxiosError, AxiosInstance } from 'axios';
 import { AppError } from '@utils/AppErrors';
 import { storageAuthToken, storageAuthTokenGet } from '@storage/storageAuthToken';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { captureError, addBreadcrumb } from '@services/sentryService';
 
 type APIInstanceProps = AxiosInstance & {
   registerInterceptTokenManager: (signOut: () => void) => () => void;
@@ -150,6 +151,22 @@ api.registerInterceptTokenManager = (signOut) => {
 
         // Log completo expandido para debug detalhado
         console.error('📋 [API ERROR - Detalhes completos]', JSON.stringify(errorLog, null, 2));
+
+        // Reportar ao Sentry (erros 5xx e erros sem resposta)
+        if (!requestError.response || requestError.response.status >= 500) {
+          captureError(requestError, {
+            url: requestError.config?.url,
+            method: requestError.config?.method,
+            status: requestError.response?.status,
+            responseData: requestError.response?.data,
+          });
+        }
+
+        // Breadcrumb para todos os erros de API
+        addBreadcrumb('http', `API Error: ${requestError.config?.method?.toUpperCase()} ${requestError.config?.url}`, {
+          status: requestError.response?.status,
+          message: requestError.message,
+        }, 'error');
       }
 
       // Handle unauthorized access

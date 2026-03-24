@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { TouchableOpacity, useWindowDimensions, StatusBar, Platform } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, StatusBar, Platform, Linking, AppState } from 'react-native';
 import { CustomRefreshControl } from '@components/atoms';
-import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center, Avatar, useDisclose } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center, Avatar, useDisclose, Modal } from 'native-base';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
 import { api } from 'src/services/api';
@@ -49,7 +49,7 @@ import Vector10 from '@assets/png/vector-45.png';
 
 // components
 import { StatusCards, FeatureBanner } from '@components/molecules';
-import { BarbellIcon } from '@assets/icons';
+import { BarbellIcon, PillIcon } from '@assets/icons';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { useAuth } from 'src/hooks/useAuth';
 import { useHome } from 'src/hooks/useHome';
@@ -67,11 +67,17 @@ import { setFitnessEnabled } from '@services/fitnessService';
 import { checkCampaignVoucher } from '@services/campaignService';
 import { incrementAppOpenCount, shouldShowReviewPromptOnOpen } from '@services/reviewService';
 import { ReviewBottomSheet } from '@components/molecules';
+import { OneSignal } from 'react-native-onesignal';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // ⚠️ FLAG TEMPORÁRIA: Desabilita opção de habilitar fitness no Android
 // Motivo: Crash do Health Connect com New Architecture, aguardando build nativo
 // TODO: Remover após publicação do novo build na Play Store
 const DISABLE_FITNESS_FEATURE = Platform.OS === 'android';
+
+const NOTIFICATION_BANNER_ID = 'notification-permission-reminder';
+const NOTIFICATION_BANNER_DISMISS_KEY = '@examinus:notification_banner_dismissed_at';
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Função helper para determinar o texto baseado no score
 function getScoreText(score: number): string {
@@ -102,6 +108,7 @@ export function Homepage() {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const [dataLoadedForCurrentFocus, setDataLoadedForCurrentFocus] = useState<boolean>(false);
+  const [showNotificationBanner, setShowNotificationBanner] = useState<boolean>(false);
 
   const isFocused = useIsFocused();
   const [mentalHealthAssessment, setMentalHealthAssessment] = useState<MentalHealthAssessment | null>(null);
@@ -156,6 +163,7 @@ export function Homepage() {
       await refreshFitnessData();
       await fetchMentalHealthAssessment();
       await fetchVoucher();
+      await checkNotificationPermission();
     } catch (error) {
       console.error('Erro ao atualizar:', error);
     } finally {
@@ -185,6 +193,38 @@ export function Homepage() {
       setUnreadCount(0);
     }
   }
+  async function checkNotificationPermission() {
+    try {
+      const hasPermission = await OneSignal.Notifications.getPermissionAsync();
+      if (hasPermission) {
+        setShowNotificationBanner(false);
+        return;
+      }
+
+      // Permissão negada — verificar se o banner foi dismissido há menos de 7 dias
+      const dismissedAt = await AsyncStorage.getItem(NOTIFICATION_BANNER_DISMISS_KEY);
+      if (dismissedAt) {
+        const elapsed = Date.now() - parseInt(dismissedAt, 10);
+        if (elapsed < SEVEN_DAYS_MS) {
+          setShowNotificationBanner(false);
+          return;
+        }
+        // Passou de 7 dias — limpar o dismiss do FeatureBanner para re-exibir
+        const dismissed = await AsyncStorage.getItem('@examinus:dismissed_banners');
+        if (dismissed) {
+          const list: string[] = JSON.parse(dismissed);
+          const updated = list.filter((id) => id !== NOTIFICATION_BANNER_ID);
+          await AsyncStorage.setItem('@examinus:dismissed_banners', JSON.stringify(updated));
+        }
+        await AsyncStorage.removeItem(NOTIFICATION_BANNER_DISMISS_KEY);
+      }
+
+      setShowNotificationBanner(true);
+    } catch (error) {
+      console.log('⚠️ [HOMEPAGE] Erro ao verificar permissão de notificação:', error);
+    }
+  }
+
   const { width, height } = useWindowDimensions();
 
   const today = new Date();
@@ -236,6 +276,7 @@ export function Homepage() {
       fetchMentalHealthAssessment();
       fetchVoucher();
       loadProfilePhoto();
+      checkNotificationPermission();
     }
   }, [user?.userId]);
 
@@ -247,7 +288,7 @@ export function Homepage() {
       await incrementAppOpenCount();
       const shouldShow = await shouldShowReviewPromptOnOpen();
 
-      if (shouldShow) {
+      if (shouldShow && !showNotificationBanner) {
         // Pequeno delay para não mostrar imediatamente ao abrir
         setTimeout(() => {
           onReviewOpen();
@@ -265,6 +306,16 @@ export function Homepage() {
       setHasAnimated(false);
     }
   }, [isFocused]);
+
+  // Re-checar permissão de notificação ao voltar do background (ex: Settings do sistema)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        checkNotificationPermission();
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   // Rola para o topo e recarrega dados quando a tela ganhar foco
   useFocusEffect(
@@ -284,6 +335,7 @@ export function Homepage() {
       fetchUnreadCount();
       fetchMentalHealthAssessment();
       fetchVoucher();
+      checkNotificationPermission();
 
       // Busca foto de perfil se não tiver
       loadProfilePhoto();
@@ -374,7 +426,7 @@ export function Homepage() {
   }
 
   return (
-    <View flex={1}>
+    <View flex={1} testID="screen-homepage">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       {isLoading || isLoadingHomeContext || !dataLoadedForCurrentFocus ? (
         <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#E8E8E8" foregroundColor="#F5F5F5">
@@ -449,7 +501,7 @@ export function Homepage() {
                   </Text>
                 </VStack>
 
-                <TouchableOpacity onPress={() => navigation.navigate('notifications')}>
+                <TouchableOpacity testID="btn-notifications" onPress={() => navigation.navigate('notifications')}>
                   <Box w={14} h={14} bg={'white'} borderRadius={14} alignItems={'center'} justifyContent={'center'}>
                     {unreadCount > 0 && (
                       <Box
@@ -830,6 +882,45 @@ export function Homepage() {
               )}
             </Animated.View>
 
+            {/* Medicamentos - animação 3.7 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(300) : undefined}>
+              <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
+                <HStack alignItems="center" space={2}>
+                  <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                    Medicamentos
+                  </Text>
+                  <Box bg="orange.100" px={2} py={0.5} borderRadius={6}>
+                    <Text fontSize={10} fontWeight={700} color="orange.600">
+                      BETA
+                    </Text>
+                  </Box>
+                </HStack>
+
+                <TouchableOpacity onPress={() => navigation.navigate('medicationTimeline')}>
+                  <MoreIcon />
+                </TouchableOpacity>
+              </HStack>
+
+              <TouchableOpacity onPress={() => navigation.navigate('medicationTimeline')}>
+                <Box bg="white" borderRadius={12} p={4} mt={4} shadow={2}>
+                  <HStack alignItems="center" space={3}>
+                    <Box bg="ciano.50" w={12} h={12} borderRadius={12} alignItems="center" justifyContent="center">
+                      <PillIcon size="24" color="#0CC1AF" />
+                    </Box>
+                    <VStack flex={1}>
+                      <Text fontSize={14} fontWeight={700} color="gray.800">
+                        Gerencie seus medicamentos
+                      </Text>
+                      <Text fontSize={12} fontWeight={400} color="gray.500" lineHeight={16}>
+                        Cadastre remédios, receba lembretes e acompanhe sua adesão.
+                      </Text>
+                    </VStack>
+                    <ChevronRightIcon size="24" color="#0CC1AF" />
+                  </HStack>
+                </Box>
+              </TouchableOpacity>
+            </Animated.View>
+
             {/* Rastreador Fitness - animação 4 */}
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(350) : undefined}>
               <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
@@ -924,6 +1015,55 @@ export function Homepage() {
           </VStack>
         </ScrollView>
       )}
+
+      {/* Modal de permissão de notificações */}
+      <Modal isOpen={showNotificationBanner} onClose={async () => {
+        await AsyncStorage.setItem(NOTIFICATION_BANNER_DISMISS_KEY, Date.now().toString());
+        setShowNotificationBanner(false);
+      }}>
+        <Modal.Content bg="white" borderRadius={20} mx={6} shadow={9}>
+          <Modal.Body p={0}>
+            <VStack alignItems="center" px={6} py={8} space={3}>
+              <Box bg="ciano.100" w={16} h={16} borderRadius={16} alignItems="center" justifyContent="center">
+                <BellIcon size="32" color="#0CC1AF" />
+              </Box>
+
+              <Text fontSize={20} fontWeight={700} color="gray.900" textAlign="center" letterSpacing={-0.2}>
+                Ative as notificações
+              </Text>
+
+              <Text fontSize={14} fontWeight={500} color="gray.500" textAlign="center" lineHeight={20}>
+                Receba lembretes sobre seus exames, medicamentos e atualizações importantes de saúde.
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setShowNotificationBanner(false);
+                  Linking.openSettings();
+                }}
+                style={{ width: '100%', marginTop: 8 }}
+              >
+                <Box bg="ciano.400" borderRadius={12} py={3} alignItems="center">
+                  <Text fontSize={16} fontWeight={700} color="white">
+                    Ativar agora
+                  </Text>
+                </Box>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={async () => {
+                  await AsyncStorage.setItem(NOTIFICATION_BANNER_DISMISS_KEY, Date.now().toString());
+                  setShowNotificationBanner(false);
+                }}
+              >
+                <Text fontSize={14} fontWeight={600} color="gray.400" mt={1}>
+                  Agora não
+                </Text>
+              </TouchableOpacity>
+            </VStack>
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
 
       {/* Bottom Sheet de Avaliação */}
       <ReviewBottomSheet isOpen={isReviewOpen} onClose={onReviewClose} />
