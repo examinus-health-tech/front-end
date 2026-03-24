@@ -99,6 +99,7 @@ export type HomeContextDataProps = {
   homeData: homeProps;
   getHomeData: () => void;
   isLoadingHomeContext: boolean;
+  hasProcessingExams: boolean;
   trackerData: trackerProps;
   currentSystem: specificSystemProps;
   setCurrentSystem: (val: specificSystemProps) => void;
@@ -119,6 +120,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   const [trackerData, setTrackerData] = useState<trackerProps>({} as trackerProps);
   const [currentSystem, setCurrentSystem] = useState<specificSystemProps>({} as specificSystemProps);
   const [isLoadingHomeContext, setIsLoading] = useState<boolean>(false);
+  const [hasProcessingExams, setHasProcessingExams] = useState<boolean>(false);
   const [fitnessEnabled, setFitnessEnabled] = useState<boolean>(false);
 
   const { user } = useAuth();
@@ -492,14 +494,26 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       if (isNoDataError) {
         console.log('📭 [HomeContext] Nenhum exame com score encontrado, limpando dados');
         setHomeData({} as homeProps);
-        return;
+      } else {
+        // Para outros erros, loga e não quebra a aplicação
+        console.error('❌ [HomeContext] Erro ao buscar dados:', errorMessage);
       }
-
-      // Para outros erros, loga e não quebra a aplicação
-      console.error('❌ [HomeContext] Erro ao buscar dados:', errorMessage);
-    } finally {
-      setIsLoading(false);
     }
+
+    // Verificar se há exames em processamento
+    try {
+      const examResponse = await api.get('/medical-exam/get-all-exams-upload-by-logged-user');
+      const exams = examResponse.data?.data || examResponse.data || [];
+      const processingStatuses = ['Received', 'Extracted', 'Analyzed'];
+      const hasProcessing = Array.isArray(exams) && exams.some(
+        (exam: any) => processingStatuses.includes(exam.medicalExamStatus)
+      );
+      setHasProcessingExams(hasProcessing);
+    } catch {
+      setHasProcessingExams(false);
+    }
+
+    setIsLoading(false);
   }
 
   function clearHomeData() {
@@ -516,6 +530,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         homeData,
         getHomeData,
         isLoadingHomeContext,
+        hasProcessingExams,
         trackerData,
         currentSystem,
         setCurrentSystem,

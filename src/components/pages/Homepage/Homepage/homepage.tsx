@@ -111,7 +111,7 @@ export function Homepage() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { user, getUserInfo, isLoading, updateUserPhoto } = useAuth();
-  const { getHomeData, homeData, trackerData, isLoadingHomeContext, fitnessEnabled, refreshFitnessData } = useHome();
+  const { getHomeData, homeData, trackerData, isLoadingHomeContext, hasProcessingExams, fitnessEnabled, refreshFitnessData } = useHome();
   const { showTabBar } = useTabBar();
 
   // Calcula userWithoutData de forma síncrona (durante o render) para evitar flicker
@@ -568,6 +568,25 @@ export function Homepage() {
                           </Text>
                         </Box>
                       </VStack>
+                    )}
+
+                    {hasProcessingExams && (
+                      <Box
+                        mt={3}
+                        px={4}
+                        py={3}
+                        bg="blue.50"
+                        borderRadius={8}
+                        borderWidth={1}
+                        borderColor="blue.200"
+                      >
+                        <Text fontSize={13} fontWeight={600} lineHeight={18} textAlign="center" color="blue.700">
+                          📋 Exame em análise
+                        </Text>
+                        <Text fontSize={12} fontWeight={500} lineHeight={16} mt={1} textAlign="center" color="blue.600">
+                          Seu exame está sendo processado. Em poucos minutos o resultado estará disponível. Você receberá uma notificação quando estiver pronto.
+                        </Text>
+                      </Box>
                     )}
                   </VStack>
                 </Box>

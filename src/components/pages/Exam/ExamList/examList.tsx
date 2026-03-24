@@ -41,20 +41,11 @@ type FilterState = {
   status: string;
 };
 
-// Função para mapear status do exame para mensagens amigáveis
+// Função para mapear status do exame para 3 categorias simplificadas
 function getStatusMessage(status: string) {
-  const statusMap = {
-    Received: 'Recebido',
-    Extracted: 'Extraído',
-    ExtractedFailed: 'Não suportado',
-    Analyzed: 'Analisado',
-    AnalyzedFailed: 'Não suportado',
-    ScoreComputed: 'Concluído',
-    ScoreComputedFailed: 'Não suportado',
-    ProcessingTimeout: 'Tempo excedido',
-  };
-
-  return statusMap[status as keyof typeof statusMap] || status;
+  if (status === 'ScoreComputed') return 'Concluído';
+  if (isErrorStatus(status) || status === 'ProcessingTimeout') return 'Erro';
+  return 'Em análise';
 }
 
 // Função para obter descrição detalhada do erro
@@ -68,20 +59,11 @@ function getErrorDescription(status: string) {
   return 'O exame está sendo processado. Aguarde alguns instantes.';
 }
 
-// Função para obter a cor do status
+// Função para obter a cor do status (3 categorias)
 function getStatusColor(status: string) {
-  const colorMap = {
-    Received: 'blue.500',
-    Extracted: 'blue.600',
-    ExtractedFailed: 'orange.500',
-    Analyzed: 'orange.500',
-    AnalyzedFailed: 'orange.500',
-    ScoreComputed: 'ciano.500',
-    ScoreComputedFailed: 'orange.500',
-    ProcessingTimeout: 'orange.600',
-  };
-
-  return colorMap[status as keyof typeof colorMap] || 'gray.500';
+  if (status === 'ScoreComputed') return 'green.500';
+  if (isErrorStatus(status) || status === 'ProcessingTimeout') return 'red.500';
+  return 'blue.500'; // Em análise
 }
 
 // Função para verificar se é um status de erro
