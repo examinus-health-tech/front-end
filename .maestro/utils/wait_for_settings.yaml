@@ -1,0 +1,21 @@
+appId: com.examinus.app
+---
+# Navega para settings root (screen-settings)
+# Tap tab-account duas vezes: primeira muda para a tab, segunda faz pop to root
+
+- tapOn:
+    id: "tab-account"
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- tapOn:
+    id: "tab-account"
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000

@@ -1,0 +1,46 @@
+appId: com.examinus.app
+name: "Medicamentos - Timeline e navegação"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Scroll até seção Medicamentos na homepage
+- scrollUntilVisible:
+    element: "Medicamentos"
+    direction: DOWN
+    timeout: 10000
+
+# Tocar na seção de medicamentos
+- tapOn:
+    text: ".*Gerencie seus medicamentos.*"
+
+# Verificar tela de medicamentos via testID
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Verificar botão de adicionar (pode precisar scroll se tem medicamentos)
+- scrollUntilVisible:
+    element:
+      id: "btn-add-medication"
+    direction: DOWN
+    timeout: 15000
+
+- assertVisible:
+    id: "btn-add-medication"
+
+- takeScreenshot: "08_medication_timeline"
+
+# Voltar — o Timeline não tem btn-back, usar navegação do sistema
+# A Timeline é acessada via stack, precisa navegar de volta manualmente
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+    optional: true

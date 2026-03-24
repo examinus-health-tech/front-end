@@ -1,0 +1,23 @@
+appId: com.examinus.app
+---
+# Subflow: navega para a homepage logada
+# Double-tap tab-home para garantir pop to root
+- launchApp:
+    stopApp: false
+
+- tapOn:
+    id: "tab-home"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Aguardar homepage
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 20000

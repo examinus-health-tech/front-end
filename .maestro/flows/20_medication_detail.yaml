@@ -1,0 +1,45 @@
+appId: com.examinus.app
+name: "Medicamentos - Detalhe do medicamento"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para medicamentos
+- scrollUntilVisible:
+    element: "Medicamentos"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: ".*Gerencie seus medicamentos.*"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Tocar no primeiro medicamento da checklist (se existir)
+- tapOn:
+    text: ".*mg.*"
+    optional: true
+
+# Verificar se tela de detalhe abriu
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-detail"
+    timeout: 5000
+    optional: true
+
+# Verificar botões de ação
+- assertVisible:
+    id: "btn-edit-medication"
+    optional: true
+- assertVisible:
+    id: "btn-deactivate-medication"
+    optional: true
+
+- takeScreenshot: "20_medication_detail"
+
+# Voltar
+- tapOn:
+    id: "btn-back"

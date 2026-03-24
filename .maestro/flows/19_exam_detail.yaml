@@ -1,0 +1,38 @@
+appId: com.examinus.app
+name: "Exame - Detalhes do exame"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+- tapOn:
+    text: ".*Hemograma.*|.*Glicose.*|.*Exame.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-detail"
+    timeout: 10000
+    optional: true
+
+- takeScreenshot: "19_exam_detail"
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

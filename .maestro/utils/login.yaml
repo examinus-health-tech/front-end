@@ -1,0 +1,45 @@
+appId: com.examinus.app
+---
+# Subflow: faz login completo desde o zero
+# Uso: - runFlow: ../utils/login.yaml
+# Requer: variáveis de ambiente EMAIL e PASSWORD
+
+# Aguardar app carregar (splash ~6s + fonts)
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 30000
+
+# Ir para tela de login via botão "Conecte-se."
+- tapOn:
+    id: "btn-go-to-login"
+
+# Aguardar tela de login
+- extendedWaitUntil:
+    visible:
+      id: "screen-login"
+    timeout: 10000
+
+# Preencher email
+- tapOn:
+    id: "input-email"
+- inputText: ${EMAIL}
+- tapOn:
+    point: "50%,30%"
+
+# Preencher senha
+- tapOn:
+    id: "input-password"
+- inputText: ${PASSWORD}
+- tapOn:
+    point: "50%,30%"
+
+# Clicar no botão de login
+- tapOn:
+    id: "btn-login"
+
+# Aguardar homepage carregar (pode demorar: API + onboarding check)
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 30000

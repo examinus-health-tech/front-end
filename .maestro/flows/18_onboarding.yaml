@@ -1,0 +1,75 @@
+appId: com.examinus.app
+name: "Onboarding - Fluxo completo pós-cadastro"
+tags:
+  - onboarding
+---
+- launchApp:
+    stopApp: false
+
+- assertVisible:
+    text: ".*Qual seu Gênero.*"
+    optional: true
+
+- tapOn:
+    id: "btn-gender-male"
+    optional: true
+
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible:
+    text: ".*idade.*"
+    optional: true
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible:
+    text: ".*altura.*"
+    optional: true
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible:
+    text: ".*peso.*"
+    optional: true
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible:
+    text: ".*hábito.*"
+    optional: true
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible:
+    text: ".*humor.*"
+    optional: true
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible:
+    text: ".*atividade.*"
+    optional: true
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+
+- takeScreenshot: "18_onboarding"

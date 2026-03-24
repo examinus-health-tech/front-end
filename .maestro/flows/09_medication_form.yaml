@@ -1,0 +1,59 @@
+appId: com.examinus.app
+name: "Medicamentos - Formulário de cadastro"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para medicamentos
+- scrollUntilVisible:
+    element: "Medicamentos"
+    direction: DOWN
+    timeout: 10000
+- tapOn:
+    text: ".*Gerencie seus medicamentos.*"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Abrir formulário
+- tapOn:
+    id: "btn-add-medication"
+
+# Verificar tela do formulário
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-form"
+    timeout: 10000
+
+# Preencher nome
+- tapOn:
+    id: "input-medication-name"
+- inputText: "Dipirona Teste"
+- tapOn:
+    point: "50%,30%"
+
+# Preencher dosagem
+- tapOn:
+    id: "input-medication-dosage"
+- inputText: "500mg"
+- tapOn:
+    point: "50%,30%"
+
+# Verificar botão de salvar
+- scrollUntilVisible:
+    element:
+      id: "btn-save-medication"
+    direction: DOWN
+    timeout: 10000
+
+- assertVisible:
+    id: "btn-save-medication"
+
+- takeScreenshot: "09_medication_form"
+
+# NÃO salvar - apenas voltar
+- tapOn:
+    id: "btn-back"

@@ -1,0 +1,10 @@
+appId: com.examinus.app
+name: "Login - Email e senha"
+---
+- launchApp:
+    stopApp: false
+
+# Fazer login completo via utilitário
+- runFlow: ../utils/login.yaml
+
+- takeScreenshot: "02_login_success"

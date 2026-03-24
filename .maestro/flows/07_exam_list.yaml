@@ -1,0 +1,29 @@
+appId: com.examinus.app
+name: "Exames - Lista e navegação"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para lista de exames via tab bar (testID)
+- tapOn:
+    id: "tab-exams"
+
+# Verificar tela de exames via testID
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+- assertVisible: "Exames Realizados"
+
+- takeScreenshot: "07_exam_list"
+
+# Voltar para homepage via tab bar
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

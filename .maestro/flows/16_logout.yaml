@@ -1,0 +1,42 @@
+appId: com.examinus.app
+name: "Logout - Fluxo de saída"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta via tab bar
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Scroll até Sair e clicar via testID
+- scrollUntilVisible:
+    element:
+      id: "card-logout"
+    direction: DOWN
+    timeout: 20000
+
+- tapOn:
+    id: "card-logout"
+
+# Aguardar modal de confirmação
+- extendedWaitUntil:
+    visible: "Sair da Conta"
+    timeout: 5000
+
+# Confirmar logout via testID
+- tapOn:
+    id: "btn-confirm-logout"
+
+# Deve voltar para tela de welcome
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 15000
+
+- takeScreenshot: "16_logout"
