@@ -1,0 +1,27 @@
+appId: com.examinus.app
+name: "Carteira de Saúde - Navegação"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Carteira de Saúde via tab bar
+- tapOn:
+    id: "tab-wallet"
+
+# Verificar que carregou
+- extendedWaitUntil:
+    visible:
+      text: ".*Score.*|.*Carteira.*"
+    timeout: 10000
+
+- takeScreenshot: "17_health_wallet"
+
+# Voltar para homepage
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

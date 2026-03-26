@@ -1,0 +1,27 @@
+appId: com.examinus.app
+name: "Welcome - Fluxo de boas-vindas"
+---
+- launchApp:
+    stopApp: false
+
+# Aguardar tela de Welcome via testID
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 30000
+
+- takeScreenshot: "01_welcome"
+
+# Verificar elementos da tela
+- assertVisible: "Iniciar"
+- assertVisible:
+    text: ".*Conecte-se.*"
+
+# Navegar via botão Iniciar
+- tapOn:
+    id: "btn-start"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- takeScreenshot: "01_after_iniciar"

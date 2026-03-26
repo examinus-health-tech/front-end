@@ -61,7 +61,7 @@ export function ScoreWarning({ onClose }: ScoreWarningProps = {}) {
   }
 
   return (
-    <VStack flex={1} space={8} py={24} bg={'purple.500'}>
+    <VStack testID="screen-score-warning" flex={1} space={8} py={24} bg={'purple.500'}>
       <Image source={Vector} defaultSource={Vector} alt="X examinus Logo" resizeMode="stretch" w="100%" h={400} />
 
       <Center flex={1} alignItems="center">
@@ -85,6 +85,7 @@ export function ScoreWarning({ onClose }: ScoreWarningProps = {}) {
         </Text>
 
         <Button
+          testID="btn-score-continue"
           variant="outline"
           size="md"
           title="Bora ficar saudável"

@@ -1,0 +1,101 @@
+appId: com.examinus.app
+name: "Tracker - Sub-páginas"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- scrollUntilVisible:
+    element: "Rastreador Fitness"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Rastreador Fitness"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+
+# Peso
+- scrollUntilVisible:
+    element: "Peso"
+    direction: DOWN
+    timeout: 5000
+- tapOn: "Peso"
+- extendedWaitUntil:
+    visible:
+      id: "screen-weight"
+    timeout: 10000
+- tapOn:
+    id: "btn-back"
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+
+# Calorias
+- tapOn:
+    text: ".*Calorias.*"
+- extendedWaitUntil:
+    visible:
+      id: "screen-calories"
+    timeout: 10000
+- tapOn:
+    id: "btn-back"
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+
+# Sono
+- scrollUntilVisible:
+    element: "Sono"
+    direction: DOWN
+    timeout: 5000
+- tapOn: "Sono"
+- extendedWaitUntil:
+    visible:
+      id: "screen-sleep"
+    timeout: 10000
+- tapOn:
+    id: "btn-back"
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+
+# Hidratação
+- scrollUntilVisible:
+    element:
+      text: ".*Hidrata.*"
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    text: ".*Hidrata.*"
+- extendedWaitUntil:
+    visible:
+      id: "screen-hydration"
+    timeout: 10000
+- tapOn:
+    id: "btn-back"
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+
+# Nutrição
+- scrollUntilVisible:
+    element:
+      text: ".*Nutri.*"
+    direction: DOWN
+    timeout: 5000
+- tapOn:
+    text: ".*Nutri.*"
+- extendedWaitUntil:
+    visible:
+      id: "screen-nutrition"
+    timeout: 10000
+- tapOn:
+    id: "btn-back"
+
+- takeScreenshot: "27_tracker_subpages"

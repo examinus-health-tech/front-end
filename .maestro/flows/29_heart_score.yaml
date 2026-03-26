@@ -1,0 +1,38 @@
+appId: com.examinus.app
+name: "Heart Score - Detalhes do sistema"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- tapOn:
+    id: "tab-wallet"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-health-wallet"
+    timeout: 10000
+
+- tapOn:
+    text: ".*Ver detalhes.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-heart-score"
+    timeout: 10000
+    optional: true
+
+- takeScreenshot: "29_heart_score"
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

@@ -1,0 +1,44 @@
+appId: com.examinus.app
+name: "Configurações - Navegação completa"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta via tab bar (testID)
+- tapOn:
+    id: "tab-account"
+
+# Verificar tela de configurações via testID
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Verificar cards via testIDs
+- assertVisible:
+    id: "card-personal-info"
+- assertVisible:
+    id: "card-notifications"
+- assertVisible:
+    id: "card-security"
+
+# Scroll para ver card de logout
+- scrollUntilVisible:
+    element:
+      id: "card-logout"
+    direction: DOWN
+
+- assertVisible:
+    id: "card-logout"
+
+- takeScreenshot: "11_settings"
+
+# Voltar para homepage via tab bar
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

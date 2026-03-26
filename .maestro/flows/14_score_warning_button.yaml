@@ -1,0 +1,17 @@
+appId: com.examinus.app
+name: "Score Warning - Regressão botão pós-upload"
+tags:
+  - authenticated
+  - regression
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- assertVisible:
+    id: "screen-score-warning"
+    optional: true
+
+- tapOn:
+    id: "btn-score-continue"
+    optional: true
+
+- takeScreenshot: "14_score_warning"

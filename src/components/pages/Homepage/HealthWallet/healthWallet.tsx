@@ -220,7 +220,7 @@ export function HealthWallet() {
   }
 
   return (
-    <VStack py={16} flex={1}>
+    <VStack testID="screen-health-wallet" py={16} flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       <HeaderTitle title="Carteira de Saúde" withBackButton={() => navigation.navigate('homepage')} />
 

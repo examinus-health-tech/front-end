@@ -1,0 +1,32 @@
+appId: com.examinus.app
+name: "Saúde Mental - Formulário DASS-21"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- scrollUntilVisible:
+    element:
+      text: ".*Saúde Mental.*"
+    direction: DOWN
+    timeout: 15000
+
+- tapOn:
+    text: ".*Avalie sua saúde mental.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-mental-health-form"
+    timeout: 10000
+    optional: true
+
+- assertVisible:
+    id: "btn-mental-next"
+    optional: true
+
+- takeScreenshot: "15_mental_health"
+
+- tapOn:
+    id: "btn-back"
+    optional: true

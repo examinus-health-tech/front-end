@@ -1,0 +1,40 @@
+appId: com.examinus.app
+name: "Setup - Conectar e fechar dev menu"
+---
+- launchApp:
+    stopApp: false
+
+# Aguardar tela do dev client carregar
+- repeat:
+    times: 3
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 3000
+
+# Conectar ao dev server (tenta ambos os patterns)
+- tapOn:
+    text: ".*http.*8081.*"
+    optional: true
+- tapOn:
+    text: ".*10.0.2.2.*"
+    optional: true
+- tapOn:
+    text: ".*192.168.*"
+    optional: true
+- tapOn:
+    text: ".*localhost.*"
+    optional: true
+
+# Fechar developer menu se aparecer
+- tapOn:
+    text: "Continue"
+    optional: true
+
+# Aguardar app carregar (splash 6s + fonts até 10s)
+- repeat:
+    times: 8
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 5000
+
+- takeScreenshot: "00_app_ready"

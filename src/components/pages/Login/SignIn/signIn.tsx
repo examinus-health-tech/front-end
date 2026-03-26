@@ -242,7 +242,7 @@ export function SignIn() {
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
           >
-            <VStack justifyContent="space-between" flex={1} mx={6} py={32}>
+            <VStack testID="screen-login" justifyContent="space-between" flex={1} mx={6} py={32}>
 
         <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={3}>
           Entre
@@ -258,6 +258,7 @@ export function SignIn() {
           name="email"
           render={({ field: { onChange, value } }) => (
             <Input
+              testID="input-email"
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
                   <Icon as={<MailIcon solid color={!!errors.email?.message ? 'red' : 'black'} />} w="full" />
@@ -279,6 +280,7 @@ export function SignIn() {
           name="password"
           render={({ field: { onChange, value } }) => (
             <Input
+              testID="input-password"
               InputLeftElement={
                 <Flex ml={4} align="center" justify="center">
                   <Icon as={<LockIcon solid color={!!errors.password?.message ? 'red' : 'black'} />} w="full" />
@@ -310,6 +312,7 @@ export function SignIn() {
         <HStack mt={-2} space={3} alignItems="center">
           <Box flex={1}>
             <Button
+              testID="btn-login"
               variant="primary"
               size="full"
               title="Conecte-se"

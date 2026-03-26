@@ -1,0 +1,50 @@
+appId: com.examinus.app
+name: "Configurações - Meu Voucher"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- tapOn:
+    id: "tab-account"
+- tapOn:
+    id: "tab-account"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      id: "card-bonus"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-bonus"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-bonus"
+    timeout: 10000
+
+- takeScreenshot: "25_settings_bonus"
+
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

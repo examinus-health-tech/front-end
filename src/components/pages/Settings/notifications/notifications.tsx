@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { VStack, Text, ScrollView, IScrollViewProps, View, StatusBar } from 'native-base';
-import { useNavigation } from '@react-navigation/native';
+import { VStack, Text, ScrollView, IScrollViewProps, View, StatusBar, HStack, Box } from 'native-base';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { Linking, AppState } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OneSignal } from 'react-native-onesignal';
 import { api } from '@services/api';
@@ -26,6 +27,29 @@ export function ConfigNotifications() {
   const [examInfo, setExamInfo] = useState(true);
   const [chatbotNotifications, setChatbotNotifications] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [pushEnabled, setPushEnabled] = useState(true);
+
+  async function checkPushPermission() {
+    const granted = await OneSignal.Notifications.getPermissionAsync();
+    setPushEnabled(granted);
+  }
+
+  // Checar ao ganhar foco na navegação
+  useFocusEffect(
+    useCallback(() => {
+      checkPushPermission();
+    }, [])
+  );
+
+  // Checar ao voltar do background (ex: retorno das Settings do sistema)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        checkPushPermission();
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   // Carregar preferências ao montar o componente
   useEffect(() => {
@@ -147,7 +171,7 @@ export function ConfigNotifications() {
   }, [dailyReminders, healthInsights, examInfo, savePreference]);
 
   return (
-    <View flex={1}>
+    <View testID="screen-config-notifications" flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Header fixo */}
@@ -157,7 +181,26 @@ export function ConfigNotifications() {
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
         <VStack flex={1} mx={6} mb={20}>
-          <VStack>
+          {/* Status da permissão de push */}
+          <Card
+            title="Notificações Push"
+            subTitle={pushEnabled ? 'Ativadas no sistema' : 'Desativadas no sistema — toque para ativar'}
+            variant="description"
+            action={pushEnabled ? 'switch' : 'chevron'}
+            switchValue={pushEnabled}
+            onSwitchChange={() => Linking.openSettings()}
+            goTo={() => Linking.openSettings()}
+          />
+
+          {!pushEnabled && (
+            <Box bg="ciano.50" borderRadius={12} px={4} py={3} mt={2} mb={2} borderWidth={1} borderColor="ciano.200">
+              <Text fontSize={12} fontWeight={500} color="gray.600" lineHeight={16}>
+                Ative as notificações para não perder lembretes de exames e medicamentos.
+              </Text>
+            </Box>
+          )}
+
+          <VStack mt={4}>
           <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
             Configurações Gerais
           </Text>

@@ -102,6 +102,7 @@ export function Humour() {
       </VStack>
 
       <Button
+        testID="btn-onboarding-continue"
         position="absolute"
         bottom={-50}
         variant="primary"

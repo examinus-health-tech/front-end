@@ -16,7 +16,7 @@ export function Hello() {
   const navigation = useNavigation<AuthNavigatorRoutesProps>();
 
   return (
-    <Flex justify="space-evenly" h="100%" mt={8}>
+    <Flex justify="space-evenly" h="100%" mt={8} testID="screen-welcome">
       <Image source={Vector} alt="Vetor" resizeMode="stretch" position="absolute" bottom={230} w="100%" h="35%" />
 
       <Center>
@@ -42,6 +42,7 @@ export function Hello() {
 
       <Center mt={64}>
         <Button
+          testID="btn-start"
           title="Iniciar"
           icon={<ArrowIcon size="32" />}
           variant="primary"
@@ -54,7 +55,7 @@ export function Hello() {
             Já tem uma conta?
           </Text>
 
-          <TouchableOpacity onPress={() => navigation.navigate('signIn')}>
+          <TouchableOpacity testID="btn-go-to-login" onPress={() => navigation.navigate('signIn')}>
             <Text fontSize={16} color="purple.600" fontWeight={800} lineHeight={38} underline letterSpacing={-0.14}>
               {' '}
               Conecte-se.

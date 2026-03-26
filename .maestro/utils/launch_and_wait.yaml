@@ -1,0 +1,12 @@
+appId: com.examinus.app
+---
+# Subflow: abre o app sem resetar (preserva conexão ao Metro)
+- launchApp:
+    stopApp: false
+
+# Aguardar carregamento
+- repeat:
+    times: 5
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 5000

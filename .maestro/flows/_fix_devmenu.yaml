@@ -1,0 +1,12 @@
+appId: com.examinus.app
+name: "Fix - Fechar dev menu e esperar"
+---
+- launchApp:
+    stopApp: false
+- tapOn: "Continue"
+- repeat:
+    times: 8
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 5000
+- takeScreenshot: "devmenu_fixed"

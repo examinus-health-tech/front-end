@@ -51,6 +51,7 @@ export function Gender() {
       <ScrollView horizontal ref={scrollRef} mt={-16} pr={10} showsHorizontalScrollIndicator={false}>
         <HStack space={8} alignItems="center">
           <TouchableOpacity
+            testID="btn-gender-female"
             onPress={() => {
               setGender('F');
               scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -102,6 +103,7 @@ export function Gender() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            testID="btn-gender-male"
             onPress={() => {
               setGender('M');
               scrollRef.current?.scrollToEnd({ animated: true });
@@ -168,6 +170,7 @@ export function Gender() {
           />
 
           <Button
+            testID="btn-onboarding-continue"
             variant="primary"
             size="full"
             title="Continuar"
