@@ -22,7 +22,7 @@ export interface HealthConnectData {
 // Verifica se Health Connect está disponível (só Android)
 export async function isHealthConnectAvailable(): Promise<boolean> {
   if (Platform.OS !== 'android') {
-    console.log('[HEALTH_CONNECT] Health Connect não disponível - plataforma:', Platform.OS);
+    if (__DEV__) console.log('[HEALTH_CONNECT] Health Connect não disponível - plataforma:', Platform.OS);
     return false;
   }
 
@@ -35,17 +35,17 @@ export async function isHealthConnectAvailable(): Promise<boolean> {
 
     const status = await Promise.race([statusPromise, timeoutPromise]);
     if (status === SdkAvailabilityStatus.SDK_AVAILABLE) {
-      console.log('[HEALTH_CONNECT] SDK disponível');
+      if (__DEV__) console.log('[HEALTH_CONNECT] SDK disponível');
       return true;
     } else if (status === SdkAvailabilityStatus.SDK_UNAVAILABLE_PROVIDER_UPDATE_REQUIRED) {
-      console.log('[HEALTH_CONNECT] Health Connect precisa ser atualizado');
+      if (__DEV__) console.log('[HEALTH_CONNECT] Health Connect precisa ser atualizado');
       return false;
     } else {
-      console.log('[HEALTH_CONNECT] SDK não disponível:', status);
+      if (__DEV__) console.log('[HEALTH_CONNECT] SDK não disponível:', status);
       return false;
     }
   } catch (error) {
-    console.error('[HEALTH_CONNECT] Erro ao verificar disponibilidade:', error);
+    if (__DEV__) console.error('[HEALTH_CONNECT] Erro ao verificar disponibilidade:', error);
     return false;
   }
 }
@@ -66,7 +66,7 @@ export async function initHealthConnect(): Promise<boolean> {
   }
 
   if (isInitializing) {
-    console.log('[HEALTH_CONNECT] Já está inicializando, aguardando...');
+    if (__DEV__) console.log('[HEALTH_CONNECT] Já está inicializando, aguardando...');
     // Aguarda a inicialização em andamento
     await new Promise(resolve => setTimeout(resolve, 1000));
     return isInitialized;
@@ -84,18 +84,18 @@ export async function initHealthConnect(): Promise<boolean> {
       );
       initialized = await Promise.race([initPromise, timeoutPromise]);
     } catch (initError) {
-      console.error('[HEALTH_CONNECT] Exceção ao inicializar SDK:', initError);
+      if (__DEV__) console.error('[HEALTH_CONNECT] Exceção ao inicializar SDK:', initError);
       isInitializing = false;
       return false;
     }
 
     if (!initialized) {
-      console.error('[HEALTH_CONNECT] Falha ao inicializar (timeout ou retorno false)');
+      if (__DEV__) console.error('[HEALTH_CONNECT] Falha ao inicializar (timeout ou retorno false)');
       isInitializing = false;
       return false;
     }
 
-    console.log('[HEALTH_CONNECT] SDK inicializado');
+    if (__DEV__) console.log('[HEALTH_CONNECT] SDK inicializado');
 
     // Solicita permissões com retry em caso de erro de inicialização do delegate
     let retries = 3;
@@ -118,7 +118,7 @@ export async function initHealthConnect(): Promise<boolean> {
 
         const permissions = await Promise.race([permPromise, timeoutPromise]);
 
-        console.log('[HEALTH_CONNECT] Permissões concedidas:', permissions);
+        if (__DEV__) console.log('[HEALTH_CONNECT] Permissões concedidas:', permissions);
         isInitialized = true;
         isInitializing = false;
         return true;
@@ -128,7 +128,7 @@ export async function initHealthConnect(): Promise<boolean> {
         if (errorMsg.includes('lateinit property') ||
             errorMsg.includes('requestPermission has not been initialized') ||
             errorMsg.includes('Timeout')) {
-          console.warn(`[HEALTH_CONNECT] Tentativa ${4 - retries}/3 falhou: ${errorMsg}`);
+          if (__DEV__) console.warn(`[HEALTH_CONNECT] Tentativa ${4 - retries}/3 falhou: ${errorMsg}`);
           retries--;
           // Aguarda antes de tentar novamente (delay crescente)
           await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries)));
@@ -136,10 +136,10 @@ export async function initHealthConnect(): Promise<boolean> {
           try {
             await initialize();
           } catch (reinitError) {
-            console.warn('[HEALTH_CONNECT] Erro ao reinicializar:', reinitError);
+            if (__DEV__) console.warn('[HEALTH_CONNECT] Erro ao reinicializar:', reinitError);
           }
         } else {
-          console.error('[HEALTH_CONNECT] Erro não recuperável em permissões:', permError);
+          if (__DEV__) console.error('[HEALTH_CONNECT] Erro não recuperável em permissões:', permError);
           isInitializing = false;
           return false;
         }
@@ -147,11 +147,11 @@ export async function initHealthConnect(): Promise<boolean> {
     }
 
     // Se chegou aqui, não conseguiu após retries
-    console.warn('[HEALTH_CONNECT] Não foi possível solicitar permissões após 3 tentativas');
+    if (__DEV__) console.warn('[HEALTH_CONNECT] Não foi possível solicitar permissões após 3 tentativas');
     isInitializing = false;
     return false;
   } catch (error) {
-    console.error('[HEALTH_CONNECT] Erro fatal ao inicializar:', error);
+    if (__DEV__) console.error('[HEALTH_CONNECT] Erro fatal ao inicializar:', error);
     isInitializing = false;
     return false;
   }
@@ -171,7 +171,7 @@ async function getSteps(startDate: Date, endDate: Date): Promise<number> {
     const total = result.records.reduce((sum, record: any) => sum + (record.count || 0), 0);
     return total;
   } catch (error) {
-    console.warn('[HEALTH_CONNECT] Erro ao buscar passos:', error);
+    if (__DEV__) console.warn('[HEALTH_CONNECT] Erro ao buscar passos:', error);
     return 0;
   }
 }
@@ -194,7 +194,7 @@ async function getDistance(startDate: Date, endDate: Date): Promise<number> {
 
     return totalMeters / 1000;
   } catch (error) {
-    console.warn('[HEALTH_CONNECT] Erro ao buscar distância:', error);
+    if (__DEV__) console.warn('[HEALTH_CONNECT] Erro ao buscar distância:', error);
     return 0;
   }
 }
@@ -235,7 +235,7 @@ async function getCaloriesBurned(startDate: Date, endDate: Date): Promise<number
       return Math.round(activeCalories);
     }
   } catch (error) {
-    console.warn('[HEALTH_CONNECT] Erro ao buscar calorias:', error);
+    if (__DEV__) console.warn('[HEALTH_CONNECT] Erro ao buscar calorias:', error);
     return 0;
   }
 }
@@ -269,7 +269,7 @@ async function getSleep(startDate: Date, endDate: Date): Promise<number> {
 
     return Math.round(totalMinutes);
   } catch (error) {
-    console.warn('[HEALTH_CONNECT] Erro ao buscar sono:', error);
+    if (__DEV__) console.warn('[HEALTH_CONNECT] Erro ao buscar sono:', error);
     return 0;
   }
 }
@@ -292,7 +292,7 @@ async function getWater(startDate: Date, endDate: Date): Promise<number> {
 
     return Math.round(totalLiters * 1000);
   } catch (error) {
-    console.warn('[HEALTH_CONNECT] Erro ao buscar água:', error);
+    if (__DEV__) console.warn('[HEALTH_CONNECT] Erro ao buscar água:', error);
     return 0;
   }
 }
@@ -323,7 +323,7 @@ async function getWeight(startDate: Date, endDate: Date): Promise<number | null>
 
     return sortedRecords[0]?.weight?.inKilograms || null;
   } catch (error) {
-    console.warn('[HEALTH_CONNECT] Erro ao buscar peso:', error);
+    if (__DEV__) console.warn('[HEALTH_CONNECT] Erro ao buscar peso:', error);
     return null;
   }
 }
@@ -350,7 +350,7 @@ export async function getHealthConnectDataForDate(date: Date = new Date()): Prom
       return emptyHealthData(date);
     }
 
-    console.log('[HEALTH_CONNECT] Buscando dados para:', date.toISOString());
+    if (__DEV__) console.log('[HEALTH_CONNECT] Buscando dados para:', date.toISOString());
 
     // Define intervalo do dia
     const startOfDay = new Date(date);
@@ -379,10 +379,10 @@ export async function getHealthConnectDataForDate(date: Date = new Date()): Prom
       date,
     };
 
-    console.log('[HEALTH_CONNECT] Dados coletados:', data);
+    if (__DEV__) console.log('[HEALTH_CONNECT] Dados coletados com sucesso');
     return data;
   } catch (error) {
-    console.error('[HEALTH_CONNECT] Erro fatal ao buscar dados do dia:', error);
+    if (__DEV__) console.error('[HEALTH_CONNECT] Erro fatal ao buscar dados do dia:', error);
     return emptyHealthData(date);
   }
 }
@@ -426,7 +426,7 @@ export async function syncHealthConnectToBackend(): Promise<void> {
     // Inicializa Health Connect se ainda não foi
     const initialized = await initHealthConnect();
     if (!initialized) {
-      console.warn('[HEALTH_CONNECT] Não foi possível inicializar');
+      if (__DEV__) console.warn('[HEALTH_CONNECT] Não foi possível inicializar');
       return;
     }
 
@@ -437,7 +437,7 @@ export async function syncHealthConnectToBackend(): Promise<void> {
     const syncData = convertToSyncData(healthData);
 
     if (!syncData.dailyLog && !syncData.weight) {
-      console.log('[HEALTH_CONNECT] Nenhum dado para sincronizar');
+      if (__DEV__) console.log('[HEALTH_CONNECT] Nenhum dado para sincronizar');
       return;
     }
 
@@ -465,7 +465,7 @@ export async function syncHealthConnectToBackend(): Promise<void> {
         waterMl: currentLog?.waterMl ?? syncData.dailyLog.waterMl,
         waterGoalMl: currentLog?.waterGoalMl ?? syncData.dailyLog.waterGoalMl,
       });
-      console.log('[HEALTH_CONNECT] Daily log sincronizado com backend (dados protegidos)');
+      if (__DEV__) console.log('[HEALTH_CONNECT] Daily log sincronizado com backend (dados protegidos)');
     }
 
     // Salva o peso se disponível
@@ -474,12 +474,12 @@ export async function syncHealthConnectToBackend(): Promise<void> {
         weightKg: syncData.weight.weightKg,
         recordedAt: syncData.weight.recordedAt,
       });
-      console.log('[HEALTH_CONNECT] Peso sincronizado com backend');
+      if (__DEV__) console.log('[HEALTH_CONNECT] Peso sincronizado com backend');
     }
 
-    console.log('[HEALTH_CONNECT] Sincronização concluída com sucesso');
+    if (__DEV__) console.log('[HEALTH_CONNECT] Sincronização concluída com sucesso');
   } catch (error) {
-    console.error('[HEALTH_CONNECT] Erro na sincronização:', error);
+    if (__DEV__) console.error('[HEALTH_CONNECT] Erro na sincronização:', error);
     throw error;
   }
 }

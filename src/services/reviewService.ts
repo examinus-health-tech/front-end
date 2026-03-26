@@ -15,7 +15,7 @@ export async function hasUserReviewed(): Promise<boolean> {
     const reviewed = await AsyncStorage.getItem(HAS_REVIEWED_KEY);
     return reviewed === 'true';
   } catch (error) {
-    console.error('[REVIEW] Erro ao verificar avaliação:', error);
+    if (__DEV__) console.error('[REVIEW] Erro ao verificar avaliação:', error);
     return false;
   }
 }
@@ -26,9 +26,9 @@ export async function hasUserReviewed(): Promise<boolean> {
 export async function markAsReviewed(): Promise<void> {
   try {
     await AsyncStorage.setItem(HAS_REVIEWED_KEY, 'true');
-    console.log('[REVIEW] Marcado como avaliado');
+    if (__DEV__) console.log('[REVIEW] Marcado como avaliado');
   } catch (error) {
-    console.error('[REVIEW] Erro ao marcar como avaliado:', error);
+    if (__DEV__) console.error('[REVIEW] Erro ao marcar como avaliado:', error);
   }
 }
 
@@ -40,10 +40,10 @@ export async function incrementAppOpenCount(): Promise<number> {
     const countStr = await AsyncStorage.getItem(APP_OPEN_COUNT_KEY);
     const count = countStr ? parseInt(countStr, 10) + 1 : 1;
     await AsyncStorage.setItem(APP_OPEN_COUNT_KEY, count.toString());
-    console.log('[REVIEW] App aberto', count, 'vezes');
+    if (__DEV__) console.log('[REVIEW] App aberto', count, 'vezes');
     return count;
   } catch (error) {
-    console.error('[REVIEW] Erro ao incrementar contador:', error);
+    if (__DEV__) console.error('[REVIEW] Erro ao incrementar contador:', error);
     return 0;
   }
 }
@@ -80,7 +80,7 @@ export async function shouldShowReviewPromptOnOpen(): Promise<boolean> {
 
     return false;
   } catch (error) {
-    console.error('[REVIEW] Erro ao verificar prompt:', error);
+    if (__DEV__) console.error('[REVIEW] Erro ao verificar prompt:', error);
     return false;
   }
 }
@@ -115,7 +115,7 @@ export async function shouldShowReviewPromptOnPositiveAction(): Promise<boolean>
 
     return true;
   } catch (error) {
-    console.error('[REVIEW] Erro ao verificar prompt:', error);
+    if (__DEV__) console.error('[REVIEW] Erro ao verificar prompt:', error);
     return false;
   }
 }
@@ -126,8 +126,8 @@ export async function shouldShowReviewPromptOnPositiveAction(): Promise<boolean>
 export async function markReviewPromptShown(): Promise<void> {
   try {
     await AsyncStorage.setItem(LAST_REVIEW_PROMPT_KEY, new Date().toISOString());
-    console.log('[REVIEW] Prompt de avaliação marcado como mostrado');
+    if (__DEV__) console.log('[REVIEW] Prompt de avaliação marcado como mostrado');
   } catch (error) {
-    console.error('[REVIEW] Erro ao marcar prompt:', error);
+    if (__DEV__) console.error('[REVIEW] Erro ao marcar prompt:', error);
   }
 }

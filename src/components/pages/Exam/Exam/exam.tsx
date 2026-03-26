@@ -55,14 +55,14 @@ export function Exam() {
   useEffect(() => {
     async function loadExamFromParams() {
       if (examIdFromParams) {
-        console.log('[Exam] Carregando exame via parâmetro:', examIdFromParams);
+        if (__DEV__) console.log('[Exam] Carregando exame via parâmetro:', examIdFromParams);
         setIsLoadingExam(true);
 
         try {
           const found = await selectExamById(examIdFromParams);
 
           if (!found) {
-            console.warn('[Exam] Exame não encontrado:', examIdFromParams);
+            if (__DEV__) console.warn('[Exam] Exame não encontrado:', examIdFromParams);
             showInfo({
               title: 'Exame não encontrado',
               description: 'O exame pode ainda estar sendo processado. Verifique a lista de exames.',
@@ -70,7 +70,7 @@ export function Exam() {
             navigation.navigate('examList');
           }
         } catch (error) {
-          console.error('[Exam] Erro ao carregar exame:', error);
+          if (__DEV__) console.error('[Exam] Erro ao carregar exame:', error);
           showError({
             title: 'Erro ao carregar',
             description: 'Não foi possível carregar o exame. Tente novamente.',
@@ -378,7 +378,7 @@ export function Exam() {
       const isInvalidPercentRef = item.referenceMax === 100 && item.medicalExamItemMeasureUnit === '%' && item.referenceMin == null;
 
       if (!hasValidReference || isInvalidPercentRef) {
-        console.warn(`⚠️ [REFERÊNCIA FALTANDO] ${item.examItemDescription}:`, {
+        if (__DEV__) console.warn(`⚠️ [REFERÊNCIA FALTANDO] ${item.examItemDescription}:`, {
           valor: item.medicalExamItemReferenceValue,
           unidade: item.medicalExamItemMeasureUnit,
           referenceMin: item.referenceMin,
@@ -560,7 +560,7 @@ export function Exam() {
         Alert.alert('Não foi possível abrir o link', 'O formato do link não é suportado neste dispositivo.');
       }
     } catch (e) {
-      console.warn('Falha ao abrir link externo', e);
+      if (__DEV__) console.warn('Falha ao abrir link externo', e);
       Alert.alert('Erro ao abrir link', 'Ocorreu um problema ao abrir o link. Tente novamente.');
     }
   }, []);

@@ -84,15 +84,15 @@ export function SignIn() {
     async function checkBiometric() {
       // Primeiro verifica se o dispositivo tem biometria disponivel
       if (!isBiometricAvailable) {
-        console.log('👆 [SIGNIN] Biometria nao disponivel no dispositivo');
+        if (__DEV__) console.log('👆 [SIGNIN] Biometria nao disponivel no dispositivo');
         setCanUseBiometric(false);
         return;
       }
 
       // Depois verifica se tem token valido
       const hasValidToken = await canUseBiometricLogin();
-      console.log('👆 [SIGNIN] Token biometrico valido:', hasValidToken);
-      console.log('👆 [SIGNIN] Biometria disponivel para login:', hasValidToken);
+      if (__DEV__) console.log('👆 [SIGNIN] Token biometrico valido:', hasValidToken);
+      if (__DEV__) console.log('👆 [SIGNIN] Biometria disponivel para login:', hasValidToken);
       setCanUseBiometric(hasValidToken);
     }
     checkBiometric();
@@ -150,7 +150,7 @@ export function SignIn() {
     try {
       await signInWithGoogle();
     } catch (error: any) {
-      console.log('❌ Erro no login Google:', error);
+      if (__DEV__) console.log('❌ Erro no login Google:', error);
       showError({
         title: 'Erro no Login Google',
         description: 'Não foi possível fazer login com Google.',
@@ -162,7 +162,7 @@ export function SignIn() {
     try {
       await signInWithApple();
     } catch (error: any) {
-      console.log('❌ Erro no login Apple:', error);
+      if (__DEV__) console.log('❌ Erro no login Apple:', error);
       showError({
         title: 'Erro no Login Apple',
         description: 'Não foi possível fazer login com Apple.',
@@ -173,12 +173,12 @@ export function SignIn() {
   async function handleBiometricSignIn() {
     try {
       setIsLoading(true);
-      console.log('👆 [SIGNIN] Iniciando login biometrico...');
+      if (__DEV__) console.log('👆 [SIGNIN] Iniciando login biometrico...');
 
       const result = await authenticateWithBiometric();
 
       if (!result.success) {
-        console.log('👆 [SIGNIN] Autenticacao biometrica falhou:', result.error);
+        if (__DEV__) console.log('👆 [SIGNIN] Autenticacao biometrica falhou:', result.error);
         if (result.error !== 'Autenticacao cancelada') {
           showError({
             title: 'Erro na Biometria',
@@ -190,13 +190,13 @@ export function SignIn() {
 
       // Nova implementacao: userData vem diretamente da API
       if (result.userData) {
-        console.log('👆 [SIGNIN] Dados do usuario obtidos via API biometrica');
+        if (__DEV__) console.log('👆 [SIGNIN] Dados do usuario obtidos via API biometrica');
         // Usa a funcao do AuthContext para fazer login
         await signInWithBiometric(result.userData);
-        console.log('👆 [SIGNIN] Login biometrico bem-sucedido!');
+        if (__DEV__) console.log('👆 [SIGNIN] Login biometrico bem-sucedido!');
       }
     } catch (error: any) {
-      console.log('❌ Erro no login biometrico:', error);
+      if (__DEV__) console.log('❌ Erro no login biometrico:', error);
       showError({
         title: 'Erro no Login',
         description: error.message || 'Nao foi possivel fazer login com biometria.',

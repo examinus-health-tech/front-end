@@ -67,38 +67,8 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
     try {
       const response = await api.get('/medical-exam/get-all-exams-upload-by-logged-user');
 
-      // Debug: ver estrutura dos dados retornados
-      if (response.data.data?.length > 0) {
-        const firstExam = response.data.data[0];
-        console.log('📋 [ExamContext] Primeiro exame - campos disponíveis:', Object.keys(firstExam));
-        console.log('📋 [ExamContext] Dados do médico:', {
-          doctorName: firstExam.doctorName,
-          doctor_name: firstExam.doctor_name,
-          requestingDoctorName: firstExam.requestingDoctorName,
-          responsibleDoctorName: firstExam.responsibleDoctorName,
-        });
-
-        // Debug: verificar itens com valores vazios ou zerados
-        response.data.data.forEach((exam: ExamDataProps) => {
-          if (exam.medicalExamItems?.length > 0) {
-            const emptyValueItems = exam.medicalExamItems.filter(
-              (item) =>
-                !item.medicalExamItemReferenceValue ||
-                item.medicalExamItemReferenceValue === '' ||
-                item.medicalExamItemReferenceValue === '0'
-            );
-            if (emptyValueItems.length > 0) {
-              console.warn('⚠️ [ExamContext] Exame com itens sem valor:', {
-                examId: exam.medicalExamId,
-                examDate: exam.createdDate,
-                itemsVazios: emptyValueItems.map((i) => ({
-                  nome: i.examItemDescription,
-                  valor: i.medicalExamItemReferenceValue,
-                })),
-              });
-            }
-          }
-        });
+      if (__DEV__ && response.data.data?.length > 0) {
+        console.log('[ExamContext] Exames carregados:', response.data.data.length);
       }
 
       setExamData(response.data.data);
@@ -126,17 +96,17 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
         return true;
       }
 
-      console.warn(`[ExamContext] Exame não encontrado: ${examId}`);
+      if (__DEV__) console.warn(`[ExamContext] Exame não encontrado: ${examId}`);
       return false;
     } catch (error) {
-      console.error('[ExamContext] Erro ao selecionar exame por ID:', error);
+      if (__DEV__) console.error('[ExamContext] Erro ao selecionar exame por ID:', error);
       return false;
     }
   }
 
   async function deleteExam(examId: string): Promise<boolean> {
     try {
-      console.log(`[ExamContext] Excluindo exame: ${examId}`);
+      if (__DEV__) console.log(`[ExamContext] Excluindo exame: ${examId}`);
       await api.delete(`/medical-exam/${examId}`);
 
       // Remove o exame da lista local
@@ -147,17 +117,17 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
         setExamSelected({} as ExamDataProps);
       }
 
-      console.log(`[ExamContext] Exame excluído com sucesso: ${examId}`);
+      if (__DEV__) console.log(`[ExamContext] Exame excluído com sucesso: ${examId}`);
       return true;
     } catch (error) {
-      console.error('[ExamContext] Erro ao excluir exame:', error);
+      if (__DEV__) console.error('[ExamContext] Erro ao excluir exame:', error);
       throw error;
     }
   }
 
   async function reprocessExam(examId: string): Promise<boolean> {
     try {
-      console.log(`[ExamContext] Reprocessando exame: ${examId}`);
+      if (__DEV__) console.log(`[ExamContext] Reprocessando exame: ${examId}`);
       await api.post(`/medical-exam/${examId}/reprocess`);
 
       // Atualiza o status local para "Received" (reprocessando)
@@ -169,10 +139,10 @@ export function ExamContextProvider({ children }: ExamContextProviderProps) {
         )
       );
 
-      console.log(`[ExamContext] Exame enviado para reprocessamento: ${examId}`);
+      if (__DEV__) console.log(`[ExamContext] Exame enviado para reprocessamento: ${examId}`);
       return true;
     } catch (error) {
-      console.error('[ExamContext] Erro ao reprocessar exame:', error);
+      if (__DEV__) console.error('[ExamContext] Erro ao reprocessar exame:', error);
       throw error;
     }
   }

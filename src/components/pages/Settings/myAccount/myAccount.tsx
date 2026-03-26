@@ -86,23 +86,23 @@ export function MyAccount() {
       async function loadProfilePhotoIfNeeded() {
         // Se já tem foto no contexto, não precisa buscar
         if (user?.profilePhotoBase64) {
-          console.log('📷 [MY_ACCOUNT] Foto já está no contexto, não precisa buscar');
+          if (__DEV__) console.log('📷 [MY_ACCOUNT] Foto já está no contexto, não precisa buscar');
           return;
         }
 
         setIsLoadingPhoto(true);
         try {
-          console.log('📷 [MY_ACCOUNT] Buscando foto de perfil do backend...');
+          if (__DEV__) console.log('📷 [MY_ACCOUNT] Buscando foto de perfil do backend...');
           const profileData = await getUserPersonalData();
           if (profileData?.profilePhotoBase64) {
             // Salva no contexto para cache
             updateUserPhoto(profileData.profilePhotoBase64);
-            console.log('✅ [MY_ACCOUNT] Foto de perfil carregada e salva no contexto');
+            if (__DEV__) console.log('✅ [MY_ACCOUNT] Foto de perfil carregada e salva no contexto');
           } else {
-            console.log('ℹ️ [MY_ACCOUNT] Usuário não possui foto de perfil');
+            if (__DEV__) console.log('ℹ️ [MY_ACCOUNT] Usuário não possui foto de perfil');
           }
         } catch (error) {
-          console.log('⚠️ [MY_ACCOUNT] Erro ao buscar foto de perfil:', error);
+          if (__DEV__) console.log('⚠️ [MY_ACCOUNT] Erro ao buscar foto de perfil:', error);
         } finally {
           setIsLoadingPhoto(false);
         }
@@ -121,7 +121,7 @@ export function MyAccount() {
       await signOut();
       onSignOutClose();
     } catch (error) {
-      console.error('Erro ao sair:', error);
+      if (__DEV__) console.error('Erro ao sair:', error);
     } finally {
       setIsSigningOut(false);
     }
@@ -146,11 +146,11 @@ export function MyAccount() {
       //     customReason: deleteFeedback.customReason,
       //   });
       // }
-      console.log('Feedback de exclusão:', deleteFeedback);
+      if (__DEV__) console.log('Feedback de exclusão:', deleteFeedback);
       onDeleteClose();
       await deleteAccount();
     } catch (error) {
-      console.error('Erro ao deletar conta:', error);
+      if (__DEV__) console.error('Erro ao deletar conta:', error);
     } finally {
       setIsDeleting(false);
     }

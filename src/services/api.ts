@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { AppError } from '@utils/AppErrors';
 import { storageAuthToken, storageAuthTokenGet } from '@storage/storageAuthToken';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 
 type APIInstanceProps = AxiosInstance & {
   registerInterceptTokenManager: (signOut: () => void) => () => void;
@@ -44,7 +44,7 @@ api.interceptors.request.use(
   async (config) => {
     try {
       let userDataParsed;
-      const userData = await AsyncStorage.getItem('@app:user');
+      const userData = await SecureStore.getItemAsync('@app:user');
 
       if (userData) {
         userDataParsed = JSON.parse(userData);
@@ -55,16 +55,10 @@ api.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
 
-        // Log detalhado para debug
-        if (config.url?.includes('/users/') || config.url?.includes('/notifications')) {
-          console.log('🔐 [API] Request details:', {
-            url: config.url,
-            method: config.method,
-            hasAuthHeader: !!config.headers.Authorization,
-            tokenPrefix: token.substring(0, 30) + '...',
-            userId: userDataParsed?.userId,
-            withCredentials: config.withCredentials,
-          });
+        if (__DEV__) {
+          if (config.url?.includes('/users/') || config.url?.includes('/notifications')) {
+            if (__DEV__) console.log('🔐 [API] Request:', { url: config.url, method: config.method });
+          }
         }
       }
 
@@ -74,12 +68,12 @@ api.interceptors.request.use(
 
       return config;
     } catch (error) {
-      console.error('❌ Erro no interceptor de request:', error);
+      if (__DEV__) console.error('❌ Erro no interceptor de request:', error);
       return config;
     }
   },
   (error) => {
-    console.error('❌ Erro no interceptor de request (rejected):', error);
+    if (__DEV__) console.error('❌ Erro no interceptor de request (rejected):', error);
     return Promise.reject(error);
   }
 );
@@ -94,7 +88,7 @@ api.registerInterceptTokenManager = (signOut) => {
     (response) => {
       // Log de sucesso para debug (apenas rotas importantes)
       if (response.config.url?.includes('/users') || response.config.url?.includes('authentication')) {
-        console.log('✅ [API] Request bem-sucedida:', {
+        if (__DEV__) console.log('✅ [API] Request bem-sucedida:', {
           method: response.config.method?.toUpperCase(),
           url: response.config.url,
           status: response.status,
@@ -141,7 +135,7 @@ api.registerInterceptTokenManager = (signOut) => {
         };
 
         // Log compacto no console
-        console.error('❌ [API ERROR]', {
+        if (__DEV__) console.error('❌ [API ERROR]', {
           method: errorLog.request.method,
           url: errorLog.request.url,
           status: errorLog.response?.status,
@@ -149,7 +143,7 @@ api.registerInterceptTokenManager = (signOut) => {
         });
 
         // Log completo expandido para debug detalhado
-        console.error('📋 [API ERROR - Detalhes completos]', JSON.stringify(errorLog, null, 2));
+        if (__DEV__) console.error('📋 [API ERROR - Detalhes completos]', JSON.stringify(errorLog, null, 2));
       }
 
       // Handle unauthorized access
@@ -159,7 +153,7 @@ api.registerInterceptTokenManager = (signOut) => {
 
       if (requestError.response?.status === 401 && !isAuthRoute) {
         try {
-          await AsyncStorage.removeItem('@app:user');
+          await SecureStore.deleteItemAsync('@app:user');
         } catch (error) {
           // Silent fail
         }
@@ -178,7 +172,7 @@ api.registerInterceptTokenManager = (signOut) => {
         // Se tem mensagem específica, usar ela
         if (backendMessage) {
           const errorMsg = Array.isArray(backendMessage) ? backendMessage.join(', ') : backendMessage;
-          console.error('❌ Erro 500 com detalhes do backend:', errorMsg);
+          if (__DEV__) console.error('❌ Erro 500 com detalhes do backend:', errorMsg);
           return Promise.reject(new AppError(errorMsg));
         }
 
@@ -192,23 +186,23 @@ api.registerInterceptTokenManager = (signOut) => {
           ? requestError.response.data.message.join(', ')
           : requestError.response.data.message;
 
-        console.log('📋 [API] Mensagem de erro do backend:', errorMsg);
+        if (__DEV__) console.log('📋 [API] Mensagem de erro do backend:', errorMsg);
         return Promise.reject(new AppError(errorMsg));
       }
 
       if (requestError.response?.data?.error?.message) {
-        console.log('📋 [API] Mensagem de erro do backend (error.message):', requestError.response.data.error.message);
+        if (__DEV__) console.log('📋 [API] Mensagem de erro do backend (error.message):', requestError.response.data.error.message);
         return Promise.reject(new AppError(requestError.response.data.error.message));
       }
 
       // Se não tem mensagem específica, logar o erro completo
       if (requestError.response?.data) {
-        console.log('📋 [API] Response data completo:', requestError.response.data);
+        if (__DEV__) console.log('📋 [API] Response data completo:', requestError.response.data);
       }
 
       // Handle network/timeout errors
       if (!requestError.response) {
-        console.error('🌐 [API] Erro de rede/conexão:', {
+        if (__DEV__) console.error('🌐 [API] Erro de rede/conexão:', {
           code: requestError.code,
           message: requestError.message,
           url: requestError.config?.url,

@@ -160,12 +160,12 @@ export async function fetchHealthNews(): Promise<NewsItem[]> {
   // Retorna cache se ainda válido
   const now = Date.now();
   if (newsCache.length > 0 && (now - lastFetchTime) < CACHE_DURATION) {
-    console.log('📰 [NewsService] Retornando notícias do cache');
+    if (__DEV__) console.log('📰 [NewsService] Retornando notícias do cache');
     return newsCache;
   }
 
   try {
-    console.log('📰 [NewsService] Buscando notícias do G1 Bem Estar...');
+    if (__DEV__) console.log('📰 [NewsService] Buscando notícias do G1 Bem Estar...');
 
     const response = await fetch(RSS_URLS.geral, {
       method: 'GET',
@@ -181,21 +181,21 @@ export async function fetchHealthNews(): Promise<NewsItem[]> {
     }
 
     const xml = await response.text();
-    console.log(`📰 [NewsService] Recebidos ${xml.length} caracteres do RSS`);
+    if (__DEV__) console.log(`📰 [NewsService] Recebidos ${xml.length} caracteres do RSS`);
     const news = parseRssXml(xml);
 
     // Atualiza cache
     newsCache = news;
     lastFetchTime = now;
 
-    console.log(`✅ [NewsService] ${news.length} notícias carregadas`);
+    if (__DEV__) console.log(`✅ [NewsService] ${news.length} notícias carregadas`);
     return news;
   } catch (error) {
-    console.error('❌ [NewsService] Erro ao buscar notícias:', error);
+    if (__DEV__) console.error('❌ [NewsService] Erro ao buscar notícias:', error);
 
     // Retorna cache antigo se disponível
     if (newsCache.length > 0) {
-      console.log('📰 [NewsService] Retornando cache antigo devido a erro');
+      if (__DEV__) console.log('📰 [NewsService] Retornando cache antigo devido a erro');
       return newsCache;
     }
 

@@ -16,7 +16,7 @@ async function tryRegisterWithDelay() {
     isTryingToRegister = true;
     const playerId = await OneSignal.User.getOnesignalId();
     if (playerId) {
-      console.log('[OneSignal] Player ID disponível, registrando dispositivo...');
+      if (__DEV__) console.log('[OneSignal] Player ID disponível, registrando dispositivo...');
       await registerDeviceOnBackend();
 
       // Remove o listener após registrar com sucesso
@@ -26,7 +26,7 @@ async function tryRegisterWithDelay() {
       }
     }
   } catch (error) {
-    console.log('[OneSignal] Player ID ainda não disponível:', error);
+    if (__DEV__) console.log('[OneSignal] Player ID ainda não disponível:', error);
   } finally {
     isTryingToRegister = false;
   }
@@ -40,7 +40,7 @@ function startAppStateListener() {
 
   appStateListener = AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState === 'active') {
-      console.log('[OneSignal] App voltou ao foreground, tentando registrar dispositivo...');
+      if (__DEV__) console.log('[OneSignal] App voltou ao foreground, tentando registrar dispositivo...');
       tryRegisterWithDelay();
     }
   });
@@ -48,7 +48,7 @@ function startAppStateListener() {
 
 export async function registerDeviceOnBackend() {
   // Delay inicial para dar tempo ao OneSignal se inicializar após o login
-  console.log('[OneSignal] Aguardando inicialização...');
+  if (__DEV__) console.log('[OneSignal] Aguardando inicialização...');
   await new Promise<void>((resolve) => setTimeout(resolve, 2000));
 
   // Função para tentar obter o Player ID com exponential backoff
@@ -57,16 +57,16 @@ export async function registerDeviceOnBackend() {
       try {
         const playerId = await OneSignal.User.getOnesignalId();
         if (playerId) {
-          console.log(`[OneSignal] Player ID obtido na tentativa ${i + 1}:`, playerId);
+          if (__DEV__) console.log(`[OneSignal] Player ID obtido na tentativa ${i + 1}:`, playerId);
           return playerId;
         }
       } catch (error) {
-        console.log(`[OneSignal] Erro na tentativa ${i + 1}:`, error);
+        if (__DEV__) console.log(`[OneSignal] Erro na tentativa ${i + 1}:`, error);
       }
 
       if (i < maxRetries - 1) {
         const delay = Math.min(initialDelayMs * Math.pow(2, i), 30000);
-        console.log(`[OneSignal] Aguardando ${delay}ms antes da próxima tentativa...`);
+        if (__DEV__) console.log(`[OneSignal] Aguardando ${delay}ms antes da próxima tentativa...`);
         await new Promise<void>((resolve) => setTimeout(resolve, delay));
       }
     }
@@ -78,7 +78,7 @@ export async function registerDeviceOnBackend() {
   const playerId = await getPlayerIdWithRetry();
 
   if (!playerId) {
-    console.log('[OneSignal] Player ID não disponível após múltiplas tentativas, tentando depois...');
+    if (__DEV__) console.log('[OneSignal] Player ID não disponível após múltiplas tentativas, tentando depois...');
 
     // Inicia o listener para quando o app voltar ao foreground
     startAppStateListener();
@@ -91,14 +91,14 @@ export async function registerDeviceOnBackend() {
     return;
   }
 
-  console.log('[OneSignal] Registrando dispositivo', { playerId });
+  if (__DEV__) console.log('[OneSignal] Registrando dispositivo', { playerId });
 
   try {
     await api.post('devices/register', {
       playerId,
       platform: Platform.OS,
     });
-    console.log('[OneSignal] Dispositivo registrado com sucesso');
+    if (__DEV__) console.log('[OneSignal] Dispositivo registrado com sucesso');
 
     // Remove o listener se existir
     if (appStateListener) {
@@ -106,7 +106,7 @@ export async function registerDeviceOnBackend() {
       appStateListener = null;
     }
   } catch (error) {
-    console.error('[OneSignal] Erro ao registrar dispositivo:', error);
+    if (__DEV__) console.error('[OneSignal] Erro ao registrar dispositivo:', error);
     throw error;
   }
 }

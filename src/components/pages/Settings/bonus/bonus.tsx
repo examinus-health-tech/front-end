@@ -78,9 +78,9 @@ export function Bonus() {
         if (isMounted) setIsLoading(true);
 
         try {
-          console.log('📢 [BONUS] Buscando voucher para:', user.email);
+          if (__DEV__) console.log('📢 [BONUS] Buscando voucher para:', user.email);
           const result = await checkCampaignVoucher(user.email);
-          console.log('📢 [BONUS] Resultado:', result);
+          if (__DEV__) console.log('📢 [BONUS] Resultado:', result);
 
           if (isMounted) {
             if (result.success && result.voucher) {
@@ -95,7 +95,7 @@ export function Bonus() {
             }
           }
         } catch (err: any) {
-          console.error('📢 [BONUS] Erro ao buscar voucher:', err);
+          if (__DEV__) console.error('📢 [BONUS] Erro ao buscar voucher:', err);
           if (isMounted) {
             setError(err?.message || 'Erro desconhecido');
             setVoucherData(null);
@@ -120,7 +120,7 @@ export function Bonus() {
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
       } catch (err) {
-        console.error('Erro ao copiar:', err);
+        if (__DEV__) console.error('Erro ao copiar:', err);
       }
     }
   };
@@ -132,7 +132,7 @@ export function Bonus() {
           message: `Meu voucher Examinus: ${voucherData.voucher}\n\nBaixe o app Examinus e cuide da sua saúde!`,
         });
       } catch (err) {
-        console.error('Erro ao compartilhar:', err);
+        if (__DEV__) console.error('Erro ao compartilhar:', err);
       }
     }
   };

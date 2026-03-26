@@ -151,7 +151,7 @@ export function Info() {
             description: 'Sua foto de perfil foi atualizada com sucesso.',
           });
         } catch (uploadError: any) {
-          console.error('Erro no upload:', uploadError);
+          if (__DEV__) console.error('Erro no upload:', uploadError);
           setPhotoUri(null); // Reverter em caso de erro
 
           showError({
@@ -161,7 +161,7 @@ export function Info() {
         }
       }
     } catch (error) {
-      console.error('Erro ao selecionar foto:', error);
+      if (__DEV__) console.error('Erro ao selecionar foto:', error);
       showError({
         title: 'Erro',
         description: 'Não foi possível selecionar a foto.',
@@ -209,7 +209,7 @@ export function Info() {
             description: 'Sua foto de perfil foi atualizada com sucesso.',
           });
         } catch (uploadError: any) {
-          console.error('Erro no upload:', uploadError);
+          if (__DEV__) console.error('Erro no upload:', uploadError);
           setPhotoUri(null); // Reverter em caso de erro
 
           showError({
@@ -219,7 +219,7 @@ export function Info() {
         }
       }
     } catch (error) {
-      console.error('Erro ao tirar foto:', error);
+      if (__DEV__) console.error('Erro ao tirar foto:', error);
       showError({
         title: 'Erro',
         description: 'Não foi possível tirar a foto.',
@@ -244,7 +244,7 @@ export function Info() {
         description: 'Sua foto de perfil foi removida com sucesso.',
       });
     } catch (error: any) {
-      console.error('Erro ao remover foto:', error);
+      if (__DEV__) console.error('Erro ao remover foto:', error);
       showError({
         title: 'Erro',
         description: error.message || 'Não foi possível remover a foto.',
@@ -256,14 +256,14 @@ export function Info() {
     async function loadUserData() {
       setIsLoading(true);
       try {
-        console.log('📥 [INFO] Carregando perfil completo do usuário (endpoint unificado)');
+        if (__DEV__) console.log('📥 [INFO] Carregando perfil completo do usuário (endpoint unificado)');
 
         // 🎯 Buscar TODOS os dados em uma única chamada ao endpoint unificado
         // Retorna: fullName, email, phone, location, birthDate, country, etc
         const profileData = await getUserPersonalData();
 
         if (profileData) {
-          console.log('✅ [INFO] Perfil completo encontrado no backend:', profileData);
+          if (__DEV__) console.log('[INFO] Perfil completo encontrado no backend');
 
           // Preencher dados básicos (fullName, email)
           if (profileData.fullName) {
@@ -302,7 +302,7 @@ export function Info() {
             setValue('country', 'Brasil');
           }
         } else {
-          console.log('ℹ️ [INFO] Nenhum dado encontrado no backend, usando dados locais');
+          if (__DEV__) console.log('ℹ️ [INFO] Nenhum dado encontrado no backend, usando dados locais');
 
           // Fallback: dados do contexto de autenticação
           if (user) {
@@ -341,7 +341,7 @@ export function Info() {
           setPhotoUri(user.photoUrl);
         }
       } catch (error) {
-        console.error('❌ [INFO] Erro ao carregar dados do usuário:', error);
+        if (__DEV__) console.error('❌ [INFO] Erro ao carregar dados do usuário:', error);
 
         const errorMessage =
           error instanceof AppError ? error.message : 'Não foi possível carregar seus dados. Tente novamente.';
@@ -368,7 +368,7 @@ export function Info() {
     }
 
     setIsSaving(true);
-    console.log('📤 [INFO] Salvando perfil completo do usuário:', data);
+    if (__DEV__) console.log('[INFO] Salvando perfil completo do usuário');
 
     try {
       // Converter data de DD/MM/AAAA para ISO string
@@ -390,10 +390,10 @@ export function Info() {
         country: data.country,
       });
 
-      console.log('✅ [INFO] Perfil completo salvo com sucesso!');
+      if (__DEV__) console.log('✅ [INFO] Perfil completo salvo com sucesso!');
       setSuccess(true);
     } catch (error) {
-      console.error('❌ [INFO] Erro ao salvar perfil completo:', error);
+      if (__DEV__) console.error('❌ [INFO] Erro ao salvar perfil completo:', error);
 
       let errorMessage = 'Não foi possível salvar seus dados. Tente novamente.';
       let errorTitle = 'Erro ao salvar';

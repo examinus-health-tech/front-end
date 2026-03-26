@@ -78,7 +78,7 @@ export function Calories() {
       const data = await getActivities(startOfDay, endOfDay);
       setActivities(data);
     } catch (error) {
-      console.error('Erro ao buscar atividades:', error);
+      if (__DEV__) console.error('Erro ao buscar atividades:', error);
       setActivities([]);
     } finally {
       setIsLoadingActivities(false);

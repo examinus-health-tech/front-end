@@ -263,7 +263,7 @@ export function Nutrition() {
           setChartData([{ value: todayCalories }]);
         }
       } catch (error) {
-        console.error('Erro ao buscar histórico de nutrição:', error);
+        if (__DEV__) console.error('Erro ao buscar histórico de nutrição:', error);
         setChartData([{ value: todayCalories }]);
       } finally {
         setIsLoadingChart(false);
@@ -307,7 +307,7 @@ export function Nutrition() {
       // Atualiza os dados do contexto
       await refreshFitnessData();
     } catch (error: any) {
-      console.error('Erro ao salvar nutrição:', error);
+      if (__DEV__) console.error('Erro ao salvar nutrição:', error);
       Toast.show({
         type: 'error',
         text1: 'Erro ao salvar',
@@ -345,7 +345,7 @@ export function Nutrition() {
         text2: `Meta de ${value.toLocaleString('pt-BR')} kcal salva`,
       });
     } catch (error: any) {
-      console.error('Erro ao salvar meta:', error);
+      if (__DEV__) console.error('Erro ao salvar meta:', error);
       Toast.show({
         type: 'error',
         text1: 'Erro ao salvar',

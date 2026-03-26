@@ -133,16 +133,16 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
 
       if (appState.current === 'active' && nextState.match(/inactive|background/)) {
         // App indo para background → sync dados para não perder
-        console.log('📤 [HomeContext] App em background, sincronizando dados...');
-        fetchFitnessData().catch(err =>
-          console.warn('⚠️ [HomeContext] Erro ao sincronizar no background:', err)
-        );
+        if (__DEV__) console.log('📤 [HomeContext] App em background, sincronizando dados...');
+        fetchFitnessData().catch(err => {
+          if (__DEV__) console.warn('⚠️ [HomeContext] Erro ao sincronizar no background:', err);
+        });
       } else if (appState.current.match(/inactive|background/) && nextState === 'active') {
         // App voltando para foreground → atualiza dados
-        console.log('📥 [HomeContext] App em foreground, atualizando dados...');
-        fetchFitnessData().catch(err =>
-          console.warn('⚠️ [HomeContext] Erro ao atualizar no foreground:', err)
-        );
+        if (__DEV__) console.log('📥 [HomeContext] App em foreground, atualizando dados...');
+        fetchFitnessData().catch(err => {
+          if (__DEV__) console.warn('⚠️ [HomeContext] Erro ao atualizar no foreground:', err);
+        });
       }
 
       appState.current = nextState;
@@ -154,7 +154,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
 
   // Reset de todos os dados quando o usuário mudar (login/logout/troca de conta)
   useEffect(() => {
-    console.log('🔄 [HomeContext] Usuário mudou:', user?.userId);
+    if (__DEV__) console.log('🔄 [HomeContext] Usuário mudou:', user?.userId);
 
     // Limpa todos os dados do usuário anterior
     setHomeData({} as homeProps);
@@ -175,13 +175,13 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       setFitnessEnabled(enabled);
       if (enabled) {
         // Sincroniza metas do backend para cache local
-        syncGoalsFromBackend().catch(err =>
-          console.warn('⚠️ [HomeContext] Erro ao sincronizar metas:', err)
-        );
+        syncGoalsFromBackend().catch(err => {
+          if (__DEV__) console.warn('⚠️ [HomeContext] Erro ao sincronizar metas:', err);
+        });
         await fetchFitnessData();
       }
     } catch (error) {
-      console.error('❌ [HomeContext] Erro ao verificar fitness, desabilitando:', error);
+      if (__DEV__) console.error('❌ [HomeContext] Erro ao verificar fitness, desabilitando:', error);
       // Se der erro, desabilita o fitness para evitar crash loop
       await setFitnessEnabledService(false);
       setFitnessEnabled(false);
@@ -365,8 +365,8 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
 
   async function fetchFitnessData() {
     try {
-      console.log('🏃 [HomeContext] Buscando dados de fitness...');
-      console.log('🏃 [HomeContext] Platform:', Platform.OS);
+      if (__DEV__) console.log('🏃 [HomeContext] Buscando dados de fitness...');
+      if (__DEV__) console.log('🏃 [HomeContext] Platform:', Platform.OS);
 
       let nativeHealthData: trackerProps = {} as trackerProps;
       let backendData: trackerProps = {} as trackerProps;
@@ -375,55 +375,55 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       if (Platform.OS === 'ios') {
         try {
           const healthKitAvailable = await isHealthKitAvailable();
-          console.log('📱 [HomeContext] HealthKit disponível:', healthKitAvailable);
+          if (__DEV__) console.log('📱 [HomeContext] HealthKit disponível:', healthKitAvailable);
 
           if (healthKitAvailable) {
-            console.log('📱 [HomeContext] Inicializando HealthKit...');
+            if (__DEV__) console.log('📱 [HomeContext] Inicializando HealthKit...');
             const initResult = await initHealthKit();
-            console.log('📱 [HomeContext] HealthKit inicializado:', initResult);
+            if (__DEV__) console.log('📱 [HomeContext] HealthKit inicializado:', initResult);
 
-            console.log('📱 [HomeContext] Buscando dados do HealthKit para hoje...');
+            if (__DEV__) console.log('📱 [HomeContext] Buscando dados do HealthKit para hoje...');
             const rawHealthData = await getHealthKitDataForDate(new Date());
-            console.log('📱 [HomeContext] Dados brutos do HealthKit:', rawHealthData);
+            if (__DEV__) console.log('[HomeContext] Dados do HealthKit recebidos');
 
             nativeHealthData = convertHealthKitToTracker(rawHealthData);
-            console.log('✅ [HomeContext] Dados convertidos do HealthKit:', nativeHealthData);
+            if (__DEV__) console.log('[HomeContext] Dados do HealthKit convertidos');
 
             // Sincroniza com backend em background (não bloqueia UI)
-            syncHealthKitToBackend().catch(err =>
-              console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err)
-            );
+            syncHealthKitToBackend().catch(err => {
+              if (__DEV__) console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err);
+            });
           }
         } catch (healthKitError) {
-          console.warn('⚠️ [HomeContext] Erro ao buscar do HealthKit:', healthKitError);
+          if (__DEV__) console.warn('⚠️ [HomeContext] Erro ao buscar do HealthKit:', healthKitError);
         }
       } else if (Platform.OS === 'android') {
         if (DISABLE_ANDROID_HEALTH_CONNECT) {
-          console.log('⚠️ [HomeContext] Health Connect desabilitado no Android (aguardando build nativo)');
+          if (__DEV__) console.log('⚠️ [HomeContext] Health Connect desabilitado no Android (aguardando build nativo)');
         } else {
           try {
             const isAvailable = await isHealthConnectAvailable();
             if (isAvailable) {
-              console.log('📱 [HomeContext] Inicializando Health Connect...');
+              if (__DEV__) console.log('📱 [HomeContext] Inicializando Health Connect...');
               const initSuccess = await initHealthConnect();
 
               if (initSuccess) {
                 const rawHealthData = await getHealthConnectDataForDate(new Date());
                 nativeHealthData = convertHealthConnectToTracker(rawHealthData);
-                console.log('✅ [HomeContext] Dados do Health Connect:', nativeHealthData);
+                if (__DEV__) console.log('[HomeContext] Dados do Health Connect recebidos');
 
                 // Sincroniza com backend em background (não bloqueia UI)
-                syncHealthConnectToBackend().catch(err =>
-                  console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err)
-                );
+                syncHealthConnectToBackend().catch(err => {
+                  if (__DEV__) console.warn('⚠️ [HomeContext] Erro ao sincronizar com backend:', err);
+                });
               } else {
-                console.warn('⚠️ [HomeContext] Health Connect não inicializou, usando apenas backend');
+                if (__DEV__) console.warn('⚠️ [HomeContext] Health Connect não inicializou, usando apenas backend');
               }
             } else {
-              console.log('📭 [HomeContext] Health Connect não disponível');
+              if (__DEV__) console.log('📭 [HomeContext] Health Connect não disponível');
             }
           } catch (healthConnectError) {
-            console.warn('⚠️ [HomeContext] Erro ao buscar do Health Connect:', healthConnectError);
+            if (__DEV__) console.warn('⚠️ [HomeContext] Erro ao buscar do Health Connect:', healthConnectError);
           }
         }
       }
@@ -433,10 +433,10 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         const dashboard = await getFitnessDashboard();
         if (dashboard) {
           backendData = convertFitnessToTracker(dashboard);
-          console.log('✅ [HomeContext] Dados do backend:', backendData);
+          if (__DEV__) console.log('[HomeContext] Dados do backend recebidos');
         }
       } catch (backendError) {
-        console.warn('⚠️ [HomeContext] Erro ao buscar do backend:', backendError);
+        if (__DEV__) console.warn('⚠️ [HomeContext] Erro ao buscar do backend:', backendError);
       }
 
       // 3. Mescla os dados (HealthKit/Health Connect + Backend)
@@ -446,19 +446,19 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       if (hasNativeHealth && hasBackend) {
         const mergedData = mergeTrackerData(nativeHealthData, backendData);
         setTrackerData(mergedData);
-        console.log('✅ [HomeContext] Dados mesclados (Native + Backend):', mergedData);
+        if (__DEV__) console.log('[HomeContext] Dados mesclados (Native + Backend)');
       } else if (hasNativeHealth) {
         setTrackerData(nativeHealthData);
-        console.log('✅ [HomeContext] Usando apenas dados nativos');
+        if (__DEV__) console.log('✅ [HomeContext] Usando apenas dados nativos');
       } else if (hasBackend) {
         setTrackerData(backendData);
-        console.log('✅ [HomeContext] Usando apenas dados do backend');
+        if (__DEV__) console.log('✅ [HomeContext] Usando apenas dados do backend');
       } else {
-        console.log('📭 [HomeContext] Nenhum dado de fitness encontrado');
+        if (__DEV__) console.log('📭 [HomeContext] Nenhum dado de fitness encontrado');
         setTrackerData({} as trackerProps);
       }
     } catch (error) {
-      console.error('❌ [HomeContext] Erro ao buscar dados de fitness:', error);
+      if (__DEV__) console.error('❌ [HomeContext] Erro ao buscar dados de fitness:', error);
     }
   }
 
@@ -492,11 +492,11 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
 
       // Limpa os dados quando não há exames com score
       if (isNoDataError) {
-        console.log('📭 [HomeContext] Nenhum exame com score encontrado, limpando dados');
+        if (__DEV__) console.log('📭 [HomeContext] Nenhum exame com score encontrado, limpando dados');
         setHomeData({} as homeProps);
       } else {
         // Para outros erros, loga e não quebra a aplicação
-        console.error('❌ [HomeContext] Erro ao buscar dados:', errorMessage);
+        if (__DEV__) console.error('❌ [HomeContext] Erro ao buscar dados:', errorMessage);
       }
     }
 
@@ -517,7 +517,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   }
 
   function clearHomeData() {
-    console.log('🧹 [HomeContext] Limpando dados da homepage');
+    if (__DEV__) console.log('🧹 [HomeContext] Limpando dados da homepage');
     setHomeData({} as homeProps);
     setExamListData({} as homeProps);
     setTrackerData({} as trackerProps);

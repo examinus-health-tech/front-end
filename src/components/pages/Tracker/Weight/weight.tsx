@@ -209,7 +209,7 @@ export function Weight() {
           setChartData(weightCompleted > 0 ? [{ value: weightCompleted }] : []);
         }
       } catch (error) {
-        console.error('Erro ao buscar histórico de peso:', error);
+        if (__DEV__) console.error('Erro ao buscar histórico de peso:', error);
         setChartData(weightCompleted > 0 ? [{ value: weightCompleted }] : []);
       } finally {
         setIsLoadingChart(false);
@@ -251,7 +251,7 @@ export function Weight() {
         // Atualiza os dados do contexto
         await refreshFitnessData();
       } catch (error: any) {
-        console.error('Erro ao salvar peso:', error);
+        if (__DEV__) console.error('Erro ao salvar peso:', error);
         Toast.show({
           type: 'error',
           text1: 'Erro ao salvar',
@@ -272,7 +272,7 @@ export function Weight() {
           text2: `Meta de ${value.toFixed(1)} kg salva com sucesso`,
         });
       } catch (error: any) {
-        console.error('Erro ao salvar meta:', error);
+        if (__DEV__) console.error('Erro ao salvar meta:', error);
         Toast.show({
           type: 'error',
           text1: 'Erro ao salvar',

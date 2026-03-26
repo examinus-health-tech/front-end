@@ -218,7 +218,7 @@ export function ExamList() {
     try {
       await getExamList();
     } catch (error) {
-      console.error('Erro ao atualizar lista de exames:', error);
+      if (__DEV__) console.error('Erro ao atualizar lista de exames:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -266,7 +266,7 @@ export function ExamList() {
       return dateB - dateA;
     });
 
-    console.log(
+    if (__DEV__) console.log(
       '📋 Exames ordenados:',
       filtered.map((e) => ({
         date: e.createdDate,

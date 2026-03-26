@@ -69,7 +69,7 @@ export const trackScreenView = async (screenName: string, duration?: number) => 
     });
   } catch (error) {
     // Silently fail - analytics não deve quebrar o app
-    console.log('[Analytics] Erro ao rastrear tela:', screenName);
+    if (__DEV__) console.log('[Analytics] Erro ao rastrear tela:', screenName);
   }
 };
 
@@ -99,7 +99,7 @@ const flushEvents = async () => {
   } catch (error) {
     // Se falhar, adiciona de volta ao buffer (até o limite)
     eventBuffer = [...eventsToSend.slice(0, MAX_BUFFER_SIZE - eventBuffer.length), ...eventBuffer];
-    console.log('[Analytics] Erro ao enviar eventos, mantidos no buffer');
+    if (__DEV__) console.log('[Analytics] Erro ao enviar eventos, mantidos no buffer');
   }
 };
 

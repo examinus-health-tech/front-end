@@ -154,7 +154,7 @@ export async function isFitnessEnabled(): Promise<boolean> {
     const enabled = await AsyncStorage.getItem(FITNESS_ENABLED_KEY);
     return enabled === 'true';
   } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao verificar se fitness está habilitado:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao verificar se fitness está habilitado:', error);
     return false;
   }
 }
@@ -165,9 +165,9 @@ export async function isFitnessEnabled(): Promise<boolean> {
 export async function setFitnessEnabled(enabled: boolean): Promise<void> {
   try {
     await AsyncStorage.setItem(FITNESS_ENABLED_KEY, enabled.toString());
-    console.log(`[FITNESS_SERVICE] Fitness ${enabled ? 'habilitado' : 'desabilitado'}`);
+    if (__DEV__) console.log(`[FITNESS_SERVICE] Fitness ${enabled ? 'habilitado' : 'desabilitado'}`);
   } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao salvar preferência de fitness:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao salvar preferência de fitness:', error);
     throw error;
   }
 }
@@ -177,20 +177,20 @@ export async function setFitnessEnabled(enabled: boolean): Promise<void> {
  */
 export async function getFitnessDashboard(): Promise<FitnessDashboard | null> {
   try {
-    console.log('[FITNESS_SERVICE] Buscando dashboard do fitness...');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Buscando dashboard do fitness...');
 
     const response = await api.get<{ success: boolean; data: FitnessDashboard }>('fitness/dashboard');
 
-    console.log('[FITNESS_SERVICE] Dashboard recuperado com sucesso');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Dashboard recuperado com sucesso');
     return response.data.data;
   } catch (error: any) {
     // 404 é esperado quando não há dados ainda
     if (error.response?.status === 404) {
-      console.log('[FITNESS_SERVICE] Nenhum dado de fitness encontrado');
+      if (__DEV__) console.log('[FITNESS_SERVICE] Nenhum dado de fitness encontrado');
       return null;
     }
 
-    console.error('[FITNESS_SERVICE] Erro ao buscar dashboard:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao buscar dashboard:', error);
     throw error;
   }
 }
@@ -206,7 +206,7 @@ export async function getDailyLogByDate(date: string): Promise<FitnessDailyLog |
     if (error.response?.status === 404) {
       return null;
     }
-    console.error('[FITNESS_SERVICE] Erro ao buscar log do dia:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao buscar log do dia:', error);
     return null;
   }
 }
@@ -216,14 +216,14 @@ export async function getDailyLogByDate(date: string): Promise<FitnessDailyLog |
  */
 export async function saveDailyLog(data: Partial<FitnessDailyLog>): Promise<FitnessDailyLog> {
   try {
-    console.log('[FITNESS_SERVICE] Salvando log diário:', data);
+    if (__DEV__) console.log('[FITNESS_SERVICE] Salvando log diário');
 
     const response = await api.post<{ success: boolean; data: FitnessDailyLog }>('fitness/daily-log', data);
 
-    console.log('[FITNESS_SERVICE] Log diário salvo com sucesso');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Log diário salvo com sucesso');
     return response.data.data;
   } catch (error: any) {
-    console.error('[FITNESS_SERVICE] Erro ao salvar log diário:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao salvar log diário:', error);
     throw error;
   }
 }
@@ -233,14 +233,14 @@ export async function saveDailyLog(data: Partial<FitnessDailyLog>): Promise<Fitn
  */
 export async function createActivity(data: Partial<FitnessActivity>): Promise<FitnessActivity> {
   try {
-    console.log('[FITNESS_SERVICE] Registrando atividade:', data);
+    if (__DEV__) console.log('[FITNESS_SERVICE] Registrando atividade');
 
     const response = await api.post<{ success: boolean; data: FitnessActivity }>('fitness/activities', data);
 
-    console.log('[FITNESS_SERVICE] Atividade registrada com sucesso');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Atividade registrada com sucesso');
     return response.data.data;
   } catch (error: any) {
-    console.error('[FITNESS_SERVICE] Erro ao registrar atividade:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao registrar atividade:', error);
     throw error;
   }
 }
@@ -250,14 +250,14 @@ export async function createActivity(data: Partial<FitnessActivity>): Promise<Fi
  */
 export async function createWeight(data: Partial<FitnessWeight>): Promise<FitnessWeight> {
   try {
-    console.log('[FITNESS_SERVICE] Registrando peso:', data);
+    if (__DEV__) console.log('[FITNESS_SERVICE] Registrando peso');
 
     const response = await api.post<{ success: boolean; data: FitnessWeight }>('fitness/weight', data);
 
-    console.log('[FITNESS_SERVICE] Peso registrado com sucesso');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Peso registrado com sucesso');
     return response.data.data;
   } catch (error: any) {
-    console.error('[FITNESS_SERVICE] Erro ao registrar peso:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao registrar peso:', error);
     throw error;
   }
 }
@@ -267,14 +267,14 @@ export async function createWeight(data: Partial<FitnessWeight>): Promise<Fitnes
  */
 export async function createSleep(data: Partial<FitnessSleep>): Promise<FitnessSleep> {
   try {
-    console.log('[FITNESS_SERVICE] Registrando sono:', data);
+    if (__DEV__) console.log('[FITNESS_SERVICE] Registrando sono');
 
     const response = await api.post<{ success: boolean; data: FitnessSleep }>('fitness/sleep', data);
 
-    console.log('[FITNESS_SERVICE] Sono registrado com sucesso');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Sono registrado com sucesso');
     return response.data.data;
   } catch (error: any) {
-    console.error('[FITNESS_SERVICE] Erro ao registrar sono:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao registrar sono:', error);
     throw error;
   }
 }
@@ -284,19 +284,19 @@ export async function createSleep(data: Partial<FitnessSleep>): Promise<FitnessS
  */
 export async function getWeightHistory(months: number = 6): Promise<FitnessWeight[]> {
   try {
-    console.log('[FITNESS_SERVICE] Buscando histórico de peso...');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Buscando histórico de peso...');
 
     const response = await api.get<{ success: boolean; data: FitnessWeight[] }>(
       `fitness/weight/history?months=${months}`
     );
 
-    console.log('[FITNESS_SERVICE] Histórico de peso recuperado');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Histórico de peso recuperado');
     return response.data.data || [];
   } catch (error: any) {
     if (error.response?.status === 404) {
       return [];
     }
-    console.error('[FITNESS_SERVICE] Erro ao buscar histórico de peso:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao buscar histórico de peso:', error);
     throw error;
   }
 }
@@ -306,19 +306,19 @@ export async function getWeightHistory(months: number = 6): Promise<FitnessWeigh
  */
 export async function getActivities(startDate: string, endDate: string): Promise<FitnessActivity[]> {
   try {
-    console.log('[FITNESS_SERVICE] Buscando atividades...');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Buscando atividades...');
 
     const response = await api.get<{ success: boolean; data: FitnessActivity[] }>(
       `fitness/activities?startDate=${startDate}&endDate=${endDate}`
     );
 
-    console.log('[FITNESS_SERVICE] Atividades recuperadas');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Atividades recuperadas');
     return response.data.data || [];
   } catch (error: any) {
     if (error.response?.status === 404) {
       return [];
     }
-    console.error('[FITNESS_SERVICE] Erro ao buscar atividades:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao buscar atividades:', error);
     throw error;
   }
 }
@@ -329,7 +329,7 @@ export async function getActivities(startDate: string, endDate: string): Promise
  */
 export async function getDailyLogsHistory(days: number = 30): Promise<FitnessDailyLog[]> {
   try {
-    console.log(`[FITNESS_SERVICE] Buscando histórico de logs (${days} dias)...`);
+    if (__DEV__) console.log(`[FITNESS_SERVICE] Buscando histórico de logs (${days} dias)...`);
 
     const endDate = new Date().toISOString().split('T')[0];
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -338,13 +338,13 @@ export async function getDailyLogsHistory(days: number = 30): Promise<FitnessDai
       `fitness/daily-log?startDate=${startDate}&endDate=${endDate}`
     );
 
-    console.log('[FITNESS_SERVICE] Histórico de logs recuperado');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Histórico de logs recuperado');
     return response.data.data || [];
   } catch (error: any) {
     if (error.response?.status === 404) {
       return [];
     }
-    console.error('[FITNESS_SERVICE] Erro ao buscar histórico de logs:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao buscar histórico de logs:', error);
     return [];
   }
 }
@@ -354,7 +354,7 @@ export async function getDailyLogsHistory(days: number = 30): Promise<FitnessDai
  */
 export async function getSleepHistory(days: number = 30): Promise<FitnessSleep[]> {
   try {
-    console.log(`[FITNESS_SERVICE] Buscando histórico de sono (${days} dias)...`);
+    if (__DEV__) console.log(`[FITNESS_SERVICE] Buscando histórico de sono (${days} dias)...`);
 
     const endDate = new Date().toISOString().split('T')[0];
     const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -363,13 +363,13 @@ export async function getSleepHistory(days: number = 30): Promise<FitnessSleep[]
       `fitness/sleep?startDate=${startDate}&endDate=${endDate}`
     );
 
-    console.log('[FITNESS_SERVICE] Histórico de sono recuperado');
+    if (__DEV__) console.log('[FITNESS_SERVICE] Histórico de sono recuperado');
     return response.data.data || [];
   } catch (error: any) {
     if (error.response?.status === 404) {
       return [];
     }
-    console.error('[FITNESS_SERVICE] Erro ao buscar histórico de sono:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao buscar histórico de sono:', error);
     return [];
   }
 }
@@ -398,9 +398,9 @@ async function saveGoal(goalType: GoalType, value: number, unit: string, storage
       targetValue: value,
       unit,
     });
-    console.log(`[FITNESS_SERVICE] Meta ${GoalType[goalType]} salva no backend: ${value} ${unit}`);
+    if (__DEV__) console.log(`[FITNESS_SERVICE] Meta ${GoalType[goalType]} salva no backend: ${value} ${unit}`);
   } catch (error) {
-    console.warn(`[FITNESS_SERVICE] Erro ao salvar meta no backend (cache local preservado):`, error);
+    if (__DEV__) console.warn(`[FITNESS_SERVICE] Erro ao salvar meta no backend (cache local preservado):`, error);
   }
 }
 
@@ -416,7 +416,7 @@ async function getGoal(storageKey: string, parseAsFloat = false): Promise<number
     }
     return null;
   } catch (error) {
-    console.error('[FITNESS_SERVICE] Erro ao recuperar meta:', error);
+    if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao recuperar meta:', error);
     return null;
   }
 }
@@ -445,9 +445,9 @@ export async function syncGoalsFromBackend(): Promise<void> {
           break;
       }
     }
-    console.log(`[FITNESS_SERVICE] ${goals.length} metas sincronizadas do backend`);
+    if (__DEV__) console.log(`[FITNESS_SERVICE] ${goals.length} metas sincronizadas do backend`);
   } catch (error) {
-    console.warn('[FITNESS_SERVICE] Erro ao sincronizar metas do backend (usando cache local):', error);
+    if (__DEV__) console.warn('[FITNESS_SERVICE] Erro ao sincronizar metas do backend (usando cache local):', error);
   }
 }
 

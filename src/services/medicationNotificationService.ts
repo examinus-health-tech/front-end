@@ -35,7 +35,7 @@ try {
     },
   });
 } catch (e) {
-  console.warn('[MedicationNotifications] expo-notifications native module not available. Notifications disabled until next native build.');
+  if (__DEV__) console.warn('[MedicationNotifications] expo-notifications native module not available. Notifications disabled until next native build.');
 }
 
 function isAvailable(): boolean {

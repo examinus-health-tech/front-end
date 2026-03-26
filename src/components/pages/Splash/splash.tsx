@@ -12,10 +12,10 @@ export function Splash() {
   const splash = require('../../../assets/splash.mp4');
   const splashImage = require('../../../../assets/splash.png');
 
-  console.log(`Splash component mounted on ${Platform.OS}, video source:`, splash);
+  if (__DEV__) console.log(`Splash component mounted on ${Platform.OS}, video source:`, splash);
 
   const player = useVideoPlayer(splash, (player) => {
-    console.log('Video player initialized');
+    if (__DEV__) console.log('Video player initialized');
     player.loop = false;
 
     // Configurações específicas para Android
@@ -23,7 +23,7 @@ export function Splash() {
       player.muted = true; // Crítico para Android
       // Aguardar um pouco antes de tocar
       setTimeout(() => {
-        console.log('Starting video playback on Android');
+        if (__DEV__) console.log('Starting video playback on Android');
         player.play();
       }, 1000);
     } else {
@@ -36,15 +36,15 @@ export function Splash() {
     if (!player) return;
 
     const statusSubscription = player.addListener('statusChange', (event) => {
-      console.log(`Video status on ${Platform.OS}:`, event);
+      if (__DEV__) console.log(`Video status on ${Platform.OS}:`, event);
       // O evento é do tipo StatusChangeEventPayload, verificamos a propriedade status
       const status = (event as any)?.status || event;
       if ((status === 'readyToPlay' || status === 'playing') && !isReady) {
-        console.log('Video is ready!');
+        if (__DEV__) console.log('Video is ready!');
         setIsReady(true);
       }
       if (status === 'error') {
-        console.error('Video error');
+        if (__DEV__) console.error('Video error');
         setHasError(true);
       }
     });
@@ -56,7 +56,7 @@ export function Splash() {
 
   // Se houver erro, mostrar imagem
   if (hasError) {
-    console.log('Showing fallback image due to error');
+    if (__DEV__) console.log('Showing fallback image due to error');
     return (
       <View style={{ flex: 1, backgroundColor: 'white', position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
         <StatusBar hidden />

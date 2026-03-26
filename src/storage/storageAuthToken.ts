@@ -1,3 +1,4 @@
+import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AUTH_STORAGE } from '@storage/storageConfig';
@@ -7,12 +8,24 @@ type StorageAuthTokenProps = {
 };
 
 export async function storageAuthToken({ token }: StorageAuthTokenProps) {
-  await AsyncStorage.setItem(AUTH_STORAGE, JSON.stringify({ token }));
+  await SecureStore.setItemAsync(AUTH_STORAGE, JSON.stringify({ token }));
+  // Limpar do AsyncStorage se existir (migração)
+  await AsyncStorage.removeItem(AUTH_STORAGE).catch(() => {});
 }
 
 export async function storageAuthTokenGet() {
   try {
-    const response = await AsyncStorage.getItem(AUTH_STORAGE);
+    let response = await SecureStore.getItemAsync(AUTH_STORAGE);
+
+    // Migração: se não encontrou no SecureStore, tentar AsyncStorage
+    if (!response) {
+      response = await AsyncStorage.getItem(AUTH_STORAGE);
+      if (response) {
+        // Migrar para SecureStore
+        await SecureStore.setItemAsync(AUTH_STORAGE, response);
+        await AsyncStorage.removeItem(AUTH_STORAGE).catch(() => {});
+      }
+    }
 
     if (!response) {
       return { token: undefined };
@@ -21,12 +34,14 @@ export async function storageAuthTokenGet() {
     const { token }: StorageAuthTokenProps = JSON.parse(response);
     return { token };
   } catch (error) {
-    console.error('Error parsing auth token from storage:', error);
-    await AsyncStorage.removeItem(AUTH_STORAGE);
+    if (__DEV__) console.error('Error parsing auth token from storage:', error);
+    await SecureStore.deleteItemAsync(AUTH_STORAGE).catch(() => {});
+    await AsyncStorage.removeItem(AUTH_STORAGE).catch(() => {});
     return { token: undefined };
   }
 }
 
 export async function storageAuthTokenRemove() {
-  await AsyncStorage.removeItem(AUTH_STORAGE);
+  await SecureStore.deleteItemAsync(AUTH_STORAGE).catch(() => {});
+  await AsyncStorage.removeItem(AUTH_STORAGE).catch(() => {});
 }

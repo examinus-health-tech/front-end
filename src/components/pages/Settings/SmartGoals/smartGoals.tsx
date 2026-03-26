@@ -86,7 +86,7 @@ export function SmartGoals() {
         setSelectedObjective(weightGoalType as GoalObjective);
       }
     } catch (error) {
-      console.error('[SMART_GOALS] Erro ao carregar dados:', error);
+      if (__DEV__) console.error('[SMART_GOALS] Erro ao carregar dados:', error);
     } finally {
       setIsLoading(false);
     }
@@ -159,7 +159,7 @@ export function SmartGoals() {
         duration: 1500,
       });
     } catch (error) {
-      console.error('[SMART_GOALS] Erro ao aplicar meta:', error);
+      if (__DEV__) console.error('[SMART_GOALS] Erro ao aplicar meta:', error);
       showError({
         title: 'Erro',
         description: 'Não foi possível aplicar a meta',
@@ -183,7 +183,7 @@ export function SmartGoals() {
         duration: 2000,
       });
     } catch (error) {
-      console.error('[SMART_GOALS] Erro ao aplicar metas:', error);
+      if (__DEV__) console.error('[SMART_GOALS] Erro ao aplicar metas:', error);
       showError({
         title: 'Erro',
         description: 'Não foi possível aplicar as metas',

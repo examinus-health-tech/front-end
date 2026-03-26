@@ -26,10 +26,10 @@ export function useDeepLinking() {
   }, []);
 
   function handleDeepLink(event: { url: string }) {
-    console.log('🔗 [Deep Link] URL recebida:', event.url);
+    if (__DEV__) console.log('🔗 [Deep Link] URL recebida:', event.url);
 
     const data = Linking.parse(event.url);
-    console.log('📊 [Deep Link] Dados parseados:', JSON.stringify(data, null, 2));
+    if (__DEV__) console.log('📊 [Deep Link] Dados parseados:', JSON.stringify(data, null, 2));
 
     const { hostname, path, queryParams } = data;
 
@@ -41,25 +41,25 @@ export function useDeepLinking() {
 
     // Navegação baseada no path/hostname
     if (hostname === 'upload' || path === 'upload') {
-      console.log('➡️ [Deep Link] Navegando para upload');
+      if (__DEV__) console.log('➡️ [Deep Link] Navegando para upload');
       navigation.navigate('upload');
     } else if (hostname === 'exam' || path === 'exam') {
-      console.log('➡️ [Deep Link] Navegando para exam');
+      if (__DEV__) console.log('➡️ [Deep Link] Navegando para exam');
       navigation.navigate('exam');
     } else if (hostname === 'homepage' || path === 'homepage' || path === '') {
-      console.log('➡️ [Deep Link] Navegando para homepage');
+      if (__DEV__) console.log('➡️ [Deep Link] Navegando para homepage');
       navigation.navigate('homepage');
     } else if (hostname === 'examList' || path === 'examList' || path === 'exams') {
-      console.log('➡️ [Deep Link] Navegando para examList');
+      if (__DEV__) console.log('➡️ [Deep Link] Navegando para examList');
       navigation.navigate('examList');
     } else if (hostname === 'healthWallet' || path === 'healthWallet' || path === 'wallet') {
-      console.log('➡️ [Deep Link] Navegando para healthWallet');
+      if (__DEV__) console.log('➡️ [Deep Link] Navegando para healthWallet');
       navigation.navigate('healthWallet');
     } else if (hostname === 'myAccount' || path === 'myAccount' || path === 'account') {
-      console.log('➡️ [Deep Link] Navegando para myAccount');
+      if (__DEV__) console.log('➡️ [Deep Link] Navegando para myAccount');
       navigation.navigate('myAccount');
     } else {
-      console.log('⚠️ [Deep Link] Rota não reconhecida, navegando para homepage');
+      if (__DEV__) console.log('⚠️ [Deep Link] Rota não reconhecida, navegando para homepage');
       navigation.navigate('homepage');
     }
   }

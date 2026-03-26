@@ -128,7 +128,7 @@ export function Homepage() {
       const assessment = await getLatestAssessment();
       setMentalHealthAssessment(assessment);
     } catch (error) {
-      console.error('Erro ao buscar avaliação de saúde mental:', error);
+      if (__DEV__) console.error('Erro ao buscar avaliação de saúde mental:', error);
     }
   }
 
@@ -143,13 +143,13 @@ export function Homepage() {
         setVoucherCode(null);
       }
     } catch (error) {
-      console.log('📢 [HOME] Erro ao buscar voucher:', error);
+      if (__DEV__) console.log('📢 [HOME] Erro ao buscar voucher:', error);
       setVoucherCode(null);
     }
   }
 
   async function onRefresh() {
-    console.log('🔄 onRefresh chamado na homepage');
+    if (__DEV__) console.log('🔄 onRefresh chamado na homepage');
     setIsRefreshing(true);
     try {
       await getHomeData();
@@ -158,7 +158,7 @@ export function Homepage() {
       await fetchMentalHealthAssessment();
       await fetchVoucher();
     } catch (error) {
-      console.error('Erro ao atualizar:', error);
+      if (__DEV__) console.error('Erro ao atualizar:', error);
     } finally {
       setIsRefreshing(false);
     }
@@ -179,10 +179,10 @@ export function Homepage() {
       });
       const notifications = Array.isArray(response.data) ? response.data : response.data?.data || [];
       const count = notifications.filter((n: any) => !n.read).length;
-      console.log('🔔 Notificações não lidas:', count, 'para userId:', user?.userId);
+      if (__DEV__) console.log('🔔 Notificações não lidas:', count, 'para userId:', user?.userId);
       setUnreadCount(count);
     } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
+      if (__DEV__) console.error('Erro ao buscar notificações:', error);
       setUnreadCount(0);
     }
   }
@@ -219,13 +219,13 @@ export function Homepage() {
         updateUserPhoto(profileData.profilePhotoBase64);
       }
     } catch (error) {
-      console.log('⚠️ [HOMEPAGE] Erro ao buscar foto de perfil:', error);
+      if (__DEV__) console.log('⚠️ [HOMEPAGE] Erro ao buscar foto de perfil:', error);
     }
   }
 
   // Reset de estados quando o usuário mudar (login/logout/troca de conta)
   useEffect(() => {
-    console.log('🔄 Usuário mudou, resetando estados da homepage:', user?.userId);
+    if (__DEV__) console.log('🔄 Usuário mudou, resetando estados da homepage:', user?.userId);
     setUnreadCount(0);
     setMentalHealthAssessment(null);
     setHasAnimated(false);
@@ -914,7 +914,7 @@ export function Homepage() {
                         await setFitnessEnabled(true);
                         await refreshFitnessData();
                       } catch (error) {
-                        console.warn('⚠️ [HOMEPAGE] Erro ao habilitar fitness:', error);
+                        if (__DEV__) console.warn('⚠️ [HOMEPAGE] Erro ao habilitar fitness:', error);
                         // Mesmo com erro no Health Connect, mantém habilitado para usar dados do backend
                       }
                     }}

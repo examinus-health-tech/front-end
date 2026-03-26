@@ -65,12 +65,12 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
             const parsedData = JSON.parse(storedData);
             setOnboardingData(parsedData);
           } catch (parseError) {
-            console.log('❌ OnboardingContext: Erro ao fazer parse dos dados:', parseError);
+            if (__DEV__) console.log('❌ OnboardingContext: Erro ao fazer parse dos dados:', parseError);
             await AsyncStorage.removeItem('@app:onboardingData');
           }
         }
       } catch (error) {
-        console.log('❌ OnboardingContext: Erro ao carregar dados:', error);
+        if (__DEV__) console.log('❌ OnboardingContext: Erro ao carregar dados:', error);
       }
     };
     loadOnboardingData();
@@ -84,7 +84,7 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
           await AsyncStorage.setItem('@app:onboardingData', JSON.stringify(onboardingData));
         }
       } catch (error) {
-        console.log('❌ OnboardingContext: Erro ao salvar dados:', error);
+        if (__DEV__) console.log('❌ OnboardingContext: Erro ao salvar dados:', error);
       }
     };
     saveOnboardingData();
@@ -185,12 +185,12 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
 
   const checkOnboardingCompletion = useCallback(async () => {
     try {
-      console.log('🔍 [ONBOARDING] Verificando status do onboarding via endpoint...');
+      if (__DEV__) console.log('🔍 [ONBOARDING] Verificando status do onboarding via endpoint...');
 
       // Usar o endpoint dedicado do backend
       const { hasCompletedOnboarding } = await getOnboardingStatus();
 
-      console.log('✅ [ONBOARDING] Status do onboarding:', { hasCompletedOnboarding });
+      if (__DEV__) console.log('✅ [ONBOARDING] Status do onboarding:', { hasCompletedOnboarding });
 
       setIsOnboardingComplete(hasCompletedOnboarding);
 
@@ -204,7 +204,7 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
             setPersonalData(normalizedData);
           }
         } catch (dataError) {
-          console.log('⚠️ [ONBOARDING] Erro ao buscar dados pessoais:', dataError);
+          if (__DEV__) console.log('⚠️ [ONBOARDING] Erro ao buscar dados pessoais:', dataError);
         }
       } else {
         setPersonalData(undefined);
@@ -213,7 +213,7 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
 
       return hasCompletedOnboarding;
     } catch (error: any) {
-      console.log('❌ [ONBOARDING] Erro na verificação:', error);
+      if (__DEV__) console.log('❌ [ONBOARDING] Erro na verificação:', error);
       setIsOnboardingComplete(false);
       setPersonalData(undefined);
       return false;
@@ -221,7 +221,7 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
   }, []);
 
   async function resetOnboardingState() {
-    console.log('🔄 [OnboardingContext] Resetando estado do onboarding...');
+    if (__DEV__) console.log('🔄 [OnboardingContext] Resetando estado do onboarding...');
     try {
       setIsOnboardingComplete(false);
       setPersonalData(undefined);
@@ -229,18 +229,18 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
       setOnboardingData({} as OnboardingProps);
 
       await AsyncStorage.removeItem('@app:onboardingData');
-      console.log('✅ [OnboardingContext] AsyncStorage limpo');
-      console.log('✅ [OnboardingContext] Estado resetado com sucesso');
+      if (__DEV__) console.log('✅ [OnboardingContext] AsyncStorage limpo');
+      if (__DEV__) console.log('✅ [OnboardingContext] Estado resetado com sucesso');
     } catch (error) {
-      console.error('❌ [OnboardingContext] Erro ao resetar estado:', error);
+      if (__DEV__) console.error('❌ [OnboardingContext] Erro ao resetar estado:', error);
       // Continuar mesmo com erro, pois já limpamos os states
     }
   }
 
   async function saveOnboarding(payload: OnboardingProps) {
     try {
-      console.log('💾 [ONBOARDING] Salvando dados do onboarding no backend:', payload);
-      console.log('📊 [ONBOARDING] Campos recebidos:', {
+      if (__DEV__) console.log('💾 [ONBOARDING] Salvando dados do onboarding no backend:', payload);
+      if (__DEV__) console.log('📊 [ONBOARDING] Campos recebidos:', {
         gender: payload.gender,
         weight: payload.weight,
         height: payload.height,
@@ -261,20 +261,20 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
         height: payload.height && payload.height < 10 ? payload.height * 100 : payload.height,
       };
 
-      console.log('📤 [ONBOARDING] Payload normalizado:', normalizedPayload);
-      console.log('🔗 [ONBOARDING] API Base URL:', process.env.EXPO_PUBLIC_API_URL);
+      if (__DEV__) console.log('📤 [ONBOARDING] Payload normalizado:', normalizedPayload);
+      if (__DEV__) console.log('🔗 [ONBOARDING] API Base URL:', process.env.EXPO_PUBLIC_API_URL);
 
       // Usar a função que sempre usa PUT (UPSERT - cria ou atualiza)
       const response = await saveUserPersonalData(normalizedPayload);
 
-      console.log('✅ [ONBOARDING] Dados salvos com sucesso no backend!');
+      if (__DEV__) console.log('✅ [ONBOARDING] Dados salvos com sucesso no backend!');
 
       // Marcar onboarding como completo no backend
       try {
         await completeOnboarding();
-        console.log('✅ [ONBOARDING] Flag de onboarding completo atualizada no backend');
+        if (__DEV__) console.log('✅ [ONBOARDING] Flag de onboarding completo atualizada no backend');
       } catch (completeError) {
-        console.warn('⚠️ [ONBOARDING] Erro ao marcar onboarding como completo:', completeError);
+        if (__DEV__) console.warn('⚠️ [ONBOARDING] Erro ao marcar onboarding como completo:', completeError);
       }
 
       // Atualizar cache local (manter altura em metros para o frontend)
@@ -291,11 +291,11 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
       setIsOnboardingComplete(true);
       setPersonalData(dataForLocalStorage);
 
-      console.log('✅ [ONBOARDING] Estado local atualizado, onboarding marcado como completo');
+      if (__DEV__) console.log('✅ [ONBOARDING] Estado local atualizado, onboarding marcado como completo');
 
       jumpToUpload();
     } catch (error) {
-      console.error('❌ [ONBOARDING] Erro ao salvar no backend:', error);
+      if (__DEV__) console.error('❌ [ONBOARDING] Erro ao salvar no backend:', error);
 
       // Mesmo com erro, continuar o fluxo (salvar localmente)
       setOnboardingData(payload);

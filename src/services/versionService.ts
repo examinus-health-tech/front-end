@@ -67,7 +67,7 @@ export async function checkForceUpdate(): Promise<{
       versionInfo,
     };
   } catch (error) {
-    console.log('Erro ao verificar versão:', error);
+    if (__DEV__) console.log('Erro ao verificar versão:', error);
     // Em caso de erro, não bloquear o usuário
     return {
       needsUpdate: false,
@@ -87,9 +87,9 @@ export async function openAppStore(): Promise<void> {
     if (canOpen) {
       await Linking.openURL(storeUrl);
     } else {
-      console.log('Não foi possível abrir a loja de aplicativos');
+      if (__DEV__) console.log('Não foi possível abrir a loja de aplicativos');
     }
   } catch (error) {
-    console.log('Erro ao abrir loja de aplicativos:', error);
+    if (__DEV__) console.log('Erro ao abrir loja de aplicativos:', error);
   }
 }
