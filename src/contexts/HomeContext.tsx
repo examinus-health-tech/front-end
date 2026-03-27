@@ -105,6 +105,7 @@ export type HomeContextDataProps = {
   clearHomeData: () => void;
   fitnessEnabled: boolean;
   refreshFitnessData: () => Promise<void>;
+  hasExamAnalyzing: boolean;
 };
 
 type HomeContextProviderProps = {
@@ -120,6 +121,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   const [currentSystem, setCurrentSystem] = useState<specificSystemProps>({} as specificSystemProps);
   const [isLoadingHomeContext, setIsLoading] = useState<boolean>(false);
   const [fitnessEnabled, setFitnessEnabled] = useState<boolean>(false);
+  const [hasExamAnalyzing, setHasExamAnalyzing] = useState<boolean>(false);
 
   const { user } = useAuth();
   const appState = useRef(AppState.currentState);
@@ -468,6 +470,20 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
     await fetchFitnessData();
   }, []);
 
+  async function checkProcessingExams() {
+    try {
+      const response = await api.get('medical-exam/get-all-exams-upload-by-logged-user');
+      const exams: any[] = response?.data?.data || response?.data || [];
+      const processingStatuses = ['Received', 'Extracted', 'Analyzed'];
+      const hasProcessing = Array.isArray(exams) && exams.some((exam) =>
+        processingStatuses.includes(exam.medicalExamStatus)
+      );
+      setHasExamAnalyzing(hasProcessing);
+    } catch {
+      setHasExamAnalyzing(false);
+    }
+  }
+
   async function getHomeData() {
     setIsLoading(true);
 
@@ -480,6 +496,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
 
       const { data } = response;
       setHomeData(data.data);
+      setHasExamAnalyzing(false);
     } catch (error: any) {
       const errorMessage = error.response?.data?.message || error.message || '';
       const isNoDataError =
@@ -492,6 +509,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
       if (isNoDataError) {
         console.log('📭 [HomeContext] Nenhum exame com score encontrado, limpando dados');
         setHomeData({} as homeProps);
+        await checkProcessingExams();
         return;
       }
 
@@ -522,6 +540,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         clearHomeData,
         fitnessEnabled,
         refreshFitnessData,
+        hasExamAnalyzing,
       }}
     >
       {children}
