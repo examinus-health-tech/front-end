@@ -51,8 +51,8 @@ export async function registerDeviceOnBackend() {
   console.log('[OneSignal] Aguardando inicialização...');
   await new Promise<void>((resolve) => setTimeout(resolve, 2000));
 
-  // Função para tentar obter o Player ID com retry
-  const getPlayerIdWithRetry = async (maxRetries = 15, delayMs = 1500): Promise<string | null> => {
+  // Função para tentar obter o Player ID com exponential backoff
+  const getPlayerIdWithRetry = async (maxRetries = 8, initialDelayMs = 1000): Promise<string | null> => {
     for (let i = 0; i < maxRetries; i++) {
       try {
         const playerId = await OneSignal.User.getOnesignalId();
@@ -65,8 +65,9 @@ export async function registerDeviceOnBackend() {
       }
 
       if (i < maxRetries - 1) {
-        console.log(`[OneSignal] Aguardando ${delayMs}ms antes da próxima tentativa...`);
-        await new Promise<void>((resolve) => setTimeout(resolve, delayMs));
+        const delay = Math.min(initialDelayMs * Math.pow(2, i), 30000);
+        console.log(`[OneSignal] Aguardando ${delay}ms antes da próxima tentativa...`);
+        await new Promise<void>((resolve) => setTimeout(resolve, delay));
       }
     }
 

@@ -3,6 +3,7 @@ import { VStack, Text, ScrollView, IScrollViewProps, View, StatusBar } from 'nat
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OneSignal } from 'react-native-onesignal';
+import { api } from '@services/api';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -34,8 +35,26 @@ export function ConfigNotifications() {
   async function loadPreferences() {
     try {
       setIsLoading(true);
-      const stored = await AsyncStorage.getItem(NOTIFICATION_PREFS_KEY);
 
+      // Tentar carregar do backend primeiro
+      try {
+        const response = await api.get('/user/notification-preferences');
+        const prefs = response.data?.data;
+        if (prefs) {
+          setDailyReminders(prefs.dailyReminders ?? true);
+          setHealthInsights(prefs.healthInsights ?? true);
+          setExamInfo(prefs.examInfo ?? true);
+          setChatbotNotifications(prefs.chatbotNotifications ?? false);
+          // Salvar localmente como cache
+          await AsyncStorage.setItem(NOTIFICATION_PREFS_KEY, JSON.stringify(prefs));
+          return;
+        }
+      } catch (backendError) {
+        console.warn('Erro ao carregar preferências do backend, usando cache local:', backendError);
+      }
+
+      // Fallback: AsyncStorage
+      const stored = await AsyncStorage.getItem(NOTIFICATION_PREFS_KEY);
       if (stored) {
         const prefs = JSON.parse(stored);
         setDailyReminders(prefs.dailyReminders ?? true);
@@ -63,6 +82,13 @@ export function ConfigNotifications() {
         OneSignal.User.addTag(key, value.toString());
       } catch (oneSignalError) {
         console.warn('Erro ao atualizar tag OneSignal:', oneSignalError);
+      }
+
+      // Persistir no backend
+      try {
+        await api.put('/user/notification-preferences', updatedPrefs);
+      } catch (backendError) {
+        console.warn('Erro ao sincronizar preferências no backend:', backendError);
       }
 
       showSuccess({
