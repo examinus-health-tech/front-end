@@ -112,7 +112,7 @@ export function Homepage() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { user, getUserInfo, isLoading, updateUserPhoto } = useAuth();
-  const { getHomeData, homeData, trackerData, isLoadingHomeContext, fitnessEnabled, refreshFitnessData } = useHome();
+  const { getHomeData, homeData, trackerData, isLoadingHomeContext, fitnessEnabled, refreshFitnessData, hasExamAnalyzing } = useHome();
   const { showTabBar } = useTabBar();
 
   // Calcula userWithoutData de forma síncrona (durante o render) para evitar flicker
@@ -480,7 +480,7 @@ export function Homepage() {
             {/* Score X - animação 2 */}
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(100) : undefined}>
               <TouchableOpacity
-                onPress={() => navigation.navigate(userWithoutData ? 'upload' : 'healthWallet')}
+                onPress={() => navigation.navigate(userWithoutData && !hasExamAnalyzing ? 'upload' : 'healthWallet')}
                 activeOpacity={0.7}
               >
                 <Box w="100%" h="auto" bg={'white'} px={4} py={5} mt={8} borderRadius={12} shadow={2}>
@@ -491,7 +491,7 @@ export function Homepage() {
                       width={18}
                       fill={userWithoutData ? 0 : Math.round((homeData.generalScore || 0) / 10)}
                       rotation={270}
-                      tintColor={userWithoutData ? '#D1D5DB' : getScoreColor(homeData.generalScore || 0)}
+                      tintColor={userWithoutData ? (hasExamAnalyzing ? '#6366F1' : '#D1D5DB') : getScoreColor(homeData.generalScore || 0)}
                       backgroundColor="#DCE1E8"
                       arcSweepAngle={180}
                     >
@@ -537,7 +537,21 @@ export function Homepage() {
                       Score X
                     </Text>
 
-                    {userWithoutData ? (
+                    {userWithoutData && hasExamAnalyzing ? (
+                      <VStack alignItems="center" mt={2} space={2}>
+                        <Box bg="indigo.50" borderRadius={8} px={3} py={1.5} borderWidth={1} borderColor="indigo.200">
+                          <Text fontSize={13} fontWeight={700} color="indigo.600" textAlign="center">
+                            Em análise
+                          </Text>
+                        </Box>
+                        <Text fontSize={14} fontWeight={500} lineHeight={20} textAlign="center" color="gray.600">
+                          Seu exame está sendo analisado.{'\n'}Em poucos minutos seu Score X estará pronto!
+                        </Text>
+                        <Text fontSize={13} fontWeight={500} color="gray.400" textAlign="center">
+                          Você receberá uma notificação quando concluir.
+                        </Text>
+                      </VStack>
+                    ) : userWithoutData ? (
                       <VStack alignItems="center" mt={2}>
                         <Text fontSize={14} fontWeight={500} lineHeight={20} textAlign="center" color="gray.600">
                           Você não possui dados de exames a serem analisados.
