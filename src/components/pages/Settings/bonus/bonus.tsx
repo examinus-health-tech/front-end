@@ -23,7 +23,7 @@ import { StarIcon, CheckIcon, LocationIcon, ClockIcon, SearchIcon } from '@asset
 // components
 import { Header } from '../components/header/header';
 import { useAuth } from 'src/hooks/useAuth';
-import { checkCampaignVoucher } from '@services/campaignService';
+import { checkCampaignVoucher, requestVoucherRenewal } from '@services/campaignService';
 
 // data
 import { labiUnits } from 'src/data/labiUnits';
@@ -54,6 +54,8 @@ export function Bonus() {
   const [voucherData, setVoucherData] = useState<VoucherData | null>(null);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRenewing, setIsRenewing] = useState(false);
+  const [renewalStatus, setRenewalStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [searchQuery, setSearchQuery] = useState('');
   const scrollRef = useRef<RNScrollView>(null);
   const stickyHeaderY = useRef(0);
@@ -133,6 +135,30 @@ export function Bonus() {
       } catch (err) {
         console.error('Erro ao compartilhar:', err);
       }
+    }
+  };
+
+  const handleRenewVoucher = async () => {
+    if (!user?.email) return;
+    setIsRenewing(true);
+    setRenewalStatus('idle');
+    try {
+      const result = await requestVoucherRenewal(user.email);
+      if (result.success && result.voucher) {
+        setVoucherData({
+          voucher: result.voucher,
+          message: result.message,
+          validade: result.validade,
+          status: result.status,
+        });
+        setRenewalStatus('success');
+      } else {
+        setRenewalStatus('success');
+      }
+    } catch {
+      setRenewalStatus('error');
+    } finally {
+      setIsRenewing(false);
     }
   };
 
@@ -317,10 +343,47 @@ export function Bonus() {
                     : 'Este voucher é pessoal e intransferível. Válido por tempo limitado.'}
                 </Text>
               </Box>
+
+              {isExpired && (
+                <VStack space={2}>
+                  <TouchableOpacity onPress={handleRenewVoucher} disabled={isRenewing}>
+                    <Box
+                      bg={isRenewing ? 'gray.300' : LABI_PURPLE}
+                      py={4}
+                      borderRadius={14}
+                      alignItems="center"
+                    >
+                      {isRenewing ? (
+                        <HStack space={2} alignItems="center">
+                          <Spinner size="sm" color="white" />
+                          <Text fontSize={15} fontWeight={700} color="white">Solicitando...</Text>
+                        </HStack>
+                      ) : (
+                        <Text fontSize={15} fontWeight={700} color="white">Solicitar renovação</Text>
+                      )}
+                    </Box>
+                  </TouchableOpacity>
+
+                  {renewalStatus === 'success' && (
+                    <Box bg="green.50" borderRadius={10} p={3} borderWidth={1} borderColor="green.200">
+                      <Text fontSize={13} fontWeight={500} color="green.700" textAlign="center">
+                        Solicitação enviada! Verifique seu e-mail em breve.
+                      </Text>
+                    </Box>
+                  )}
+                  {renewalStatus === 'error' && (
+                    <Box bg="red.50" borderRadius={10} p={3} borderWidth={1} borderColor="red.200">
+                      <Text fontSize={13} fontWeight={500} color="red.600" textAlign="center">
+                        Não foi possível solicitar a renovação. Tente novamente.
+                      </Text>
+                    </Box>
+                  )}
+                </VStack>
+              )}
             </VStack>
           ) : (
-            <Center flex={1} px={6} mt={20}>
-              <Box bg="gray.100" p={8} borderRadius={20} alignItems="center">
+            <VStack mx={6} mt={20} space={4} alignItems="center">
+              <Box bg="gray.100" p={8} borderRadius={20} alignItems="center" w="100%">
                 <Box bg="gray.200" p={4} borderRadius={100} mb={4}>
                   <StarIcon size="48" color="#9CA3AF" />
                 </Box>
@@ -328,11 +391,44 @@ export function Bonus() {
                   Nenhum voucher disponível
                 </Text>
                 <Text fontSize={14} fontWeight={500} color="gray.500" textAlign="center" lineHeight={20}>
-                  Você ainda não possui vouchers ativos.
-                  Fique de olho nas nossas campanhas!
+                  Você ainda não possui vouchers ativos.{'\n'}Fique de olho nas nossas campanhas!
                 </Text>
               </Box>
-            </Center>
+
+              <TouchableOpacity style={{ width: '100%' }} onPress={handleRenewVoucher} disabled={isRenewing}>
+                <Box
+                  bg={isRenewing ? 'gray.300' : LABI_PURPLE}
+                  py={4}
+                  borderRadius={14}
+                  alignItems="center"
+                  w="100%"
+                >
+                  {isRenewing ? (
+                    <HStack space={2} alignItems="center">
+                      <Spinner size="sm" color="white" />
+                      <Text fontSize={15} fontWeight={700} color="white">Solicitando...</Text>
+                    </HStack>
+                  ) : (
+                    <Text fontSize={15} fontWeight={700} color="white">Solicitar voucher</Text>
+                  )}
+                </Box>
+              </TouchableOpacity>
+
+              {renewalStatus === 'success' && (
+                <Box bg="green.50" borderRadius={10} p={3} borderWidth={1} borderColor="green.200" w="100%">
+                  <Text fontSize={13} fontWeight={500} color="green.700" textAlign="center">
+                    Solicitação enviada! Verifique seu e-mail em breve.
+                  </Text>
+                </Box>
+              )}
+              {renewalStatus === 'error' && (
+                <Box bg="red.50" borderRadius={10} p={3} borderWidth={1} borderColor="red.200" w="100%">
+                  <Text fontSize={13} fontWeight={500} color="red.600" textAlign="center">
+                    Não foi possível solicitar o voucher. Tente novamente.
+                  </Text>
+                </Box>
+              )}
+            </VStack>
           )}
         </View>
 

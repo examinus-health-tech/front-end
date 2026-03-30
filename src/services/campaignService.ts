@@ -14,6 +14,10 @@ export interface CampaignVoucherResponse {
 let cachedVoucher: { email: string; response: CampaignVoucherResponse; timestamp: number } | null = null;
 const CACHE_TTL = 10 * 60 * 1000; // 10 minutos
 
+export function clearVoucherCache() {
+  cachedVoucher = null;
+}
+
 /**
  * Verifica se o email está em uma campanha e retorna o voucher se existir
  * Esta função é chamada após o cadastro para verificar se o usuário
@@ -80,4 +84,13 @@ export async function checkCampaignVoucher(email: string, enviarNotificacao = fa
     // Não bloquear o fluxo em caso de erro - apenas logar
     return { success: false };
   }
+}
+
+/**
+ * Solicita a renovação/reenvio do voucher para o e-mail do usuário.
+ * Invalida o cache local e chama a API com enviarNotificacao = true.
+ */
+export async function requestVoucherRenewal(email: string): Promise<CampaignVoucherResponse> {
+  clearVoucherCache();
+  return checkCampaignVoucher(email, true);
 }
