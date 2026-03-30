@@ -13,9 +13,12 @@ import {
   HStack,
 } from 'native-base';
 import { useNavigation } from '@react-navigation/native';
-import { TouchableOpacity } from 'react-native';
+import { TouchableOpacity, ActivityIndicator } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { DocumentPickerAsset } from 'expo-document-picker';
+
+// Utils
+import { validateExamPhoto } from '@utils/imageValidation';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -39,6 +42,8 @@ export function Upload() {
   const [modalVisible, setModalVisible] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [photo, setPhoto] = useState<any>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [isValidating, setIsValidating] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef(null);
 
@@ -97,18 +102,40 @@ export function Upload() {
   async function handleTakePhoto() {
     if (cameraRef.current) {
       const options = {
-        quality: 1,
+        quality: 0.85,
         base64: true,
         exif: false,
       };
 
       const takedPhoto = await cameraRef.current.takePictureAsync(options);
-
       setPhoto(takedPhoto);
+
+      // Validar foto automaticamente
+      setIsValidating(true);
+      setValidationErrors([]);
+      try {
+        const validation = await validateExamPhoto({
+          uri: takedPhoto.uri,
+          base64: takedPhoto.base64,
+          width: takedPhoto.width,
+          height: takedPhoto.height,
+        });
+        if (!validation.isValid) {
+          setValidationErrors(validation.errors);
+        }
+      } catch (validationError) {
+        console.error('📸 Erro na validação:', validationError);
+      } finally {
+        setIsValidating(false);
+      }
     }
   }
 
-  const handleRetakePhoto = () => setPhoto(null);
+  const handleRetakePhoto = () => {
+    setPhoto(null);
+    setValidationErrors([]);
+    setIsValidating(false);
+  };
 
   async function handleSendPhoto() {
     console.log('!@# 🚀 ~ handleSendPhoto ~ photo:', photo);
@@ -151,18 +178,40 @@ export function Upload() {
               resizeMode="cover"
             />
 
-            <Center position="absolute" bottom={0} left={0} right={0} pb={24} bg="rgba(0,0,0,0.3)">
-              <Text color="white" fontSize={18} fontWeight={600} mb={4} textAlign="center">
-                Confirme se a foto está legível
-              </Text>
+            <Center position="absolute" bottom={0} left={0} right={0} pb={24} bg="rgba(0,0,0,0.5)">
+              {isValidating ? (
+                <VStack alignItems="center" mb={4}>
+                  <ActivityIndicator size="small" color="white" />
+                  <Text color="white" fontSize={14} mt={2}>
+                    Verificando qualidade da foto...
+                  </Text>
+                </VStack>
+              ) : validationErrors.length > 0 ? (
+                <VStack alignItems="center" mb={4} px={4}>
+                  <Box bg="rgba(239,68,68,0.9)" px={4} py={3} rounded="lg" mb={2} w="100%">
+                    {validationErrors.map((error, index) => (
+                      <Text key={index} color="white" fontSize={14} textAlign="center" mb={index < validationErrors.length - 1 ? 1 : 0}>
+                        {error}
+                      </Text>
+                    ))}
+                  </Box>
+                  <Text color="yellow.300" fontSize={14} fontWeight={600} textAlign="center">
+                    Tire uma nova foto para continuar
+                  </Text>
+                </VStack>
+              ) : (
+                <Text color="white" fontSize={18} fontWeight={600} mb={4} textAlign="center">
+                  Foto validada! Confirme o envio.
+                </Text>
+              )}
 
               <HStack space={8}>
-                <NativeButton 
-                  onPress={handleRetakePhoto} 
-                  rounded="2xl" 
-                  w={28} 
-                  h={12} 
-                  backgroundColor={'red.500'} 
+                <NativeButton
+                  onPress={handleRetakePhoto}
+                  rounded="2xl"
+                  w={28}
+                  h={12}
+                  backgroundColor={'red.500'}
                   _pressed={{ bg: 'red.600' }}
                 >
                   <Text color="white" fontWeight={600}>
@@ -175,8 +224,9 @@ export function Upload() {
                   rounded="2xl"
                   w={28}
                   h={12}
-                  backgroundColor={'green.500'}
-                  _pressed={{ bg: 'green.600' }}
+                  backgroundColor={validationErrors.length > 0 || isValidating ? 'gray.500' : 'green.500'}
+                  _pressed={{ bg: validationErrors.length > 0 || isValidating ? 'gray.500' : 'green.600' }}
+                  isDisabled={validationErrors.length > 0 || isValidating}
                 >
                   <Text color="white" fontWeight={600}>
                     Enviar
