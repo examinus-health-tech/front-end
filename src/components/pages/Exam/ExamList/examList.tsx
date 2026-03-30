@@ -43,18 +43,9 @@ type FilterState = {
 
 // Função para mapear status do exame para mensagens amigáveis
 function getStatusMessage(status: string) {
-  const statusMap = {
-    Received: 'Recebido',
-    Extracted: 'Extraído',
-    ExtractedFailed: 'Não suportado',
-    Analyzed: 'Analisado',
-    AnalyzedFailed: 'Não suportado',
-    ScoreComputed: 'Concluído',
-    ScoreComputedFailed: 'Não suportado',
-    ProcessingTimeout: 'Tempo excedido',
-  };
-
-  return statusMap[status as keyof typeof statusMap] || status;
+  if (status === 'ScoreComputed') return 'Concluído';
+  if (status.includes('Failed') || status === 'ProcessingTimeout') return 'Erro';
+  return 'Em análise';
 }
 
 // Função para obter descrição detalhada do erro
@@ -70,28 +61,19 @@ function getErrorDescription(status: string) {
 
 // Função para obter a cor do status
 function getStatusColor(status: string) {
-  const colorMap = {
-    Received: 'blue.500',
-    Extracted: 'blue.600',
-    ExtractedFailed: 'orange.500',
-    Analyzed: 'orange.500',
-    AnalyzedFailed: 'orange.500',
-    ScoreComputed: 'ciano.500',
-    ScoreComputedFailed: 'orange.500',
-    ProcessingTimeout: 'orange.600',
-  };
-
-  return colorMap[status as keyof typeof colorMap] || 'gray.500';
+  if (status === 'ScoreComputed') return 'green.500';
+  if (status.includes('Failed') || status === 'ProcessingTimeout') return 'red.500';
+  return 'blue.500';
 }
 
 // Função para verificar se é um status de erro
 function isErrorStatus(status: string) {
-  return status.includes('Failed');
+  return status.includes('Failed') || status === 'ProcessingTimeout';
 }
 
 // Função para verificar se é status de processamento
 function isProcessingStatus(status: string) {
-  return ['Received', 'Extracted', 'Analyzed', 'ProcessingTimeout'].includes(status);
+  return ['Received', 'Extracted', 'Analyzed'].includes(status);
 }
 
 const uploadFormSchema = yup.object({
