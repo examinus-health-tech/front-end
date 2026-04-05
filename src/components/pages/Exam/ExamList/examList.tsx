@@ -68,12 +68,12 @@ function getStatusColor(status: string) {
 
 // Função para verificar se é um status de erro
 function isErrorStatus(status: string) {
-  return status.includes('Failed');
+  return status.includes('Failed') || status === 'ProcessingTimeout';
 }
 
 // Função para verificar se é status de processamento
 function isProcessingStatus(status: string) {
-  return ['Received', 'Extracted', 'Analyzed', 'ProcessingTimeout'].includes(status);
+  return ['Received', 'Extracted', 'Analyzed'].includes(status);
 }
 
 const uploadFormSchema = yup.object({

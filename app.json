@@ -8,7 +8,7 @@
       "fallbackToCacheTimeout": 3000,
       "url": "https://u.expo.dev/29aa665e-a9a4-4a0b-9ead-a75ede66e041"
     },
-    "version": "1.3.0",
+    "version": "1.4.1",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -25,7 +25,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "18",
+      "buildNumber": "20",
       "supportsTablet": true,
       "bundleIdentifier": "com.examinus.app",
       "jsEngine": "jsc",
@@ -46,6 +46,7 @@
         "NSPhotoLibraryAddUsageDescription": "O Examinus pode salvar fotos de exames no seu dispositivo para facilitar o acesso futuro.",
         "NSFaceIDUsageDescription": "O Examinus usa Face ID para autenticação biométrica, permitindo login rápido e seguro sem precisar digitar sua senha.",
         "NSLocationWhenInUseUsageDescription": "O Examinus pode usar sua localização para melhorar sua experiência e fornecer serviços personalizados de saúde na sua região.",
+        "ZPS_APP_ID": "examinus:9df9d39647fd45689bf386ec81dac4d9:1:US",
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "google-oauth",
@@ -72,7 +73,7 @@
     },
     "android": {
       "minSdkVersion": 26,
-      "versionCode": 18,
+      "versionCode": 20,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"

@@ -34,6 +34,7 @@ import {
   TireoideIcon,
   StarIcon,
   ChevronRightSmIcon,
+  PillIcon,
 } from '@assets/icons';
 import Vector from '@assets/png/vector-22.png';
 import Vector2 from '@assets/png/vector-30.png';
@@ -847,6 +848,38 @@ export function Homepage() {
                   </Box>
                 </TouchableOpacity>
               )}
+            </Animated.View>
+
+            {/* Medicamentos - animação 3.7 */}
+            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(300) : undefined}>
+              <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
+                <HStack alignItems="center" space={2}>
+                  <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                    Medicamentos
+                  </Text>
+                  <Box bg="gray.200" px={2} py={0.5} borderRadius={6}>
+                    <Text fontSize={10} fontWeight={700} color="gray.500">
+                      EM BREVE
+                    </Text>
+                  </Box>
+                </HStack>
+              </HStack>
+
+              <Box bg="white" borderRadius={12} p={4} mt={4} shadow={2} opacity={0.6}>
+                <HStack alignItems="center" space={3}>
+                  <Box bg="gray.100" w={12} h={12} borderRadius={12} alignItems="center" justifyContent="center">
+                    <PillIcon size="24" color="#9CA3AF" />
+                  </Box>
+                  <VStack flex={1}>
+                    <Text fontSize={14} fontWeight={700} color="gray.500">
+                      Gerencie seus medicamentos
+                    </Text>
+                    <Text fontSize={12} fontWeight={400} color="gray.400" lineHeight={16}>
+                      Cadastre remédios, receba lembretes e acompanhe sua adesão.
+                    </Text>
+                  </VStack>
+                </HStack>
+              </Box>
             </Animated.View>
 
             {/* Rastreador Fitness - animação 4 */}

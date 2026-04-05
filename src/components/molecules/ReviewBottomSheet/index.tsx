@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { TouchableOpacity, Linking, Alert, Platform } from 'react-native';
 import { Actionsheet, Box, HStack, Text, VStack } from 'native-base';
 import Svg, { Path } from 'react-native-svg';
+import * as StoreReview from 'expo-store-review';
 import { markAsReviewed, markReviewPromptShown } from '@services/reviewService';
 
 interface ReviewBottomSheetProps {
@@ -27,17 +28,25 @@ export function ReviewBottomSheet({ isOpen, onClose }: ReviewBottomSheetProps) {
   };
 
   const openStoreReview = async () => {
-    const appStoreId = '6754453015';
-    const url = Platform.select({
-      ios: `itms-apps://apps.apple.com/app/id${appStoreId}?action=write-review`,
-      android: 'market://details?id=com.examinus.app',
-    });
-
     await markAsReviewed();
     handleClose();
 
-    if (url) {
-      openURL(url);
+    try {
+      const isAvailable = await StoreReview.isAvailableAsync();
+      if (isAvailable) {
+        await StoreReview.requestReview();
+      } else {
+        const url = StoreReview.storeUrl();
+        if (url) {
+          openURL(url);
+        }
+      }
+    } catch (error) {
+      console.error('[Review] Erro ao solicitar review nativo:', error);
+      const url = StoreReview.storeUrl();
+      if (url) {
+        openURL(url);
+      }
     }
   };
 

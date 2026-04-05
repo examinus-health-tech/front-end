@@ -10,6 +10,7 @@ import { createBottomTabNavigator, BottomTabBarButtonProps } from '@react-naviga
 import { ChartIcon, ChecklistIcon, ExaminusIcon, HomeIcon, UserIcon } from '@assets/icons';
 import { Box, View } from 'native-base';
 import { TouchableOpacity } from 'react-native';
+import { MedicationTimeline, MedicationForm as MedicationFormScreen, MedicationDetail, MedicationAdherence } from '@components/pages/Medication';
 import { OnboardingSteps } from '@components/pages/OnboardingInfo/onboarding';
 import { TabBarContextProvider } from '@contexts/TabBarContext';
 import { useTabBar } from 'src/hooks/useTabBar';
@@ -72,6 +73,10 @@ export type AppRoutes = {
   mentalHealthResult: { assessmentId?: string } | undefined;
   smartGoals: undefined;
   bonus: undefined;
+  medicationTimeline: undefined;
+  medicationForm: { medicationId?: string } | undefined;
+  medicationDetail: { medicationId: string };
+  medicationAdherence: undefined;
 };
 
 export type AppNavigatorRoutesProps = NativeStackNavigationProp<AppRoutes>;
@@ -419,6 +424,12 @@ function AppRoutesContent() {
       {/** MENTAL HEALTH */}
       <Screen name="mentalHealthForm" component={MentalHealthForm} />
       <Screen name="mentalHealthResult" component={MentalHealthResult} />
+
+      {/** MEDICATION */}
+      <Screen name="medicationTimeline" component={MedicationTimeline} />
+      <Screen name="medicationForm" component={MedicationFormScreen} />
+      <Screen name="medicationDetail" component={MedicationDetail} />
+      <Screen name="medicationAdherence" component={MedicationAdherence} />
 
       {/** FITNESS TRACKER */}
       {/* <Screen name="calories" component={Calories} /> */}
