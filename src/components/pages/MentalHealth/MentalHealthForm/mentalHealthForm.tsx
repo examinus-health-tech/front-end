@@ -101,7 +101,7 @@ export function MentalHealthForm() {
   }, [answers, navigation, showError, showSuccess]);
 
   return (
-    <VStack flex={1} bg="gray.50">
+    <VStack testID="screen-mental-health-form" flex={1} bg="gray.50">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <VStack pt={16} flex={1}>
@@ -233,6 +233,7 @@ export function MentalHealthForm() {
           {/* Navegação entre perguntas */}
           <HStack mx={6} mb={4} justifyContent="space-between" space={3}>
             <Button
+              testID="btn-mental-prev"
               title="Anterior"
               variant="secondary"
               size="md"
@@ -245,6 +246,7 @@ export function MentalHealthForm() {
             />
             {currentQuestion === 20 ? (
               <Button
+                testID="btn-mental-next"
                 title={isSubmitting ? 'Salvando...' : 'Concluir'}
                 variant="primary"
                 size="md"
@@ -257,6 +259,7 @@ export function MentalHealthForm() {
               />
             ) : (
               <Button
+                testID="btn-mental-next"
                 bg="purple.500"
                 _pressed={{ bg: 'purple.600' }}
                 title="Próxima"

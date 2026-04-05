@@ -182,7 +182,7 @@ export function Bonus() {
   const showUnits = !isLoading && !error && !!voucherData && !isExpired;
 
   return (
-    <VStack flex={1} bg="gray.50">
+    <VStack testID="screen-bonus" flex={1} bg="gray.50">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <VStack pt={16} mx={6}>

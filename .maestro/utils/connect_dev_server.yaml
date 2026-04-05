@@ -1,0 +1,47 @@
+appId: com.examinus.app
+---
+# Subflow: conecta ao dev server do Expo Dev Client
+# Necessário após clearState ou primeira abertura em dev builds
+
+# Aguardar tela do dev client
+- repeat:
+    times: 3
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 3000
+
+# Conectar ao dev server (tenta múltiplos patterns)
+- tapOn:
+    text: ".*http.*8081.*"
+    optional: true
+- tapOn:
+    text: ".*10.0.2.2.*"
+    optional: true
+- tapOn:
+    text: ".*localhost.*"
+    optional: true
+
+# Aguardar bundle carregar (splash 6s + fonts até 10s)
+- repeat:
+    times: 10
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 5000
+
+# Fechar developer menu do Expo se aparecer
+- tapOn:
+    text: "Continue"
+    optional: true
+- tapOn:
+    text: ".*✕.*"
+    optional: true
+- tapOn:
+    point: "50%,15%"
+    optional: true
+
+# Aguardar app finalizar carregamento
+- repeat:
+    times: 5
+    commands:
+      - waitForAnimationToEnd:
+          timeout: 3000

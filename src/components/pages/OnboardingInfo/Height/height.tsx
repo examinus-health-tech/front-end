@@ -77,6 +77,7 @@ export function Height() {
       </Center>
 
       <Button
+        testID="btn-onboarding-continue"
         position="absolute"
         bottom={-50}
         variant="primary"

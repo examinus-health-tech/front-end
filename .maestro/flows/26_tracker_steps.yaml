@@ -1,0 +1,37 @@
+appId: com.examinus.app
+name: "Tracker - Passos detalhado"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- scrollUntilVisible:
+    element: "Rastreador Fitness"
+    direction: DOWN
+    timeout: 10000
+- tapOn: "Rastreador Fitness"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+
+- tapOn: "Passos"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-steps"
+    timeout: 10000
+
+- takeScreenshot: "26_tracker_steps"
+
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+
+- tapOn:
+    id: "btn-back"

@@ -25,6 +25,7 @@ export type Props = {
   errorMessage?: string;
   isRequired?: boolean;
   wContainer?: string;
+  testID?: string;
   [key: string]: any;
 };
 
@@ -43,6 +44,7 @@ export function Input({
   errorMessage,
   isRequired,
   wContainer = 'full',
+  testID,
   ...rest
 }: Props) {
   return (
@@ -84,6 +86,7 @@ export function Input({
           )}
 
           <TextInput
+            testID={testID}
             style={{
               height: 53,
               borderWidth: 1,

@@ -656,7 +656,7 @@ export function HeartScore() {
 
   if (currentSystem) {
     return (
-      <VStack py={16}>
+      <VStack testID="screen-heart-score" py={16}>
         <HeaderTitle
           title={`Score ${currentSystem.sistema}`}
           withBackButton={() => {

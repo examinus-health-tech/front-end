@@ -1,0 +1,56 @@
+appId: com.examinus.app
+name: "Cadastro - Fluxo completo"
+---
+- launchApp:
+    stopApp: false
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 15000
+
+# Ir para login via "Conecte-se."
+- tapOn:
+    id: "btn-go-to-login"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-login"
+    timeout: 10000
+
+# Navegar para cadastro via "Cadastre-se."
+- tapOn:
+    text: ".*Cadastre-se.*"
+
+# Verificar tela de cadastro via testID
+- extendedWaitUntil:
+    visible:
+      id: "screen-signup"
+    timeout: 10000
+
+# Verificar campos do formulário
+- assertVisible:
+    id: "input-name"
+- assertVisible:
+    id: "input-email"
+- assertVisible:
+    id: "input-password"
+
+# Scroll para ver campo de confirmação e botão
+- scrollUntilVisible:
+    element:
+      id: "btn-signup"
+    direction: DOWN
+
+- assertVisible:
+    id: "input-confirm-password"
+
+# Tentar cadastrar sem dados
+- tapOn:
+    id: "btn-signup"
+
+# Verificar que ainda está na tela de cadastro (validação impediu)
+- assertVisible:
+    id: "screen-signup"
+
+- takeScreenshot: "04_signup_validation"

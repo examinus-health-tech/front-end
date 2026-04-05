@@ -162,13 +162,12 @@ export function Tracker() {
   }), [stepsCompleted, currentGoals, kcalBurned, nutritionCompleted, hydrationCompleted, sleepCompleted, weightCompleted]);
 
   // Nome da fonte de dados de saúde baseado na plataforma
-  // ⚠️ Temporariamente desabilitado - integração nativa pausada
-  const DISABLE_HEALTH_SOURCE_INDICATORS = true;
+  const DISABLE_HEALTH_SOURCE_INDICATORS = false;
   const healthSourceName = Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';
   const healthSourceColor = Platform.OS === 'ios' ? '#FF2D55' : '#4285F4';
 
   return (
-    <VStack flex={1} py={16}>
+    <VStack flex={1} py={16} testID="screen-tracker">
       <HeaderTitle withBackButton={() => navigation.navigate('homepage')} title="Rastreador Fitness" />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

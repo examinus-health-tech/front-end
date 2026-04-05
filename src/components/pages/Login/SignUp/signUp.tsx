@@ -180,7 +180,7 @@ export function SignUp() {
 
       <KeyboardAvoidingView behavior="padding">
         <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-          <Flex justify="space-between" mx={6} py={32} h="100%">
+          <Flex testID="screen-signup" justify="space-between" mx={6} py={32} h="100%">
 
             <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mb={2}>
               Cadastre-se
@@ -192,6 +192,7 @@ export function SignUp() {
               name="name"
               render={({ field: { onChange, value } }) => (
                 <Input
+                  testID="input-name"
                   autoCapitalize="none"
                   label="Nome"
                   onChangeText={onChange}
@@ -207,6 +208,7 @@ export function SignUp() {
               name="email"
               render={({ field: { onChange, value } }) => (
                 <Input
+                  testID="input-email"
                   InputLeftElement={
                     <Flex ml={4} align="center" justify="center">
                       <Icon as={<MailIcon solid color={!!errors.email?.message ? 'red' : 'black'} />} w="full" />
@@ -228,6 +230,7 @@ export function SignUp() {
               name="password"
               render={({ field: { onChange, value } }) => (
                 <Input
+                  testID="input-password"
                   InputLeftElement={
                     <Flex ml={4} align="center" justify="center">
                       <Icon as={<KeyIcon solid color={!!errors.password?.message ? 'red' : 'black'} />} w="full" />
@@ -255,6 +258,7 @@ export function SignUp() {
               name="confirm_password"
               render={({ field: { onChange, value } }) => (
                 <Input
+                  testID="input-confirm-password"
                   InputLeftElement={
                     <Flex ml={4} align="center" justify="center">
                       <Icon
@@ -329,6 +333,7 @@ export function SignUp() {
           />
 
           <Button
+            testID="btn-signup"
             variant="primary"
             size="full"
             title="Cadastrar"

@@ -73,7 +73,7 @@ export function ForgotPassword() {
   return (
     <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }} keyboardVerticalOffset={0} enabled>
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
-        <VStack flex={1} py={20} pb={16}>
+        <VStack testID="screen-forgot-password" flex={1} py={20} pb={16}>
           <HeaderTitle title="Esqueci minha senha" withBackButton={() => navigation.navigate('signIn')} />
 
           <Image source={Vector} alt="Vetor" resizeMode="stretch" h={80} mt={4} />
@@ -85,6 +85,7 @@ export function ForgotPassword() {
                 name="email"
                 render={({ field: { onChange, value } }) => (
                   <Input
+                    testID="input-email"
                     InputLeftElement={
                       <Flex ml={4} align="center" justify="center">
                         <Icon as={<MailIcon solid color={!!errors.email?.message ? 'red' : 'black'} />} w="full" />
@@ -103,6 +104,7 @@ export function ForgotPassword() {
             </Stack>
 
             <Button
+              testID="btn-send"
               variant="primary"
               size="full"
               title="Enviar"

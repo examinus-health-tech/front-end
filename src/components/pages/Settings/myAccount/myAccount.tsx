@@ -157,7 +157,7 @@ export function MyAccount() {
   };
 
   return (
-    <View flex={1}>
+    <View flex={1} testID="screen-settings">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Header fixo */}
@@ -220,6 +220,7 @@ export function MyAccount() {
 
               <VStack mt={4} space={3}>
                 <Card
+                  testID="card-personal-info"
                   title="Informação Pessoal"
                   variant="primary"
                   action="chevron"
@@ -227,6 +228,7 @@ export function MyAccount() {
                   icon={<UserIcon color="#3D4966" size="30" />}
                 />
                 <Card
+                  testID="card-notifications"
                   title="Notificações"
                   variant="primary"
                   action="chevron"
@@ -234,6 +236,7 @@ export function MyAccount() {
                   icon={<BellSecondaryIcon color="#3D4966" size="30" />}
                 />
                 <Card
+                  testID="card-preferences"
                   title="Preferências"
                   variant="primary"
                   action="chevron"
@@ -241,6 +244,7 @@ export function MyAccount() {
                   icon={<GearIcon color="#3D4966" size="30" />}
                 />
                 <Card
+                  testID="card-security"
                   title="Segurança"
                   variant="primary"
                   action="chevron"
@@ -260,6 +264,7 @@ export function MyAccount() {
 
               <VStack mt={4} space={3}>
                 <Card
+                  testID="card-bonus"
                   title="Meu Voucher"
                   variant="primary"
                   action="chevron"
@@ -305,6 +310,7 @@ export function MyAccount() {
 
               <VStack mt={4} space={3}>
                 <Card
+                  testID="card-about"
                   title="Sobre"
                   variant="primary"
                   action="chevron"
@@ -319,6 +325,7 @@ export function MyAccount() {
                   icon={<ChatIcon color="#3D4966" size="30" />}
                 />
                 <Card
+                  testID="card-contact"
                   title="Fale com o Team X"
                   variant="primary"
                   action="chevron"
@@ -341,6 +348,7 @@ export function MyAccount() {
 
               <VStack mt={4} space={3}>
                 <Card
+                  testID="card-logout"
                   title="Sair"
                   variant="primary"
                   action="chevron"
@@ -384,6 +392,7 @@ export function MyAccount() {
 
               <HStack space={3} w="100%" mt={4}>
                 <Button
+                  testID="btn-confirm-logout"
                   flex={1}
                   variant="primary"
                   size="md"
@@ -395,6 +404,7 @@ export function MyAccount() {
                   isDisabled={isSigningOut}
                 />
                 <Button
+                  testID="btn-cancel-logout"
                   flex={1}
                   variant="primary"
                   size="md"

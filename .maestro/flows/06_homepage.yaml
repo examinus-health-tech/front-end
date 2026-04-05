@@ -1,0 +1,36 @@
+appId: com.examinus.app
+name: "Homepage - Verificação completa"
+tags:
+  - authenticated
+---
+# Pré-requisito: usuário já logado (rodar 02_login_email primeiro)
+- runFlow: ../utils/wait_for_home.yaml
+
+# Verificar saudação
+- assertVisible:
+    text: ".*Olá.*"
+
+# Verificar seção Carteira de Saúde
+- assertVisible: "Carteira de Saúde"
+
+# Scroll para ver mais seções
+- scrollUntilVisible:
+    element: "Medicamentos"
+    direction: DOWN
+    timeout: 10000
+- assertVisible: "Medicamentos"
+
+- scrollUntilVisible:
+    element: "Rastreador Fitness"
+    direction: DOWN
+    timeout: 10000
+
+# Verificar tab bar via testID
+- assertVisible:
+    id: "tab-home"
+- assertVisible:
+    id: "tab-exams"
+- assertVisible:
+    id: "tab-account"
+
+- takeScreenshot: "06_homepage"

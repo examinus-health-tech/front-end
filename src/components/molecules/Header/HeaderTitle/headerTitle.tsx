@@ -82,7 +82,7 @@ export function HeaderTitle({
   return (
     <HStack space={4} mx={6} alignItems="center" mb={6}>
       {withBackButton && (
-        <TouchableOpacity onPress={withBackButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ padding: 8, margin: -8 }}>
+        <TouchableOpacity testID="btn-back" onPress={withBackButton} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ padding: 8, margin: -8 }}>
           <ChevronLeftIcon size="30" color={color === 'white' ? '#ffffff' : '#052B3B'} />
         </TouchableOpacity>
       )}

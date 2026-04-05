@@ -213,7 +213,7 @@ export function Steps() {
   };
 
   return (
-    <VStack flex={1} pt={16}>
+    <VStack testID="screen-steps" flex={1} pt={16}>
       <HeaderTitle withBackButton={() => navigation.navigate('tracker')} title="Passos" withMoreButton />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

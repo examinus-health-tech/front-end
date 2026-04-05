@@ -1,0 +1,24 @@
+appId: com.examinus.app
+name: "Notificações - Verificação"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- tapOn:
+    id: "btn-notifications"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-notifications"
+    timeout: 10000
+
+- takeScreenshot: "12_notifications"
+
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

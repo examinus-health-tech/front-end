@@ -1,0 +1,42 @@
+appId: com.examinus.app
+name: "Saúde Mental - Resultado DASS-21"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- scrollUntilVisible:
+    element:
+      text: ".*Saúde Mental.*"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    text: ".*resultado.*|.*Saúde Mental.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-mental-health-result"
+    timeout: 10000
+    optional: true
+
+- assertVisible:
+    text: "Depressão"
+    optional: true
+- assertVisible:
+    text: "Ansiedade"
+    optional: true
+- assertVisible:
+    text: "Estresse"
+    optional: true
+
+- assertVisible:
+    id: "btn-mental-go-home"
+    optional: true
+
+- takeScreenshot: "21_mental_health_result"
+
+- tapOn:
+    id: "btn-back"
+    optional: true

@@ -612,7 +612,7 @@ export function Exam() {
 
   return (
     <>
-      <VStack my={16}>
+      <VStack testID="screen-exam-detail" my={16}>
         <HeaderDescription
           title={examSelected.laboratoryName || 'Laboratório'}
           withBackButton={() => navigation.navigate('examList')}

@@ -17,7 +17,7 @@ export type Props = {
 export function Header({ title, bgMode, handleBackTo }: Props) {
   return (
     <HStack alignItems={'center'} space={4} mb={6}>
-      <TouchableOpacity onPress={handleBackTo}>
+      <TouchableOpacity testID="btn-back" onPress={handleBackTo}>
         <ChevronLeftIcon size="30" color={bgMode ? '#FFFFFF' : '#052B3B'} />
       </TouchableOpacity>
 

@@ -203,7 +203,7 @@ export function MentalHealthResult() {
   }
 
   return (
-    <VStack flex={1} bg="gray.50">
+    <VStack testID="screen-mental-health-result" flex={1} bg="gray.50">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       <VStack pt={16} flex={1}>
@@ -303,6 +303,7 @@ export function MentalHealthResult() {
             <Animated.View entering={FadeInDown.duration(400).delay(600)} style={{ width: '100%' }}>
               <VStack mt={6} space={3} w="100%">
                 <Button
+                  testID="btn-mental-redo"
                   title="Refazer Avaliação"
                   variant="primary"
                   size="lg"
@@ -311,6 +312,7 @@ export function MentalHealthResult() {
                   onPress={() => navigation.navigate('mentalHealthForm')}
                 />
                 <Button
+                  testID="btn-mental-go-home"
                   title="Voltar para Início"
                   variant="secondary"
                   size="lg"

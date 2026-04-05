@@ -15,6 +15,7 @@ type FeatureBannerProps = {
   iconBgColor?: string;
   actionColor?: string;
   dismissible?: boolean;
+  onDismiss?: () => void;
 };
 
 const DISMISSED_BANNERS_KEY = '@examinus:dismissed_banners';
@@ -30,6 +31,7 @@ export function FeatureBanner({
   iconBgColor = 'ciano.100',
   actionColor = 'ciano.600',
   dismissible = true,
+  onDismiss,
 }: FeatureBannerProps) {
   const [isDismissed, setIsDismissed] = useState(true); // Começa escondido até verificar
 
@@ -56,6 +58,7 @@ export function FeatureBanner({
         await AsyncStorage.setItem(DISMISSED_BANNERS_KEY, JSON.stringify(dismissedList));
       }
       setIsDismissed(true);
+      onDismiss?.();
     } catch (error) {
       setIsDismissed(true);
     }

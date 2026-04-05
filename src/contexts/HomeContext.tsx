@@ -5,12 +5,8 @@ import { useAuth } from 'src/hooks/useAuth';
 
 import { Platform, AppState, AppStateStatus } from 'react-native';
 
-// ⚠️ FLAG TEMPORÁRIA: Desabilita integração Health Connect no Android
-// Motivo: Crash no Android por bug do lateinit property com New Architecture (Bridgeless mode)
-// O fix nativo (MainActivity.kt) requer novo build. Até lá, Android usa apenas dados do backend.
-// iOS (HealthKit) continua funcionando normalmente.
-// TODO: Remover após publicação do novo build nativo na Play Store
-const DISABLE_ANDROID_HEALTH_CONNECT = true;
+// Health Connect no Android - Fix do lateinit property aplicado no MainActivity.kt
+const DISABLE_ANDROID_HEALTH_CONNECT = false;
 import { api } from 'src/services/api';
 import { getFitnessDashboard, isFitnessEnabled, setFitnessEnabled as setFitnessEnabledService, FitnessDashboard, syncGoalsFromBackend } from 'src/services/fitnessService';
 import {

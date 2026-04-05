@@ -16,9 +16,10 @@ export type Props = {
   switchValue?: boolean;
   onSwitchChange?: (value: boolean) => void;
   disabled?: boolean;
+  testID?: string;
 };
 
-export function Card({ title, subTitle, icon, warning, action, goTo, variant, value, comingSoon, switchValue, onSwitchChange, disabled }: Props) {
+export function Card({ title, subTitle, icon, warning, action, goTo, variant, value, comingSoon, switchValue, onSwitchChange, disabled, testID }: Props) {
   function renderLeftBox() {
     if (variant === 'primary') {
       return (
@@ -133,7 +134,7 @@ export function Card({ title, subTitle, icon, warning, action, goTo, variant, va
   }
 
   return (
-    <TouchableOpacity onPress={comingSoon || disabled ? undefined : goTo} disabled={comingSoon || disabled}>
+    <TouchableOpacity testID={testID} onPress={comingSoon || disabled ? undefined : goTo} disabled={comingSoon || disabled}>
       <Box
         bg={warning ? 'red.100' : 'white'}
         w="100%"

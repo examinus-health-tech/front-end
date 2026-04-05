@@ -98,7 +98,7 @@ export function Calories() {
   }, [activities]);
 
   return (
-    <VStack flex={1} pt={16}>
+    <VStack testID="screen-calories" flex={1} pt={16}>
       <HeaderTitle withBackButton={() => navigation.navigate('tracker')} title="Calorias Gastas" withMoreButton />
 
       <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>

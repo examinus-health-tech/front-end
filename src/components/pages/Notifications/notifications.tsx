@@ -246,7 +246,7 @@ export function Notifications() {
   // Header customizado com ícone de configurações
   const CustomHeader = () => (
     <HStack space={4} alignItems="center" mb={6}>
-      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <TouchableOpacity testID="btn-back" onPress={() => navigation.goBack()}>
         <ChevronLeftIcon size="30" color="#052B3B" />
       </TouchableOpacity>
 
@@ -254,14 +254,14 @@ export function Notifications() {
         Notificações
       </Text>
 
-      <TouchableOpacity onPress={() => navigation.navigate('configNotifications')}>
+      <TouchableOpacity testID="btn-notification-settings" onPress={() => navigation.navigate('configNotifications')}>
         <GearIcon size="24" color="#052B3B" />
       </TouchableOpacity>
     </HStack>
   );
 
   return (
-    <View flex={1}>
+    <View testID="screen-notifications" flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Header fixo */}

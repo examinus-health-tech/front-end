@@ -79,7 +79,7 @@ export function Preferences() {
   }, [showSuccess, showError, refreshFitnessData]);
 
   return (
-    <View flex={1}>
+    <View testID="screen-preferences" flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
       {/* Header fixo */}

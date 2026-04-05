@@ -1,0 +1,29 @@
+appId: com.examinus.app
+name: "Tracker - Rastreador fitness"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+- scrollUntilVisible:
+    element: "Rastreador Fitness"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    text: ".*Habilite o Rastreador.*|.*Rastreador Fitness.*"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+
+- takeScreenshot: "10_tracker"
+
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

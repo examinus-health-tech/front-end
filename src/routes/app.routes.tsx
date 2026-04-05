@@ -10,8 +10,8 @@ import { createBottomTabNavigator, BottomTabBarButtonProps } from '@react-naviga
 import { ChartIcon, ChecklistIcon, ExaminusIcon, HomeIcon, UserIcon } from '@assets/icons';
 import { Box, View } from 'native-base';
 import { TouchableOpacity } from 'react-native';
-import { MedicationTimeline, MedicationForm as MedicationFormScreen, MedicationDetail, MedicationAdherence } from '@components/pages/Medication';
 import { OnboardingSteps } from '@components/pages/OnboardingInfo/onboarding';
+import { MedicationTimeline, MedicationForm as MedicationFormScreen, MedicationDetail, MedicationAdherence } from '@components/pages/Medication';
 import { TabBarContextProvider } from '@contexts/TabBarContext';
 import { useTabBar } from 'src/hooks/useTabBar';
 import { useOnboarding } from 'src/hooks/useOnboarding';
@@ -86,7 +86,7 @@ const { Navigator, Screen } = createNativeStackNavigator<AppRoutes>();
 const Tab = createBottomTabNavigator<AppRoutes>();
 
 const CustomTabExaminusButton = ({ children, onPress }: BottomTabBarButtonProps) => (
-  <TouchableOpacity style={{}} onPress={onPress}>
+  <TouchableOpacity testID="tab-upload" style={{}} onPress={onPress}>
     <View
       style={{
         top: -40,
@@ -152,6 +152,7 @@ function HomeTabsContent() {
         name="homepage"
         component={Homepage}
         options={{
+          tabBarTestID: 'tab-home',
           tabBarIcon: ({ focused }) => (
             <View>
               <Box
@@ -173,6 +174,7 @@ function HomeTabsContent() {
         component={ExamList}
         options={{
           unmountOnBlur: true,
+          tabBarTestID: 'tab-exams',
           tabBarIcon: ({ focused }) => (
             <View>
               <Box
@@ -194,6 +196,7 @@ function HomeTabsContent() {
         component={UploadMain}
         options={{
           unmountOnBlur: true,
+          tabBarTestID: 'tab-upload',
           tabBarIcon: () => <ExaminusIcon />,
           tabBarButton: ({ children }) => (
             <View>
@@ -215,6 +218,7 @@ function HomeTabsContent() {
         component={HealthWallet}
         options={{
           unmountOnBlur: true,
+          tabBarTestID: 'tab-wallet',
           tabBarIcon: ({ focused }) => (
             <View>
               <Box
@@ -236,6 +240,7 @@ function HomeTabsContent() {
         component={MyAccount}
         options={{
           unmountOnBlur: true,
+          tabBarTestID: 'tab-account',
           tabBarIcon: ({ focused }) => (
             <View>
               <Box

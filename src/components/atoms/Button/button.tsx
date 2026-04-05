@@ -36,7 +36,7 @@ const colorVariant: ColorVariantProps = {
   outline: 'white',
 };
 
-export function Button({ title, icon, size, variant, fontSize, isLoading, textColor, ...rest }: Props) {
+export function Button({ title, icon, size, variant, fontSize, isLoading, textColor, testID, ...rest }: Props) {
   return (
     <ButtonNativeBase
       w={buttonSize[size as keyof ButtonSizeProps]}
@@ -48,6 +48,7 @@ export function Button({ title, icon, size, variant, fontSize, isLoading, textCo
       py={0}
       flexDirection="row"
       isLoading={isLoading}
+      testID={testID}
       _loading={{
         bg: 'ciano.300',
         _text: {
