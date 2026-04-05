@@ -81,3 +81,42 @@ export async function checkCampaignVoucher(email: string, enviarNotificacao = fa
     return { success: false };
   }
 }
+
+/**
+ * Solicita renovação do voucher expirado
+ * Invalida o cache para forçar recarga dos dados
+ */
+export async function renewVoucher(email: string): Promise<CampaignVoucherResponse> {
+  try {
+    const encodedEmail = encodeURIComponent(email);
+    const response = await axios.post(`${CAMPAIGN_API_URL}/renovar-voucher/${encodedEmail}`, null, {
+      headers: {
+        'accept': '*/*',
+      },
+      timeout: 15000,
+    });
+
+    // Invalidar cache para forçar recarga
+    cachedVoucher = null;
+
+    if (response.data) {
+      const voucherCode = response.data.codigo || response.data.voucher || response.data.code;
+
+      if (voucherCode) {
+        return {
+          success: true,
+          voucher: String(voucherCode),
+          message: response.data.message,
+          validade: response.data.validade,
+          status: response.data.status,
+        };
+      }
+    }
+
+    return { success: false, message: 'Não foi possível renovar o voucher.' };
+  } catch (error: any) {
+    console.log('📢 [CAMPANHA] Erro ao renovar voucher:', error?.message);
+    const message = error?.response?.data?.message || 'Não foi possível renovar o voucher. Tente novamente mais tarde.';
+    return { success: false, message };
+  }
+}

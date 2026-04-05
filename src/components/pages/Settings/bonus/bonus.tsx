@@ -23,7 +23,7 @@ import { StarIcon, CheckIcon, LocationIcon, ClockIcon, SearchIcon } from '@asset
 // components
 import { Header } from '../components/header/header';
 import { useAuth } from 'src/hooks/useAuth';
-import { checkCampaignVoucher } from '@services/campaignService';
+import { checkCampaignVoucher, renewVoucher } from '@services/campaignService';
 
 // data
 import { labiUnits } from 'src/data/labiUnits';
@@ -55,6 +55,7 @@ export function Bonus() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isRenewing, setIsRenewing] = useState(false);
   const scrollRef = useRef<RNScrollView>(null);
   const stickyHeaderY = useRef(0);
 
@@ -137,6 +138,33 @@ export function Bonus() {
   };
 
   const isExpired = voucherData?.status === 'Expirado';
+
+  const handleRenewVoucher = async () => {
+    if (!user?.email || isRenewing) return;
+
+    setIsRenewing(true);
+    try {
+      const result = await renewVoucher(user.email);
+
+      if (result.success && result.voucher) {
+        setVoucherData({
+          voucher: result.voucher,
+          message: result.message,
+          validade: result.validade,
+          status: result.status,
+        });
+      } else {
+        setError(result.message || 'Não foi possível renovar o voucher.');
+        // Limpa o erro após 3 segundos
+        setTimeout(() => setError(null), 3000);
+      }
+    } catch {
+      setError('Erro ao renovar voucher. Tente novamente.');
+      setTimeout(() => setError(null), 3000);
+    } finally {
+      setIsRenewing(false);
+    }
+  };
 
   const filteredUnits = useMemo(() => {
     if (!searchQuery.trim()) return labiUnits;
@@ -317,6 +345,28 @@ export function Bonus() {
                     : 'Este voucher é pessoal e intransferível. Válido por tempo limitado.'}
                 </Text>
               </Box>
+
+              {isExpired && (
+                <TouchableOpacity onPress={handleRenewVoucher} disabled={isRenewing}>
+                  <Box
+                    bg="ciano.400"
+                    py={4}
+                    borderRadius={14}
+                    alignItems="center"
+                    opacity={isRenewing ? 0.6 : 1}
+                  >
+                    <HStack space={2} alignItems="center">
+                      {isRenewing ? (
+                        <Spinner size="sm" color="white" />
+                      ) : (
+                        <Text fontSize={16} fontWeight={700} color="white">
+                          Renovar Voucher
+                        </Text>
+                      )}
+                    </HStack>
+                  </Box>
+                </TouchableOpacity>
+              )}
             </VStack>
           ) : (
             <Center flex={1} px={6} mt={20}>
