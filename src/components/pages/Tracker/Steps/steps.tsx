@@ -162,7 +162,7 @@ export function Steps() {
           setChartData(emptyData);
         }
       } catch (error) {
-        console.error('Erro ao buscar histórico de passos:', error);
+        if (__DEV__) console.error('Erro ao buscar histórico de passos:', error);
         // Em caso de erro, mostra estrutura vazia
         const dayLabels = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
         const today = new Date().getDay();

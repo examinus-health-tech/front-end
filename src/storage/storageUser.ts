@@ -1,19 +1,33 @@
+import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { UserDTO } from 'src/dtos/userDTO';
 import { USER_STORAGE } from '@storage/storageConfig';
 
 export async function storageUserSave(user: UserDTO) {
-  await AsyncStorage.setItem(USER_STORAGE, JSON.stringify(user));
+  await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(user));
+  // Limpar do AsyncStorage se existir (migração)
+  await AsyncStorage.removeItem(USER_STORAGE).catch(() => {});
 }
 
 export async function storageUserRemove() {
-  await AsyncStorage.removeItem(USER_STORAGE);
+  await SecureStore.deleteItemAsync(USER_STORAGE).catch(() => {});
+  await AsyncStorage.removeItem(USER_STORAGE).catch(() => {});
 }
 
 export async function storageUserGet() {
   try {
-    const storage = await AsyncStorage.getItem(USER_STORAGE);
+    let storage = await SecureStore.getItemAsync(USER_STORAGE);
+
+    // Migração: se não encontrou no SecureStore, tentar AsyncStorage
+    if (!storage) {
+      storage = await AsyncStorage.getItem(USER_STORAGE);
+      if (storage) {
+        // Migrar para SecureStore
+        await SecureStore.setItemAsync(USER_STORAGE, storage);
+        await AsyncStorage.removeItem(USER_STORAGE).catch(() => {});
+      }
+    }
 
     if (!storage) {
       return {} as UserDTO;
@@ -22,8 +36,9 @@ export async function storageUserGet() {
     const user: UserDTO = JSON.parse(storage);
     return user;
   } catch (error) {
-    console.error('Error parsing user from storage:', error);
-    await AsyncStorage.removeItem(USER_STORAGE);
+    if (__DEV__) console.error('Error parsing user from storage:', error);
+    await SecureStore.deleteItemAsync(USER_STORAGE).catch(() => {});
+    await AsyncStorage.removeItem(USER_STORAGE).catch(() => {});
     return {} as UserDTO;
   }
 }

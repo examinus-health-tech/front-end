@@ -91,7 +91,7 @@ export function Security() {
         }
       }
     } catch (error: any) {
-      console.error('❌ [SECURITY] Erro ao configurar biometria:', error);
+      if (__DEV__) console.error('❌ [SECURITY] Erro ao configurar biometria:', error);
       showError({
         title: 'Erro',
         description: error?.message || 'Falha ao configurar biometria.',

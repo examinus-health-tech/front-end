@@ -42,10 +42,10 @@ async function loadHealthKitModule(): Promise<boolean> {
   try {
     const module = await import('@kingstinct/react-native-healthkit');
     HealthKitModule = module;
-    console.log('[HealthKit] Módulo carregado com sucesso');
+    if (__DEV__) console.log('[HealthKit] Módulo carregado com sucesso');
     return true;
   } catch (error) {
-    console.error('[HealthKit] Erro ao carregar módulo:', error);
+    if (__DEV__) console.error('[HealthKit] Erro ao carregar módulo:', error);
     return false;
   }
 }
@@ -55,7 +55,7 @@ async function loadHealthKitModule(): Promise<boolean> {
  */
 export async function isHealthKitAvailable(): Promise<boolean> {
   if (Platform.OS !== 'ios') {
-    console.log('[HealthKit] Não disponível - plataforma não é iOS');
+    if (__DEV__) console.log('[HealthKit] Não disponível - plataforma não é iOS');
     return false;
   }
 
@@ -66,10 +66,10 @@ export async function isHealthKitAvailable(): Promise<boolean> {
 
   try {
     const available = await HealthKitModule.isHealthDataAvailable();
-    console.log('[HealthKit] isHealthDataAvailable:', available);
+    if (__DEV__) console.log('[HealthKit] isHealthDataAvailable:', available);
     return available;
   } catch (error) {
-    console.error('[HealthKit] Erro ao verificar disponibilidade:', error);
+    if (__DEV__) console.error('[HealthKit] Erro ao verificar disponibilidade:', error);
     return false;
   }
 }
@@ -84,7 +84,7 @@ export async function initHealthKit(): Promise<boolean> {
 
   const loaded = await loadHealthKitModule();
   if (!loaded || !HealthKitModule) {
-    console.error('[HealthKit] Módulo não carregado');
+    if (__DEV__) console.error('[HealthKit] Módulo não carregado');
     return false;
   }
 
@@ -100,14 +100,14 @@ export async function initHealthKit(): Promise<boolean> {
       CATEGORY_TYPES.sleepAnalysis,
     ];
 
-    console.log('[HealthKit] Solicitando autorização...');
+    if (__DEV__) console.log('[HealthKit] Solicitando autorização...');
     const granted = await HealthKitModule.requestAuthorization({
       toRead: readPermissions,
     });
-    console.log('[HealthKit] Autorização concedida:', granted);
+    if (__DEV__) console.log('[HealthKit] Autorização concedida:', granted);
     return granted;
   } catch (error) {
-    console.error('[HealthKit] Erro ao solicitar autorização:', error);
+    if (__DEV__) console.error('[HealthKit] Erro ao solicitar autorização:', error);
     return false;
   }
 }
@@ -153,7 +153,7 @@ export async function getHealthKitDataForDate(date: Date): Promise<HealthKitData
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    console.log('[HealthKit] Buscando dados para:', date.toISOString().split('T')[0]);
+    if (__DEV__) console.log('[HealthKit] Buscando dados para:', date.toISOString().split('T')[0]);
 
     // Opções de filtro para o período do dia (API v12)
     const dateFilter = {
@@ -237,10 +237,10 @@ export async function getHealthKitDataForDate(date: Date): Promise<HealthKitData
       heartRate,
     };
 
-    console.log('[HealthKit] Dados obtidos:', result);
+    if (__DEV__) console.log('[HealthKit] Dados obtidos:', result);
     return result;
   } catch (error) {
-    console.error('[HealthKit] Erro ao buscar dados:', error);
+    if (__DEV__) console.error('[HealthKit] Erro ao buscar dados:', error);
     return defaultData;
   }
 }
@@ -264,7 +264,7 @@ export async function getHealthKitDataForSync(): Promise<FitnessSyncDataRequestD
 
     // Só retornar se tiver algum dado
     if (data.steps === 0 && data.caloriesBurned === 0 && data.distance === 0) {
-      console.log('[HealthKit] Nenhum dado para sincronizar');
+      if (__DEV__) console.log('[HealthKit] Nenhum dado para sincronizar');
       return null;
     }
 
@@ -289,10 +289,10 @@ export async function getHealthKitDataForSync(): Promise<FitnessSyncDataRequestD
       } : undefined,
     };
 
-    console.log('[HealthKit] Dados para sync preparados');
+    if (__DEV__) console.log('[HealthKit] Dados para sync preparados');
     return syncData;
   } catch (error) {
-    console.error('[HealthKit] Erro ao preparar sync:', error);
+    if (__DEV__) console.error('[HealthKit] Erro ao preparar sync:', error);
     return null;
   }
 }
@@ -303,7 +303,7 @@ export async function getHealthKitDataForSync(): Promise<FitnessSyncDataRequestD
 export async function syncHealthKitToBackend(): Promise<boolean> {
   const syncData = await getHealthKitDataForSync();
   if (!syncData) {
-    console.log('[HealthKit] Nenhum dado para sincronizar');
+    if (__DEV__) console.log('[HealthKit] Nenhum dado para sincronizar');
     return false;
   }
 
@@ -331,7 +331,7 @@ export async function syncHealthKitToBackend(): Promise<boolean> {
         waterMl: currentLog?.waterMl ?? syncData.dailyLog.waterMl,
         waterGoalMl: currentLog?.waterGoalMl ?? syncData.dailyLog.waterGoalMl,
       });
-      console.log('[HealthKit] Daily log sincronizado com backend (dados protegidos)');
+      if (__DEV__) console.log('[HealthKit] Daily log sincronizado com backend (dados protegidos)');
     }
 
     // Salva o peso se disponível
@@ -340,13 +340,13 @@ export async function syncHealthKitToBackend(): Promise<boolean> {
         weightKg: syncData.weight.weightKg,
         recordedAt: syncData.weight.recordedAt,
       });
-      console.log('[HealthKit] Peso sincronizado com backend');
+      if (__DEV__) console.log('[HealthKit] Peso sincronizado com backend');
     }
 
-    console.log('[HealthKit] Sincronização com backend concluída');
+    if (__DEV__) console.log('[HealthKit] Sincronização com backend concluída');
     return true;
   } catch (error) {
-    console.error('[HealthKit] Erro ao sincronizar com backend:', error);
+    if (__DEV__) console.error('[HealthKit] Erro ao sincronizar com backend:', error);
     return false;
   }
 }

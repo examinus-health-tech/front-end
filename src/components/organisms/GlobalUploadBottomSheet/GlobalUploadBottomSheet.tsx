@@ -50,7 +50,7 @@ export function GlobalUploadBottomSheet() {
   }
 
   function handleSuccessClose() {
-    console.log('🎉 Fechando modal de sucesso');
+    if (__DEV__) console.log('🎉 Fechando modal de sucesso');
     setWithSuccess(false);
     showTabBar();
     // Resetar StatusBar para dark-content ao fechar o modal

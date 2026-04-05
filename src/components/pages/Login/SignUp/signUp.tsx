@@ -90,7 +90,7 @@ export function SignUp() {
 
       navigation.navigate('signIn');
     } catch (error: any) {
-      console.log('❌ Erro capturado no SignUp:', error);
+      if (__DEV__) console.log('❌ Erro capturado no SignUp:', error);
 
       // A mensagem já vem tratada do AuthContext
       let description = error?.message || 'Não foi possível criar sua conta';
@@ -133,7 +133,7 @@ export function SignUp() {
     try {
       await signUpWithGoogle();
     } catch (error: any) {
-      console.log('❌ Erro no cadastro Google:', error);
+      if (__DEV__) console.log('❌ Erro no cadastro Google:', error);
       showError({
         title: 'Erro no Cadastro Google',
         description: 'Não foi possível cadastrar com Google.',
@@ -145,7 +145,7 @@ export function SignUp() {
     try {
       await signUpWithApple();
     } catch (error: any) {
-      console.log('❌ Erro no cadastro Apple:', error);
+      if (__DEV__) console.log('❌ Erro no cadastro Apple:', error);
       showError({
         title: 'Erro no Cadastro Apple',
         description: 'Não foi possível cadastrar com Apple.',

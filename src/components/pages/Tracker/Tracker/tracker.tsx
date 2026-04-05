@@ -129,7 +129,7 @@ export function Tracker() {
       // Atualiza dados se necessário
       await refreshFitnessData();
     } catch (error) {
-      console.error('Erro ao aplicar sugestão:', error);
+      if (__DEV__) console.error('Erro ao aplicar sugestão:', error);
       Toast.show({
         type: 'error',
         text1: 'Erro',

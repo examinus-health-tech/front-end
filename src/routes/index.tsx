@@ -22,7 +22,7 @@ export function Routes() {
       setNeedsUpdate(result.needsUpdate);
       setVersionInfo(result.versionInfo);
     } catch (error) {
-      console.log('Erro ao verificar versão:', error);
+      if (__DEV__) console.log('Erro ao verificar versão:', error);
     } finally {
       setIsCheckingVersion(false);
     }

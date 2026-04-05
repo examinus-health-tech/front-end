@@ -48,7 +48,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
 
   const handleUploadFile = useCallback(async ({ name, mimeType, uri, file, size }: DocumentPickerAsset) => {
     setIsLoading(true);
-    console.log('📤 Iniciando upload:', {
+    if (__DEV__) console.log('📤 Iniciando upload:', {
       name,
       mimeType,
       uri,
@@ -81,12 +81,12 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
         uri: uri,
       } as any;
 
-      console.log('📋 Arquivo preparado para upload:', uploadFile);
+      if (__DEV__) console.log('📋 Arquivo preparado para upload:', uploadFile);
 
       const bodyFormData = new FormData();
       bodyFormData.append('File', uploadFile);
 
-      console.log('🚀 Enviando para API...');
+      if (__DEV__) console.log('🚀 Enviando para API...');
 
       try {
         const response = await api.post('medical-exam/form', bodyFormData, {
@@ -98,17 +98,17 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
           validateStatus: () => true, // Aceitar qualquer status para capturar erro 500
         });
 
-        console.log('📡 Resposta recebida da API, status:', response.status);
+        if (__DEV__) console.log('📡 Resposta recebida da API, status:', response.status);
 
         // Verificar se foi sucesso (2xx)
         if (response.status >= 200 && response.status < 300) {
-          console.log('✅ Upload bem-sucedido!');
+          if (__DEV__) console.log('✅ Upload bem-sucedido!');
           setFile(uploadFile);
           setWithSuccess(true);
           setWithError(false);
         } else {
           // Erro do servidor (4xx, 5xx)
-          console.error('❌ Erro na resposta da API, status:', response.status);
+          if (__DEV__) console.error('❌ Erro na resposta da API, status:', response.status);
 
           setWithSuccess(false);
           setWithError(true);
@@ -116,15 +116,15 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
         }
       } catch (apiError: any) {
         // Erro de rede ou timeout
-        console.error('❌ Erro na comunicação com API');
-        console.error('📛 Tipo:', apiError?.constructor?.name);
-        console.error('💬 Mensagem:', apiError?.message);
-        console.error('🔍 Code:', apiError?.code);
+        if (__DEV__) {
+          console.error('❌ Erro na comunicação com API');
+          console.error('📛 Tipo:', apiError?.constructor?.name);
+          console.error('💬 Mensagem:', apiError?.message);
+          console.error('🔍 Code:', apiError?.code);
+        }
 
-        if (apiError?.response) {
-          console.error('📡 Response recebido:');
-          console.error('   - Status:', apiError.response.status);
-          console.error('   - Data:', JSON.stringify(apiError.response.data, null, 2));
+        if (__DEV__ && apiError?.response) {
+          console.error('[UploadContext] Response status:', apiError.response.status);
         }
 
         setWithSuccess(false);
@@ -132,10 +132,12 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
         throw apiError;
       }
     } catch (error: any) {
-      console.error('❌ Erro geral no upload!');
-      console.error('📛 Tipo do erro:', error?.constructor?.name);
-      console.error('💬 Mensagem:', error?.message);
-      console.error('🔍 Stack trace:', error?.stack);
+      if (__DEV__) {
+        console.error('❌ Erro geral no upload!');
+        console.error('📛 Tipo do erro:', error?.constructor?.name);
+        console.error('💬 Mensagem:', error?.message);
+        console.error('🔍 Stack trace:', error?.stack);
+      }
 
       setWithSuccess(false);
       setWithError(true);
@@ -154,35 +156,34 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
   }) => {
     setIsLoading(true);
 
-    console.log('📝 Iniciando upload manual...');
+    if (__DEV__) console.log('📝 Iniciando upload manual...');
 
     try {
       const response = await api.post('/exam-maintenance', payload);
-      console.log('✅ Upload manual bem-sucedido, status:', response.status);
+      if (__DEV__) console.log('✅ Upload manual bem-sucedido, status:', response.status);
 
       const data = response.data.data;
 
       if (data) {
-        console.log('✅ Dados processados com sucesso');
+        if (__DEV__) console.log('✅ Dados processados com sucesso');
         setIsLoading(false);
         setWithError(false);
         setScoreWarning(true);
         setWithSuccess(true);
       } else {
-        console.warn('⚠️ Resposta da API não contém dados');
+        if (__DEV__) console.warn('⚠️ Resposta da API não contém dados');
       }
     } catch (error: any) {
-      console.error('❌ Erro no upload manual!');
-      console.error('📛 Tipo do erro:', error?.constructor?.name);
-      console.error('💬 Mensagem:', error?.message);
+      if (__DEV__) {
+        console.error('❌ Erro no upload manual!');
+        console.error('📛 Tipo do erro:', error?.constructor?.name);
+        console.error('💬 Mensagem:', error?.message);
+      }
 
-      if (error?.response) {
-        console.error('📡 Resposta da API:');
-        console.error('   - Status:', error.response.status);
-        console.error('   - Status Text:', error.response.statusText);
-        console.error('   - Data:', JSON.stringify(error.response.data, null, 2));
-      } else if (error?.request) {
-        console.error('📤 Request enviado mas sem resposta');
+      if (__DEV__ && error?.response) {
+        console.error('[UploadContext] Response status:', error.response.status);
+      } else if (__DEV__ && error?.request) {
+        console.error('[UploadContext] Request enviado mas sem resposta');
       }
 
       setWithError(true);
@@ -205,7 +206,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
         setExamList(data.detail);
       }
     } catch (error) {
-      console.error('❌ Erro ao consultar lista de exames:', error);
+      if (__DEV__) console.error('❌ Erro ao consultar lista de exames:', error);
       // Erro será tratado pelo componente que chama
       throw error;
     }
@@ -228,10 +229,7 @@ export function UploadContextProvider({ children }: UploadContextProviderProps) 
     handleManualUploadFile,
   };
 
-  console.log('🔧 UploadContext renderizando, contextValue:', {
-    hasHandleUploadFile: !!contextValue.handleUploadFile,
-    handleUploadFileType: typeof contextValue.handleUploadFile,
-  });
+  if (__DEV__) console.log('[UploadContext] Renderizando');
 
   return (
     <UploadContext.Provider value={contextValue}>

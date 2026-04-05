@@ -31,12 +31,12 @@ export interface DailyAnalysisResponse {
  */
 export async function getDailyAnalysis(data: DailyFitnessData): Promise<DailyAnalysisResponse> {
   try {
-    console.log('[DAILY_ANALYSIS] Gerando análise do dia...', data);
+    if (__DEV__) console.log('[DAILY_ANALYSIS] Gerando análise do dia...', data);
 
     // Verifica se já tem análise em cache para hoje
     const cachedAnalysis = await getCachedAnalysis();
     if (cachedAnalysis) {
-      console.log('[DAILY_ANALYSIS] Retornando análise em cache');
+      if (__DEV__) console.log('[DAILY_ANALYSIS] Retornando análise em cache');
       return cachedAnalysis;
     }
 
@@ -54,9 +54,9 @@ export async function getDailyAnalysis(data: DailyFitnessData): Promise<DailyAna
     } catch (apiError: any) {
       // Se o endpoint não existir, gera análise local
       if (apiError.response?.status === 404 || apiError.response?.status === 501) {
-        console.log('[DAILY_ANALYSIS] Endpoint não disponível, gerando análise local');
+        if (__DEV__) console.log('[DAILY_ANALYSIS] Endpoint não disponível, gerando análise local');
       } else {
-        console.warn('[DAILY_ANALYSIS] Erro na API:', apiError.message);
+        if (__DEV__) console.warn('[DAILY_ANALYSIS] Erro na API:', apiError.message);
       }
     }
 
@@ -66,7 +66,7 @@ export async function getDailyAnalysis(data: DailyFitnessData): Promise<DailyAna
     return localAnalysis;
 
   } catch (error: any) {
-    console.error('[DAILY_ANALYSIS] Erro ao gerar análise:', error);
+    if (__DEV__) console.error('[DAILY_ANALYSIS] Erro ao gerar análise:', error);
     // Retorna análise genérica em caso de erro
     return {
       analysis: 'Continue acompanhando suas métricas para receber análises personalizadas do seu dia.',
@@ -230,7 +230,7 @@ async function getCachedAnalysis(): Promise<DailyAnalysisResponse | null> {
 
     return null;
   } catch (error) {
-    console.warn('[DAILY_ANALYSIS] Erro ao ler cache:', error);
+    if (__DEV__) console.warn('[DAILY_ANALYSIS] Erro ao ler cache:', error);
     return null;
   }
 }
@@ -245,7 +245,7 @@ async function cacheAnalysis(analysis: DailyAnalysisResponse): Promise<void> {
       AsyncStorage.setItem(DAILY_ANALYSIS_CACHE_KEY, JSON.stringify(analysis)),
     ]);
   } catch (error) {
-    console.warn('[DAILY_ANALYSIS] Erro ao salvar cache:', error);
+    if (__DEV__) console.warn('[DAILY_ANALYSIS] Erro ao salvar cache:', error);
   }
 }
 
@@ -258,8 +258,8 @@ export async function clearAnalysisCache(): Promise<void> {
       AsyncStorage.removeItem(DAILY_ANALYSIS_DATE_KEY),
       AsyncStorage.removeItem(DAILY_ANALYSIS_CACHE_KEY),
     ]);
-    console.log('[DAILY_ANALYSIS] Cache limpo');
+    if (__DEV__) console.log('[DAILY_ANALYSIS] Cache limpo');
   } catch (error) {
-    console.warn('[DAILY_ANALYSIS] Erro ao limpar cache:', error);
+    if (__DEV__) console.warn('[DAILY_ANALYSIS] Erro ao limpar cache:', error);
   }
 }

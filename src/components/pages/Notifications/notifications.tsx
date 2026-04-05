@@ -162,10 +162,10 @@ export function Notifications() {
         withCredentials: false,
       });
       const notificationsArray = ensureArray(response.data);
-      console.log('📬 Notificações recebidas:', notificationsArray.length, 'para userId:', user?.userId);
+      if (__DEV__) console.log('📬 Notificações recebidas:', notificationsArray.length, 'para userId:', user?.userId);
       setNotifications(notificationsArray);
     } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
+      if (__DEV__) console.error('Erro ao buscar notificações:', error);
       setNotifications([]);
     } finally {
       setIsLoading(false);
@@ -174,7 +174,7 @@ export function Notifications() {
   }
 
   const onRefresh = async () => {
-    console.log('🔄 onRefresh chamado nas notificações');
+    if (__DEV__) console.log('🔄 onRefresh chamado nas notificações');
     setRefreshing(true);
     try {
       const response = await api.get(`notifications?_t=${Date.now()}`, {
@@ -188,7 +188,7 @@ export function Notifications() {
       const notificationsArray = ensureArray(response.data);
       setNotifications(notificationsArray);
     } catch (error) {
-      console.error('Erro ao buscar notificações:', error);
+      if (__DEV__) console.error('Erro ao buscar notificações:', error);
     } finally {
       setRefreshing(false);
     }
@@ -219,7 +219,7 @@ export function Notifications() {
       try {
         await api.put(`/notifications/${notification.id}/read`);
       } catch (error) {
-        console.error('Erro ao marcar notificação como lida:', error);
+        if (__DEV__) console.error('Erro ao marcar notificação como lida:', error);
       }
     }
   }

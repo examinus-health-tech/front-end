@@ -176,7 +176,7 @@ export function Sleep() {
           setChartData([{ value: sleepCompleted }]);
         }
       } catch (error) {
-        console.error('Erro ao buscar histórico de sono:', error);
+        if (__DEV__) console.error('Erro ao buscar histórico de sono:', error);
         setChartData([{ value: sleepCompleted }]);
       } finally {
         setIsLoadingChart(false);

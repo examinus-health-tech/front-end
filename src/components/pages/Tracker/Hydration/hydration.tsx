@@ -200,7 +200,7 @@ export function Hydration() {
           setChartData([{ value: currentHydration }]);
         }
       } catch (error) {
-        console.error('Erro ao buscar histórico de hidratação:', error);
+        if (__DEV__) console.error('Erro ao buscar histórico de hidratação:', error);
         // Fallback para valor atual em caso de erro
         setChartData([{ value: currentHydration }]);
       } finally {
@@ -260,7 +260,7 @@ export function Hydration() {
       // Atualiza os dados do contexto
       await refreshFitnessData();
     } catch (error: any) {
-      console.error('Erro ao salvar hidratação:', error);
+      if (__DEV__) console.error('Erro ao salvar hidratação:', error);
       Toast.show({
         type: 'error',
         text1: 'Erro ao salvar',
@@ -293,7 +293,7 @@ export function Hydration() {
         text2: `Meta de ${value.toLocaleString('pt-BR')}ml salva com sucesso`,
       });
     } catch (error: any) {
-      console.error('Erro ao salvar meta:', error);
+      if (__DEV__) console.error('Erro ao salvar meta:', error);
       Toast.show({
         type: 'error',
         text1: 'Erro ao salvar',

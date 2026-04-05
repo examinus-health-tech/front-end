@@ -63,7 +63,7 @@ export function ConfigNotifications() {
         setChatbotNotifications(prefs.chatbotNotifications ?? false);
       }
     } catch (error) {
-      console.error('Erro ao carregar preferências:', error);
+      if (__DEV__) console.error('Erro ao carregar preferências:', error);
     } finally {
       setIsLoading(false);
     }
@@ -81,7 +81,7 @@ export function ConfigNotifications() {
       try {
         OneSignal.User.addTag(key, value.toString());
       } catch (oneSignalError) {
-        console.warn('Erro ao atualizar tag OneSignal:', oneSignalError);
+        if (__DEV__) console.warn('Erro ao atualizar tag OneSignal:', oneSignalError);
       }
 
       // Persistir no backend
@@ -97,7 +97,7 @@ export function ConfigNotifications() {
         duration: 1500,
       });
     } catch (error) {
-      console.error('Erro ao salvar preferência:', error);
+      if (__DEV__) console.error('Erro ao salvar preferência:', error);
       showError({
         title: 'Erro',
         description: 'Não foi possível salvar.',

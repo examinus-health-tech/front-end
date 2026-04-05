@@ -37,7 +37,7 @@ async function getDeviceId(): Promise<string> {
     const androidId = Application.getAndroidId();
     return androidId || 'android-unknown';
   } catch (error) {
-    console.error('👆 [BIOMETRIC] Erro ao obter deviceId:', error);
+    if (__DEV__) console.error('👆 [BIOMETRIC] Erro ao obter deviceId:', error);
     return `${Platform.OS}-fallback-${Date.now()}`;
   }
 }
@@ -53,14 +53,14 @@ export function useBiometricAuth() {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       if (!hasHardware) {
-        console.log('👆 [BIOMETRIC] Dispositivo nao possui hardware biometrico');
+        if (__DEV__) console.log('👆 [BIOMETRIC] Dispositivo nao possui hardware biometrico');
         setIsAvailable(false);
         return false;
       }
 
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
       if (!isEnrolled) {
-        console.log('👆 [BIOMETRIC] Nenhuma biometria cadastrada no dispositivo');
+        if (__DEV__) console.log('👆 [BIOMETRIC] Nenhuma biometria cadastrada no dispositivo');
         setIsAvailable(false);
         return false;
       }
@@ -76,12 +76,12 @@ export function useBiometricAuth() {
         type = 'Iris';
       }
 
-      console.log('👆 [BIOMETRIC] Tipo de biometria disponivel:', type);
+      if (__DEV__) console.log('👆 [BIOMETRIC] Tipo de biometria disponivel:', type);
       setBiometricType(type);
       setIsAvailable(true);
       return true;
     } catch (error) {
-      console.error('👆 [BIOMETRIC] Erro ao verificar disponibilidade:', error);
+      if (__DEV__) console.error('👆 [BIOMETRIC] Erro ao verificar disponibilidade:', error);
       setIsAvailable(false);
       return false;
     }
@@ -103,7 +103,7 @@ export function useBiometricAuth() {
       // Verifica se o token expirou
       const expiresAt = new Date(parsed.expiresAt);
       if (expiresAt < new Date()) {
-        console.log('👆 [BIOMETRIC] Token expirado, removendo...');
+        if (__DEV__) console.log('👆 [BIOMETRIC] Token expirado, removendo...');
         await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY);
         setIsEnabled(false);
         return false;
@@ -111,16 +111,16 @@ export function useBiometricAuth() {
 
       // Se um userId foi fornecido, verifica se o token pertence a esse usuário
       if (currentUserId && parsed.userId !== currentUserId) {
-        console.log('👆 [BIOMETRIC] Token pertence a outro usuário, ignorando...');
+        if (__DEV__) console.log('👆 [BIOMETRIC] Token pertence a outro usuário, ignorando...');
         setIsEnabled(false);
         return false;
       }
 
-      console.log('👆 [BIOMETRIC] Token valido encontrado para o usuário atual');
+      if (__DEV__) console.log('👆 [BIOMETRIC] Token valido encontrado para o usuário atual');
       setIsEnabled(true);
       return true;
     } catch (error) {
-      console.error('👆 [BIOMETRIC] Erro ao verificar status:', error);
+      if (__DEV__) console.error('👆 [BIOMETRIC] Erro ao verificar status:', error);
       setIsEnabled(false);
       return false;
     }
@@ -140,12 +140,12 @@ export function useBiometricAuth() {
   // Habilita biometria usando API do backend (NAO precisa de senha!)
   const enableBiometric = useCallback(async (userEmail: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      console.log('👆 [BIOMETRIC] Habilitando biometria...');
+      if (__DEV__) console.log('👆 [BIOMETRIC] Habilitando biometria...');
 
       // 1. Verifica disponibilidade
       const available = await checkBiometricAvailability();
       if (!available) {
-        console.log('👆 [BIOMETRIC] Biometria nao disponivel');
+        if (__DEV__) console.log('👆 [BIOMETRIC] Biometria nao disponivel');
         return { success: false, error: 'Biometria não disponível neste dispositivo' };
       }
 
@@ -158,22 +158,22 @@ export function useBiometricAuth() {
       });
 
       if (!localAuth.success) {
-        console.log('👆 [BIOMETRIC] Autenticacao local falhou:', JSON.stringify(localAuth));
+        if (__DEV__) console.log('👆 [BIOMETRIC] Autenticacao local falhou:', JSON.stringify(localAuth));
         return { success: false, error: 'Autenticação cancelada' };
       }
 
       // 3. Obtem deviceId unico
       const deviceId = await getDeviceId();
-      console.log('👆 [BIOMETRIC] DeviceId:', deviceId);
+      if (__DEV__) console.log('👆 [BIOMETRIC] DeviceId:', deviceId);
 
       // 4. Chama API do backend para obter token biometrico
-      console.log('👆 [BIOMETRIC] Chamando API enable...', { email: userEmail, deviceId });
+      if (__DEV__) console.log('[BIOMETRIC] Chamando API enable...');
       const response = await api.post('authentication/biometric/enable', {
         email: userEmail,
         deviceId,
       });
 
-      console.log('👆 [BIOMETRIC] Resposta da API:', response.data);
+      if (__DEV__) console.log('[BIOMETRIC] Resposta da API recebida');
       const { biometricToken, userId, expiresAt } = response.data.data;
 
       // 5. Armazena token de forma segura
@@ -185,12 +185,11 @@ export function useBiometricAuth() {
       await SecureStore.setItemAsync(BIOMETRIC_TOKEN_KEY, JSON.stringify(tokenData));
 
       setIsEnabled(true);
-      console.log('👆 [BIOMETRIC] Biometria habilitada com sucesso via API');
+      if (__DEV__) console.log('👆 [BIOMETRIC] Biometria habilitada com sucesso via API');
       return { success: true };
     } catch (error: any) {
-      console.error('👆 [BIOMETRIC] Erro ao habilitar biometria:', error);
-      console.error('👆 [BIOMETRIC] Response data:', error?.response?.data);
-      console.error('👆 [BIOMETRIC] Response status:', error?.response?.status);
+      if (__DEV__) console.error('[BIOMETRIC] Erro ao habilitar biometria:', error?.message);
+      if (__DEV__) console.error('[BIOMETRIC] Response status:', error?.response?.status);
 
       // Extrai mensagem de erro da API
       const apiMessage = error?.response?.data?.message
@@ -208,7 +207,7 @@ export function useBiometricAuth() {
   // Desabilita biometria usando API do backend
   const disableBiometric = useCallback(async (userId: string): Promise<boolean> => {
     try {
-      console.log('👆 [BIOMETRIC] Desabilitando biometria...');
+      if (__DEV__) console.log('👆 [BIOMETRIC] Desabilitando biometria...');
 
       // Chama API do backend para revogar token
       await api.patch(`authentication/biometric/disable/${userId}`);
@@ -217,10 +216,10 @@ export function useBiometricAuth() {
       await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY);
 
       setIsEnabled(false);
-      console.log('👆 [BIOMETRIC] Biometria desabilitada com sucesso');
+      if (__DEV__) console.log('👆 [BIOMETRIC] Biometria desabilitada com sucesso');
       return true;
     } catch (error: any) {
-      console.error('👆 [BIOMETRIC] Erro ao desabilitar biometria:', error?.response?.data || error.message);
+      if (__DEV__) console.error('[BIOMETRIC] Erro ao desabilitar biometria:', error?.message);
       // Mesmo se a API falhar, remove o token local
       await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY);
       setIsEnabled(false);
@@ -231,7 +230,7 @@ export function useBiometricAuth() {
   // Autentica usando biometria e faz login via API
   const authenticateWithBiometric = useCallback(async (): Promise<BiometricAuthResult> => {
     try {
-      console.log('👆 [BIOMETRIC] Iniciando autenticacao biometrica...');
+      if (__DEV__) console.log('👆 [BIOMETRIC] Iniciando autenticacao biometrica...');
 
       // 1. Verifica se tem token armazenado
       const tokenData = await SecureStore.getItemAsync(BIOMETRIC_TOKEN_KEY);
@@ -259,7 +258,7 @@ export function useBiometricAuth() {
       if (!localAuth.success) {
         const failedResult = localAuth as { success: false; error: string };
         const errorMsg = failedResult.error || 'unknown';
-        console.log('👆 [BIOMETRIC] Autenticacao local falhou:', errorMsg);
+        if (__DEV__) console.log('👆 [BIOMETRIC] Autenticacao local falhou:', errorMsg);
         return {
           success: false,
           error: errorMsg === 'user_cancel'
@@ -275,7 +274,7 @@ export function useBiometricAuth() {
 
       const userData = response.data.data;
 
-      console.log('👆 [BIOMETRIC] Login biometrico bem-sucedido');
+      if (__DEV__) console.log('👆 [BIOMETRIC] Login biometrico bem-sucedido');
       return {
         success: true,
         userData: {
@@ -287,7 +286,7 @@ export function useBiometricAuth() {
         },
       };
     } catch (error: any) {
-      console.error('👆 [BIOMETRIC] Erro no login biometrico:', error?.response?.data || error.message);
+      if (__DEV__) console.error('[BIOMETRIC] Erro no login biometrico:', error?.message);
 
       // Se o token foi revogado ou expirou no backend, limpa local
       if (error?.response?.status === 400 || error?.response?.status === 401) {
@@ -320,9 +319,9 @@ export function useBiometricAuth() {
     try {
       await SecureStore.deleteItemAsync(BIOMETRIC_TOKEN_KEY);
       setIsEnabled(false);
-      console.log('👆 [BIOMETRIC] Dados biometricos limpos');
+      if (__DEV__) console.log('👆 [BIOMETRIC] Dados biometricos limpos');
     } catch (error) {
-      console.error('👆 [BIOMETRIC] Erro ao limpar dados:', error);
+      if (__DEV__) console.error('👆 [BIOMETRIC] Erro ao limpar dados:', error);
     }
   }, []);
 

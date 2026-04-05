@@ -72,22 +72,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signOut = useCallback(async () => {
     try {
-      console.log('🚪 Iniciando logout - limpando todos os dados do usuário...');
+      if (__DEV__) console.log('🚪 Iniciando logout - limpando todos os dados do usuário...');
 
       // 🔔 Desassocia o dispositivo do usuário no OneSignal
       // Isso garante que notificações do usuário anterior não cheguem neste dispositivo
       try {
-        console.log('📱 Desassociando dispositivo do OneSignal...');
+        if (__DEV__) console.log('📱 Desassociando dispositivo do OneSignal...');
         OneSignal.logout();
-        console.log('✅ Dispositivo desassociado do OneSignal');
+        if (__DEV__) console.log('✅ Dispositivo desassociado do OneSignal');
       } catch (oneSignalError) {
-        console.warn('⚠️ Erro ao desassociar OneSignal (não crítico):', oneSignalError);
+        if (__DEV__) console.warn('⚠️ Erro ao desassociar OneSignal (não crítico):', oneSignalError);
       }
 
-      // Limpar TODOS os dados armazenados do usuário
+      // Limpar dados do usuário do SecureStore
+      await SecureStore.deleteItemAsync('@app:user');
+
+      // Limpar TODOS os outros dados armazenados do usuário
       await AsyncStorage.multiRemove([
         // Auth e dados básicos
-        '@app:user',
         '@app:personalData',
         '@app:onboardingData',
         '@app:onboarding_completed',
@@ -111,7 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         '@examinus:notification_prefs',
       ]);
 
-      console.log('✅ Dados do AsyncStorage removidos');
+      if (__DEV__) console.log('✅ Dados do SecureStore e AsyncStorage removidos');
 
       // NOTA: NAO apagar o token biometrico no logout!
       // O token deve persistir para permitir login biometrico depois do logout.
@@ -122,9 +124,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await new Promise<void>((resolve) => setTimeout(resolve, 800));
 
       setUser(null);
-      console.log('✅ Logout concluído');
+      if (__DEV__) console.log('✅ Logout concluído');
     } catch (error) {
-      console.error('❌ Erro ao fazer logout:', error);
+      if (__DEV__) console.error('❌ Erro ao fazer logout:', error);
       // Silent fail - user will be signed out anyway
       setUser(null);
     }
@@ -146,7 +148,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
       // Quando o app volta do background para ativo
       if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
-        console.log('[Auth] App voltou do background, verificando token...');
+        if (__DEV__) console.log('[Auth] App voltou do background, verificando token...');
 
         // Só valida se tiver usuário logado
         if (user?.userId) {
@@ -160,7 +162,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // Primeiro verifica localmente (rápido)
             const isValidLocal = await validateStoredToken();
             if (!isValidLocal) {
-              console.log('[Auth] Token inválido localmente, fazendo logout...');
+              if (__DEV__) console.log('[Auth] Token inválido localmente, fazendo logout...');
               await signOut();
               return;
             }
@@ -168,15 +170,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
             // Depois valida com backend em background (não bloqueia UI)
             validateTokenWithBackend().then((isValidBackend) => {
               if (!isValidBackend) {
-                console.log('[Auth] Token rejeitado pelo backend, fazendo logout...');
+                if (__DEV__) console.log('[Auth] Token rejeitado pelo backend, fazendo logout...');
                 signOut();
               }
             }).catch((error) => {
-              console.warn('[Auth] Erro ao validar token com backend:', error);
+              if (__DEV__) console.warn('[Auth] Erro ao validar token com backend:', error);
               // Não faz logout em caso de erro de rede
             });
           } else {
-            console.log('[Auth] Validação de token em throttle, pulando...');
+            if (__DEV__) console.log('[Auth] Validação de token em throttle, pulando...');
           }
         }
       }
@@ -196,16 +198,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (user?.userId && !isLoading) {
       // Delay para não atrasar a renderização inicial
       const timer = setTimeout(() => {
-        console.log('[Auth] Validação inicial do token com backend...');
+        if (__DEV__) console.log('[Auth] Validação inicial do token com backend...');
         lastBackendValidation.current = Date.now();
 
         validateTokenWithBackend().then((isValid) => {
           if (!isValid) {
-            console.log('[Auth] Token inválido na validação inicial, fazendo logout...');
+            if (__DEV__) console.log('[Auth] Token inválido na validação inicial, fazendo logout...');
             signOut();
           }
         }).catch((error) => {
-          console.warn('[Auth] Erro na validação inicial com backend:', error);
+          if (__DEV__) console.warn('[Auth] Erro na validação inicial com backend:', error);
         });
       }, 2000); // 2 segundos de delay
 
@@ -228,7 +230,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         logger.auth('Token validation result', { isValidToken });
 
         if (isValidToken) {
-          const storedUser = await AsyncStorage.getItem('@app:user');
+          const storedUser = await SecureStore.getItemAsync('@app:user');
           if (storedUser) {
             try {
               const userData = JSON.parse(storedUser);
@@ -239,7 +241,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               setUser(userData);
             } catch (parseError) {
               logger.error('Error parsing user data from storage', parseError);
-              await AsyncStorage.removeItem('@app:user');
+              await SecureStore.deleteItemAsync('@app:user');
               setUser(null);
             }
           } else {
@@ -277,7 +279,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         apiUrl: process.env.EXPO_PUBLIC_API_URL,
       });
 
-      console.log('🔐 [LOGIN] Iniciando login:', {
+      if (__DEV__) console.log('🔐 [LOGIN] Iniciando login:', {
         userName,
         timestamp: new Date().toISOString(),
         timeout: '30s',
@@ -296,26 +298,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
 
       const elapsed = Date.now() - startTime;
-      console.log('⏱️ [LOGIN] Tempo de resposta:', `${elapsed}ms (${(elapsed / 1000).toFixed(2)}s)`);
+      if (__DEV__) console.log('⏱️ [LOGIN] Tempo de resposta:', `${elapsed}ms (${(elapsed / 1000).toFixed(2)}s)`);
 
       const { data } = response;
       const userData = data.data;
 
-      // LOG DETALHADO: Ver exatamente o que o backend está retornando
-      console.log('📊 [AUTH] Dados recebidos do backend (signIn):', {
-        userId: userData.userId,
-        name: userData.name,
-        fullName: userData.fullName,
-        email: userData.email,
-        hasToken: !!userData.token,
-        allFields: Object.keys(userData),
-      });
+      if (__DEV__) console.log('📊 [AUTH] signIn - campos recebidos:', Object.keys(userData));
 
       // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
       // O checkOnboardingCompletion buscará os dados corretos do servidor
-      console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login...');
+      if (__DEV__) console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login...');
       await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
-      console.log('✅ [AUTH] Dados de onboarding locais removidos no login');
+      if (__DEV__) console.log('✅ [AUTH] Dados de onboarding locais removidos no login');
 
       // ⚠️ TEMPORÁRIO: Extrair email do token JWT se não vier do backend
       // TODO: Backend deveria retornar email diretamente
@@ -324,9 +318,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const tokenPayload = decodeJwtPayload(userData.token);
           emailFromToken = tokenPayload?.Email || tokenPayload?.email;
-          console.log('⚠️ [AUTH] Email NÃO veio do backend, extraído do JWT:', emailFromToken);
+          if (__DEV__) console.log('⚠️ [AUTH] Email NÃO veio do backend, extraído do JWT:', emailFromToken);
         } catch (error) {
-          console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
+          if (__DEV__) console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
         }
       }
 
@@ -338,18 +332,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email: emailFromToken || userData.email,
       };
 
-      console.log('Token:', JSON.stringify(formattedUserData, null, 2));
+      if (__DEV__) console.log('✅ [AUTH] User data formatado (token omitido)');
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await AsyncStorage.getItem('@app:user');
+      const verifyData = await SecureStore.getItemAsync('@app:user');
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
 
-      console.log('✅ [AUTH] Usuário setado e verificado:', {
+      if (__DEV__) console.log('✅ [AUTH] Usuário setado e verificado:', {
         userId: formattedUserData.userId,
         name: formattedUserData.name,
         email: formattedUserData.email
@@ -357,11 +351,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (não com delay)
       try {
-        console.log('📱 Registrando OneSignal external_id...');
+        if (__DEV__) console.log('📱 Registrando OneSignal external_id...');
         await OneSignal.login(formattedUserData.userId);
-        console.log('✅ OneSignal external_id registrado');
+        if (__DEV__) console.log('✅ OneSignal external_id registrado');
       } catch (oneSignalError) {
-        console.warn('⚠️ Erro ao registrar OneSignal external_id (não crítico):', oneSignalError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar OneSignal external_id (não crítico):', oneSignalError);
       }
 
       // Agora sim, setar o usuário e disparar navegação
@@ -369,7 +363,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Registra dispositivo no backend em background (não bloqueia)
       registerDeviceOnBackend().catch((deviceError) => {
-        console.warn('⚠️ Erro ao registrar dispositivo no backend (não crítico):', deviceError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar dispositivo no backend (não crítico):', deviceError);
       });
     } catch (error: any) {
       // Log estruturado completo
@@ -395,13 +389,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } : null,
       };
 
-      console.error('❌ [LOGIN ERROR]', {
+      if (__DEV__) console.error('❌ [LOGIN ERROR]', {
         userName,
         status: error?.response?.status,
         message: error?.message,
       });
 
-      console.error('📋 [LOGIN ERROR - Detalhes completos]', JSON.stringify(errorDetails, null, 2));
+      if (__DEV__) console.error('📋 [LOGIN ERROR - Detalhes completos]', JSON.stringify(errorDetails, null, 2));
 
       logger.error('Login failed', {
         action: 'signIn',
@@ -452,14 +446,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔐 [BIOMETRIC LOGIN] Iniciando login biometrico:', {
+      if (__DEV__) console.log('🔐 [BIOMETRIC LOGIN] Iniciando login biometrico:', {
         userId: userData.userId,
         email: userData.email,
         timestamp: new Date().toISOString(),
       });
 
       // Limpar dados de onboarding de outro usuario
-      console.log('🧹 [AUTH] Limpando dados locais antes do login biometrico...');
+      if (__DEV__) console.log('🧹 [AUTH] Limpando dados locais antes do login biometrico...');
       await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
 
       const formattedUserData = {
@@ -471,15 +465,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await AsyncStorage.getItem('@app:user');
+      const verifyData = await SecureStore.getItemAsync('@app:user');
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
 
-      console.log('✅ [BIOMETRIC LOGIN] Usuario setado e verificado:', {
+      if (__DEV__) console.log('✅ [BIOMETRIC LOGIN] Usuario setado e verificado:', {
         userId: formattedUserData.userId,
         name: formattedUserData.name,
         email: formattedUserData.email,
@@ -489,12 +483,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // O login do OneSignal deve ser feito antes da navegação para garantir
       // que o external_id esteja associado corretamente
       try {
-        console.log('📱 Registrando OneSignal external_id (biometric)...');
+        if (__DEV__) console.log('📱 Registrando OneSignal external_id (biometric)...');
         await OneSignal.login(formattedUserData.userId);
-        console.log('✅ OneSignal external_id registrado');
+        if (__DEV__) console.log('✅ OneSignal external_id registrado');
       } catch (oneSignalError) {
         // Não bloquear o login se OneSignal falhar
-        console.warn('⚠️ Erro ao registrar OneSignal external_id (nao critico):', oneSignalError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar OneSignal external_id (nao critico):', oneSignalError);
       }
 
       // Agora sim, setar o usuário e disparar navegação
@@ -503,11 +497,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Registra dispositivo no backend em background (não bloqueia)
       // Usa Promise sem await para não atrasar a navegação
       registerDeviceOnBackend().catch((deviceError) => {
-        console.warn('⚠️ Erro ao registrar dispositivo no backend (nao critico):', deviceError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar dispositivo no backend (nao critico):', deviceError);
       });
 
     } catch (error: any) {
-      console.error('❌ [BIOMETRIC LOGIN ERROR]', error);
+      if (__DEV__) console.error('❌ [BIOMETRIC LOGIN ERROR]', error);
       const errorMessage = error?.message || 'Erro no login biometrico';
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -526,7 +520,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         idToken: authCode,
       };
 
-      console.log('🔐 [Google Auth] idToken enviado:', authCode);
+      if (__DEV__) console.log('🔐 [Google Auth] idToken enviado (omitido por segurança)');
 
       // Add timeout for better UX
       const timeoutPromise = new Promise((_, reject) =>
@@ -537,7 +531,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const response = (await Promise.race([loginPromise, timeoutPromise])) as any;
 
       // LOG: Verificar se o backend está enviando cookies
-      console.log('🍪 [AUTH] Headers da resposta:', {
+      if (__DEV__) console.log('🍪 [AUTH] Headers da resposta:', {
         headers: response.headers,
         setCookie: response.headers['set-cookie'],
         allHeaderKeys: Object.keys(response.headers || {}),
@@ -546,20 +540,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const { data } = response;
       const userData = data.data;
 
-      // LOG DETALHADO: Ver exatamente o que o backend está retornando
-      console.log('📊 [AUTH] Dados recebidos do backend (signInWithGoogle):', {
-        userId: userData.userId,
-        name: userData.name,
-        fullName: userData.fullName,
-        email: userData.email,
-        hasToken: !!userData.token,
-        allFields: Object.keys(userData),
-      });
+      if (__DEV__) console.log('[AUTH] Dados recebidos do backend (signInWithGoogle), campos:', Object.keys(userData));
 
       // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
-      console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login Google...');
+      if (__DEV__) console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login Google...');
       await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
-      console.log('✅ [AUTH] Dados de onboarding locais removidos no login Google');
+      if (__DEV__) console.log('✅ [AUTH] Dados de onboarding locais removidos no login Google');
 
       // ⚠️ TEMPORÁRIO: Extrair email do token JWT se não vier do backend
       // TODO: Backend deveria retornar email diretamente
@@ -568,9 +554,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
           const tokenPayload = decodeJwtPayload(userData.token);
           emailFromToken = tokenPayload?.Email || tokenPayload?.email;
-          console.log('⚠️ [AUTH] Email NÃO veio do backend, extraído do JWT:', emailFromToken);
+          if (__DEV__) console.log('⚠️ [AUTH] Email NÃO veio do backend, extraído do JWT:', emailFromToken);
         } catch (error) {
-          console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
+          if (__DEV__) console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
         }
       }
 
@@ -583,15 +569,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await AsyncStorage.getItem('@app:user');
+      const verifyData = await SecureStore.getItemAsync('@app:user');
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
 
-      console.log('✅ [AUTH] Usuário Google setado e verificado:', {
+      if (__DEV__) console.log('✅ [AUTH] Usuário Google setado e verificado:', {
         userId: formattedUserData.userId,
         name: formattedUserData.name,
         email: formattedUserData.email
@@ -599,11 +585,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (não com delay)
       try {
-        console.log('📱 Registrando OneSignal external_id (Google)...');
+        if (__DEV__) console.log('📱 Registrando OneSignal external_id (Google)...');
         await OneSignal.login(formattedUserData.userId);
-        console.log('✅ OneSignal external_id registrado (Google)');
+        if (__DEV__) console.log('✅ OneSignal external_id registrado (Google)');
       } catch (oneSignalError) {
-        console.warn('⚠️ Erro ao registrar OneSignal external_id (Google - não crítico):', oneSignalError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar OneSignal external_id (Google - não crítico):', oneSignalError);
       }
 
       // Agora sim, setar o usuário e disparar navegação
@@ -611,13 +597,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Registra dispositivo no backend em background (não bloqueia)
       registerDeviceOnBackend().catch((deviceError) => {
-        console.warn('⚠️ Erro ao registrar dispositivo no backend (Google - não crítico):', deviceError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar dispositivo no backend (Google - não crítico):', deviceError);
       });
 
       // Add small delay for smooth transition
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
     } catch (error: any) {
-      console.error('❌ [AUTH] Erro no login Google:', {
+      if (__DEV__) console.error('❌ [AUTH] Erro no login Google:', {
         message: error?.message,
         status: error?.response?.status,
         statusText: error?.response?.statusText,
@@ -632,7 +618,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (error.message === 'Tempo limite excedido. Tente novamente.') {
         errorMessage = error.message;
       } else if (error.response) {
-        console.error('❌ [AUTH] Erro de resposta do servidor:', {
+        if (__DEV__) console.error('❌ [AUTH] Erro de resposta do servidor:', {
           status: error.response.status,
           data: error.response.data,
         });
@@ -647,10 +633,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           errorMessage = error.response.data?.message || 'Erro no servidor.';
         }
       } else if (error.request) {
-        console.error('❌ [AUTH] Erro de conexão:', error.request);
+        if (__DEV__) console.error('❌ [AUTH] Erro de conexão:', error.request);
         errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
       } else {
-        console.error('❌ [AUTH] Erro desconhecido:', error.message);
+        if (__DEV__) console.error('❌ [AUTH] Erro desconhecido:', error.message);
       }
 
       setError(errorMessage);
@@ -665,15 +651,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔑 [AUTH] Iniciando cadastro com Google...');
-      console.log('🔑 [AUTH] idToken recebido:', authCode?.substring(0, 20) + '...');
+      if (__DEV__) console.log('🔑 [AUTH] Iniciando cadastro com Google...');
+      if (__DEV__) console.log('🔑 [AUTH] idToken recebido:', authCode?.substring(0, 20) + '...');
 
       const payload = {
         provider: 'Google',
         idToken: authCode,
       };
 
-      console.log('🔑 [AUTH] Enviando payload para backend:', payload);
+      if (__DEV__) console.log('🔑 [AUTH] Enviando payload para backend:', payload);
 
       // Add timeout for better UX
       const timeoutPromise = new Promise((_, reject) =>
@@ -683,7 +669,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const signupPromise = api.post('authentication/external', payload);
       const response = (await Promise.race([signupPromise, timeoutPromise])) as any;
 
-      console.log('✅ [AUTH] Resposta do cadastro Google:', {
+      if (__DEV__) console.log('✅ [AUTH] Resposta do cadastro Google:', {
         status: response.status,
         hasData: !!response.data,
         dataContent: response.data,
@@ -693,7 +679,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Se já existe um usuário (signin automático), vai ter userData
       if (data?.data && data.data.userId && data.data.token) {
-        console.log('✅ [AUTH] Usuário Google já existe - fazendo login automático');
+        if (__DEV__) console.log('✅ [AUTH] Usuário Google já existe - fazendo login automático');
 
         const userData = data.data;
 
@@ -704,7 +690,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             const tokenPayload = decodeJwtPayload(userData.token);
             emailFromToken = tokenPayload?.Email || tokenPayload?.email;
           } catch (error) {
-            console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
+            if (__DEV__) console.log('⚠️ [AUTH] Erro ao extrair email do token:', error);
           }
         }
 
@@ -718,24 +704,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Limpar dados de onboarding de outro usuário
         await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
-        console.log('🧹 Dados de onboarding antigos removidos (login Google)');
+        if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos (login Google)');
 
         // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-        await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+        await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
 
         // Verificar se os dados foram persistidos corretamente
-        const verifyData = await AsyncStorage.getItem('@app:user');
+        const verifyData = await SecureStore.getItemAsync('@app:user');
         if (!verifyData) {
           throw new Error('Falha ao persistir dados do usuário');
         }
 
         // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE
         try {
-          console.log('📱 Registrando OneSignal external_id (signUpWithGoogle)...');
+          if (__DEV__) console.log('📱 Registrando OneSignal external_id (signUpWithGoogle)...');
           await OneSignal.login(formattedUserData.userId);
-          console.log('✅ OneSignal external_id registrado (signUpWithGoogle)');
+          if (__DEV__) console.log('✅ OneSignal external_id registrado (signUpWithGoogle)');
         } catch (oneSignalError) {
-          console.warn('⚠️ Erro ao registrar OneSignal (signUpWithGoogle - não crítico):', oneSignalError);
+          if (__DEV__) console.warn('⚠️ Erro ao registrar OneSignal (signUpWithGoogle - não crítico):', oneSignalError);
         }
 
         // Agora sim, setar o usuário e disparar navegação
@@ -743,7 +729,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Registra dispositivo no backend em background (não bloqueia)
         registerDeviceOnBackend().catch((deviceError) => {
-          console.warn('⚠️ Erro ao registrar dispositivo no backend (signUpWithGoogle - não crítico):', deviceError);
+          if (__DEV__) console.warn('⚠️ Erro ao registrar dispositivo no backend (signUpWithGoogle - não crítico):', deviceError);
         });
 
         return;
@@ -751,12 +737,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Se não tem userData mas status é 201/204, é um cadastro novo bem-sucedido
       if (response.status === 201 || response.status === 204) {
-        console.log('✅ [AUTH] Novo usuário Google cadastrado com sucesso');
+        if (__DEV__) console.log('✅ [AUTH] Novo usuário Google cadastrado com sucesso');
 
         // Limpar dados de onboarding antigos
         await AsyncStorage.removeItem('@app:personalData');
         await AsyncStorage.removeItem('@app:onboardingData');
-        console.log('🧹 Dados de onboarding antigos removidos (cadastro Google novo)');
+        if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos (cadastro Google novo)');
 
         // Redirecionar para onboarding ou home (o hook vai detectar que não tem dados completos)
         setUser(null);
@@ -766,7 +752,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Se chegou aqui, algo está errado
       throw new Error('Resposta inesperada do servidor');
     } catch (error: any) {
-      console.log('❌ Erro no cadastro Google:', {
+      if (__DEV__) console.log('❌ Erro no cadastro Google:', {
         message: error?.message,
         status: error?.response?.status,
         statusText: error?.response?.statusText,
@@ -780,7 +766,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (error.message === 'Tempo limite excedido. Tente novamente.') {
         errorMessage = error.message;
       } else if (error.response) {
-        console.log('📊 Detalhes do erro do servidor:', {
+        if (__DEV__) console.log('📊 Detalhes do erro do servidor:', {
           status: error.response.status,
           data: error.response.data,
           headers: error.response.headers,
@@ -805,7 +791,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         errorMessage = 'Sem conexão com o servidor. Verifique sua internet.';
       }
 
-      console.log('🚨 Mensagem de erro final (Google signup):', errorMessage);
+      if (__DEV__) console.log('🚨 Mensagem de erro final (Google signup):', errorMessage);
 
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -815,13 +801,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }
 
   async function signInWithApple(identityToken: string, fullName?: any, emailFromCredential?: string | null) {
-    console.log('🍎 Fazendo login com Apple...', { hasToken: !!identityToken, fullName, emailFromCredential });
+    if (__DEV__) console.log('🍎 Fazendo login com Apple...', { hasToken: !!identityToken, fullName, emailFromCredential });
 
     try {
       setIsLoading(true);
       setError(null);
 
-      console.log('🍎 Fazendo login com Apple...');
+      if (__DEV__) console.log('🍎 Fazendo login com Apple...');
 
       // Add timeout for better UX
       const timeoutPromise = new Promise((_, reject) =>
@@ -885,15 +871,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         },
       });
 
-      console.log('✅ Login Apple bem-sucedido:', response.data);
+      if (__DEV__) console.log('[AUTH] Login Apple bem-sucedido');
 
       const { data } = response;
       const userData = data.data;
 
       // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
-      console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login Apple...');
+      if (__DEV__) console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login Apple...');
       await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
-      console.log('✅ [AUTH] Dados de onboarding locais removidos no login Apple');
+      if (__DEV__) console.log('✅ [AUTH] Dados de onboarding locais removidos no login Apple');
 
       // Ensure userData has the correct structure for app usage
       const formattedUserData = {
@@ -904,23 +890,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await AsyncStorage.getItem('@app:user');
+      const verifyData = await SecureStore.getItemAsync('@app:user');
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
 
-      console.log('✅ [AUTH] Usuário Apple setado e verificado:', { userId: formattedUserData.userId, name: formattedUserData.name });
+      if (__DEV__) console.log('✅ [AUTH] Usuário Apple setado e verificado:', { userId: formattedUserData.userId, name: formattedUserData.name });
 
       // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (ANTES de setUser)
       try {
-        console.log('📱 Registrando OneSignal external_id (Apple)...');
+        if (__DEV__) console.log('📱 Registrando OneSignal external_id (Apple)...');
         await OneSignal.login(formattedUserData.userId);
-        console.log('✅ OneSignal external_id registrado (Apple)');
+        if (__DEV__) console.log('✅ OneSignal external_id registrado (Apple)');
       } catch (oneSignalError) {
-        console.warn('⚠️ Erro ao registrar OneSignal external_id (Apple - não crítico):', oneSignalError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar OneSignal external_id (Apple - não crítico):', oneSignalError);
       }
 
       // Agora sim, setar o usuário e disparar navegação
@@ -928,13 +914,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Registra dispositivo no backend em background (não bloqueia)
       registerDeviceOnBackend().catch((deviceError) => {
-        console.warn('⚠️ Erro ao registrar dispositivo no backend (Apple - não crítico):', deviceError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar dispositivo no backend (Apple - não crítico):', deviceError);
       });
 
       // Add small delay for smooth transition
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
     } catch (error: any) {
-      console.log('❌ Erro no login Apple:', error);
+      if (__DEV__) console.log('❌ Erro no login Apple:', error);
 
       let errorMessage = 'Erro ao fazer login com Apple.';
 
@@ -966,7 +952,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
 
-      console.log('🍎 Fazendo cadastro com Apple...');
+      if (__DEV__) console.log('🍎 Fazendo cadastro com Apple...');
 
       // Add timeout for better UX
       const timeoutPromise = new Promise((_, reject) =>
@@ -1030,7 +1016,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         },
       });
 
-      console.log('✅ Cadastro Apple bem-sucedido:', response.data);
+      if (__DEV__) console.log('[AUTH] Cadastro Apple bem-sucedido');
 
       const { data } = response;
       const userData = data.data;
@@ -1046,26 +1032,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Limpar dados de onboarding antigos para novo usuário
       await AsyncStorage.removeItem('@app:personalData');
       await AsyncStorage.removeItem('@app:onboardingData');
-      console.log('🧹 Dados de onboarding antigos removidos (cadastro Apple)');
+      if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos (cadastro Apple)');
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await AsyncStorage.getItem('@app:user');
+      const verifyData = await SecureStore.getItemAsync('@app:user');
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
 
-      console.log('✅ [AUTH] Usuário Apple cadastrado e verificado:', { userId: formattedUserData.userId, name: formattedUserData.name });
+      if (__DEV__) console.log('✅ [AUTH] Usuário Apple cadastrado e verificado:', { userId: formattedUserData.userId, name: formattedUserData.name });
 
       // CORREÇÃO: Registrar OneSignal IMEDIATAMENTE (ANTES de setUser)
       try {
-        console.log('📱 Registrando OneSignal external_id (signUpWithApple)...');
+        if (__DEV__) console.log('📱 Registrando OneSignal external_id (signUpWithApple)...');
         await OneSignal.login(formattedUserData.userId);
-        console.log('✅ OneSignal external_id registrado (signUpWithApple)');
+        if (__DEV__) console.log('✅ OneSignal external_id registrado (signUpWithApple)');
       } catch (oneSignalError) {
-        console.warn('⚠️ Erro ao registrar OneSignal external_id (signUpWithApple - não crítico):', oneSignalError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar OneSignal external_id (signUpWithApple - não crítico):', oneSignalError);
       }
 
       // Agora sim, setar o usuário e disparar navegação
@@ -1073,13 +1059,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Registra dispositivo no backend em background (não bloqueia)
       registerDeviceOnBackend().catch((deviceError) => {
-        console.warn('⚠️ Erro ao registrar dispositivo no backend (signUpWithApple - não crítico):', deviceError);
+        if (__DEV__) console.warn('⚠️ Erro ao registrar dispositivo no backend (signUpWithApple - não crítico):', deviceError);
       });
 
       // Add small delay for smooth transition
       await new Promise<void>((resolve) => setTimeout(() => resolve(), 300));
     } catch (error: any) {
-      console.log('❌ Erro no cadastro Apple:', error);
+      if (__DEV__) console.log('❌ Erro no cadastro Apple:', error);
 
       let errorMessage = 'Erro ao fazer cadastro com Apple.';
 
@@ -1121,7 +1107,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const startTime = Date.now();
 
-      console.log('🚀 [SIGNUP] Iniciando cadastro:', {
+      if (__DEV__) console.log('🚀 [SIGNUP] Iniciando cadastro:', {
         email,
         fullname,
         timestamp: new Date().toISOString(),
@@ -1149,9 +1135,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       const elapsed = Date.now() - startTime;
 
-      console.log('⏱️ [SIGNUP] Tempo de resposta:', `${elapsed}ms (${(elapsed / 1000).toFixed(2)}s)`);
+      if (__DEV__) console.log('⏱️ [SIGNUP] Tempo de resposta:', `${elapsed}ms (${(elapsed / 1000).toFixed(2)}s)`);
 
-      console.log('✅ Cadastro bem-sucedido:', {
+      if (__DEV__) console.log('✅ Cadastro bem-sucedido:', {
         status: response.status,
         hasData: !!response.data,
         dataContent: response.data,
@@ -1159,21 +1145,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Handle 204 No Content - signup successful but no user data returned
       if (response.status === 204) {
-        console.log('✅ Cadastro realizado com sucesso (204 - No Content)');
-        console.log('🔄 Fazendo login automático para obter dados de sessão...');
+        if (__DEV__) console.log('✅ Cadastro realizado com sucesso (204 - No Content)');
+        if (__DEV__) console.log('🔄 Fazendo login automático para obter dados de sessão...');
 
         // Limpar dados de onboarding antigos para novo usuário
         await AsyncStorage.removeItem('@app:personalData');
       await AsyncStorage.removeItem('@app:onboardingData');
-        console.log('🧹 Dados de onboarding antigos removidos');
+        if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos');
 
         // Auto-login after successful signup
         try {
           await signIn(email, password);
-          console.log('✅ Login automático realizado após cadastro');
+          if (__DEV__) console.log('✅ Login automático realizado após cadastro');
           return;
         } catch (loginError: any) {
-          console.log('❌ Erro no login automático após cadastro:', {
+          if (__DEV__) console.log('❌ Erro no login automático após cadastro:', {
             message: loginError?.message,
             email: email,
           });
@@ -1189,7 +1175,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // For other success status codes, try to process user data
       if (!data || !data.data) {
-        console.log('⚠️ Resposta da API sem dados do usuário:', {
+        if (__DEV__) console.log('⚠️ Resposta da API sem dados do usuário:', {
           hasData: !!data,
           dataContent: data,
           success: data?.success,
@@ -1211,7 +1197,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Validar se userData tem os campos necessários
       if (!userData.userId || !userData.token) {
-        console.log('⚠️ Dados do usuário incompletos:', {
+        if (__DEV__) console.log('⚠️ Dados do usuário incompletos:', {
           hasUserId: !!userData.userId,
           hasToken: !!userData.token,
           userData: userData,
@@ -1230,13 +1216,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Limpar dados de onboarding antigos para novo usuário
       await AsyncStorage.removeItem('@app:personalData');
       await AsyncStorage.removeItem('@app:onboardingData');
-      console.log('🧹 Dados de onboarding antigos removidos');
+      if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos');
 
       // Salvar dados do usuário e fazer login automático
-      await AsyncStorage.setItem('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
       setUser(formattedUserData);
 
-      console.log('✅ Login automático realizado após cadastro');
+      if (__DEV__) console.log('✅ Login automático realizado após cadastro');
     } catch (error: any) {
       // Log estruturado completo do erro
       const errorDetails = {
@@ -1262,13 +1248,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         } : null,
       };
 
-      console.error('❌ [SIGNUP ERROR]', {
+      if (__DEV__) console.error('❌ [SIGNUP ERROR]', {
         email,
         status: error?.response?.status,
         message: error?.message,
       });
 
-      console.error('📋 [SIGNUP ERROR - Detalhes completos]', JSON.stringify(errorDetails, null, 2));
+      if (__DEV__) console.error('📋 [SIGNUP ERROR - Detalhes completos]', JSON.stringify(errorDetails, null, 2));
 
       let errorMessage = 'Erro ao criar conta.';
 
@@ -1281,10 +1267,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Caso especial: erro com propriedade 'response' direta (não error.response)
       if (error.response && Array.isArray(error.response) && !error.response.status) {
-        console.log('🔍 Detectado erro com response array direto');
+        if (__DEV__) console.log('🔍 Detectado erro com response array direto');
         errorMessage = error.response.join(', ');
       } else if (error.response && error.response.status) {
-        console.log('📊 Detalhes da resposta do erro:', {
+        if (__DEV__) console.log('📊 Detalhes da resposta do erro:', {
           status: error.response.status,
           data: error.response.data,
           headers: error.response.headers,
@@ -1336,8 +1322,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         errorMessage = error.message;
       }
 
-      console.log('🚨 Mensagem de erro final:', errorMessage);
-      console.log('🚨 Tipo de errorMessage:', typeof errorMessage, errorMessage);
+      if (__DEV__) console.log('🚨 Mensagem de erro final:', errorMessage);
+      if (__DEV__) console.log('🚨 Tipo de errorMessage:', typeof errorMessage, errorMessage);
 
       setError(errorMessage);
       throw new Error(errorMessage);
@@ -1414,7 +1400,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true);
 
-      console.log('🔍 [AUTH] Buscando informações do usuário:', {
+      if (__DEV__) console.log('🔍 [AUTH] Buscando informações do usuário:', {
         userId: user.userId,
         url: `users/${user.userId}`,
         baseURL: (api as any)?.defaults?.baseURL,
@@ -1437,12 +1423,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         error?.message?.includes('404');
 
       if (isUserNotFound) {
-        console.log('⚠️ [AUTH] Backend não encontrou usuário (provável usuário OAuth), mantendo dados do token');
+        if (__DEV__) console.log('⚠️ [AUTH] Backend não encontrou usuário (provável usuário OAuth), mantendo dados do token');
         return;
       }
 
       // Para outros erros, logar mas não quebrar a aplicação
-      console.error('❌ [AUTH] Erro ao buscar informações do usuário:', error.message);
+      if (__DEV__) console.error('❌ [AUTH] Erro ao buscar informações do usuário:', error.message);
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
       setError(errorMessage);
     } finally {
@@ -1462,9 +1448,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // Tenta deletar no backend (sem barra inicial para evitar double slash)
       try {
         await api.delete(`users/${user.userId}`);
-        console.log('✅ Conta deletada no backend');
+        if (__DEV__) console.log('✅ Conta deletada no backend');
       } catch (deleteError: any) {
-        console.log('🔍 [DELETE] Erro capturado:', {
+        if (__DEV__) console.log('🔍 [DELETE] Erro capturado:', {
           status: deleteError.response?.status,
           message: deleteError.message,
           hasResponse: !!deleteError.response,
@@ -1473,7 +1459,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         // Se usuário não existe (404), continua com a limpeza local
         // já que o objetivo é remover a conta de qualquer forma
         if (deleteError.response?.status === 404) {
-          console.log('⚠️ Usuário não encontrado no backend (404), prosseguindo com limpeza local');
+          if (__DEV__) console.log('⚠️ Usuário não encontrado no backend (404), prosseguindo com limpeza local');
         } else {
           // Para outros erros, propaga a exceção
           throw deleteError;
@@ -1482,18 +1468,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Desassocia o dispositivo do OneSignal
       try {
-        console.log('📱 Desassociando dispositivo do OneSignal...');
+        if (__DEV__) console.log('📱 Desassociando dispositivo do OneSignal...');
         OneSignal.logout();
-        console.log('✅ Dispositivo desassociado do OneSignal');
+        if (__DEV__) console.log('✅ Dispositivo desassociado do OneSignal');
       } catch (oneSignalError) {
-        console.warn('⚠️ Erro ao desassociar OneSignal (não crítico):', oneSignalError);
+        if (__DEV__) console.warn('⚠️ Erro ao desassociar OneSignal (não crítico):', oneSignalError);
       }
 
-      // Limpar TODOS os dados armazenados do usuário (igual ao signOut)
-      console.log('🧹 Limpando todos os dados locais...');
+      // Limpar dados do usuário do SecureStore
+      await SecureStore.deleteItemAsync('@app:user');
+
+      // Limpar TODOS os outros dados armazenados do usuário (igual ao signOut)
+      if (__DEV__) console.log('🧹 Limpando todos os dados locais...');
       await AsyncStorage.multiRemove([
         // Auth e dados básicos
-        '@app:user',
         '@app:personalData',
         '@app:onboardingData',
         '@app:onboarding_completed',
@@ -1519,12 +1507,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         '@examinus:biometric_token',
         '@examinus:biometric_enabled',
       ]);
-      console.log('✅ Dados locais removidos');
+      if (__DEV__) console.log('✅ Dados locais removidos');
 
       setUser(null);
-      console.log('✅ Conta deletada com sucesso');
+      if (__DEV__) console.log('✅ Conta deletada com sucesso');
     } catch (error: any) {
-      console.log('❌ Erro ao deletar conta:', error);
+      if (__DEV__) console.log('❌ Erro ao deletar conta:', error);
 
       let errorMessage = 'Erro ao deletar conta.';
 
@@ -1551,7 +1539,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setError(null);
   }, []);
 
-  // Atualiza a foto de perfil no contexto e persiste no AsyncStorage
+  // Atualiza a foto de perfil no contexto e persiste no SecureStore
   const updateUserPhoto = useCallback(async (photoBase64: string | null) => {
     if (!user) return;
 
@@ -1563,12 +1551,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Atualizar estado
     setUser(updatedUser);
 
-    // Persistir no AsyncStorage
+    // Persistir no SecureStore
     try {
-      await AsyncStorage.setItem('@app:user', JSON.stringify(updatedUser));
-      console.log('📸 [AUTH] Foto de perfil atualizada no contexto e persistida');
+      await SecureStore.setItemAsync('@app:user', JSON.stringify(updatedUser));
+      if (__DEV__) console.log('📸 [AUTH] Foto de perfil atualizada no contexto e persistida');
     } catch (error) {
-      console.error('❌ [AUTH] Erro ao persistir foto de perfil:', error);
+      if (__DEV__) console.error('❌ [AUTH] Erro ao persistir foto de perfil:', error);
     }
   }, [user]);
 

@@ -26,7 +26,7 @@ export async function checkCampaignVoucher(email: string, enviarNotificacao = fa
     cachedVoucher.email === email &&
     Date.now() - cachedVoucher.timestamp < CACHE_TTL
   ) {
-    console.log('📢 [CAMPANHA] Usando cache do voucher');
+    if (__DEV__) console.log('📢 [CAMPANHA] Usando cache do voucher');
     return cachedVoucher.response;
   }
 
@@ -40,7 +40,7 @@ export async function checkCampaignVoucher(email: string, enviarNotificacao = fa
       timeout: 10000, // 10 segundos de timeout
     });
 
-    console.log('📢 [CAMPANHA] Resposta da API:', response.data);
+    if (__DEV__) console.log('[CAMPANHA] Resposta da API recebida, status:', response.status);
 
     // A API pode retornar diferentes formatos, vamos tratar
     if (response.data) {
@@ -72,11 +72,11 @@ export async function checkCampaignVoucher(email: string, enviarNotificacao = fa
   } catch (error: any) {
     // 404 significa que o email não está na campanha - não é um erro
     if (error?.response?.status === 404) {
-      console.log('📢 [CAMPANHA] Email não está na campanha:', email);
+      if (__DEV__) console.log('[CAMPANHA] Email não está na campanha');
       return { success: false };
     }
 
-    console.log('📢 [CAMPANHA] Erro ao verificar campanha:', error?.message);
+    if (__DEV__) console.log('📢 [CAMPANHA] Erro ao verificar campanha:', error?.message);
     // Não bloquear o fluxo em caso de erro - apenas logar
     return { success: false };
   }

@@ -41,9 +41,9 @@ export function Preferences() {
       setIsLoading(true);
       const enabled = await isFitnessEnabled();
       setFitnessTrackerEnabled(enabled);
-      console.log('[PREFERENCES] Fitness tracker habilitado:', enabled);
+      if (__DEV__) console.log('[PREFERENCES] Fitness tracker habilitado:', enabled);
     } catch (error) {
-      console.error('[PREFERENCES] Erro ao carregar preferências:', error);
+      if (__DEV__) console.error('[PREFERENCES] Erro ao carregar preferências:', error);
     } finally {
       setIsLoading(false);
     }
@@ -66,9 +66,9 @@ export function Preferences() {
         duration: 1500,
       });
 
-      console.log('[PREFERENCES] Fitness tracker alterado para:', value);
+      if (__DEV__) console.log('[PREFERENCES] Fitness tracker alterado para:', value);
     } catch (error) {
-      console.error('[PREFERENCES] Erro ao salvar preferência de fitness:', error);
+      if (__DEV__) console.error('[PREFERENCES] Erro ao salvar preferência de fitness:', error);
       // Reverter o estado em caso de erro
       setFitnessTrackerEnabled(!value);
       showError({
