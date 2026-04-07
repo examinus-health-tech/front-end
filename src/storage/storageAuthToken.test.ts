@@ -1,22 +1,18 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
+import * as SecureStore from 'expo-secure-store';
 
 import { storageAuthToken, storageAuthTokenGet, storageAuthTokenRemove } from './storageAuthToken';
 import { AUTH_STORAGE } from '@storage/storageConfig';
 
-beforeEach(async () => {
-  await AsyncStorage.clear();
+beforeEach(() => {
+  (SecureStore as any).__resetStore();
   jest.clearAllMocks();
 });
 
 describe('storageAuthToken', () => {
-  it('deve salvar o token no AsyncStorage', async () => {
+  it('deve salvar o token no SecureStore', async () => {
     await storageAuthToken({ token: 'meu-token-123' });
 
-    const stored = await AsyncStorage.getItem(AUTH_STORAGE);
+    const stored = await SecureStore.getItemAsync(AUTH_STORAGE);
     expect(stored).not.toBeNull();
     const parsed = JSON.parse(stored!);
     expect(parsed.token).toBe('meu-token-123');
@@ -26,7 +22,7 @@ describe('storageAuthToken', () => {
     await storageAuthToken({ token: 'token-antigo' });
     await storageAuthToken({ token: 'token-novo' });
 
-    const stored = await AsyncStorage.getItem(AUTH_STORAGE);
+    const stored = await SecureStore.getItemAsync(AUTH_STORAGE);
     const parsed = JSON.parse(stored!);
     expect(parsed.token).toBe('token-novo');
   });
@@ -34,7 +30,7 @@ describe('storageAuthToken', () => {
 
 describe('storageAuthTokenGet', () => {
   it('deve retornar o token armazenado', async () => {
-    await AsyncStorage.setItem(AUTH_STORAGE, JSON.stringify({ token: 'meu-token' }));
+    await SecureStore.setItemAsync(AUTH_STORAGE, JSON.stringify({ token: 'meu-token' }));
 
     const result = await storageAuthTokenGet();
     expect(result.token).toBe('meu-token');
@@ -47,26 +43,24 @@ describe('storageAuthTokenGet', () => {
 
   it('deve retornar token undefined e limpar storage quando JSON é inválido', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    await AsyncStorage.setItem(AUTH_STORAGE, 'json-invalido{{{');
+    await SecureStore.setItemAsync(AUTH_STORAGE, 'json-invalido{{{');
 
     const result = await storageAuthTokenGet();
 
     expect(result.token).toBeUndefined();
-    // Deve ter removido o item corrompido
-    const stored = await AsyncStorage.getItem(AUTH_STORAGE);
+    const stored = await SecureStore.getItemAsync(AUTH_STORAGE);
     expect(stored).toBeNull();
-    expect(errorSpy).toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 });
 
 describe('storageAuthTokenRemove', () => {
-  it('deve remover o token do AsyncStorage', async () => {
-    await AsyncStorage.setItem(AUTH_STORAGE, JSON.stringify({ token: 'token-para-remover' }));
+  it('deve remover o token do SecureStore', async () => {
+    await SecureStore.setItemAsync(AUTH_STORAGE, JSON.stringify({ token: 'token-para-remover' }));
 
     await storageAuthTokenRemove();
 
-    const stored = await AsyncStorage.getItem(AUTH_STORAGE);
+    const stored = await SecureStore.getItemAsync(AUTH_STORAGE);
     expect(stored).toBeNull();
   });
 

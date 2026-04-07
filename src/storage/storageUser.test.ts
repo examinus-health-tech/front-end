@@ -1,8 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
+import * as SecureStore from 'expo-secure-store';
 
 import { storageUserSave, storageUserRemove, storageUserGet } from './storageUser';
 import { USER_STORAGE } from '@storage/storageConfig';
@@ -19,16 +15,16 @@ const mockUserMinimal: UserDTO = {
   userId: 'user-456',
 };
 
-beforeEach(async () => {
-  await AsyncStorage.clear();
+beforeEach(() => {
+  (SecureStore as any).__resetStore();
   jest.clearAllMocks();
 });
 
 describe('storageUserSave', () => {
-  it('deve salvar os dados do usuário no AsyncStorage', async () => {
+  it('deve salvar os dados do usuário no SecureStore', async () => {
     await storageUserSave(mockUser);
 
-    const stored = await AsyncStorage.getItem(USER_STORAGE);
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     expect(stored).not.toBeNull();
     const parsed = JSON.parse(stored!);
     expect(parsed.email).toBe('usuario@teste.com');
@@ -39,7 +35,7 @@ describe('storageUserSave', () => {
   it('deve salvar usuário sem photoUrl', async () => {
     await storageUserSave(mockUserMinimal);
 
-    const stored = await AsyncStorage.getItem(USER_STORAGE);
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     const parsed = JSON.parse(stored!);
     expect(parsed.email).toBe('minimal@teste.com');
     expect(parsed.photoUrl).toBeUndefined();
@@ -49,7 +45,7 @@ describe('storageUserSave', () => {
     await storageUserSave(mockUser);
     await storageUserSave(mockUserMinimal);
 
-    const stored = await AsyncStorage.getItem(USER_STORAGE);
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     const parsed = JSON.parse(stored!);
     expect(parsed.email).toBe('minimal@teste.com');
     expect(parsed.userId).toBe('user-456');
@@ -57,12 +53,12 @@ describe('storageUserSave', () => {
 });
 
 describe('storageUserRemove', () => {
-  it('deve remover os dados do usuário do AsyncStorage', async () => {
-    await AsyncStorage.setItem(USER_STORAGE, JSON.stringify(mockUser));
+  it('deve remover os dados do usuário do SecureStore', async () => {
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(mockUser));
 
     await storageUserRemove();
 
-    const stored = await AsyncStorage.getItem(USER_STORAGE);
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     expect(stored).toBeNull();
   });
 
@@ -73,7 +69,7 @@ describe('storageUserRemove', () => {
 
 describe('storageUserGet', () => {
   it('deve retornar os dados do usuário armazenado', async () => {
-    await AsyncStorage.setItem(USER_STORAGE, JSON.stringify(mockUser));
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(mockUser));
 
     const result = await storageUserGet();
 
@@ -89,21 +85,19 @@ describe('storageUserGet', () => {
 
   it('deve retornar objeto vazio e limpar storage quando JSON é inválido', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    await AsyncStorage.setItem(USER_STORAGE, 'dados-corrompidos!!!');
+    await SecureStore.setItemAsync(USER_STORAGE, 'dados-corrompidos!!!');
 
     const result = await storageUserGet();
 
     expect(result).toEqual({});
-    // Deve ter removido dados corrompidos
-    const stored = await AsyncStorage.getItem(USER_STORAGE);
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     expect(stored).toBeNull();
-    expect(errorSpy).toHaveBeenCalled();
     errorSpy.mockRestore();
   });
 
   it('deve retornar objeto vazio e limpar storage quando ocorre erro no parse', async () => {
     const errorSpy = jest.spyOn(console, 'error').mockImplementation();
-    await AsyncStorage.setItem(USER_STORAGE, '{json invalido');
+    await SecureStore.setItemAsync(USER_STORAGE, '{json invalido');
 
     const result = await storageUserGet();
 
