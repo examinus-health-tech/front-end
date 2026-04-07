@@ -21,8 +21,8 @@ jest.mock('@assets/icons', () => ({
 jest.mock('@components/atoms', () => {
   const RN = require('react-native');
   return {
-    Button: ({ title, onPress, ...p }: any) => (
-      <RN.TouchableOpacity testID="continue-button" onPress={onPress} {...p}>
+    Button: ({ title, onPress, testID, ...p }: any) => (
+      <RN.TouchableOpacity testID={testID || 'continue-button'} onPress={onPress} {...p}>
         <RN.Text>{title}</RN.Text>
       </RN.TouchableOpacity>
     ),
@@ -84,7 +84,7 @@ describe('Weight', () => {
     const { getByTestId } = render(<Weight />);
     // First set a value via ruler
     capturedOnValueChange!('75');
-    fireEvent.press(getByTestId('continue-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     expect(mockSetOnboardingData).toHaveBeenCalled();
     expect(mockHandleNextStep).toHaveBeenCalled();
   });
@@ -119,7 +119,7 @@ describe('Weight', () => {
   it('loads existing weight from onboarding data', () => {
     mockOnboardingData = { weight: 70 };
     const { getByTestId } = render(<Weight />);
-    fireEvent.press(getByTestId('continue-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     expect(mockSetOnboardingData).toHaveBeenCalledWith(
       expect.objectContaining({ weight: 70 })
     );

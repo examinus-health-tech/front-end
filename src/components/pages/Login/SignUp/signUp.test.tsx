@@ -116,14 +116,14 @@ jest.mock('@assets/icons', () => {
 jest.mock('@components/molecules', () => {
   const RN = require('react-native');
   return {
-    Input: ({ label, onChangeText, value, errorMessage, ...props }: any) => (
+    Input: ({ label, onChangeText, value, errorMessage, testID, ...props }: any) => (
       <RN.View>
         <RN.Text>{label}</RN.Text>
         <RN.TextInput
-          testID={`input-${label}`}
+          {...props}
+          testID={testID || `input-${label}`}
           onChangeText={onChangeText}
           value={value}
-          {...props}
         />
         {errorMessage && <RN.Text testID={`error-${label}`}>{errorMessage}</RN.Text>}
       </RN.View>
@@ -201,28 +201,28 @@ describe('SignUp', () => {
 
   it('allows typing in name input', () => {
     const { getByTestId } = render(<SignUp />);
-    const nameInput = getByTestId('input-Nome');
+    const nameInput = getByTestId('input-name');
     fireEvent.changeText(nameInput, 'John Doe');
     expect(nameInput.props.value).toBe('John Doe');
   });
 
   it('allows typing in email input', () => {
     const { getByTestId } = render(<SignUp />);
-    const emailInput = getByTestId('input-Endereço de e-mail');
+    const emailInput = getByTestId('input-email');
     fireEvent.changeText(emailInput, 'test@example.com');
     expect(emailInput.props.value).toBe('test@example.com');
   });
 
   it('allows typing in password input', () => {
     const { getByTestId } = render(<SignUp />);
-    const passwordInput = getByTestId('input-Senha');
+    const passwordInput = getByTestId('input-password');
     fireEvent.changeText(passwordInput, 'MyPass123!');
     expect(passwordInput.props.value).toBe('MyPass123!');
   });
 
   it('allows typing in confirm password input', () => {
     const { getByTestId } = render(<SignUp />);
-    const confirmInput = getByTestId('input-Confirme sua senha');
+    const confirmInput = getByTestId('input-confirm-password');
     fireEvent.changeText(confirmInput, 'MyPass123!');
     expect(confirmInput.props.value).toBe('MyPass123!');
   });
@@ -232,10 +232,10 @@ describe('SignUp', () => {
 
     const { getByTestId, getByText } = render(<SignUp />);
 
-    fireEvent.changeText(getByTestId('input-Nome'), 'John Doe');
-    fireEvent.changeText(getByTestId('input-Endereço de e-mail'), 'john@test.com');
-    fireEvent.changeText(getByTestId('input-Senha'), 'Password1!');
-    fireEvent.changeText(getByTestId('input-Confirme sua senha'), 'Password1!');
+    fireEvent.changeText(getByTestId('input-name'), 'John Doe');
+    fireEvent.changeText(getByTestId('input-email'), 'john@test.com');
+    fireEvent.changeText(getByTestId('input-password'), 'Password1!');
+    fireEvent.changeText(getByTestId('input-confirm-password'), 'Password1!');
     fireEvent.press(getByTestId('checkbox-rules'));
     fireEvent.press(getByText('Cadastrar'));
 
@@ -256,10 +256,10 @@ describe('SignUp', () => {
 
     const { getByTestId, getByText } = render(<SignUp />);
 
-    fireEvent.changeText(getByTestId('input-Nome'), 'John Doe');
-    fireEvent.changeText(getByTestId('input-Endereço de e-mail'), 'john@test.com');
-    fireEvent.changeText(getByTestId('input-Senha'), 'Password1!');
-    fireEvent.changeText(getByTestId('input-Confirme sua senha'), 'Password1!');
+    fireEvent.changeText(getByTestId('input-name'), 'John Doe');
+    fireEvent.changeText(getByTestId('input-email'), 'john@test.com');
+    fireEvent.changeText(getByTestId('input-password'), 'Password1!');
+    fireEvent.changeText(getByTestId('input-confirm-password'), 'Password1!');
     fireEvent.press(getByTestId('checkbox-rules'));
     fireEvent.press(getByText('Cadastrar'));
 
@@ -275,10 +275,10 @@ describe('SignUp', () => {
 
     const { getByTestId, getByText } = render(<SignUp />);
 
-    fireEvent.changeText(getByTestId('input-Nome'), 'John Doe');
-    fireEvent.changeText(getByTestId('input-Endereço de e-mail'), 'john@test.com');
-    fireEvent.changeText(getByTestId('input-Senha'), 'Password1!');
-    fireEvent.changeText(getByTestId('input-Confirme sua senha'), 'Password1!');
+    fireEvent.changeText(getByTestId('input-name'), 'John Doe');
+    fireEvent.changeText(getByTestId('input-email'), 'john@test.com');
+    fireEvent.changeText(getByTestId('input-password'), 'Password1!');
+    fireEvent.changeText(getByTestId('input-confirm-password'), 'Password1!');
     fireEvent.press(getByTestId('checkbox-rules'));
     fireEvent.press(getByText('Cadastrar'));
 

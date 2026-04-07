@@ -37,8 +37,8 @@ jest.mock('@assets/icons', () => ({
 jest.mock('@components/atoms', () => {
   const RN = require('react-native');
   return {
-    Button: ({ title, onPress, ...p }: any) => (
-      <RN.TouchableOpacity testID="continue-button" onPress={onPress} {...p}>
+    Button: ({ title, onPress, testID, ...p }: any) => (
+      <RN.TouchableOpacity testID={testID || 'continue-button'} onPress={onPress} {...p}>
         <RN.Text>{title}</RN.Text>
       </RN.TouchableOpacity>
     ),
@@ -96,7 +96,7 @@ describe('Humour', () => {
 
   it('calls handleNextStep when continue is pressed', () => {
     const { getByTestId } = render(<Humour />);
-    fireEvent.press(getByTestId('continue-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     expect(mockHandleNextStep).toHaveBeenCalled();
   });
 

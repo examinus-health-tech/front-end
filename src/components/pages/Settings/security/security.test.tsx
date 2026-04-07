@@ -22,8 +22,9 @@ jest.mock('native-base', () => {
   };
 });
 
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
 }));
 
 jest.mock('@routes/app.routes', () => ({}));
@@ -174,10 +175,10 @@ describe('Security', () => {
     });
   });
 
-  it('navigates to myAccount when header back is pressed', () => {
+  it('navigates back when header back is pressed', () => {
     const { getByTestId } = render(<Security />);
     fireEvent.press(getByTestId('header-back'));
-    expect(mockNavigate).toHaveBeenCalledWith('myAccount');
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders Lembrar Senha card subtitle', () => {

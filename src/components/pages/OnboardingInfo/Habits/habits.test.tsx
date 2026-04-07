@@ -27,8 +27,8 @@ jest.mock('@assets/icons', () => ({
 jest.mock('@components/atoms', () => {
   const RN = require('react-native');
   return {
-    Button: ({ title, onPress, isLoading, ...p }: any) => (
-      <RN.TouchableOpacity testID="save-button" onPress={onPress} {...p}>
+    Button: ({ title, onPress, isLoading, testID, ...p }: any) => (
+      <RN.TouchableOpacity testID={testID || 'save-button'} onPress={onPress} {...p}>
         <RN.Text>{isLoading ? 'Loading...' : title}</RN.Text>
       </RN.TouchableOpacity>
     ),
@@ -112,7 +112,7 @@ describe('Habits', () => {
     const { getByTestId, getByText } = render(<Habits />);
     // Select a habit first
     fireEvent.press(getByText('Vegetariano'));
-    fireEvent.press(getByTestId('save-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     await waitFor(() => {
       expect(mockSaveOnboarding).toHaveBeenCalled();
     });
@@ -131,7 +131,7 @@ describe('Habits', () => {
     mockSaveOnboarding.mockRejectedValueOnce(new Error('Network error'));
     const { getByTestId, getByText } = render(<Habits />);
     fireEvent.press(getByText('Vegetariano'));
-    fireEvent.press(getByTestId('save-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     await waitFor(() => {
       expect(mockSaveOnboarding).toHaveBeenCalled();
     });
@@ -142,7 +142,7 @@ describe('Habits', () => {
     mockSaveOnboarding.mockRejectedValueOnce(new Error('fail'));
     const { getByTestId, getByText } = render(<Habits />);
     fireEvent.press(getByText('Não faço dieta'));
-    fireEvent.press(getByTestId('save-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     await waitFor(() => {
       expect(mockSaveOnboarding).toHaveBeenCalled();
     });

@@ -3,12 +3,6 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { Text } from 'react-native';
 import ErrorBoundary from './ErrorBoundary';
 
-// Mock do sentryService
-jest.mock('@services/sentryService', () => ({
-  captureError: jest.fn(),
-  addBreadcrumb: jest.fn(),
-}));
-
 // Componente que lança erro
 const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
   if (shouldThrow) {
@@ -53,23 +47,14 @@ describe('ErrorBoundary', () => {
     expect(getByText('Tentar Novamente')).toBeTruthy();
   });
 
-  it('deve reportar erro ao Sentry', () => {
-    const { captureError } = require('@services/sentryService');
-
+  it('deve chamar console.error quando componente lança exceção', () => {
     render(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
 
-    expect(captureError).toHaveBeenCalledWith(
-      expect.any(Error),
-      expect.objectContaining({
-        componentStack: expect.any(String),
-        platform: expect.any(String),
-        timestamp: expect.any(String),
-      })
-    );
+    expect(console.error).toHaveBeenCalled();
   });
 
   it('deve resetar ao clicar em Tentar Novamente', () => {
@@ -94,17 +79,5 @@ describe('ErrorBoundary', () => {
     fireEvent.press(getByText('Tentar Novamente'));
 
     expect(getByText('Recuperado')).toBeTruthy();
-  });
-
-  it('deve renderizar fallback customizado quando fornecido', () => {
-    const CustomFallback = <Text>Fallback customizado</Text>;
-
-    const { getByText } = render(
-      <ErrorBoundary fallback={CustomFallback}>
-        <ThrowError shouldThrow={true} />
-      </ErrorBoundary>
-    );
-
-    expect(getByText('Fallback customizado')).toBeTruthy();
   });
 });

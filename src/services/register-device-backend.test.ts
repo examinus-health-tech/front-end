@@ -101,10 +101,12 @@ describe('register-device-backend', () => {
 
       const promise = registerDeviceOnBackend();
 
-      // Avança delay inicial (2s) + delays de retry using async version
+      // Avança delay inicial (2s)
       await jest.advanceTimersByTimeAsync(2000);
-      await jest.advanceTimersByTimeAsync(1500);
-      await jest.advanceTimersByTimeAsync(1500);
+      // Avança retry delay 1 (1s = 1000 * 2^0)
+      await jest.advanceTimersByTimeAsync(1000);
+      // Avança retry delay 2 (2s = 1000 * 2^1)
+      await jest.advanceTimersByTimeAsync(2000);
 
       await promise;
 
@@ -120,16 +122,18 @@ describe('register-device-backend', () => {
       // Avança delay inicial (2s)
       await jest.advanceTimersByTimeAsync(2000);
 
-      // Avança cada retry (15 * 1.5s)
-      for (let i = 0; i < 15; i++) {
-        await jest.advanceTimersByTimeAsync(1500);
+      // Avança each exponential backoff retry (8 retries, delays: 1s, 2s, 4s, 8s, 16s, 30s, 30s)
+      // Total delays between retries: 1000, 2000, 4000, 8000, 16000, 30000, 30000 = 91s
+      // But only 7 delays (between 8 retries)
+      for (const delay of [1000, 2000, 4000, 8000, 16000, 30000, 30000]) {
+        await jest.advanceTimersByTimeAsync(delay);
       }
 
       await promise;
 
       // Deve ter configurado o listener do AppState
       expect(mockedAddEventListener).toHaveBeenCalledWith('change', expect.any(Function));
-    });
+    }, 30000);
 
     it('deve lançar erro quando api.post falha', async () => {
       mockedOneSignal.mockResolvedValue('player-id-error');
@@ -154,8 +158,8 @@ describe('register-device-backend', () => {
       // Avança delay inicial
       await jest.advanceTimersByTimeAsync(2000);
 
-      // Avança delay de retry
-      await jest.advanceTimersByTimeAsync(1500);
+      // Avança delay de retry (1s = 1000 * 2^0)
+      await jest.advanceTimersByTimeAsync(1000);
 
       await promise;
 
@@ -173,17 +177,15 @@ describe('register-device-backend', () => {
       // Avança delay inicial (2s)
       await jest.advanceTimersByTimeAsync(2000);
 
-      // Avança cada retry (15 * 1.5s)
-      for (let i = 0; i < 15; i++) {
-        await jest.advanceTimersByTimeAsync(1500);
+      // Avança each exponential backoff retry
+      for (const delay of [1000, 2000, 4000, 8000, 16000, 30000, 30000]) {
+        await jest.advanceTimersByTimeAsync(delay);
       }
 
       await promise;
 
-      // O setTimeout de 10s deve ter sido chamado
-      // Verifica que a função não lançou erro e api.post was not called
-      // (because playerId was never available)
+      // api.post should not have been called (because playerId was never available)
       expect(mockedApi.post).not.toHaveBeenCalled();
-    });
+    }, 30000);
   });
 });

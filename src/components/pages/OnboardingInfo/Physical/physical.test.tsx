@@ -37,8 +37,8 @@ jest.mock('@assets/png/vector-8.png', () => 'Vector');
 jest.mock('@components/atoms', () => {
   const RN = require('react-native');
   return {
-    Button: ({ title, onPress, ...p }: any) => (
-      <RN.TouchableOpacity testID="continue-button" onPress={onPress} {...p}>
+    Button: ({ title, onPress, testID, ...p }: any) => (
+      <RN.TouchableOpacity testID={testID || 'continue-button'} onPress={onPress} {...p}>
         <RN.Text>{title}</RN.Text>
       </RN.TouchableOpacity>
     ),
@@ -138,7 +138,7 @@ describe('Physical', () => {
   it('calls handleNextStep on continue press', () => {
     const { getByTestId, getByText } = render(<Physical />);
     fireEvent.press(getByText('2'));
-    fireEvent.press(getByTestId('continue-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     expect(mockSetOnboardingData).toHaveBeenCalled();
     expect(mockHandleNextStep).toHaveBeenCalled();
   });

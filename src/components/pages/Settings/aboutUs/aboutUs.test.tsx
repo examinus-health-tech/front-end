@@ -51,8 +51,9 @@ jest.mock('react-native-svg', () => {
   };
 });
 
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
 }));
 
 jest.mock('@routes/app.routes', () => ({}));
@@ -147,10 +148,10 @@ describe('AboutUs', () => {
     expect(getByTestId('icon-linkedin')).toBeTruthy();
   });
 
-  it('navigates to myAccount when header back is pressed', () => {
+  it('navigates back when header back is pressed', () => {
     const { getByTestId } = render(<AboutUs />);
     fireEvent.press(getByTestId('header-back'));
-    expect(mockNavigate).toHaveBeenCalledWith('myAccount');
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('opens privacy policy alert when card is pressed', () => {

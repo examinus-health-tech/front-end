@@ -21,8 +21,8 @@ jest.mock('@assets/icons', () => ({
 jest.mock('@components/atoms', () => {
   const RN = require('react-native');
   return {
-    Button: ({ title, onPress, ...p }: any) => (
-      <RN.TouchableOpacity testID="continue-button" onPress={onPress} {...p}>
+    Button: ({ title, onPress, testID, ...p }: any) => (
+      <RN.TouchableOpacity testID={testID || 'continue-button'} onPress={onPress} {...p}>
         <RN.Text>{title}</RN.Text>
       </RN.TouchableOpacity>
     ),
@@ -82,7 +82,7 @@ describe('Height', () => {
 
   it('calls setOnboardingData and handleNextStep on continue press', () => {
     const { getByTestId } = render(<Height />);
-    fireEvent.press(getByTestId('continue-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     expect(mockSetOnboardingData).toHaveBeenCalledWith(
       expect.objectContaining({ height: 1.45 })
     );
@@ -121,7 +121,7 @@ describe('Height', () => {
   it('uses existing height from onboarding data', () => {
     mockOnboardingData = { height: 1.90 };
     const { getByTestId } = render(<Height />);
-    fireEvent.press(getByTestId('continue-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     expect(mockSetOnboardingData).toHaveBeenCalledWith(
       expect.objectContaining({ height: 1.90 })
     );
@@ -130,7 +130,7 @@ describe('Height', () => {
   it('defaults to 1.45 when no height in onboarding data', () => {
     mockOnboardingData = {};
     const { getByTestId } = render(<Height />);
-    fireEvent.press(getByTestId('continue-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     expect(mockSetOnboardingData).toHaveBeenCalledWith(
       expect.objectContaining({ height: 1.45 })
     );

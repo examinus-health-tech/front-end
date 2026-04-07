@@ -346,21 +346,21 @@ describe('ExamList', () => {
       });
     });
 
-    it('renders status badge for processing exam (Recebido)', async () => {
+    it('renders status badge for processing exam (Em análise)', async () => {
       mockExamData = [processingExam];
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Recebido')).toBeTruthy();
+        expect(getByText('Em análise')).toBeTruthy();
       });
     });
 
-    it('renders error status badge (Não suportado)', async () => {
+    it('renders error status badge (Erro)', async () => {
       mockExamData = [errorExam];
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Não suportado')).toBeTruthy();
+        expect(getByText('Erro')).toBeTruthy();
       });
     });
 
@@ -455,25 +455,25 @@ describe('ExamList', () => {
   });
 
   describe('Status helper functions', () => {
-    it('maps ScoreComputedNull to "Não processado"', async () => {
+    it('maps ScoreComputedNull to "Em análise"', async () => {
       mockExamData = [scoreComputedNullExam];
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Não processado')).toBeTruthy();
+        expect(getByText('Em análise')).toBeTruthy();
       });
     });
 
-    it('maps ProcessingTimeout to "Tempo excedido"', async () => {
+    it('maps ProcessingTimeout to "Erro"', async () => {
       mockExamData = [timeoutExam];
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Tempo excedido')).toBeTruthy();
+        expect(getByText('Erro')).toBeTruthy();
       });
     });
 
-    it('maps AnalyzedFailed to "Não suportado"', async () => {
+    it('maps AnalyzedFailed to "Erro"', async () => {
       const analyzedFailedExam = {
         medicalExamId: 'exam-6',
         laboratoryName: 'Lab AF',
@@ -486,11 +486,11 @@ describe('ExamList', () => {
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Não suportado')).toBeTruthy();
+        expect(getByText('Erro')).toBeTruthy();
       });
     });
 
-    it('maps ScoreComputedFailed to "Não suportado"', async () => {
+    it('maps ScoreComputedFailed to "Erro"', async () => {
       const scoreComputedFailedExam = {
         medicalExamId: 'exam-7',
         laboratoryName: 'Lab SCF',
@@ -503,11 +503,11 @@ describe('ExamList', () => {
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Não suportado')).toBeTruthy();
+        expect(getByText('Erro')).toBeTruthy();
       });
     });
 
-    it('maps Extracted to "Extraído"', async () => {
+    it('maps Extracted to "Em análise"', async () => {
       const extractedExam = {
         medicalExamId: 'exam-8',
         laboratoryName: 'Lab Ext',
@@ -520,11 +520,11 @@ describe('ExamList', () => {
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Extraído')).toBeTruthy();
+        expect(getByText('Em análise')).toBeTruthy();
       });
     });
 
-    it('maps Analyzed to "Analisado"', async () => {
+    it('maps Analyzed to "Em análise"', async () => {
       const analyzedExam = {
         medicalExamId: 'exam-9',
         laboratoryName: 'Lab Ana',
@@ -537,11 +537,11 @@ describe('ExamList', () => {
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Analisado')).toBeTruthy();
+        expect(getByText('Em análise')).toBeTruthy();
       });
     });
 
-    it('returns status as-is for unknown status', async () => {
+    it('maps unknown status to "Em análise"', async () => {
       const unknownExam = {
         medicalExamId: 'exam-10',
         laboratoryName: 'Lab Unknown',
@@ -554,7 +554,7 @@ describe('ExamList', () => {
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('SomeNewStatus')).toBeTruthy();
+        expect(getByText('Em análise')).toBeTruthy();
       });
     });
   });
@@ -1002,7 +1002,7 @@ describe('ExamList', () => {
       mockGetExamList.mockResolvedValue(undefined);
       const { getByText } = render(<ExamList />);
       await waitFor(() => {
-        expect(getByText('Extraído')).toBeTruthy();
+        expect(getByText('Em análise')).toBeTruthy();
       });
     });
   });

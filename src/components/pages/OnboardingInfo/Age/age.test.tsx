@@ -33,8 +33,8 @@ jest.mock('@assets/png/vector-27.png', () => 'FameAdult');
 jest.mock('@components/atoms', () => {
   const RN = require('react-native');
   return {
-    Button: ({ title, onPress, ...p }: any) => (
-      <RN.TouchableOpacity testID="continue-button" onPress={onPress} {...p}>
+    Button: ({ title, onPress, testID, ...p }: any) => (
+      <RN.TouchableOpacity testID={testID || 'continue-button'} onPress={onPress} {...p}>
         <RN.Text>{title}</RN.Text>
       </RN.TouchableOpacity>
     ),
@@ -95,7 +95,7 @@ describe('Age', () => {
 
   it('calls setOnboardingData when continue button pressed', () => {
     const { getByTestId } = render(<Age />);
-    fireEvent.press(getByTestId('continue-button'));
+    fireEvent.press(getByTestId('btn-onboarding-continue'));
     expect(mockSetOnboardingData).toHaveBeenCalledWith(
       expect.objectContaining({ age: 20 })
     );

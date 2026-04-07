@@ -13,8 +13,9 @@ jest.mock('native-base', () => {
   };
 });
 
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
 }));
 
 jest.mock('@routes/app.routes', () => ({}));
@@ -71,10 +72,10 @@ describe('ContactUs', () => {
     expect(getByText('contato@examinus.com.br')).toBeTruthy();
   });
 
-  it('navigates to myAccount when header back is pressed', () => {
+  it('navigates back when header back is pressed', () => {
     const { getByTestId } = render(<ContactUs />);
     const { fireEvent } = require('@testing-library/react-native');
     fireEvent.press(getByTestId('header-back'));
-    expect(mockNavigate).toHaveBeenCalledWith('myAccount');
+    expect(mockGoBack).toHaveBeenCalled();
   });
 });

@@ -84,14 +84,14 @@ jest.mock('@components/molecules', () => {
         )}
       </RN.View>
     ),
-    Input: ({ label, onChangeText, value, errorMessage, ...props }: any) => (
+    Input: ({ label, onChangeText, value, errorMessage, testID, ...props }: any) => (
       <RN.View>
         <RN.Text>{label}</RN.Text>
         <RN.TextInput
-          testID={`input-${label}`}
+          {...props}
+          testID={testID || `input-${label}`}
           onChangeText={onChangeText}
           value={value}
-          {...props}
         />
         {errorMessage && <RN.Text testID={`error-${label}`}>{errorMessage}</RN.Text>}
       </RN.View>
@@ -150,7 +150,7 @@ describe('ForgotPassword', () => {
 
   it('allows typing in email input', () => {
     const { getByTestId } = render(<ForgotPassword />);
-    const emailInput = getByTestId('input-Confirme seu e-mail para continuar');
+    const emailInput = getByTestId('input-email');
     fireEvent.changeText(emailInput, 'test@example.com');
     expect(emailInput.props.value).toBe('test@example.com');
   });
@@ -160,7 +160,7 @@ describe('ForgotPassword', () => {
 
     const { getByTestId, getByText } = render(<ForgotPassword />);
     fireEvent.changeText(
-      getByTestId('input-Confirme seu e-mail para continuar'),
+      getByTestId('input-email'),
       'test@example.com'
     );
     fireEvent.press(getByText('Enviar'));
@@ -181,7 +181,7 @@ describe('ForgotPassword', () => {
 
     const { getByTestId, getByText } = render(<ForgotPassword />);
     fireEvent.changeText(
-      getByTestId('input-Confirme seu e-mail para continuar'),
+      getByTestId('input-email'),
       'wrong@test.com'
     );
     fireEvent.press(getByText('Enviar'));
@@ -208,7 +208,7 @@ describe('ForgotPassword', () => {
   it('does not submit when email is invalid', async () => {
     const { getByTestId, getByText } = render(<ForgotPassword />);
     fireEvent.changeText(
-      getByTestId('input-Confirme seu e-mail para continuar'),
+      getByTestId('input-email'),
       'invalid-email'
     );
     fireEvent.press(getByText('Enviar'));
