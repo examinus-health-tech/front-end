@@ -3,19 +3,19 @@ import { USER_STORAGE, AUTH_STORAGE } from './storageConfig';
 describe('storageConfig', () => {
   describe('constantes de storage', () => {
     it('deve exportar USER_STORAGE com valor correto', () => {
-      expect(USER_STORAGE).toBe('@examinus:user');
+      expect(USER_STORAGE).toBe('examinus.user');
     });
 
     it('deve exportar AUTH_STORAGE com valor correto', () => {
-      expect(AUTH_STORAGE).toBe('@examinus:token');
+      expect(AUTH_STORAGE).toBe('examinus.token');
     });
 
-    it('USER_STORAGE deve começar com @examinus:', () => {
-      expect(USER_STORAGE).toMatch(/^@examinus:/);
+    it('USER_STORAGE deve conter apenas caracteres válidos para SecureStore', () => {
+      expect(USER_STORAGE).toMatch(/^[a-zA-Z0-9._-]+$/);
     });
 
-    it('AUTH_STORAGE deve começar com @examinus:', () => {
-      expect(AUTH_STORAGE).toMatch(/^@examinus:/);
+    it('AUTH_STORAGE deve conter apenas caracteres válidos para SecureStore', () => {
+      expect(AUTH_STORAGE).toMatch(/^[a-zA-Z0-9._-]+$/);
     });
 
     it('USER_STORAGE e AUTH_STORAGE devem ser diferentes', () => {

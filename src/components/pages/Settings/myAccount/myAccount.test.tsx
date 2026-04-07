@@ -169,6 +169,11 @@ describe('MyAccount', () => {
     mockGetUserPersonalData.mockResolvedValue(null);
   });
 
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
   it('renders the header with "Minha Conta" title', () => {
     const { getByText } = render(<MyAccount />);
     expect(getByText('Minha Conta')).toBeTruthy();

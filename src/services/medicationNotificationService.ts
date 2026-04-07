@@ -84,6 +84,35 @@ export function addNotificationResponseListener(
 }
 
 /**
+ * Gera os horários efetivos para um medicamento.
+ * Para IntervalHours, expande a partir do primeiro horário com o intervalo.
+ */
+function getEffectiveTimes(med: MedicationDTO): string[] {
+  if (
+    med.frequencyType !== MedicationFrequencyType.IntervalHours ||
+    !med.intervalHours ||
+    med.intervalHours <= 0 ||
+    med.scheduleTimes.length === 0
+  ) {
+    return med.scheduleTimes;
+  }
+
+  const [h, m] = med.scheduleTimes[0].split(':').map(Number);
+  const times: string[] = [];
+  let totalMinutes = h * 60 + m;
+  const intervalMinutes = med.intervalHours * 60;
+
+  while (totalMinutes < 24 * 60) {
+    const hh = Math.floor(totalMinutes / 60).toString().padStart(2, '0');
+    const mm = (totalMinutes % 60).toString().padStart(2, '0');
+    times.push(`${hh}:${mm}`);
+    totalMinutes += intervalMinutes;
+  }
+
+  return times;
+}
+
+/**
  * Build the notification identifier for a specific medication + time slot.
  */
 function buildIdentifier(medicationId: string, time: string): string {
@@ -104,24 +133,29 @@ export async function scheduleMedicationNotifications(med: MedicationDTO): Promi
 
   const formLabel = MedicationFormLabels[med.form] || '';
 
-  for (const time of med.scheduleTimes) {
+  // Gera os horários efetivos (para IntervalHours, expande a partir do primeiro horário)
+  const effectiveTimes = getEffectiveTimes(med);
+
+  for (const time of effectiveTimes) {
     const [hours, minutes] = time.split(':').map(Number);
     const identifier = buildIdentifier(med.id, time);
 
-    if (med.frequencyType === MedicationFrequencyType.Daily) {
+    const notificationContent = {
+      title: `Hora de tomar ${med.name}`,
+      body: `${med.dosage} - ${formLabel}${med.instructions ? `\n${med.instructions}` : ''}`,
+      data: {
+        type: 'medication_reminder',
+        medicationId: med.id,
+        scheduledTime: time,
+      },
+      sound: 'default' as const,
+      ...(Platform.OS === 'android' && { channelId: 'medication-reminders' }),
+    };
+
+    if (med.frequencyType === MedicationFrequencyType.Daily || med.frequencyType === MedicationFrequencyType.IntervalHours) {
       await Notifications!.scheduleNotificationAsync({
         identifier,
-        content: {
-          title: `Hora de tomar ${med.name}`,
-          body: `${med.dosage} - ${formLabel}${med.instructions ? `\n${med.instructions}` : ''}`,
-          data: {
-            type: 'medication_reminder',
-            medicationId: med.id,
-            scheduledTime: time,
-          },
-          sound: 'default',
-          ...(Platform.OS === 'android' && { channelId: 'medication-reminders' }),
-        },
+        content: notificationContent,
         trigger: {
           type: Notifications!.SchedulableTriggerInputTypes.DAILY,
           hour: hours,
@@ -135,17 +169,7 @@ export async function scheduleMedicationNotifications(med: MedicationDTO): Promi
 
         await Notifications!.scheduleNotificationAsync({
           identifier: dayIdentifier,
-          content: {
-            title: `Hora de tomar ${med.name}`,
-            body: `${med.dosage} - ${formLabel}${med.instructions ? `\n${med.instructions}` : ''}`,
-            data: {
-              type: 'medication_reminder',
-              medicationId: med.id,
-              scheduledTime: time,
-            },
-            sound: 'default',
-            ...(Platform.OS === 'android' && { channelId: 'medication-reminders' }),
-          },
+          content: notificationContent,
           trigger: {
             type: Notifications!.SchedulableTriggerInputTypes.WEEKLY,
             weekday,

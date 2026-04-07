@@ -375,7 +375,7 @@ export function Homepage() {
   }
 
   return (
-    <View flex={1}>
+    <View testID="screen-homepage" flex={1}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
       {isLoading || isLoadingHomeContext || !dataLoadedForCurrentFocus ? (
         <ContentLoader viewBox={`0 0 ${width} ${height}`} backgroundColor="#E8E8E8" foregroundColor="#F5F5F5">
@@ -857,29 +857,32 @@ export function Homepage() {
                   <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
                     Medicamentos
                   </Text>
-                  <Box bg="gray.200" px={2} py={0.5} borderRadius={6}>
-                    <Text fontSize={10} fontWeight={700} color="gray.500">
-                      EM BREVE
-                    </Text>
-                  </Box>
                 </HStack>
+                <TouchableOpacity onPress={() => navigation.navigate('medicationTimeline')}>
+                  <Text fontSize={12} fontWeight={600} color={'#10B981'}>
+                    Ver todos
+                  </Text>
+                </TouchableOpacity>
               </HStack>
 
-              <Box bg="white" borderRadius={12} p={4} mt={4} shadow={2} opacity={0.6}>
-                <HStack alignItems="center" space={3}>
-                  <Box bg="gray.100" w={12} h={12} borderRadius={12} alignItems="center" justifyContent="center">
-                    <PillIcon size="24" color="#9CA3AF" />
-                  </Box>
-                  <VStack flex={1}>
-                    <Text fontSize={14} fontWeight={700} color="gray.500">
-                      Gerencie seus medicamentos
-                    </Text>
-                    <Text fontSize={12} fontWeight={400} color="gray.400" lineHeight={16}>
-                      Cadastre remédios, receba lembretes e acompanhe sua adesão.
-                    </Text>
-                  </VStack>
-                </HStack>
-              </Box>
+              <TouchableOpacity testID="card-medication" onPress={() => navigation.navigate('medicationTimeline')}>
+                <Box bg="white" borderRadius={12} p={4} mt={4} shadow={2}>
+                  <HStack alignItems="center" space={3}>
+                    <Box bg="emerald.100" w={12} h={12} borderRadius={12} alignItems="center" justifyContent="center">
+                      <PillIcon size="24" color="#10B981" />
+                    </Box>
+                    <VStack flex={1}>
+                      <Text fontSize={14} fontWeight={700} color="gray.800">
+                        Gerencie seus medicamentos
+                      </Text>
+                      <Text fontSize={12} fontWeight={400} color="gray.500" lineHeight={16}>
+                        Cadastre remédios, receba lembretes e acompanhe sua adesão.
+                      </Text>
+                    </VStack>
+                    <ChevronRightIcon size="24" color="#10B981" />
+                  </HStack>
+                </Box>
+              </TouchableOpacity>
             </Animated.View>
 
             {/* Rastreador Fitness - animação 4 */}

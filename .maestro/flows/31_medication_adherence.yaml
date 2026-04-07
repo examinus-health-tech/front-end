@@ -1,0 +1,65 @@
+appId: com.examinus.app
+name: "Medicamentos - Historico de Adesao"
+tags:
+  - authenticated
+---
+# Pré-requisito: usuário logado
+- runFlow: ../utils/wait_for_home.yaml
+
+# === Navegar para Medicamentos ===
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# === Abrir Historico ===
+- tapOn:
+    id: "btn-medication-history"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-adherence"
+    timeout: 10000
+
+# Verificar tela de historico
+- assertVisible: "Seu histórico"
+- assertVisible: "Adesão média"
+
+- takeScreenshot: "31_medication_adherence"
+
+# === Navegar entre meses ===
+- tapOn: "‹"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- takeScreenshot: "31_medication_adherence_prev_month"
+
+- tapOn: "›"
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# === Voltar ===
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

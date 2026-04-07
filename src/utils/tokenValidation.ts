@@ -1,4 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
+import { USER_STORAGE } from '@storage/storageConfig';
 import { api } from 'src/services/api';
 
 // Decodifica o payload do JWT (base64)
@@ -57,7 +58,7 @@ export async function validateStoredToken(): Promise<boolean> {
   try {
     if (__DEV__) console.log('[TokenValidation] Iniciando validação do token...');
 
-    const storedUser = await SecureStore.getItemAsync('@app:user');
+    const storedUser = await SecureStore.getItemAsync(USER_STORAGE);
 
     if (!storedUser) {
       if (__DEV__) console.log('[TokenValidation] Nenhum usuário armazenado');
@@ -69,7 +70,7 @@ export async function validateStoredToken(): Promise<boolean> {
       userData = JSON.parse(storedUser);
     } catch (parseError) {
       if (__DEV__) console.error('[TokenValidation] Erro ao parsear dados do usuário:', parseError);
-      await SecureStore.deleteItemAsync('@app:user');
+      await SecureStore.deleteItemAsync(USER_STORAGE);
       return false;
     }
 
@@ -83,14 +84,14 @@ export async function validateStoredToken(): Promise<boolean> {
     const tokenParts = userData.token.split('.');
     if (tokenParts.length !== 3) {
       if (__DEV__) console.log('[TokenValidation] Token com estrutura inválida');
-      await SecureStore.deleteItemAsync('@app:user');
+      await SecureStore.deleteItemAsync(USER_STORAGE);
       return false;
     }
 
     // Verificar se o token expirou localmente
     if (isTokenExpired(userData.token)) {
       if (__DEV__) console.log('[TokenValidation] Token expirado - limpando dados');
-      await SecureStore.deleteItemAsync('@app:user');
+      await SecureStore.deleteItemAsync(USER_STORAGE);
       return false;
     }
 
@@ -98,7 +99,7 @@ export async function validateStoredToken(): Promise<boolean> {
     return true;
   } catch (error) {
     if (__DEV__) console.error('[TokenValidation] Erro na validação:', error);
-    await SecureStore.deleteItemAsync('@app:user');
+    await SecureStore.deleteItemAsync(USER_STORAGE);
     return false;
   }
 }
@@ -108,7 +109,7 @@ export async function validateTokenWithBackend(): Promise<boolean> {
   try {
     if (__DEV__) console.log('[TokenValidation] Validando token com backend...');
 
-    const storedUser = await SecureStore.getItemAsync('@app:user');
+    const storedUser = await SecureStore.getItemAsync(USER_STORAGE);
     if (!storedUser) return false;
 
     const userData = JSON.parse(storedUser);
@@ -124,7 +125,7 @@ export async function validateTokenWithBackend(): Promise<boolean> {
     // Se retornou 401, token inválido
     if (response.status === 401) {
       if (__DEV__) console.log('[TokenValidation] Backend retornou 401 - token inválido');
-      await SecureStore.deleteItemAsync('@app:user');
+      await SecureStore.deleteItemAsync(USER_STORAGE);
       return false;
     }
 
@@ -141,7 +142,7 @@ export async function validateTokenWithBackend(): Promise<boolean> {
     // Se for 401, token inválido
     if (error.response?.status === 401) {
       if (__DEV__) console.log('[TokenValidation] Backend retornou 401 - token inválido');
-      await SecureStore.deleteItemAsync('@app:user');
+      await SecureStore.deleteItemAsync(USER_STORAGE);
       return false;
     }
 
@@ -153,7 +154,7 @@ export async function validateTokenWithBackend(): Promise<boolean> {
 
 export async function clearStoredToken(): Promise<void> {
   try {
-    await SecureStore.deleteItemAsync('@app:user');
+    await SecureStore.deleteItemAsync(USER_STORAGE);
   } catch (error) {
     // Silent fail
   }

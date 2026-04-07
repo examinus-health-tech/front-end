@@ -2,6 +2,7 @@ import { api } from './api';
 import { UserPersonalDataDTO, UserPersonalDataResponseDTO, NotificationPreferencesDTO } from '@dtos/userDTO';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { USER_STORAGE } from '@storage/storageConfig';
 import * as FileSystem from 'expo-file-system';
 
 /**
@@ -19,7 +20,7 @@ import * as FileSystem from 'expo-file-system';
 export async function getUserPersonalData(): Promise<UserPersonalDataResponseDTO | null> {
   try {
     // Log do usuário autenticado para debug
-    const userDataFromStorage = await SecureStore.getItemAsync('@app:user');
+    const userDataFromStorage = await SecureStore.getItemAsync(USER_STORAGE);
     if (userDataFromStorage) {
       if (__DEV__) console.log('[USER_SERVICE] Usuário autenticado encontrado no storage');
     }

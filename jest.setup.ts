@@ -3,6 +3,23 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
+// Mock expo-secure-store
+const secureStoreData: Record<string, string> = {};
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn((key: string) => Promise.resolve(secureStoreData[key] || null)),
+  setItemAsync: jest.fn((key: string, value: string) => {
+    secureStoreData[key] = value;
+    return Promise.resolve();
+  }),
+  deleteItemAsync: jest.fn((key: string) => {
+    delete secureStoreData[key];
+    return Promise.resolve();
+  }),
+  __resetStore: () => {
+    Object.keys(secureStoreData).forEach(key => delete secureStoreData[key]);
+  },
+}));
+
 // Mock Sentry
 jest.mock('@sentry/react-native', () => ({
   init: jest.fn(),
@@ -66,7 +83,12 @@ jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock')
 );
 
-// Silence console warnings in tests
+// Cleanup global timers after each test to prevent leaks
+afterEach(() => {
+  jest.clearAllTimers();
+});
+
+// Silence noisy console warnings/errors in tests
 const originalWarn = console.warn;
 console.warn = (...args: any[]) => {
   if (
@@ -77,3 +99,4 @@ console.warn = (...args: any[]) => {
   }
   originalWarn.call(console, ...args);
 };
+

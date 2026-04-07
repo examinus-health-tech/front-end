@@ -1,8 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { api } from './api';
 
-// Trocar para false quando backend estiver pronto
-const USE_MOCK = true;
+const USE_MOCK = false;
 
 // Storage keys
 export const MEDICATION_CACHE_KEY = '@examinus:medication_dashboard';
@@ -22,6 +21,7 @@ export enum MedicationForm {
 export enum MedicationFrequencyType {
   Daily = 1,
   SpecificDays = 2,
+  IntervalHours = 3,
 }
 
 export enum MedicationLogStatus {
@@ -62,6 +62,8 @@ export interface MedicationDTO {
   formDescription?: string;
   frequencyType: MedicationFrequencyType;
   frequencyDays?: number[];
+  intervalHours?: number;
+  durationDays?: number;
   scheduleTimes: string[];
   instructions?: string;
   totalQuantity?: number;
@@ -111,6 +113,8 @@ export interface MedicationRequestDTO {
   form: MedicationForm;
   frequencyType: MedicationFrequencyType;
   frequencyDays?: number[];
+  intervalHours?: number;
+  durationDays?: number;
   scheduleTimes: string[];
   instructions?: string;
   totalQuantity?: number;
@@ -121,6 +125,88 @@ export interface MedicationLogRequestDTO {
   medicationId: string;
   scheduledTime: string;
   status: MedicationLogStatus;
+}
+
+// ============================================================
+// Helpers para normalizar enums (backend retorna strings via JsonStringEnumConverter)
+// ============================================================
+
+const LOG_STATUS_MAP: Record<string, MedicationLogStatus> = {
+  Pending: MedicationLogStatus.Pending,
+  Taken: MedicationLogStatus.Taken,
+  Skipped: MedicationLogStatus.Skipped,
+  Missed: MedicationLogStatus.Missed,
+};
+
+function normalizeLogStatus(status: any): MedicationLogStatus {
+  if (typeof status === 'number') return status;
+  if (typeof status === 'string' && status in LOG_STATUS_MAP) return LOG_STATUS_MAP[status];
+  return MedicationLogStatus.Pending;
+}
+
+function normalizeLog(log: any): MedicationLogDTO {
+  return { ...log, status: normalizeLogStatus(log.status) };
+}
+
+const FREQUENCY_TYPE_MAP: Record<string, MedicationFrequencyType> = {
+  Daily: MedicationFrequencyType.Daily,
+  SpecificDays: MedicationFrequencyType.SpecificDays,
+  IntervalHours: MedicationFrequencyType.IntervalHours,
+};
+
+const FORM_MAP: Record<string, MedicationForm> = {
+  Comprimido: MedicationForm.Comprimido,
+  Gotas: MedicationForm.Gotas,
+  Injecao: MedicationForm.Injecao,
+  Pomada: MedicationForm.Pomada,
+  Capsula: MedicationForm.Capsula,
+  Xarope: MedicationForm.Xarope,
+};
+
+function normalizeMedication(med: any): MedicationDTO {
+  return {
+    ...med,
+    frequencyType: typeof med.frequencyType === 'string' ? (FREQUENCY_TYPE_MAP[med.frequencyType] ?? med.frequencyType) : med.frequencyType,
+    form: typeof med.form === 'string' ? (FORM_MAP[med.form] ?? med.form) : med.form,
+  };
+}
+
+// Mapas para enviar enums como string ao backend (JsonStringEnumConverter)
+const FREQUENCY_TYPE_NAMES: Record<MedicationFrequencyType, string> = {
+  [MedicationFrequencyType.Daily]: 'Daily',
+  [MedicationFrequencyType.SpecificDays]: 'SpecificDays',
+  [MedicationFrequencyType.IntervalHours]: 'IntervalHours',
+};
+
+const FORM_NAMES: Record<MedicationForm, string> = {
+  [MedicationForm.Comprimido]: 'Comprimido',
+  [MedicationForm.Gotas]: 'Gotas',
+  [MedicationForm.Injecao]: 'Injecao',
+  [MedicationForm.Pomada]: 'Pomada',
+  [MedicationForm.Capsula]: 'Capsula',
+  [MedicationForm.Xarope]: 'Xarope',
+};
+
+const LOG_STATUS_NAMES: Record<MedicationLogStatus, string> = {
+  [MedicationLogStatus.Pending]: 'Pending',
+  [MedicationLogStatus.Taken]: 'Taken',
+  [MedicationLogStatus.Skipped]: 'Skipped',
+  [MedicationLogStatus.Missed]: 'Missed',
+};
+
+function toApiRequest(data: MedicationRequestDTO): any {
+  return {
+    ...data,
+    form: FORM_NAMES[data.form] ?? data.form,
+    frequencyType: FREQUENCY_TYPE_NAMES[data.frequencyType] ?? data.frequencyType,
+  };
+}
+
+function toApiLogRequest(data: MedicationLogRequestDTO): any {
+  return {
+    ...data,
+    status: LOG_STATUS_NAMES[data.status] ?? data.status,
+  };
 }
 
 // ============================================================
@@ -344,7 +430,13 @@ export async function getMedicationDashboard(): Promise<MedicationDashboardDTO |
 
   try {
     const response = await api.get<{ success: boolean; data: MedicationDashboardDTO }>('medication/dashboard');
-    return response.data.data;
+    const data = response.data.data;
+    if (data) {
+      if (data.todayLogs) data.todayLogs = data.todayLogs.map(normalizeLog);
+      if (data.activeMedications) data.activeMedications = data.activeMedications.map(normalizeMedication);
+      if (data.needRefill) data.needRefill = data.needRefill.map(normalizeMedication);
+    }
+    return data;
   } catch (error: any) {
     if (error.response?.status === 404) return null;
     if (__DEV__) console.error('[MEDICATION] Erro ao buscar dashboard:', error);
@@ -360,7 +452,7 @@ export async function getActiveMedications(): Promise<MedicationDTO[]> {
 
   try {
     const response = await api.get<{ success: boolean; data: MedicationDTO[] }>('medication');
-    return response.data.data;
+    return (response.data.data || []).map(normalizeMedication);
   } catch (error: any) {
     if (__DEV__) console.error('[MEDICATION] Erro ao buscar medicamentos:', error);
     return [];
@@ -394,8 +486,8 @@ export async function createMedication(data: MedicationRequestDTO): Promise<Medi
   }
 
   try {
-    const response = await api.post<{ success: boolean; data: MedicationDTO }>('medication', data);
-    return response.data.data;
+    const response = await api.post<{ success: boolean; data: MedicationDTO }>('medication', toApiRequest(data));
+    return normalizeMedication(response.data.data);
   } catch (error: any) {
     if (__DEV__) console.error('[MEDICATION] Erro ao criar medicamento:', error);
     throw error;
@@ -427,8 +519,8 @@ export async function updateMedication(id: string, data: MedicationRequestDTO): 
   }
 
   try {
-    const response = await api.put<{ success: boolean; data: MedicationDTO }>(`medication/${id}`, data);
-    return response.data.data;
+    const response = await api.put<{ success: boolean; data: MedicationDTO }>(`medication/${id}`, toApiRequest(data));
+    return normalizeMedication(response.data.data);
   } catch (error: any) {
     if (__DEV__) console.error('[MEDICATION] Erro ao atualizar medicamento:', error);
     throw error;
@@ -496,8 +588,8 @@ export async function logDose(data: MedicationLogRequestDTO): Promise<Medication
   }
 
   try {
-    const response = await api.post<{ success: boolean; data: MedicationLogDTO }>('medication/log', data);
-    return response.data.data;
+    const response = await api.post<{ success: boolean; data: MedicationLogDTO }>('medication/log', toApiLogRequest(data));
+    return response.data.data ? normalizeLog(response.data.data) : null;
   } catch (error: any) {
     if (__DEV__) console.error('[MEDICATION] Erro ao registrar dose:', error);
     return null;
@@ -512,7 +604,7 @@ export async function getTodayLogs(): Promise<MedicationLogDTO[]> {
 
   try {
     const response = await api.get<{ success: boolean; data: MedicationLogDTO[] }>('medication/log/today');
-    return response.data.data;
+    return (response.data.data || []).map(normalizeLog);
   } catch (error: any) {
     if (__DEV__) console.error('[MEDICATION] Erro ao buscar logs do dia:', error);
     return [];

@@ -7,9 +7,9 @@ export default function CheckSquareIcon({ size = '24', color = '#0CC1AF' }: Icon
       <Path
         d="M26.5 53.4997L42.0453 69.045C43.2169 70.2166 45.1164 70.2166 46.288 69.045L79.5 35.833"
         stroke={color}
-        stroke-width="4"
+        strokeWidth="4"
       />
-      <Rect x="13.25" y="13.75" width="79.5" height="79.5" rx="12" stroke={color} stroke-width="4" />
+      <Rect x="13.25" y="13.75" width="79.5" height="79.5" rx="12" stroke={color} strokeWidth="4" />
     </Svg>
   );
 }

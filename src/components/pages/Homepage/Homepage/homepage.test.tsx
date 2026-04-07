@@ -344,7 +344,8 @@ describe('Homepage', () => {
   });
 
   afterEach(() => {
-    // cleanup
+    jest.clearAllTimers();
+    jest.useRealTimers();
   });
 
   describe('Loading state', () => {
@@ -428,10 +429,11 @@ describe('Homepage', () => {
       });
     });
 
-    it('renders "BETA" badge for medicamentos', async () => {
+    it('renders medicamentos card with navigation', async () => {
       const { getByText } = render(<Homepage />);
       await waitFor(() => {
-        expect(getByText('BETA')).toBeTruthy();
+        expect(getByText('Gerencie seus medicamentos')).toBeTruthy();
+        expect(getByText('Ver todos')).toBeTruthy();
       });
     });
 
@@ -449,10 +451,11 @@ describe('Homepage', () => {
       });
     });
 
-    it('renders "EM BREVE" badge for Doutor X', async () => {
-      const { getByText } = render(<Homepage />);
+    it('renders "EM BREVE" badge for locked features', async () => {
+      const { getAllByText } = render(<Homepage />);
       await waitFor(() => {
-        expect(getByText('EM BREVE')).toBeTruthy();
+        const badges = getAllByText('EM BREVE');
+        expect(badges.length).toBe(1);
       });
     });
 
@@ -535,7 +538,7 @@ describe('Homepage', () => {
       expect(mockNavigate).toHaveBeenCalledWith('mentalHealthForm');
     });
 
-    it('navigates to medicationTimeline when medication card is pressed', async () => {
+    it('renders medication card with navigation to timeline', async () => {
       const { getByText } = render(<Homepage />);
       await waitFor(() => {
         expect(getByText('Gerencie seus medicamentos')).toBeTruthy();

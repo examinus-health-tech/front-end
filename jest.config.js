@@ -3,7 +3,7 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|@gorhom/.*|react-native-reanimated|react-native-gesture-handler|react-native-screens|react-native-safe-area-context|@shopify/flash-list|react-native-onesignal|@kingstinct/.*|react-native-health.*)',
   ],
-  setupFiles: ['./jest.setup.ts'],
+  setupFilesAfterEnv: ['./jest.setup.ts'],
   moduleNameMapper: {
     '^@components/(.*)$': '<rootDir>/src/components/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',
@@ -46,6 +46,7 @@ module.exports = {
   },
   testTimeout: 15000,
   maxWorkers: '50%',
+  workerIdleMemoryLimit: '512MB',
   testMatch: [
     '<rootDir>/src/**/*.test.{ts,tsx}',
     '<rootDir>/__tests__/**/*.test.{ts,tsx}',

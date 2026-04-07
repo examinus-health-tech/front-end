@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { TouchableOpacity, StatusBar } from 'react-native';
-import { VStack, Text, Box, HStack, ScrollView, View, Progress } from 'native-base';
+import { VStack, Text, Box, HStack, ScrollView, View } from 'native-base';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -52,11 +52,13 @@ export function MedicationAdherence() {
   const today = new Date();
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
+  const [isLoading, setIsLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle('dark-content');
-      loadAdherence(selectedMonth, selectedYear);
+      setIsLoading(true);
+      loadAdherence(selectedMonth, selectedYear).finally(() => setIsLoading(false));
     }, [selectedMonth, selectedYear, loadAdherence])
   );
 
@@ -106,58 +108,65 @@ export function MedicationAdherence() {
   };
 
   return (
-    <View flex={1} bg="gray.50">
+    <View testID="screen-medication-adherence" flex={1} bg="gray.50">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
+      {/* Header fixo */}
+      <Box bg="gray.50" pt={16} pb={3} mx={5} zIndex={1}>
+        <HStack alignItems="center" mt={2}>
+          <TouchableOpacity testID="btn-back" onPress={() => navigation.goBack()}>
+            <Box w={10} h={10} alignItems="center" justifyContent="center">
+              <ChevronLeftIcon size="24" color="#1E293B" />
+            </Box>
+          </TouchableOpacity>
+          <VStack flex={1} ml={2}>
+            <Text fontSize={24} fontWeight={800} letterSpacing={-0.8} color="gray.900">
+              Seu histórico
+            </Text>
+            <Text fontSize={14} fontWeight={500} color="gray.400" mt={0.5}>
+              Veja como você tem cuidado da sua saúde
+            </Text>
+          </VStack>
+        </HStack>
+      </Box>
+
       <ScrollView showsVerticalScrollIndicator={false}>
-        <VStack flex={1} pt={16} pb={32} mx={5}>
-          {/* Header */}
-          <Animated.View entering={FadeInDown.duration(400).delay(0)}>
-            <HStack alignItems="center" mt={2} mb={2}>
-              <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Box w={10} h={10} alignItems="center" justifyContent="center">
-                  <ChevronLeftIcon size="24" color="#1E293B" />
-                </Box>
-              </TouchableOpacity>
-              <VStack flex={1} ml={2}>
-                <Text fontSize={24} fontWeight={800} letterSpacing={-0.8} color="gray.900">
-                  Seu histórico
-                </Text>
-                <Text fontSize={14} fontWeight={500} color="gray.400" mt={0.5}>
-                  Veja como você tem cuidado da sua saúde
-                </Text>
-              </VStack>
-            </HStack>
-          </Animated.View>
+        <VStack flex={1} pb={32} mx={5}>
 
           {/* Adesão média */}
           <Animated.View entering={FadeInDown.duration(400).delay(50)}>
             <Box bg="white" borderRadius={20} p={6} shadow={2} mt={4} mb={5}>
-              <Text fontSize={15} fontWeight={600} color="gray.500" mb={1}>
-                Adesão média
-              </Text>
-              <Text
-                fontSize={48}
-                fontWeight={800}
-                color={getColorForPercent(monthlyAvg)}
-                lineHeight={52}
-              >
-                {Math.round(monthlyAvg)}%
-              </Text>
-              <Text fontSize={18} fontWeight={700} color={getColorForPercent(monthlyAvg)} mt={1}>
-                {adherenceMsg.label}
-              </Text>
-              <Text fontSize={14} fontWeight={400} color="gray.500" mt={1} lineHeight={20}>
-                {adherenceMsg.description}
-              </Text>
-              <Progress
-                value={monthlyAvg}
-                colorScheme={monthlyAvg >= 80 ? 'emerald' : monthlyAvg >= 50 ? 'yellow' : 'red'}
-                size="md"
-                borderRadius={8}
-                bg="gray.100"
-                mt={4}
-              />
+              {isLoading ? (
+                <VStack space={3}>
+                  <Box bg="gray.100" borderRadius={8} h={4} w="40%" />
+                  <Box bg="gray.100" borderRadius={8} h={12} w="30%" />
+                  <Box bg="gray.100" borderRadius={8} h={4} w="50%" />
+                  <Box bg="gray.100" borderRadius={8} h={3} w="100%" mt={2} />
+                </VStack>
+              ) : (
+                <>
+                  <Text fontSize={15} fontWeight={600} color="gray.500" mb={1}>
+                    Adesão média
+                  </Text>
+                  <Text
+                    fontSize={48}
+                    fontWeight={800}
+                    color={getColorForPercent(monthlyAvg)}
+                    lineHeight={52}
+                  >
+                    {Math.round(monthlyAvg)}%
+                  </Text>
+                  <Text fontSize={18} fontWeight={700} color={getColorForPercent(monthlyAvg)} mt={1}>
+                    {adherenceMsg.label}
+                  </Text>
+                  <Text fontSize={14} fontWeight={400} color="gray.500" mt={1} lineHeight={20}>
+                    {adherenceMsg.description}
+                  </Text>
+                  <Box bg="gray.100" borderRadius={8} h={3} overflow="hidden" mt={4}>
+                    <Box bg={getColorForPercent(monthlyAvg)} h="100%" borderRadius={8} w={`${monthlyAvg}%`} />
+                  </Box>
+                </>
+              )}
             </Box>
           </Animated.View>
 
@@ -207,7 +216,7 @@ export function MedicationAdherence() {
               </HStack>
 
               {/* Grid do calendário */}
-              <HStack flexWrap="wrap">
+              <HStack flexWrap="wrap" opacity={isLoading ? 0.4 : 1}>
                 {calendarCells.map((day, index) => {
                   if (day === null) {
                     return <Box key={`empty-${index}`} w="14.28%" h={12} />;
@@ -315,19 +324,9 @@ export function MedicationAdherence() {
                       </Text>
                     </HStack>
 
-                    <Progress
-                      value={med.adherencePercent}
-                      colorScheme={
-                        med.adherencePercent >= 80
-                          ? 'emerald'
-                          : med.adherencePercent >= 50
-                          ? 'yellow'
-                          : 'red'
-                      }
-                      size="md"
-                      borderRadius={8}
-                      bg="gray.100"
-                    />
+                    <Box bg="gray.100" borderRadius={8} h={3} overflow="hidden">
+                      <Box bg={medColor} h="100%" borderRadius={8} w={`${med.adherencePercent}%`} />
+                    </Box>
 
                     <HStack justifyContent="space-between" alignItems="center" mt={2}>
                       <Text fontSize={14} fontWeight={500} color="gray.400">
