@@ -1,6 +1,6 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { TouchableOpacity, StatusBar } from 'react-native';
-import { VStack, Text, Box, HStack, ScrollView, View, Progress } from 'native-base';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { TouchableOpacity, StatusBar, Animated as RNAnimated } from 'react-native';
+import { VStack, Text, Box, HStack, ScrollView, View } from 'native-base';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { CustomRefreshControl } from '@components/atoms';
@@ -8,30 +8,15 @@ import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { useMedication } from 'src/hooks/useMedication';
 import { useAuth } from 'src/hooks/useAuth';
 import { CheckCircleIcon, ChevronLeftIcon, ClockIcon, PillIcon, WarningIcon, ClockSquareIcon } from '@assets/icons';
-import {
-  MedicationLogDTO,
-  MedicationLogStatus,
-  MedicationLogRequestDTO,
-} from 'src/services/medicationService';
-import {
-  MedicationIcon,
-  getStatusColor,
-  getStatusLabel,
-} from '../utils/medicationUtils';
+import { MedicationLogDTO, MedicationLogStatus, MedicationLogRequestDTO } from 'src/services/medicationService';
+import { MedicationIcon, getStatusColor, getStatusLabel } from '../utils/medicationUtils';
 import { requestNotificationPermission } from 'src/services/medicationNotificationService';
 import { format, differenceInMinutes, isPast, isToday, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 export function MedicationTimeline() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
-  const {
-    todayLogs,
-    medications,
-    dashboard,
-    isLoading,
-    refreshDashboard,
-    registerDose,
-  } = useMedication();
+  const { todayLogs, medications, dashboard, isLoading, refreshDashboard, registerDose } = useMedication();
   const { user } = useAuth();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [permissionRequested, setPermissionRequested] = useState(false);
@@ -53,7 +38,7 @@ export function MedicationTimeline() {
         setPermissionRequested(true);
         requestNotificationPermission().catch(() => {});
       }
-    }, [refreshDashboard, permissionRequested])
+    }, [refreshDashboard, permissionRequested]),
   );
 
   async function onRefresh() {
@@ -85,19 +70,13 @@ export function MedicationTimeline() {
 
   const sortedLogs = useMemo(
     () => [...todayLogs].sort((a, b) => a.scheduledTime.localeCompare(b.scheduledTime)),
-    [todayLogs]
+    [todayLogs],
   );
 
-  const nextPending = useMemo(
-    () => sortedLogs.find(l => l.status === MedicationLogStatus.Pending),
-    [sortedLogs]
-  );
+  const nextPending = useMemo(() => sortedLogs.find((l) => l.status === MedicationLogStatus.Pending), [sortedLogs]);
 
   // Doses esquecidas (missed) que ainda podem ser registradas
-  const missedDoses = useMemo(
-    () => sortedLogs.filter(l => l.status === MedicationLogStatus.Missed),
-    [sortedLogs]
-  );
+  const missedDoses = useMemo(() => sortedLogs.filter((l) => l.status === MedicationLogStatus.Missed), [sortedLogs]);
 
   // Contagem de minutos até próxima dose
   const minutesUntilNext = useMemo(() => {
@@ -121,13 +100,38 @@ export function MedicationTimeline() {
   const todayFormatted = format(now, "EEE, d 'de' MMM", { locale: ptBR });
   const currentTime = format(now, 'HH:mm');
 
-  const adherencePercent = dashboard?.todayAdherencePercent ?? 0;
-  const adherenceColor =
-    adherencePercent >= 80 ? '#10B981' : adherencePercent >= 50 ? '#F59E0B' : '#EF4444';
-
   const totalDoses = sortedLogs.length;
-  const takenCount = sortedLogs.filter(l => l.status === MedicationLogStatus.Taken).length;
-  const doneCount = sortedLogs.filter(l => l.status !== MedicationLogStatus.Pending).length;
+  const takenCount = sortedLogs.filter((l) => l.status === MedicationLogStatus.Taken).length;
+  const doneCount = sortedLogs.filter((l) => l.status !== MedicationLogStatus.Pending).length;
+  const adherencePercent = totalDoses > 0 ? Math.round((takenCount / totalDoses) * 100) : 0;
+  const adherenceColor = adherencePercent >= 80 ? '#10B981' : adherencePercent >= 50 ? '#F59E0B' : '#EF4444';
+
+  // Animação da barra de progresso
+  const progressAnim = useRef(new RNAnimated.Value(0)).current;
+  useEffect(() => {
+    RNAnimated.timing(progressAnim, {
+      toValue: adherencePercent,
+      duration: 600,
+      useNativeDriver: false,
+    }).start();
+  }, [adherencePercent]);
+
+  // Animação de transição do hero card
+  const heroOpacity = useRef(new RNAnimated.Value(1)).current;
+  const heroCardKey = doseRegistered ? 'registered' : nextPending ? 'next' : 'done';
+  const prevHeroKey = useRef(heroCardKey);
+
+  useEffect(() => {
+    if (prevHeroKey.current !== heroCardKey) {
+      prevHeroKey.current = heroCardKey;
+      heroOpacity.setValue(0);
+      RNAnimated.timing(heroOpacity, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [heroCardKey]);
 
   // Saudação baseada na hora
   const greeting = useMemo(() => {
@@ -143,58 +147,60 @@ export function MedicationTimeline() {
     <View testID="screen-medication-timeline" flex={1} bg="gray.50">
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
+      {/* Header fixo */}
+      <Box bg="gray.50" pt={16} pb={3} mx={5} zIndex={1}>
+        <HStack alignItems="flex-start" justifyContent="space-between" mt={2}>
+          <TouchableOpacity
+            testID="btn-back"
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            style={{ marginRight: 8, marginTop: 4 }}
+          >
+            <ChevronLeftIcon size="24" color="#1E293B" />
+          </TouchableOpacity>
+          <VStack flex={1}>
+            <Text fontSize={24} fontWeight={800} letterSpacing={-0.8} color="gray.900">
+              {greeting}, {firstName}
+            </Text>
+            <Text fontSize={14} fontWeight={500} color="gray.400" textTransform="capitalize" mt={0.5}>
+              {todayFormatted} · {currentTime}
+            </Text>
+          </VStack>
+
+          {hasData && (
+            <TouchableOpacity
+              testID="btn-medication-history"
+              onPress={() => navigation.navigate('medicationAdherence')}
+            >
+              <HStack
+                bg="white"
+                borderRadius={12}
+                px={4}
+                py={3}
+                alignItems="center"
+                space={2}
+                shadow={1}
+                borderWidth={1}
+                borderColor="gray.100"
+              >
+                <ClockSquareIcon size="20" color="#0CC1AF" />
+                <Text fontSize={15} fontWeight={700} color="gray.700">
+                  Histórico
+                </Text>
+              </HStack>
+            </TouchableOpacity>
+          )}
+        </HStack>
+      </Box>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         refreshControl={<CustomRefreshControl refreshing={isRefreshing} onRefresh={onRefresh} />}
       >
-        <VStack flex={1} pt={16} pb={36} mx={5}>
-          {/* ── Header com saudação ── */}
-          <Animated.View entering={FadeInDown.duration(400).delay(0)}>
-            <HStack alignItems="flex-start" justifyContent="space-between" mt={2} mb={1}>
-              <TouchableOpacity testID="btn-back" onPress={() => navigation.goBack()} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }} style={{ marginRight: 8, marginTop: 4 }}>
-                <ChevronLeftIcon size="24" color="#1E293B" />
-              </TouchableOpacity>
-              <VStack flex={1}>
-                <HStack alignItems="center" space={2}>
-                  <Text fontSize={24} fontWeight={800} letterSpacing={-0.8} color="gray.900">
-                    {greeting}, {firstName}
-                  </Text>
-                  <Box bg="orange.100" px={2} py={0.5} borderRadius={6}>
-                    <Text fontSize={12} fontWeight={700} color="orange.600">
-                      BETA
-                    </Text>
-                  </Box>
-                </HStack>
-                <Text fontSize={14} fontWeight={500} color="gray.400" textTransform="capitalize" mt={0.5}>
-                  {todayFormatted} · {currentTime} agora
-                </Text>
-              </VStack>
-
-              {hasData && (
-                <TouchableOpacity testID="btn-medication-history" onPress={() => navigation.navigate('medicationAdherence')}>
-                  <HStack
-                    bg="white"
-                    borderRadius={12}
-                    px={4}
-                    py={3}
-                    alignItems="center"
-                    space={2}
-                    shadow={1}
-                    borderWidth={1}
-                    borderColor="gray.100"
-                  >
-                    <ClockSquareIcon size="20" color="#0CC1AF" />
-                    <Text fontSize={15} fontWeight={700} color="gray.700">
-                      Histórico
-                    </Text>
-                  </HStack>
-                </TouchableOpacity>
-              )}
-            </HStack>
-          </Animated.View>
+        <VStack flex={1} pb={12} mx={5}>
 
           {/* ── Progresso do dia ── */}
-          {hasData && dashboard && totalDoses > 0 && (
+          {hasData && totalDoses > 0 && (
             <Animated.View entering={FadeInDown.duration(400).delay(30)}>
               <Box bg="white" borderRadius={16} py={4} px={5} mt={4} mb={4} shadow={1}>
                 <HStack justifyContent="space-between" alignItems="center" mb={2}>
@@ -202,16 +208,22 @@ export function MedicationTimeline() {
                     Progresso do dia
                   </Text>
                   <Text fontSize={16} fontWeight={800} color={adherenceColor}>
-                    {Math.round(adherencePercent)}%
+                    {adherencePercent}%
                   </Text>
                 </HStack>
-                <Progress
-                  value={adherencePercent}
-                  colorScheme={adherencePercent >= 80 ? 'emerald' : adherencePercent >= 50 ? 'yellow' : 'red'}
-                  size="md"
-                  borderRadius={8}
-                  bg="gray.100"
-                />
+                <Box bg="gray.100" borderRadius={8} h={3} overflow="hidden">
+                  <RNAnimated.View
+                    style={{
+                      height: '100%',
+                      borderRadius: 8,
+                      backgroundColor: adherenceColor,
+                      width: progressAnim.interpolate({
+                        inputRange: [0, 100],
+                        outputRange: ['0%', '100%'],
+                      }),
+                    }}
+                  />
+                </Box>
                 <Text fontSize={14} fontWeight={500} color="gray.500" mt={2}>
                   {takenCount} de {totalDoses} doses tomadas
                 </Text>
@@ -222,7 +234,7 @@ export function MedicationTimeline() {
           {/* ── Alerta de dose esquecida ── */}
           {missedDoses.length > 0 && (
             <Animated.View entering={FadeInDown.duration(400).delay(45)}>
-              {missedDoses.map(missed => {
+              {missedDoses.map((missed) => {
                 const missedTime = format(new Date(missed.scheduledTime), 'HH:mm');
                 const missedDate = new Date(missed.scheduledTime);
                 const isYesterday = !isToday(missedDate);
@@ -249,9 +261,7 @@ export function MedicationTimeline() {
                     <Text fontSize={14} fontWeight={500} color="gray.500" mb={3}>
                       {missed.medicationDosage}
                     </Text>
-                    <TouchableOpacity
-                      onPress={() => handleLogDose(missed, MedicationLogStatus.Taken)}
-                    >
+                    <TouchableOpacity onPress={() => handleLogDose(missed, MedicationLogStatus.Taken)}>
                       <Box bg="#0CC1AF" py={3.5} borderRadius={12} alignItems="center">
                         <HStack alignItems="center" space={2}>
                           <CheckCircleIcon size="18" color="#FFFFFF" />
@@ -295,6 +305,7 @@ export function MedicationTimeline() {
             <>
               {/* ===== Próxima dose (hero card) / Feedback dose registrada ===== */}
               <Animated.View entering={FadeInDown.duration(400).delay(60)}>
+                <RNAnimated.View style={{ opacity: heroOpacity }}>
                 {doseRegistered ? (
                   <Box bg="white" borderRadius={20} p={6} shadow={3} alignItems="center">
                     <Box mb={3}>
@@ -313,16 +324,22 @@ export function MedicationTimeline() {
                             Progresso do dia
                           </Text>
                           <Text fontSize={16} fontWeight={800} color={adherenceColor}>
-                            {Math.round(adherencePercent)}%
+                            {adherencePercent}%
                           </Text>
                         </HStack>
-                        <Progress
-                          value={adherencePercent}
-                          colorScheme={adherencePercent >= 80 ? 'emerald' : adherencePercent >= 50 ? 'yellow' : 'red'}
-                          size="md"
-                          borderRadius={8}
-                          bg="gray.100"
-                        />
+                        <Box bg="gray.100" borderRadius={8} h={3} overflow="hidden">
+                          <RNAnimated.View
+                            style={{
+                              height: '100%',
+                              borderRadius: 8,
+                              backgroundColor: adherenceColor,
+                              width: progressAnim.interpolate({
+                                inputRange: [0, 100],
+                                outputRange: ['0%', '100%'],
+                              }),
+                            }}
+                          />
+                        </Box>
                         <Text fontSize={14} fontWeight={500} color="gray.400" mt={2}>
                           {takenCount} de {totalDoses} doses tomadas
                         </Text>
@@ -384,13 +401,7 @@ export function MedicationTimeline() {
                         style={{ flex: 0.5 }}
                         onPress={() => handleLogDose(nextPending, MedicationLogStatus.Skipped)}
                       >
-                        <Box
-                          py={4}
-                          borderRadius={14}
-                          alignItems="center"
-                          borderWidth={1.5}
-                          borderColor="gray.200"
-                        >
+                        <Box py={4} borderRadius={14} alignItems="center" borderWidth={1.5} borderColor="gray.200">
                           <Text fontSize={15} fontWeight={700} color="gray.400">
                             Pular
                           </Text>
@@ -411,6 +422,7 @@ export function MedicationTimeline() {
                     </Text>
                   </Box>
                 )}
+                </RNAnimated.View>
               </Animated.View>
 
               {/* ===== Checklist do dia ===== */}
@@ -418,7 +430,7 @@ export function MedicationTimeline() {
                 <Text fontSize={17} fontWeight={800} color="gray.700" mt={5} mb={3}>
                   Checklist do dia
                 </Text>
-                {sortedLogs.map(log => {
+                {sortedLogs.map((log) => {
                   const time = format(new Date(log.scheduledTime), 'HH:mm');
                   const isPending = log.status === MedicationLogStatus.Pending;
                   const isTaken = log.status === MedicationLogStatus.Taken;
@@ -434,47 +446,43 @@ export function MedicationTimeline() {
                   return (
                     <TouchableOpacity
                       key={`list-${log.medicationId}-${log.scheduledTime}`}
-                      onPress={() =>
-                        navigation.navigate('medicationDetail', { medicationId: log.medicationId })
-                      }
+                      onPress={() => navigation.navigate('medicationDetail', { medicationId: log.medicationId })}
                       activeOpacity={0.7}
                     >
-                      <HStack
-                        bg="white"
-                        borderRadius={16}
-                        py={3.5}
-                        px={4}
-                        mb={2.5}
-                        alignItems="center"
-                        shadow={1}
-                      >
+                      <HStack bg="white" borderRadius={16} py={3.5} px={4} mb={2.5} alignItems="center" shadow={1}>
                         {/* Status icon */}
                         <Box w={8} h={8} alignItems="center" justifyContent="center" mr={3}>
-                          {isTaken && <CheckCircleIcon size="24" color="#10B981" />}
-                          {isSkipped && <ClockIcon size="24" color="#F59E0B" />}
-                          {isMissed && <WarningIcon size="24" color="#EF4444" />}
-                          {isPending && (
-                            <Box
-                              w={6}
-                              h={6}
-                              borderRadius={12}
-                              borderWidth={2}
-                              borderColor="gray.300"
-                            />
+                          {isTaken ? (
+                            <CheckCircleIcon size="24" color="#10B981" />
+                          ) : isSkipped ? (
+                            <ClockIcon size="24" color="#F59E0B" />
+                          ) : isMissed ? (
+                            <WarningIcon size="24" color="#EF4444" />
+                          ) : (
+                            <Box w="22px" h="22px" borderRadius={11} borderWidth={2} borderColor="gray.300" />
                           )}
                         </Box>
 
-                        {/* Nome do medicamento */}
-                        <Text
-                          flex={1}
-                          fontSize={16}
-                          fontWeight={700}
-                          color={isTaken ? 'gray.400' : 'gray.800'}
-                          numberOfLines={1}
-                          strikeThrough={isTaken}
-                        >
-                          {log.medicationName}
-                        </Text>
+                        {/* Nome e dosagem */}
+                        <VStack flex={1}>
+                          <Text
+                            fontSize={16}
+                            fontWeight={700}
+                            color={isTaken ? 'gray.400' : 'gray.800'}
+                            numberOfLines={1}
+                            strikeThrough={isTaken}
+                          >
+                            {log.medicationName}
+                          </Text>
+                          <Text
+                            fontSize={13}
+                            fontWeight={500}
+                            color={isTaken ? 'gray.300' : 'gray.500'}
+                            numberOfLines={1}
+                          >
+                            {log.medicationDosage}
+                          </Text>
+                        </VStack>
 
                         {/* Countdown ou horário */}
                         <HStack alignItems="center" space={1}>
@@ -500,14 +508,7 @@ export function MedicationTimeline() {
               {/* ===== Botão Adicionar medicamento ===== */}
               <Animated.View entering={FadeInDown.duration(400).delay(220)}>
                 <TouchableOpacity testID="btn-add-medication" onPress={() => navigation.navigate('medicationForm')}>
-                  <Box
-                    bg="ciano.400"
-                    borderRadius={14}
-                    py={4}
-                    mt={5}
-                    alignItems="center"
-                    shadow={2}
-                  >
+                  <Box bg="ciano.400" borderRadius={14} py={4} mt={5} alignItems="center" shadow={2}>
                     <HStack alignItems="center" space={2}>
                       <PillIcon size="20" color="#FFFFFF" />
                       <Text fontSize={16} fontWeight={700} color="white">

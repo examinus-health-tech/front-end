@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { TouchableOpacity, StatusBar, Alert, Platform, Modal, Pressable, TextInput, StyleSheet } from 'react-native';
+import { TouchableOpacity, StatusBar, Platform, Modal, Pressable, TextInput, StyleSheet } from 'react-native';
 import { VStack, Text, Box, HStack, ScrollView, View } from 'native-base';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -44,6 +44,11 @@ export function MedicationForm() {
     existingMed?.frequencyType || MedicationFrequencyType.Daily
   );
   const [frequencyDays, setFrequencyDays] = useState<number[]>(existingMed?.frequencyDays || []);
+  const [useInterval, setUseInterval] = useState(
+    existingMed?.frequencyType === MedicationFrequencyType.IntervalHours
+  );
+  const [intervalHours, setIntervalHours] = useState(existingMed?.intervalHours?.toString() || '8');
+  const [durationDays, setDurationDays] = useState(existingMed?.durationDays?.toString() || '7');
   const [scheduleTimes, setScheduleTimes] = useState<string[]>(existingMed?.scheduleTimes || ['08:00']);
   const [instructions, setInstructions] = useState(existingMed?.instructions || '');
   const totalQuantity = existingMed?.totalQuantity?.toString() || '';
@@ -53,13 +58,7 @@ export function MedicationForm() {
   const [tempTimeDate, setTempTimeDate] = useState(new Date());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showFormPicker, setShowFormPicker] = useState(false);
-
-  const hasMoreOptions = existingMed && (
-    existingMed.frequencyType === MedicationFrequencyType.SpecificDays ||
-    existingMed.scheduleTimes.length > 1 ||
-    !!existingMed.instructions
-  );
-  const [moreOptionsOpen, setMoreOptionsOpen] = useState(!!hasMoreOptions);
+  const [errors, setErrors] = useState<{ name?: string; dosage?: string; days?: string; submit?: string }>({});
 
   function toggleDay(day: number) {
     setFrequencyDays(prev =>
@@ -112,15 +111,17 @@ export function MedicationForm() {
   }
 
   async function handleSubmit() {
-    if (!name.trim() || !dosage.trim()) {
-      Alert.alert('Campos obrigatórios', 'Preencha o nome e a dosagem do medicamento.');
-      return;
-    }
-
+    const newErrors: typeof errors = {};
+    if (!name.trim()) newErrors.name = 'Informe o nome do medicamento';
+    if (!dosage.trim()) newErrors.dosage = 'Informe a dosagem';
     if (frequencyType === MedicationFrequencyType.SpecificDays && frequencyDays.length === 0) {
-      Alert.alert('Selecione os dias', 'Escolha pelo menos um dia da semana.');
+      newErrors.days = 'Selecione pelo menos um dia';
+    }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
+    setErrors({});
 
     setIsSubmitting(true);
     try {
@@ -130,6 +131,8 @@ export function MedicationForm() {
         form,
         frequencyType,
         frequencyDays: frequencyType === MedicationFrequencyType.SpecificDays ? frequencyDays : undefined,
+        intervalHours: frequencyType === MedicationFrequencyType.IntervalHours ? parseInt(intervalHours) || 8 : undefined,
+        durationDays: frequencyType === MedicationFrequencyType.IntervalHours ? parseInt(durationDays) || 7 : undefined,
         scheduleTimes,
         instructions: instructions.trim() || undefined,
         totalQuantity: totalQuantity ? parseInt(totalQuantity) : undefined,
@@ -144,21 +147,11 @@ export function MedicationForm() {
 
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Erro', 'Não foi possível salvar o medicamento. Tente novamente.');
+      setErrors({ submit: 'Não foi possível salvar. Tente novamente.' });
     } finally {
       setIsSubmitting(false);
     }
   }
-
-  const moreOptionsHint = (() => {
-    const parts: string[] = [];
-    if (frequencyType === MedicationFrequencyType.SpecificDays && frequencyDays.length > 0) {
-      parts.push(`${frequencyDays.length} dias`);
-    }
-    if (scheduleTimes.length > 1) parts.push(`${scheduleTimes.length} horários`);
-    if (instructions) parts.push('com instruções');
-    return parts.length > 0 ? parts.join(' · ') : 'Frequência, horários extras, instruções';
-  })();
 
   return (
     <View testID="screen-medication-form" flex={1} bg="gray.50">
@@ -188,11 +181,14 @@ export function MedicationForm() {
             <TextInput
               testID="input-medication-name"
               value={name}
-              onChangeText={setName}
+              onChangeText={(v) => { setName(v); if (errors.name) setErrors(e => ({ ...e, name: undefined })); }}
               placeholder="Ex: Losartana"
               placeholderTextColor="#A0AEC0"
-              style={styles.input}
+              style={[styles.input, errors.name ? styles.inputError : null]}
             />
+            {errors.name && (
+              <Text fontSize={13} fontWeight={500} color="red.500" mt={1}>{errors.name}</Text>
+            )}
           </Box>
 
           {/* Dosagem */}
@@ -203,11 +199,14 @@ export function MedicationForm() {
             <TextInput
               testID="input-medication-dosage"
               value={dosage}
-              onChangeText={setDosage}
+              onChangeText={(v) => { setDosage(v); if (errors.dosage) setErrors(e => ({ ...e, dosage: undefined })); }}
               placeholder="Ex: 50mg"
               placeholderTextColor="#A0AEC0"
-              style={styles.input}
+              style={[styles.input, errors.dosage ? styles.inputError : null]}
             />
+            {errors.dosage && (
+              <Text fontSize={13} fontWeight={500} color="red.500" mt={1}>{errors.dosage}</Text>
+            )}
           </Box>
 
           {/* Forma — select */}
@@ -296,247 +295,244 @@ export function MedicationForm() {
             )}
           </Box>
 
-          {/* Horário principal */}
-          <Box>
+          {/* Frequência */}
+          <Box mb={4}>
             <Text fontSize={15} fontWeight={600} color="gray.700" mb={2}>
-              Horário principal
+              Frequência
             </Text>
-            <TouchableOpacity onPress={() => openTimePicker(0)}>
-              <HStack
-                bg="white"
-                borderRadius={14}
-                py={4}
-                px={4}
-                mb={4}
-                alignItems="center"
-                borderWidth={1}
-                borderColor="gray.200"
+            <HStack space={3}>
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                onPress={() => {
+                  setFrequencyType(useInterval ? MedicationFrequencyType.IntervalHours : MedicationFrequencyType.Daily);
+                }}
               >
                 <Box
-                  bg="ciano.50"
-                  w={10}
-                  h={10}
-                  borderRadius={10}
+                  bg={frequencyType !== MedicationFrequencyType.SpecificDays ? 'ciano.400' : 'white'}
+                  borderRadius={12}
+                  py={3.5}
                   alignItems="center"
-                  justifyContent="center"
-                  mr={3}
+                  borderWidth={1}
+                  borderColor={frequencyType !== MedicationFrequencyType.SpecificDays ? 'ciano.400' : 'gray.200'}
                 >
-                  <ClockIcon size="20" color="#0CC1AF" />
-                </Box>
-                <Text fontSize={22} fontWeight={800} color="gray.800" flex={1}>
-                  {scheduleTimes[0]}
-                </Text>
-                <Text fontSize={14} fontWeight={500} color="gray.400">
-                  Toque para alterar
-                </Text>
-              </HStack>
-            </TouchableOpacity>
-          </Box>
-
-          {/* Mais opções (colapsável) */}
-          <Box>
-            <TouchableOpacity onPress={() => setMoreOptionsOpen(!moreOptionsOpen)}>
-              <HStack
-                bg="white"
-                borderRadius={14}
-                py={4}
-                px={4}
-                mb={moreOptionsOpen ? 0 : 4}
-                alignItems="center"
-                borderWidth={1}
-                borderColor={moreOptionsOpen ? 'ciano.200' : 'gray.200'}
-                borderBottomRadius={moreOptionsOpen ? 0 : 14}
-              >
-                {moreOptionsOpen ? (
-                  <ChevronUpIcon size="20" color="#0CC1AF" />
-                ) : (
-                  <ChevronDownIcon size="20" color="#9CA3AF" />
-                )}
-                <VStack flex={1} ml={3}>
-                  <Text fontSize={15} fontWeight={600} color={moreOptionsOpen ? 'ciano.600' : 'gray.700'}>
-                    Mais opções
+                  <Text
+                    fontSize={15}
+                    fontWeight={700}
+                    color={frequencyType !== MedicationFrequencyType.SpecificDays ? 'white' : 'gray.600'}
+                  >
+                    Diário
                   </Text>
-                  {!moreOptionsOpen && (
-                    <Text fontSize={14} fontWeight={400} color="gray.400" numberOfLines={1}>
-                      {moreOptionsHint}
-                    </Text>
-                  )}
-                </VStack>
-              </HStack>
-            </TouchableOpacity>
+                </Box>
+              </TouchableOpacity>
 
-            {moreOptionsOpen && (
-              <Box
-                bg="white"
-                borderRadius={14}
-                borderTopRadius={0}
-                px={4}
-                pb={5}
-                mb={4}
-                borderWidth={1}
-                borderTopWidth={0}
-                borderColor="ciano.200"
+              <TouchableOpacity
+                style={{ flex: 1 }}
+                onPress={() => setFrequencyType(MedicationFrequencyType.SpecificDays)}
               >
-                {/* Frequência */}
-                <Text fontSize={15} fontWeight={600} color="gray.700" mt={4} mb={2}>
-                  Frequência
-                </Text>
-                <HStack space={3} mb={3}>
-                  <TouchableOpacity
-                    style={{ flex: 1 }}
-                    onPress={() => setFrequencyType(MedicationFrequencyType.Daily)}
+                <Box
+                  bg={frequencyType === MedicationFrequencyType.SpecificDays ? 'ciano.400' : 'white'}
+                  borderRadius={12}
+                  py={3.5}
+                  alignItems="center"
+                  borderWidth={1}
+                  borderColor={frequencyType === MedicationFrequencyType.SpecificDays ? 'ciano.400' : 'gray.200'}
+                >
+                  <Text
+                    fontSize={15}
+                    fontWeight={700}
+                    color={frequencyType === MedicationFrequencyType.SpecificDays ? 'white' : 'gray.600'}
                   >
+                    Dias específicos
+                  </Text>
+                </Box>
+              </TouchableOpacity>
+            </HStack>
+
+            {/* Sub-opção de intervalo dentro de Diário */}
+            {frequencyType !== MedicationFrequencyType.SpecificDays && (
+              <Box mt={3}>
+                <TouchableOpacity onPress={() => {
+                  const next = !useInterval;
+                  setUseInterval(next);
+                  setFrequencyType(next ? MedicationFrequencyType.IntervalHours : MedicationFrequencyType.Daily);
+                }}>
+                  <HStack alignItems="center" space={2}>
                     <Box
-                      bg={frequencyType === MedicationFrequencyType.Daily ? 'ciano.400' : 'gray.50'}
-                      borderRadius={12}
-                      py={3.5}
+                      w={5}
+                      h={5}
+                      borderRadius={4}
+                      borderWidth={2}
+                      borderColor={useInterval ? 'ciano.400' : 'gray.300'}
+                      bg={useInterval ? 'ciano.400' : 'white'}
                       alignItems="center"
-                      borderWidth={1}
-                      borderColor={frequencyType === MedicationFrequencyType.Daily ? 'ciano.400' : 'gray.200'}
+                      justifyContent="center"
                     >
-                      <Text
-                        fontSize={15}
-                        fontWeight={700}
-                        color={frequencyType === MedicationFrequencyType.Daily ? 'white' : 'gray.600'}
-                      >
-                        Diário
-                      </Text>
+                      {useInterval && <Text fontSize={12} color="white" fontWeight={800}>✓</Text>}
                     </Box>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={{ flex: 1 }}
-                    onPress={() => setFrequencyType(MedicationFrequencyType.SpecificDays)}
-                  >
-                    <Box
-                      bg={frequencyType === MedicationFrequencyType.SpecificDays ? 'ciano.400' : 'gray.50'}
-                      borderRadius={12}
-                      py={3.5}
-                      alignItems="center"
-                      borderWidth={1}
-                      borderColor={frequencyType === MedicationFrequencyType.SpecificDays ? 'ciano.400' : 'gray.200'}
-                    >
-                      <Text
-                        fontSize={15}
-                        fontWeight={700}
-                        color={frequencyType === MedicationFrequencyType.SpecificDays ? 'white' : 'gray.600'}
-                      >
-                        Dias específicos
-                      </Text>
-                    </Box>
-                  </TouchableOpacity>
-                </HStack>
-
-                {/* Chips de dia — maiores e com label mais legível */}
-                {frequencyType === MedicationFrequencyType.SpecificDays && (
-                  <HStack space={2} mb={4} justifyContent="space-between">
-                    {WEEKDAYS.map((day, index) => (
-                      <TouchableOpacity key={index} onPress={() => toggleDay(index)} style={{ flex: 1 }}>
-                        <Box
-                          py={2.5}
-                          borderRadius={12}
-                          bg={frequencyDays.includes(index) ? 'ciano.400' : 'gray.50'}
-                          borderWidth={1.5}
-                          borderColor={frequencyDays.includes(index) ? 'ciano.400' : 'gray.300'}
-                          alignItems="center"
-                          justifyContent="center"
-                        >
-                          <Text
-                            fontSize={14}
-                            fontWeight={700}
-                            color={frequencyDays.includes(index) ? 'white' : 'gray.500'}
-                          >
-                            {day}
-                          </Text>
-                        </Box>
-                      </TouchableOpacity>
-                    ))}
-                  </HStack>
-                )}
-
-                {/* Horários adicionais */}
-                <Text fontSize={15} fontWeight={600} color="gray.700" mt={1} mb={2}>
-                  Horários adicionais
-                </Text>
-                {scheduleTimes.slice(1).map((time, index) => {
-                  const realIndex = index + 1;
-                  return (
-                    <HStack key={realIndex} mb={2} alignItems="center">
-                      <TouchableOpacity style={{ flex: 1 }} onPress={() => openTimePicker(realIndex)}>
-                        <HStack
-                          bg="gray.50"
-                          borderRadius={12}
-                          py={3}
-                          px={4}
-                          alignItems="center"
-                          borderWidth={1}
-                          borderColor="gray.200"
-                        >
-                          <Box
-                            bg="white"
-                            w={9}
-                            h={9}
-                            borderRadius={9}
-                            alignItems="center"
-                            justifyContent="center"
-                            mr={3}
-                          >
-                            <ClockIcon size="18" color="#9CA3AF" />
-                          </Box>
-                          <Text fontSize={20} fontWeight={800} color="gray.800" flex={1}>
-                            {time}
-                          </Text>
-                        </HStack>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => removeTime(realIndex)}>
-                        <Box
-                          w={10}
-                          h={10}
-                          ml={2}
-                          bg="red.50"
-                          borderRadius={10}
-                          alignItems="center"
-                          justifyContent="center"
-                          borderWidth={1}
-                          borderColor="red.100"
-                        >
-                          <Text fontSize={18} color="red.400" fontWeight={700}>✕</Text>
-                        </Box>
-                      </TouchableOpacity>
-                    </HStack>
-                  );
-                })}
-                <TouchableOpacity onPress={addTime}>
-                  <HStack bg="ciano.50" borderRadius={12} py={3} alignItems="center" justifyContent="center" mt={1}>
-                    <ClockIcon size="16" color="#0CC1AF" />
-                    <Text fontSize={15} fontWeight={600} color="ciano.600" ml={2}>
-                      Adicionar horário
+                    <Text fontSize={14} fontWeight={600} color="gray.600">
+                      A cada X horas, por X dias
                     </Text>
                   </HStack>
                 </TouchableOpacity>
 
-                {/* Instruções */}
-                <Text fontSize={15} fontWeight={600} color="gray.700" mt={5} mb={2}>
-                  Instruções (opcional)
-                </Text>
-                <TextInput
-                  value={instructions}
-                  onChangeText={setInstructions}
-                  placeholder="Ex: Tomar em jejum, antes das refeições..."
-                  placeholderTextColor="#A0AEC0"
-                  multiline
-                  numberOfLines={4}
-                  textAlignVertical="top"
-                  style={styles.textArea}
-                />
+                {useInterval && (
+                  <HStack space={3} mt={3}>
+                    <VStack flex={1}>
+                      <Text fontSize={13} fontWeight={600} color="gray.500" mb={1}>
+                        A cada (horas)
+                      </Text>
+                      <TextInput
+                        value={intervalHours}
+                        onChangeText={setIntervalHours}
+                        placeholder="8"
+                        placeholderTextColor="#A0AEC0"
+                        keyboardType="number-pad"
+                        style={styles.input}
+                      />
+                    </VStack>
+                    <VStack flex={1}>
+                      <Text fontSize={13} fontWeight={600} color="gray.500" mb={1}>
+                        Por (dias)
+                      </Text>
+                      <TextInput
+                        value={durationDays}
+                        onChangeText={setDurationDays}
+                        placeholder="7"
+                        placeholderTextColor="#A0AEC0"
+                        keyboardType="number-pad"
+                        style={styles.input}
+                      />
+                    </VStack>
+                  </HStack>
+                )}
               </Box>
             )}
+
+            {/* Dias específicos */}
+            {frequencyType === MedicationFrequencyType.SpecificDays && (
+              <HStack space={2} mt={3} justifyContent="space-between">
+                {WEEKDAYS.map((day, index) => (
+                  <TouchableOpacity key={index} onPress={() => toggleDay(index)} style={{ flex: 1 }}>
+                    <Box
+                      py={2.5}
+                      borderRadius={12}
+                      bg={frequencyDays.includes(index) ? 'ciano.400' : 'white'}
+                      borderWidth={1.5}
+                      borderColor={frequencyDays.includes(index) ? 'ciano.400' : 'gray.300'}
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Text
+                        fontSize={14}
+                        fontWeight={700}
+                        color={frequencyDays.includes(index) ? 'white' : 'gray.500'}
+                      >
+                        {day}
+                      </Text>
+                    </Box>
+                  </TouchableOpacity>
+                ))}
+              </HStack>
+            )}
+            {errors.days && frequencyType === MedicationFrequencyType.SpecificDays && (
+              <Text fontSize={13} fontWeight={500} color="red.500" mt={2}>{errors.days}</Text>
+            )}
+          </Box>
+
+          {/* Horários */}
+          <Box mb={4}>
+            <Text fontSize={15} fontWeight={600} color="gray.700" mb={2}>
+              {useInterval ? 'Primeiro horário' : 'Horários'}
+            </Text>
+            {scheduleTimes.map((time, index) => {
+              if (useInterval && index > 0) return null;
+              return (
+                <HStack key={index} mb={2} alignItems="center">
+                  <TouchableOpacity style={{ flex: 1 }} onPress={() => openTimePicker(index)}>
+                    <HStack
+                      bg="white"
+                      borderRadius={14}
+                      py={3.5}
+                      px={4}
+                      alignItems="center"
+                      borderWidth={1}
+                      borderColor="gray.200"
+                    >
+                      <Box
+                        bg="ciano.50"
+                        w={10}
+                        h={10}
+                        borderRadius={10}
+                        alignItems="center"
+                        justifyContent="center"
+                        mr={3}
+                      >
+                        <ClockIcon size="20" color="#0CC1AF" />
+                      </Box>
+                      <Text fontSize={22} fontWeight={800} color="gray.800" flex={1}>
+                        {time}
+                      </Text>
+                      <Text fontSize={14} fontWeight={500} color="gray.400">
+                        Alterar
+                      </Text>
+                    </HStack>
+                  </TouchableOpacity>
+                  {scheduleTimes.length > 1 && !useInterval && (
+                    <TouchableOpacity onPress={() => removeTime(index)}>
+                      <Box
+                        w={10}
+                        h={10}
+                        ml={2}
+                        bg="red.50"
+                        borderRadius={10}
+                        alignItems="center"
+                        justifyContent="center"
+                        borderWidth={1}
+                        borderColor="red.100"
+                      >
+                        <Text fontSize={18} color="red.400" fontWeight={700}>✕</Text>
+                      </Box>
+                    </TouchableOpacity>
+                  )}
+                </HStack>
+              );
+            })}
+            {!useInterval && (
+              <TouchableOpacity onPress={addTime}>
+                <HStack bg="ciano.50" borderRadius={12} py={3} alignItems="center" justifyContent="center" mt={1}>
+                  <ClockIcon size="16" color="#0CC1AF" />
+                  <Text fontSize={15} fontWeight={600} color="ciano.600" ml={2}>
+                    Adicionar horário
+                  </Text>
+                </HStack>
+              </TouchableOpacity>
+            )}
+          </Box>
+
+          {/* Instruções */}
+          <Box mb={4}>
+            <Text fontSize={15} fontWeight={600} color="gray.700" mb={2}>
+              Instruções (opcional)
+            </Text>
+            <TextInput
+              value={instructions}
+              onChangeText={setInstructions}
+              placeholder="Ex: Tomar em jejum, antes das refeições..."
+              placeholderTextColor="#A0AEC0"
+              multiline
+              numberOfLines={3}
+              textAlignVertical="top"
+              style={styles.textArea}
+            />
           </Box>
         </VStack>
       </ScrollView>
 
       {/* Botão salvar fixo */}
       <Box bg="gray.50" px={6} pb={8} pt={3} shadow={5}>
+        {errors.submit && (
+          <Text fontSize={13} fontWeight={500} color="red.500" textAlign="center" mb={2}>{errors.submit}</Text>
+        )}
         <TouchableOpacity testID="btn-save-medication" onPress={handleSubmit} disabled={isSubmitting}>
           <Box
             bg={isSubmitting ? 'gray.400' : 'ciano.400'}
@@ -622,6 +618,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     color: '#1A202C',
+  },
+  inputError: {
+    borderColor: '#EF4444',
+    borderWidth: 1.5,
   },
   textArea: {
     backgroundColor: '#F9FAFB',

@@ -1,8 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
-);
+import * as SecureStore from 'expo-secure-store';
+import { USER_STORAGE } from '@storage/storageConfig';
 
 jest.mock('src/services/api', () => ({
   api: {
@@ -28,8 +25,8 @@ function createTokenWithoutExp(): string {
   return `${header}.${payload}.signature`;
 }
 
-beforeEach(async () => {
-  await AsyncStorage.clear();
+beforeEach(() => {
+  (SecureStore as any).__resetStore();
   jest.clearAllMocks();
 });
 
@@ -40,58 +37,58 @@ describe('validateStoredToken', () => {
   });
 
   it('deve retornar false quando dados do usuário não são JSON válido', async () => {
-    await AsyncStorage.setItem('@app:user', 'isto não é json');
+    await SecureStore.setItemAsync(USER_STORAGE, 'isto não é json');
     const result = await validateStoredToken();
     expect(result).toBe(false);
     // Deve limpar dados corrompidos
-    const stored = await AsyncStorage.getItem('@app:user');
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     expect(stored).toBeNull();
   });
 
   it('deve retornar false quando token não existe nos dados', async () => {
-    await AsyncStorage.setItem('@app:user', JSON.stringify({ userId: '123' }));
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify({ userId: '123' }));
     const result = await validateStoredToken();
     expect(result).toBe(false);
   });
 
   it('deve retornar false quando token tem estrutura inválida (menos de 3 partes)', async () => {
-    await AsyncStorage.setItem('@app:user', JSON.stringify({ token: 'parte1.parte2' }));
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify({ token: 'parte1.parte2' }));
     const result = await validateStoredToken();
     expect(result).toBe(false);
     // Deve limpar dados com token inválido
-    const stored = await AsyncStorage.getItem('@app:user');
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     expect(stored).toBeNull();
   });
 
   it('deve retornar false quando token está expirado', async () => {
     // Token expirado (exp no passado)
     const expiredToken = createTokenWithExp(Math.floor(Date.now() / 1000) - 3600);
-    await AsyncStorage.setItem('@app:user', JSON.stringify({ token: expiredToken }));
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify({ token: expiredToken }));
     const result = await validateStoredToken();
     expect(result).toBe(false);
     // Deve limpar dados com token expirado
-    const stored = await AsyncStorage.getItem('@app:user');
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     expect(stored).toBeNull();
   });
 
   it('deve retornar true quando token é válido e não expirou', async () => {
     // Token válido (exp no futuro)
     const validToken = createTokenWithExp(Math.floor(Date.now() / 1000) + 3600);
-    await AsyncStorage.setItem('@app:user', JSON.stringify({ token: validToken }));
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify({ token: validToken }));
     const result = await validateStoredToken();
     expect(result).toBe(true);
   });
 
   it('deve retornar true quando token não tem campo exp (assume válido)', async () => {
     const tokenNoExp = createTokenWithoutExp();
-    await AsyncStorage.setItem('@app:user', JSON.stringify({ token: tokenNoExp }));
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify({ token: tokenNoExp }));
     const result = await validateStoredToken();
     expect(result).toBe(true);
   });
 
   it('deve retornar false e limpar storage quando ocorre erro inesperado', async () => {
-    // Simular erro no AsyncStorage.getItem
-    jest.spyOn(AsyncStorage, 'getItem').mockRejectedValueOnce(new Error('Storage error'));
+    // Simular erro no SecureStore.getItemAsync
+    (SecureStore.getItemAsync as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
     const result = await validateStoredToken();
     expect(result).toBe(false);
   });
@@ -104,14 +101,14 @@ describe('validateTokenWithBackend', () => {
   });
 
   it('deve retornar false quando userData não tem token', async () => {
-    await AsyncStorage.setItem('@app:user', JSON.stringify({ userId: '123' }));
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify({ userId: '123' }));
     const result = await validateTokenWithBackend();
     expect(result).toBe(false);
   });
 
   it('deve retornar false quando userData não tem userId', async () => {
-    await AsyncStorage.setItem(
-      '@app:user',
+    await SecureStore.setItemAsync(
+      USER_STORAGE,
       JSON.stringify({ token: 'a.b.c' })
     );
     const result = await validateTokenWithBackend();
@@ -119,21 +116,21 @@ describe('validateTokenWithBackend', () => {
   });
 
   it('deve retornar false quando backend retorna 401', async () => {
-    await AsyncStorage.setItem(
-      '@app:user',
+    await SecureStore.setItemAsync(
+      USER_STORAGE,
       JSON.stringify({ token: 'a.b.c', userId: '123' })
     );
     (mockedApi.get as jest.Mock).mockResolvedValueOnce({ status: 401 });
     const result = await validateTokenWithBackend();
     expect(result).toBe(false);
     // Deve limpar dados
-    const stored = await AsyncStorage.getItem('@app:user');
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     expect(stored).toBeNull();
   });
 
   it('deve retornar true quando backend retorna 200', async () => {
-    await AsyncStorage.setItem(
-      '@app:user',
+    await SecureStore.setItemAsync(
+      USER_STORAGE,
       JSON.stringify({ token: 'a.b.c', userId: '123' })
     );
     (mockedApi.get as jest.Mock).mockResolvedValueOnce({ status: 200 });
@@ -142,8 +139,8 @@ describe('validateTokenWithBackend', () => {
   });
 
   it('deve retornar true quando backend retorna 404 (token aceito)', async () => {
-    await AsyncStorage.setItem(
-      '@app:user',
+    await SecureStore.setItemAsync(
+      USER_STORAGE,
       JSON.stringify({ token: 'a.b.c', userId: '123' })
     );
     (mockedApi.get as jest.Mock).mockResolvedValueOnce({ status: 404 });
@@ -152,8 +149,8 @@ describe('validateTokenWithBackend', () => {
   });
 
   it('deve retornar true em erro de rede (sem response)', async () => {
-    await AsyncStorage.setItem(
-      '@app:user',
+    await SecureStore.setItemAsync(
+      USER_STORAGE,
       JSON.stringify({ token: 'a.b.c', userId: '123' })
     );
     (mockedApi.get as jest.Mock).mockRejectedValueOnce(new Error('Network Error'));
@@ -162,8 +159,8 @@ describe('validateTokenWithBackend', () => {
   });
 
   it('deve retornar false quando erro tem response 401', async () => {
-    await AsyncStorage.setItem(
-      '@app:user',
+    await SecureStore.setItemAsync(
+      USER_STORAGE,
       JSON.stringify({ token: 'a.b.c', userId: '123' })
     );
     const error: any = new Error('Unauthorized');
@@ -174,8 +171,8 @@ describe('validateTokenWithBackend', () => {
   });
 
   it('deve retornar true quando erro tem response com status diferente de 401', async () => {
-    await AsyncStorage.setItem(
-      '@app:user',
+    await SecureStore.setItemAsync(
+      USER_STORAGE,
       JSON.stringify({ token: 'a.b.c', userId: '123' })
     );
     const error: any = new Error('Internal Server Error');
@@ -187,15 +184,15 @@ describe('validateTokenWithBackend', () => {
 });
 
 describe('clearStoredToken', () => {
-  it('deve remover o token do AsyncStorage', async () => {
-    await AsyncStorage.setItem('@app:user', JSON.stringify({ token: 'abc' }));
+  it('deve remover o token do SecureStore', async () => {
+    await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify({ token: 'abc' }));
     await clearStoredToken();
-    const stored = await AsyncStorage.getItem('@app:user');
+    const stored = await SecureStore.getItemAsync(USER_STORAGE);
     expect(stored).toBeNull();
   });
 
-  it('não deve lançar erro quando removeItem falha', async () => {
-    jest.spyOn(AsyncStorage, 'removeItem').mockRejectedValueOnce(new Error('Fail'));
+  it('não deve lançar erro quando deleteItemAsync falha', async () => {
+    (SecureStore.deleteItemAsync as jest.Mock).mockRejectedValueOnce(new Error('Fail'));
     await expect(clearStoredToken()).resolves.toBeUndefined();
   });
 });

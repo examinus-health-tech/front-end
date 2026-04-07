@@ -177,6 +177,10 @@ describe('SignIn', () => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
   it('renders the main heading', () => {
     const { getByText } = render(<SignIn />);
     expect(getByText('Entre')).toBeTruthy();

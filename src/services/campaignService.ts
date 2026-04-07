@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const CAMPAIGN_API_URL = 'https://campanhaapp-c7gdd2fyarecb5ck.canadacentral-01.azurewebsites.net/api/Campanha';
+const CAMPAIGN_BASE_URL = 'https://campanhaapp-c7gdd2fyarecb5ck.canadacentral-01.azurewebsites.net/api';
+const CAMPAIGN_API_URL = `${CAMPAIGN_BASE_URL}/Campanha`;
 
 export interface CampaignVoucherResponse {
   success: boolean;
@@ -83,16 +84,39 @@ export async function checkCampaignVoucher(email: string, enviarNotificacao = fa
 }
 
 /**
+ * Busca o leadId pelo email na API de admin
+ */
+async function getLeadIdByEmail(email: string): Promise<number | null> {
+  try {
+    const response = await axios.get(`${CAMPAIGN_BASE_URL}/Admin/leads`, {
+      params: { page: 1, pageSize: 300 },
+      headers: { accept: '*/*' },
+      timeout: 10000,
+    });
+
+    const leads = response.data?.data || [];
+    const lead = leads.find((l: any) => l.email?.toLowerCase() === email.toLowerCase());
+    return lead?.id ?? null;
+  } catch (error: any) {
+    if (__DEV__) console.log('📢 [CAMPANHA] Erro ao buscar leadId:', error?.message);
+    return null;
+  }
+}
+
+/**
  * Solicita renovação do voucher expirado
+ * Busca o leadId pelo email e chama PUT /renovar-voucher/{leadId}
  * Invalida o cache para forçar recarga dos dados
  */
 export async function renewVoucher(email: string): Promise<CampaignVoucherResponse> {
   try {
-    const encodedEmail = encodeURIComponent(email);
-    const response = await axios.post(`${CAMPAIGN_API_URL}/renovar-voucher/${encodedEmail}`, null, {
-      headers: {
-        'accept': '*/*',
-      },
+    const leadId = await getLeadIdByEmail(email);
+    if (!leadId) {
+      return { success: false, message: 'Não foi possível identificar seu cadastro na campanha.' };
+    }
+
+    const response = await axios.put(`${CAMPAIGN_API_URL}/renovar-voucher/${leadId}`, null, {
+      headers: { accept: '*/*' },
       timeout: 15000,
     });
 
@@ -100,22 +124,22 @@ export async function renewVoucher(email: string): Promise<CampaignVoucherRespon
     cachedVoucher = null;
 
     if (response.data) {
-      const voucherCode = response.data.codigo || response.data.voucher || response.data.code;
-
-      if (voucherCode) {
-        return {
-          success: true,
-          voucher: String(voucherCode),
-          message: response.data.message,
-          validade: response.data.validade,
-          status: response.data.status,
-        };
+      // Após renovar, buscar dados atualizados do voucher
+      const updated = await checkCampaignVoucher(email);
+      if (updated.success) {
+        return updated;
       }
+
+      return {
+        success: true,
+        message: response.data.mensagem || 'Voucher renovado com sucesso!',
+        validade: response.data.novaValidade,
+      };
     }
 
     return { success: false, message: 'Não foi possível renovar o voucher.' };
   } catch (error: any) {
-    console.log('📢 [CAMPANHA] Erro ao renovar voucher:', error?.message);
+    if (__DEV__) console.log('📢 [CAMPANHA] Erro ao renovar voucher:', error?.message);
     const message = error?.response?.data?.message || 'Não foi possível renovar o voucher. Tente novamente mais tarde.';
     return { success: false, message };
   }

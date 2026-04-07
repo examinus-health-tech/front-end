@@ -1,19 +1,28 @@
 import React, { useContext } from 'react';
 import { renderHook, act, waitFor } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { AppState } from 'react-native';
 import { AuthContext, AuthProvider } from './AuthContext';
+import { USER_STORAGE } from '@storage/storageConfig';
 
 // Mock AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
-// Mock expo-secure-store
+// Mock expo-secure-store with in-memory store (matches global jest.setup.ts pattern)
+const secureStoreData: Record<string, string> = {};
 jest.mock('expo-secure-store', () => ({
-  getItemAsync: jest.fn().mockResolvedValue(null),
-  setItemAsync: jest.fn().mockResolvedValue(undefined),
-  deleteItemAsync: jest.fn().mockResolvedValue(undefined),
+  getItemAsync: jest.fn((key: string) => Promise.resolve(secureStoreData[key] || null)),
+  setItemAsync: jest.fn((key: string, value: string) => {
+    secureStoreData[key] = value;
+    return Promise.resolve();
+  }),
+  deleteItemAsync: jest.fn((key: string) => {
+    delete secureStoreData[key];
+    return Promise.resolve();
+  }),
 }));
 
 // Mock da API
@@ -84,21 +93,11 @@ jest.mock('react-native-onesignal', () => ({
   LogLevel: { Verbose: 0 },
 }));
 
-// Mock sentryService
-jest.mock('@services/sentryService', () => ({
-  setSentryUser: jest.fn(),
-  clearSentryUser: jest.fn(),
-  addBreadcrumb: jest.fn(),
-  captureError: jest.fn(),
-}));
-
 import { api } from 'src/services/api';
 import { validateStoredToken, validateTokenWithBackend } from '@utils/tokenValidation';
 import { decodeJwtPayload } from '@utils/jwt';
 import { registerDeviceOnBackend } from 'src/services/register-device-backend';
 import { OneSignal } from 'react-native-onesignal';
-import { setSentryUser, clearSentryUser, addBreadcrumb } from '@services/sentryService';
-
 const mockApi = api as jest.Mocked<typeof api>;
 const mockValidateStoredToken = validateStoredToken as jest.MockedFunction<typeof validateStoredToken>;
 const mockValidateTokenWithBackend = validateTokenWithBackend as jest.MockedFunction<typeof validateTokenWithBackend>;
@@ -137,6 +136,26 @@ describe('AuthContext', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    // Clear SecureStore in-memory data
+    Object.keys(secureStoreData).forEach(key => delete secureStoreData[key]);
+
+    // Restore SecureStore mock implementations (clearAllMocks removes them)
+    (SecureStore.getItemAsync as jest.Mock).mockImplementation(
+      (key: string) => Promise.resolve(secureStoreData[key] || null)
+    );
+    (SecureStore.setItemAsync as jest.Mock).mockImplementation(
+      (key: string, value: string) => {
+        secureStoreData[key] = value;
+        return Promise.resolve();
+      }
+    );
+    (SecureStore.deleteItemAsync as jest.Mock).mockImplementation(
+      (key: string) => {
+        delete secureStoreData[key];
+        return Promise.resolve();
+      }
+    );
 
     // Defaults: token invalido (para nao carregar user do storage), API retorna sucesso
     mockValidateStoredToken.mockResolvedValue(false);
@@ -237,7 +256,7 @@ describe('AuthContext', () => {
   describe('Restauracao de sessao do storage', () => {
     it('deve restaurar usuario quando token armazenado e valido', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockUserData));
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -255,7 +274,7 @@ describe('AuthContext', () => {
 
     it('deve limpar usuario quando token armazenado e invalido', async () => {
       mockValidateStoredToken.mockResolvedValue(false);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(JSON.stringify(mockUserData));
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -267,9 +286,9 @@ describe('AuthContext', () => {
       expect(result.current.isAuthReady).toBe(true);
     });
 
-    it('deve tratar ausencia de usuario no storage', async () => {
+    it('deve tratar ausencia de usuario no SecureStore', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      // SecureStore is empty by default (cleared in beforeEach)
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -281,12 +300,9 @@ describe('AuthContext', () => {
       expect(result.current.isAuthReady).toBe(true);
     });
 
-    it('deve tratar dados corrompidos no storage', async () => {
+    it('deve tratar dados corrompidos no SecureStore', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve('invalid-json{{{');
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = 'invalid-json{{{';
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -295,7 +311,7 @@ describe('AuthContext', () => {
       });
 
       expect(result.current.user).toBeNull();
-      expect(AsyncStorage.removeItem).toHaveBeenCalledWith('@app:user');
+      expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(USER_STORAGE);
     });
 
     it('deve lidar com timeout do loadStoredUser', async () => {
@@ -338,11 +354,6 @@ describe('AuthContext', () => {
   describe('signIn', () => {
     it('deve fazer login com sucesso', async () => {
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      // Mock getItem para verificacao de persistencia
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -362,12 +373,8 @@ describe('AuthContext', () => {
       expect(result.current.isLoading).toBe(false);
     });
 
-    it('deve persistir dados no AsyncStorage ao fazer login', async () => {
+    it('deve persistir dados no SecureStore ao fazer login', async () => {
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -379,18 +386,14 @@ describe('AuthContext', () => {
         await result.current.signIn('test@test.com', 'password123');
       });
 
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        '@app:user',
+      expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
+        USER_STORAGE,
         expect.any(String)
       );
     });
 
     it('deve limpar dados de onboarding antes do login', async () => {
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -409,10 +412,6 @@ describe('AuthContext', () => {
 
     it('deve registrar OneSignal apos login', async () => {
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -427,37 +426,8 @@ describe('AuthContext', () => {
       expect(OneSignal.login).toHaveBeenCalledWith('user-123');
     });
 
-    it('deve identificar usuario no Sentry', async () => {
-      (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
-
-      const { result } = renderHook(() => useAuthContext(), { wrapper });
-
-      await act(async () => {
-        jest.advanceTimersByTime(100);
-      });
-
-      await act(async () => {
-        await result.current.signIn('test@test.com', 'password123');
-      });
-
-      expect(setSentryUser).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'user-123',
-          email: 'test@test.com',
-        })
-      );
-    });
-
     it('deve registrar dispositivo no backend em background', async () => {
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -487,10 +457,6 @@ describe('AuthContext', () => {
 
       mockDecodeJwtPayload.mockReturnValueOnce({ Email: 'jwt@test.com' });
       (mockApi.post as jest.Mock).mockResolvedValueOnce(responseWithoutEmail);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify({ ...mockUserData, email: 'jwt@test.com' }));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -622,8 +588,9 @@ describe('AuthContext', () => {
 
     it('deve lancar erro quando persistencia falha', async () => {
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      // getItem retorna null para verificacao de persistencia
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      // Override setItemAsync to NOT store data, so getItemAsync returns null (verification fails)
+      (SecureStore.setItemAsync as jest.Mock).mockImplementation(() => Promise.resolve());
+      (SecureStore.getItemAsync as jest.Mock).mockImplementation(() => Promise.resolve(null));
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -689,11 +656,6 @@ describe('AuthContext', () => {
     };
 
     it('deve fazer login biometrico com sucesso', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(biometricData));
-        return Promise.resolve(null);
-      });
-
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
       await act(async () => {
@@ -709,11 +671,6 @@ describe('AuthContext', () => {
     });
 
     it('deve limpar dados de onboarding antes do login biometrico', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(biometricData));
-        return Promise.resolve(null);
-      });
-
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
       await act(async () => {
@@ -730,11 +687,6 @@ describe('AuthContext', () => {
     });
 
     it('deve registrar OneSignal no login biometrico', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(biometricData));
-        return Promise.resolve(null);
-      });
-
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
       await act(async () => {
@@ -750,10 +702,6 @@ describe('AuthContext', () => {
 
     it('deve continuar login biometrico mesmo se OneSignal falhar', async () => {
       (OneSignal.login as jest.Mock).mockRejectedValueOnce(new Error('OneSignal error'));
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(biometricData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -769,7 +717,9 @@ describe('AuthContext', () => {
     });
 
     it('deve lancar erro quando persistencia falha no login biometrico', async () => {
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      // Override setItemAsync to NOT store data, so getItemAsync returns null (verification fails)
+      (SecureStore.setItemAsync as jest.Mock).mockImplementation(() => Promise.resolve());
+      (SecureStore.getItemAsync as jest.Mock).mockImplementation(() => Promise.resolve(null));
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -794,10 +744,6 @@ describe('AuthContext', () => {
 
     it('deve usar name como fallback para fullName quando ausente', async () => {
       const bioDataNoFullName = { ...biometricData, fullName: '' };
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(bioDataNoFullName));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -828,10 +774,6 @@ describe('AuthContext', () => {
         headers: { 'content-type': 'application/json' },
       };
       (mockApi.post as jest.Mock).mockResolvedValueOnce(googleApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -981,10 +923,6 @@ describe('AuthContext', () => {
       (mockApi.post as jest.Mock).mockResolvedValueOnce({
         status: 200,
         ...mockApiResponse,
-      });
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
       });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
@@ -1170,10 +1108,6 @@ describe('AuthContext', () => {
       jest.useRealTimers();
 
       (mockApi.post as jest.Mock).mockResolvedValueOnce(appleApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -1206,10 +1140,6 @@ describe('AuthContext', () => {
       });
 
       (mockApi.post as jest.Mock).mockResolvedValueOnce(appleApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -1238,10 +1168,6 @@ describe('AuthContext', () => {
       mockDecodeJwtPayload.mockReturnValueOnce({ sub: 'apple-123' });
 
       (mockApi.post as jest.Mock).mockResolvedValueOnce(appleApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -1376,10 +1302,6 @@ describe('AuthContext', () => {
       jest.useRealTimers();
 
       (mockApi.post as jest.Mock).mockResolvedValueOnce(appleApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -1527,10 +1449,6 @@ describe('AuthContext', () => {
       });
       // Segundo post: auto-login
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -1960,10 +1878,6 @@ describe('AuthContext', () => {
       jest.useRealTimers();
 
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2004,7 +1918,7 @@ describe('AuthContext', () => {
       jest.useFakeTimers();
     });
 
-    it('deve limpar dados do AsyncStorage no logout', async () => {
+    it('deve limpar dados do AsyncStorage e SecureStore no logout', async () => {
       jest.useRealTimers();
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
@@ -2017,31 +1931,16 @@ describe('AuthContext', () => {
         await result.current.signOut();
       });
 
+      // User data is now in SecureStore, deleted separately
+      expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(USER_STORAGE);
+
+      // Other data still cleaned via AsyncStorage.multiRemove
       expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(
         expect.arrayContaining([
-          '@app:user',
           '@app:personalData',
           '@app:onboardingData',
         ])
       );
-
-      jest.useFakeTimers();
-    });
-
-    it('deve limpar usuario no Sentry no logout', async () => {
-      jest.useRealTimers();
-
-      const { result } = renderHook(() => useAuthContext(), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isAuthReady).toBe(true);
-      });
-
-      await act(async () => {
-        await result.current.signOut();
-      });
-
-      expect(clearSentryUser).toHaveBeenCalled();
 
       jest.useFakeTimers();
     });
@@ -2085,7 +1984,6 @@ describe('AuthContext', () => {
 
       // Mesmo com erro, user deve ser limpo
       expect(result.current.user).toBeNull();
-      expect(clearSentryUser).toHaveBeenCalled();
 
       jest.useFakeTimers();
     });
@@ -2279,10 +2177,7 @@ describe('AuthContext', () => {
     it('deve deletar conta com sucesso', async () => {
       // Primeiro fazer login
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
       (mockApi.delete as jest.Mock).mockResolvedValueOnce({});
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
@@ -2305,10 +2200,7 @@ describe('AuthContext', () => {
 
     it('deve limpar todos os dados incluindo biometria ao deletar conta', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
       (mockApi.delete as jest.Mock).mockResolvedValueOnce({});
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
@@ -2325,9 +2217,12 @@ describe('AuthContext', () => {
         await result.current.deleteAccount();
       });
 
+      // User data deleted from SecureStore separately
+      expect(SecureStore.deleteItemAsync).toHaveBeenCalledWith(USER_STORAGE);
+
+      // Biometric and other data cleaned via AsyncStorage.multiRemove
       expect(AsyncStorage.multiRemove).toHaveBeenCalledWith(
         expect.arrayContaining([
-          '@app:user',
           '@examinus:biometric_token',
           '@examinus:biometric_enabled',
         ])
@@ -2336,10 +2231,7 @@ describe('AuthContext', () => {
 
     it('deve continuar com limpeza local quando backend retorna 404', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error: any = new Error('Not Found');
       error.response = { status: 404, data: {} };
@@ -2379,10 +2271,7 @@ describe('AuthContext', () => {
 
     it('deve tratar erro 401 ao deletar conta', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error: any = new Error('Unauthorized');
       error.response = { status: 401, data: {} };
@@ -2407,10 +2296,7 @@ describe('AuthContext', () => {
 
     it('deve tratar erro 500+ ao deletar conta', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error: any = new Error('Server Error');
       error.response = { status: 500, data: {} };
@@ -2435,10 +2321,7 @@ describe('AuthContext', () => {
 
     it('deve tratar erro de rede ao deletar conta', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error: any = new Error('Network Error');
       error.request = {};
@@ -2463,10 +2346,7 @@ describe('AuthContext', () => {
 
     it('deve tratar erro com mensagem customizada do backend', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error: any = new Error('Error');
       error.response = { status: 403, data: { message: 'Conta bloqueada' } };
@@ -2497,10 +2377,7 @@ describe('AuthContext', () => {
   describe('getUserInfo', () => {
     it('deve buscar informacoes do usuario com sucesso', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       (mockApi.get as jest.Mock).mockResolvedValueOnce({
         data: { data: { photoUrl: 'https://photo.com/user.jpg' } },
@@ -2540,10 +2417,7 @@ describe('AuthContext', () => {
 
     it('deve silenciar erro de usuario OAuth nao encontrado (404)', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error = new Error('Usuário autenticado não encontrado');
       (mockApi.get as jest.Mock).mockRejectedValueOnce(error);
@@ -2570,10 +2444,7 @@ describe('AuthContext', () => {
 
     it('deve setar erro para outros tipos de erro', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error = new Error('Erro generico de servidor');
       (mockApi.get as jest.Mock).mockRejectedValueOnce(error);
@@ -2603,10 +2474,7 @@ describe('AuthContext', () => {
   describe('updateUserPhoto', () => {
     it('deve atualizar foto de perfil do usuario', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2623,20 +2491,15 @@ describe('AuthContext', () => {
       });
 
       expect(result.current.user?.profilePhotoBase64).toBe('base64-photo-data');
-      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
-        '@app:user',
+      expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
+        USER_STORAGE,
         expect.stringContaining('base64-photo-data')
       );
     });
 
     it('deve remover foto ao passar null', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(
-          JSON.stringify({ ...mockUserData, profilePhotoBase64: 'old-photo' })
-        );
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify({ ...mockUserData, profilePhotoBase64: 'old-photo' });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2670,13 +2533,9 @@ describe('AuthContext', () => {
       // A funcao retorna cedo com return
     });
 
-    it('deve tratar erro ao persistir foto no AsyncStorage', async () => {
+    it('deve tratar erro ao persistir foto no SecureStore', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
-      (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2687,6 +2546,9 @@ describe('AuthContext', () => {
       await waitFor(() => {
         expect(result.current.user?.userId).toBe('user-123');
       });
+
+      // Now make SecureStore.setItemAsync fail for the updateUserPhoto call
+      (SecureStore.setItemAsync as jest.Mock).mockRejectedValueOnce(new Error('Storage error'));
 
       // Nao deve lancar erro, apenas logar
       await act(async () => {
@@ -2740,10 +2602,7 @@ describe('AuthContext', () => {
     it('deve validar token apos usuario ser carregado (validacao inicial)', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
       mockValidateTokenWithBackend.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2766,10 +2625,7 @@ describe('AuthContext', () => {
     it('deve fazer logout quando token e rejeitado pelo backend na validacao inicial', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
       mockValidateTokenWithBackend.mockResolvedValue(false);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2798,10 +2654,7 @@ describe('AuthContext', () => {
     it('deve ignorar erro de rede na validacao inicial com backend', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
       mockValidateTokenWithBackend.mockRejectedValue(new Error('Network error'));
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2849,10 +2702,6 @@ describe('AuthContext', () => {
     it('deve tratar erro quando OneSignal.login falha no signIn', async () => {
       (OneSignal.login as jest.Mock).mockRejectedValueOnce(new Error('OneSignal error'));
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2884,10 +2733,6 @@ describe('AuthContext', () => {
         throw new Error('Invalid JWT');
       });
       (mockApi.post as jest.Mock).mockResolvedValueOnce(responseWithoutEmail);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2906,10 +2751,6 @@ describe('AuthContext', () => {
     it('deve tratar registerDeviceOnBackend falhando em background', async () => {
       (registerDeviceOnBackend as jest.Mock).mockRejectedValueOnce(new Error('Device error'));
       (mockApi.post as jest.Mock).mockResolvedValueOnce(mockApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2948,10 +2789,6 @@ describe('AuthContext', () => {
 
       mockDecodeJwtPayload.mockReturnValueOnce({ Email: 'google@jwt.com' });
       (mockApi.post as jest.Mock).mockResolvedValueOnce(responseWithoutEmail);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify({ ...mockUserData, email: 'google@jwt.com' }));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -2974,7 +2811,9 @@ describe('AuthContext', () => {
         headers: { 'content-type': 'application/json' },
       };
       (mockApi.post as jest.Mock).mockResolvedValueOnce(googleApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      // Override SecureStore to NOT persist data, so verification fails
+      (SecureStore.setItemAsync as jest.Mock).mockImplementation(() => Promise.resolve());
+      (SecureStore.getItemAsync as jest.Mock).mockImplementation(() => Promise.resolve(null));
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -3017,7 +2856,9 @@ describe('AuthContext', () => {
         status: 200,
         ...mockApiResponse,
       });
-      (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+      // Override SecureStore to NOT persist data, so verification fails
+      (SecureStore.setItemAsync as jest.Mock).mockImplementation(() => Promise.resolve());
+      (SecureStore.getItemAsync as jest.Mock).mockImplementation(() => Promise.resolve(null));
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -3107,10 +2948,6 @@ describe('AuthContext', () => {
 
       mockDecodeJwtPayload.mockReturnValueOnce({ Email: 'google-signup@jwt.com' });
       (mockApi.post as jest.Mock).mockResolvedValueOnce(responseWithoutEmail);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify({ userId: 'user-gs', token: 'google-jwt' }));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -3180,10 +3017,6 @@ describe('AuthContext', () => {
       };
 
       (mockApi.post as jest.Mock).mockResolvedValueOnce(appleApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -3240,10 +3073,6 @@ describe('AuthContext', () => {
         headers: { 'content-type': 'application/json' },
       };
       (mockApi.post as jest.Mock).mockResolvedValueOnce(appleApiResponse);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
 
       const { result } = renderHook(() => useAuthContext(), { wrapper });
 
@@ -3418,10 +3247,7 @@ describe('AuthContext', () => {
   describe('deleteAccount - branches adicionais', () => {
     it('deve continuar deletando conta quando OneSignal falha', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
       (mockApi.delete as jest.Mock).mockResolvedValueOnce({});
       (OneSignal.logout as jest.Mock).mockImplementation(() => {
         throw new Error('OneSignal error');
@@ -3446,10 +3272,7 @@ describe('AuthContext', () => {
 
     it('deve tratar erro sem response e sem request ao deletar conta', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error = new Error('Unknown delete error');
       (mockApi.delete as jest.Mock).mockRejectedValueOnce(error);
@@ -3479,10 +3302,7 @@ describe('AuthContext', () => {
   describe('getUserInfo - branches adicionais', () => {
     it('deve silenciar erro 404 no getUserInfo', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       const error = new Error('404');
       (mockApi.get as jest.Mock).mockRejectedValueOnce(error);
@@ -3507,10 +3327,7 @@ describe('AuthContext', () => {
 
     it('deve tratar erro nao-Error no getUserInfo', async () => {
       mockValidateStoredToken.mockResolvedValue(true);
-      (AsyncStorage.getItem as jest.Mock).mockImplementation((key: string) => {
-        if (key === '@app:user') return Promise.resolve(JSON.stringify(mockUserData));
-        return Promise.resolve(null);
-      });
+      secureStoreData[USER_STORAGE] = JSON.stringify(mockUserData);
 
       // Simulate non-Error thrown
       (mockApi.get as jest.Mock).mockRejectedValueOnce({ message: undefined });

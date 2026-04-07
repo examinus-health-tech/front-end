@@ -1,6 +1,7 @@
 import { createContext, useState, useEffect, useMemo, useCallback, useRef, type ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
+import { USER_STORAGE } from '@storage/storageConfig';
 import { AppState, AppStateStatus } from 'react-native';
 import { api } from 'src/services/api';
 import { validateStoredToken, validateTokenWithBackend } from '@utils/tokenValidation';
@@ -85,7 +86,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // Limpar dados do usuário do SecureStore
-      await SecureStore.deleteItemAsync('@app:user');
+      await SecureStore.deleteItemAsync(USER_STORAGE);
 
       // Limpar TODOS os outros dados armazenados do usuário
       await AsyncStorage.multiRemove([
@@ -230,7 +231,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         logger.auth('Token validation result', { isValidToken });
 
         if (isValidToken) {
-          const storedUser = await SecureStore.getItemAsync('@app:user');
+          const storedUser = await SecureStore.getItemAsync(USER_STORAGE);
           if (storedUser) {
             try {
               const userData = JSON.parse(storedUser);
@@ -241,7 +242,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
               setUser(userData);
             } catch (parseError) {
               logger.error('Error parsing user data from storage', parseError);
-              await SecureStore.deleteItemAsync('@app:user');
+              await SecureStore.deleteItemAsync(USER_STORAGE);
               setUser(null);
             }
           } else {
@@ -335,10 +336,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (__DEV__) console.log('✅ [AUTH] User data formatado (token omitido)');
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await SecureStore.getItemAsync('@app:user');
+      const verifyData = await SecureStore.getItemAsync(USER_STORAGE);
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
@@ -465,10 +466,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await SecureStore.getItemAsync('@app:user');
+      const verifyData = await SecureStore.getItemAsync(USER_STORAGE);
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
@@ -569,10 +570,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await SecureStore.getItemAsync('@app:user');
+      const verifyData = await SecureStore.getItemAsync(USER_STORAGE);
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
@@ -707,10 +708,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos (login Google)');
 
         // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-        await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
+        await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(formattedUserData));
 
         // Verificar se os dados foram persistidos corretamente
-        const verifyData = await SecureStore.getItemAsync('@app:user');
+        const verifyData = await SecureStore.getItemAsync(USER_STORAGE);
         if (!verifyData) {
           throw new Error('Falha ao persistir dados do usuário');
         }
@@ -890,10 +891,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       };
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await SecureStore.getItemAsync('@app:user');
+      const verifyData = await SecureStore.getItemAsync(USER_STORAGE);
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
@@ -1035,10 +1036,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos (cadastro Apple)');
 
       // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
-      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(formattedUserData));
 
       // Verificar se os dados foram persistidos corretamente
-      const verifyData = await SecureStore.getItemAsync('@app:user');
+      const verifyData = await SecureStore.getItemAsync(USER_STORAGE);
       if (!verifyData) {
         throw new Error('Falha ao persistir dados do usuário');
       }
@@ -1219,7 +1220,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos');
 
       // Salvar dados do usuário e fazer login automático
-      await SecureStore.setItemAsync('@app:user', JSON.stringify(formattedUserData));
+      await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(formattedUserData));
       setUser(formattedUserData);
 
       if (__DEV__) console.log('✅ Login automático realizado após cadastro');
@@ -1476,7 +1477,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       // Limpar dados do usuário do SecureStore
-      await SecureStore.deleteItemAsync('@app:user');
+      await SecureStore.deleteItemAsync(USER_STORAGE);
 
       // Limpar TODOS os outros dados armazenados do usuário (igual ao signOut)
       if (__DEV__) console.log('🧹 Limpando todos os dados locais...');
@@ -1553,7 +1554,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Persistir no SecureStore
     try {
-      await SecureStore.setItemAsync('@app:user', JSON.stringify(updatedUser));
+      await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(updatedUser));
       if (__DEV__) console.log('📸 [AUTH] Foto de perfil atualizada no contexto e persistida');
     } catch (error) {
       if (__DEV__) console.error('❌ [AUTH] Erro ao persistir foto de perfil:', error);

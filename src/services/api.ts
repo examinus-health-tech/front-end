@@ -1,6 +1,7 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { AppError } from '@utils/AppErrors';
 import { storageAuthToken, storageAuthTokenGet } from '@storage/storageAuthToken';
+import { USER_STORAGE } from '@storage/storageConfig';
 import * as SecureStore from 'expo-secure-store';
 
 type APIInstanceProps = AxiosInstance & {
@@ -44,7 +45,7 @@ api.interceptors.request.use(
   async (config) => {
     try {
       let userDataParsed;
-      const userData = await SecureStore.getItemAsync('@app:user');
+      const userData = await SecureStore.getItemAsync(USER_STORAGE);
 
       if (userData) {
         userDataParsed = JSON.parse(userData);
@@ -153,7 +154,7 @@ api.registerInterceptTokenManager = (signOut) => {
 
       if (requestError.response?.status === 401 && !isAuthRoute) {
         try {
-          await SecureStore.deleteItemAsync('@app:user');
+          await SecureStore.deleteItemAsync(USER_STORAGE);
         } catch (error) {
           // Silent fail
         }

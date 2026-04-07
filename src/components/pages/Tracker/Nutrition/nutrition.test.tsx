@@ -182,6 +182,11 @@ describe('Nutrition', () => {
     mockSetCaloriesGoal.mockResolvedValue(undefined);
   });
 
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
   it('renders the header with "Nutrição" title', () => {
     const { getByText } = render(<Nutrition />);
     expect(getByText('Nutrição')).toBeTruthy();

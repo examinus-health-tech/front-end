@@ -1,0 +1,118 @@
+appId: com.examinus.app
+name: "Medicamentos - Timeline e CRUD"
+tags:
+  - authenticated
+---
+# Pré-requisito: usuário logado e na homepage
+- runFlow: ../utils/wait_for_home.yaml
+
+# === Navegar para Medicamentos via Homepage ===
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+- takeScreenshot: "30_medication_timeline"
+
+# === Adicionar medicamento ===
+- scrollUntilVisible:
+    element:
+      id: "btn-add-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "btn-add-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-form"
+    timeout: 10000
+
+# Preencher formulário
+- tapOn:
+    id: "input-medication-name"
+- inputText: "Paracetamol E2E"
+
+- tapOn:
+    id: "input-medication-dosage"
+- inputText: "750mg"
+
+- takeScreenshot: "30_medication_form"
+
+# Salvar
+- scrollUntilVisible:
+    element:
+      id: "btn-save-medication"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "btn-save-medication"
+
+# Verificar volta para timeline
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 15000
+
+- takeScreenshot: "30_medication_after_add"
+
+# === Verificar checklist ===
+- assertVisible: "Paracetamol E2E"
+
+# === Navegar para detalhes ===
+- tapOn: "Paracetamol E2E"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-detail"
+    timeout: 10000
+
+- assertVisible: "750mg"
+- assertVisible: "Detalhes"
+
+- takeScreenshot: "30_medication_detail"
+
+# === Desativar medicamento ===
+- scrollUntilVisible:
+    element:
+      id: "btn-deactivate-medication"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "btn-deactivate-medication"
+
+# Confirmar no modal
+- extendedWaitUntil:
+    visible: "Desativar medicamento"
+    timeout: 5000
+
+- tapOn: "Desativar"
+
+# Deve voltar para timeline
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+- takeScreenshot: "30_medication_after_delete"
+
+# === Voltar para home ===
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

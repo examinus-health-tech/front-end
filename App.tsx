@@ -48,6 +48,7 @@ import { Splash } from '@components/pages/Splash/splash';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ExamContextProvider } from '@contexts/ExamContext';
+import { MedicationContextProvider } from '@contexts/MedicationContext';
 import ErrorBoundary from '@components/ErrorBoundary';
 
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
@@ -297,7 +298,9 @@ export default function App() {
                 <GestureHandlerRootView>
                   <BottomSheetModalProvider>
                     <HomeContextProvider>
-                      {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
+                      <MedicationContextProvider>
+                        {additionalFontsLoaded && splashVideoFinish ? <Routes /> : <Splash />}
+                      </MedicationContextProvider>
                     </HomeContextProvider>
                   </BottomSheetModalProvider>
                 </GestureHandlerRootView>

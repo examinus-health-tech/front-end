@@ -40,12 +40,23 @@ async function loadHealthKitModule(): Promise<boolean> {
   }
 
   try {
+    // Suprimir temporariamente console.error durante a importação
+    // pois NitroModules emite erros no simulador que disparam o LogBox
+    const originalError = console.error;
+    console.error = (...args: any[]) => {
+      const msg = typeof args[0] === 'string' ? args[0] : '';
+      if (msg.includes('NitroModulesProxy') || msg.includes('HybridObject')) return;
+      originalError(...args);
+    };
+
     const module = await import('@kingstinct/react-native-healthkit');
+    console.error = originalError;
+
     HealthKitModule = module;
     if (__DEV__) console.log('[HealthKit] Módulo carregado com sucesso');
     return true;
   } catch (error) {
-    if (__DEV__) console.error('[HealthKit] Erro ao carregar módulo:', error);
+    if (__DEV__) console.log('[HealthKit] Módulo nativo não disponível');
     return false;
   }
 }
@@ -65,11 +76,15 @@ export async function isHealthKitAvailable(): Promise<boolean> {
   }
 
   try {
+    if (typeof HealthKitModule.isHealthDataAvailable !== 'function') {
+      if (__DEV__) console.log('[HealthKit] Módulo nativo não disponível (simulador ou Nitro não inicializado)');
+      return false;
+    }
     const available = await HealthKitModule.isHealthDataAvailable();
     if (__DEV__) console.log('[HealthKit] isHealthDataAvailable:', available);
     return available;
   } catch (error) {
-    if (__DEV__) console.error('[HealthKit] Erro ao verificar disponibilidade:', error);
+    if (__DEV__) console.log('[HealthKit] Não disponível neste dispositivo');
     return false;
   }
 }
