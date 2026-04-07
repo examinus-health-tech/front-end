@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Examinus Health",
+    "name": "Examinus",
     "slug": "examinus",
     "scheme": "examinus",
     "updates": {
@@ -8,7 +8,7 @@
       "fallbackToCacheTimeout": 3000,
       "url": "https://u.expo.dev/29aa665e-a9a4-4a0b-9ead-a75ede66e041"
     },
-    "version": "1.4.1",
+    "version": "1.5.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -25,7 +25,7 @@
       "**/*"
     ],
     "ios": {
-      "buildNumber": "20",
+      "buildNumber": "21",
       "supportsTablet": true,
       "bundleIdentifier": "com.examinus.app",
       "jsEngine": "jsc",
@@ -73,7 +73,7 @@
     },
     "android": {
       "minSdkVersion": 26,
-      "versionCode": 20,
+      "versionCode": 21,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
