@@ -1,5 +1,5 @@
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Alert } from 'react-native';
 import { useAuth } from './useAuth';
 import { getGoogleClientId, getGoogleIOSClientId, isGoogleAuthConfigured } from '../config/googleAuth';
@@ -8,29 +8,24 @@ import { checkCampaignVoucher } from '@services/campaignService';
 export function useGoogleAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const { signInWithGoogle: authSignInWithGoogle, signUpWithGoogle: authSignUpWithGoogle } = useAuth();
+  const configured = useRef(false);
 
-  // Verificar se o Google Auth está configurado
   const isConfigured = isGoogleAuthConfigured();
   const clientId = getGoogleClientId();
   const iosClientId = getGoogleIOSClientId();
 
-  // Configurar GoogleSignin
-  if (isConfigured && clientId) {
-    console.log('🔧 Configurando GoogleSignin:', {
-      webClientId: clientId,
-      iosClientId: iosClientId,
-    });
-
-    GoogleSignin.configure({
-      webClientId: clientId,
-      iosClientId: iosClientId,
-      offlineAccess: false,
-      hostedDomain: '',
-      forceCodeForRefreshToken: false,
-    });
-
-    console.log('✅ GoogleSignin configurado com sucesso!');
-  }
+  useEffect(() => {
+    if (isConfigured && clientId && !configured.current) {
+      configured.current = true;
+      GoogleSignin.configure({
+        webClientId: clientId,
+        iosClientId: iosClientId,
+        offlineAccess: false,
+        hostedDomain: '',
+        forceCodeForRefreshToken: false,
+      });
+    }
+  }, [isConfigured, clientId, iosClientId]);
 
   async function handleGoogleAuth(isSignup: boolean = false) {
     try {
@@ -64,6 +59,11 @@ export function useGoogleAuth() {
 
       if (!userInfo.data?.idToken) {
         console.error('❌ Token não recebido do Google');
+        Alert.alert(
+          'Erro no Login',
+          'Não foi possível obter o token de autenticação do Google. Tente novamente.',
+          [{ text: 'OK' }]
+        );
         return;
       }
 

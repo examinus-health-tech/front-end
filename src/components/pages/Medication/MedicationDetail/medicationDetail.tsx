@@ -37,6 +37,11 @@ export function MedicationDetail() {
   const medicationId = route.params?.medicationId;
   const medication = medications.find(m => m.id === medicationId);
 
+  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [isDeactivating, setIsDeactivating] = useState(false);
+  const [deactivateError, setDeactivateError] = useState(false);
+  const [editingLog, setEditingLog] = useState<any>(null);
+
   useFocusEffect(
     useCallback(() => {
       StatusBar.setBarStyle('dark-content');
@@ -52,10 +57,6 @@ export function MedicationDetail() {
   }
 
   const recentLogs = todayLogs.filter(l => l.medicationId === medication.id);
-  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
-  const [isDeactivating, setIsDeactivating] = useState(false);
-  const [deactivateError, setDeactivateError] = useState(false);
-  const [editingLog, setEditingLog] = useState<typeof recentLogs[0] | null>(null);
 
   async function handleChangeStatus(log: typeof recentLogs[0], newStatus: MedicationLogStatus) {
     try {

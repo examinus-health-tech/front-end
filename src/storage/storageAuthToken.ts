@@ -9,21 +9,26 @@ type StorageAuthTokenProps = {
 
 export async function storageAuthToken({ token }: StorageAuthTokenProps) {
   await SecureStore.setItemAsync(AUTH_STORAGE, JSON.stringify({ token }));
-  // Limpar do AsyncStorage se existir (migração)
+  // Limpar do AsyncStorage (keys antiga e nova)
   await AsyncStorage.removeItem(AUTH_STORAGE).catch(() => {});
+  await AsyncStorage.removeItem('@examinus:auth-token').catch(() => {});
 }
 
 export async function storageAuthTokenGet() {
   try {
     let response = await SecureStore.getItemAsync(AUTH_STORAGE);
 
-    // Migração: se não encontrou no SecureStore, tentar AsyncStorage
+    // Migração: se não encontrou no SecureStore, tentar AsyncStorage (key nova e antiga)
     if (!response) {
       response = await AsyncStorage.getItem(AUTH_STORAGE);
+      if (!response) {
+        response = await AsyncStorage.getItem('@examinus:auth-token');
+      }
       if (response) {
         // Migrar para SecureStore
         await SecureStore.setItemAsync(AUTH_STORAGE, response);
         await AsyncStorage.removeItem(AUTH_STORAGE).catch(() => {});
+        await AsyncStorage.removeItem('@examinus:auth-token').catch(() => {});
       }
     }
 

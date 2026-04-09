@@ -55,6 +55,7 @@ import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { navigationRef } from './src/services/navigationService';
 import { linking } from './src/config/linking';
 import { api } from './src/services/api';
+import { setupNotificationChannel } from './src/services/medicationNotificationService';
 
 export default function App() {
   const [ready, setReady] = useState(false);
@@ -163,6 +164,13 @@ export default function App() {
     PoligonBold: require('@assets/fonts/Poligon-Bold.ttf'),
     PoligonMedium: require('@assets/fonts/Poligon-Medium.ttf'),
   });
+
+  // Inicializar canal de notificações de medicamentos
+  useEffect(() => {
+    setupNotificationChannel().catch((err) => {
+      if (__DEV__) console.warn('[App] Erro ao configurar canal de notificações:', err);
+    });
+  }, []);
 
   // Check for updates and handle app readiness
   useEffect(() => {

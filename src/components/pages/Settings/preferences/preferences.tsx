@@ -18,8 +18,7 @@ import { isFitnessEnabled, setFitnessEnabled } from '@services/fitnessService';
 // icons
 import { BarbellIcon, CompassTargetIcon } from '@assets/icons';
 
-// Toggle do fitness desabilitado no Android até novo build nativo com fix do Health Connect
-const DISABLE_FITNESS_TOGGLE = Platform.OS === 'android';
+const DISABLE_FITNESS_TOGGLE = false;
 
 export function Preferences() {
   const scrollRef = useRef<IScrollViewProps>(null);

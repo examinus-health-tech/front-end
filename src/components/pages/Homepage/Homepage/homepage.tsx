@@ -69,10 +69,7 @@ import { checkCampaignVoucher } from '@services/campaignService';
 import { incrementAppOpenCount, shouldShowReviewPromptOnOpen } from '@services/reviewService';
 import { ReviewBottomSheet } from '@components/molecules';
 
-// ⚠️ FLAG TEMPORÁRIA: Desabilita opção de habilitar fitness no Android
-// Motivo: Crash do Health Connect com New Architecture, aguardando build nativo
-// TODO: Remover após publicação do novo build na Play Store
-const DISABLE_FITNESS_FEATURE = Platform.OS === 'android';
+const DISABLE_FITNESS_FEATURE = false;
 
 // Função helper para determinar o texto baseado no score
 function getScoreText(score: number): string {

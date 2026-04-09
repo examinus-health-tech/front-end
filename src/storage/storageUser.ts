@@ -6,8 +6,9 @@ import { USER_STORAGE } from '@storage/storageConfig';
 
 export async function storageUserSave(user: UserDTO) {
   await SecureStore.setItemAsync(USER_STORAGE, JSON.stringify(user));
-  // Limpar do AsyncStorage se existir (migração)
+  // Limpar do AsyncStorage (keys antiga e nova)
   await AsyncStorage.removeItem(USER_STORAGE).catch(() => {});
+  await AsyncStorage.removeItem('@examinus:user').catch(() => {});
 }
 
 export async function storageUserRemove() {
@@ -19,13 +20,17 @@ export async function storageUserGet() {
   try {
     let storage = await SecureStore.getItemAsync(USER_STORAGE);
 
-    // Migração: se não encontrou no SecureStore, tentar AsyncStorage
+    // Migração: se não encontrou no SecureStore, tentar AsyncStorage (key nova e antiga)
     if (!storage) {
       storage = await AsyncStorage.getItem(USER_STORAGE);
+      if (!storage) {
+        storage = await AsyncStorage.getItem('@examinus:user');
+      }
       if (storage) {
         // Migrar para SecureStore
         await SecureStore.setItemAsync(USER_STORAGE, storage);
         await AsyncStorage.removeItem(USER_STORAGE).catch(() => {});
+        await AsyncStorage.removeItem('@examinus:user').catch(() => {});
       }
     }
 

@@ -545,7 +545,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       // Limpar dados de onboarding de outro usuário ANTES de setar o novo usuário
       if (__DEV__) console.log('🧹 [AUTH] Limpando dados locais de outro usuário antes do login Google...');
-      await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
+      await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData', '@app:onboarding_completed']);
       if (__DEV__) console.log('✅ [AUTH] Dados de onboarding locais removidos no login Google');
 
       // ⚠️ TEMPORÁRIO: Extrair email do token JWT se não vier do backend
@@ -704,7 +704,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         };
 
         // Limpar dados de onboarding de outro usuário
-        await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData']);
+        await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData', '@app:onboarding_completed']);
         if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos (login Google)');
 
         // CORREÇÃO: Garantir que o token esteja persistido ANTES de qualquer navegação
@@ -741,8 +741,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         if (__DEV__) console.log('✅ [AUTH] Novo usuário Google cadastrado com sucesso');
 
         // Limpar dados de onboarding antigos
-        await AsyncStorage.removeItem('@app:personalData');
-        await AsyncStorage.removeItem('@app:onboardingData');
+        await AsyncStorage.multiRemove(['@app:personalData', '@app:onboardingData', '@app:onboarding_completed']);
         if (__DEV__) console.log('🧹 Dados de onboarding antigos removidos (cadastro Google novo)');
 
         // Redirecionar para onboarding ou home (o hook vai detectar que não tem dados completos)
