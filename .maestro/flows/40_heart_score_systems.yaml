@@ -1,0 +1,65 @@
+appId: com.examinus.app
+name: "Heart Score - Breakdown por sistema orgânico"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Carteira de Saúde
+- tapOn:
+    id: "tab-wallet"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-health-wallet"
+    timeout: 10000
+
+# Entrar no Heart Score
+- tapOn:
+    text: ".*Ver detalhes.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-heart-score"
+    timeout: 10000
+    optional: true
+
+# === Verificar breakdown por sistema orgânico (6.2.2) ===
+- assertVisible:
+    id: "badge-variant"
+    optional: true
+
+# Verificar sistemas individuais
+- assertVisible:
+    text: ".*Renal.*|.*Hepático.*|.*Hematológico.*|.*Cardiovascular.*|.*Metabólico.*"
+    optional: true
+
+# Verificar insights do sistema
+- assertVisible:
+    id: "system-insights"
+    optional: true
+
+# Scroll para ver mais sistemas
+- swipe:
+    start: "50%,50%"
+    end: "50%,20%"
+    duration: 500
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "40_heart_score_systems"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

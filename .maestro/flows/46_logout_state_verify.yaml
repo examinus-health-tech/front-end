@@ -1,0 +1,56 @@
+appId: com.examinus.app
+name: "Logout - Estado após deslogar e reabrir"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Fazer logout
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- scrollUntilVisible:
+    element:
+      id: "card-logout"
+    direction: DOWN
+    timeout: 20000
+
+- tapOn:
+    id: "card-logout"
+
+- extendedWaitUntil:
+    visible: "Sair da Conta"
+    timeout: 5000
+
+- tapOn:
+    id: "btn-confirm-logout"
+
+# Verificar que voltou para welcome
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 15000
+
+# === Reabrir o app e verificar estado (1.7.2) ===
+- launchApp:
+    stopApp: false
+
+# Deve exibir tela de welcome/login, NÃO a homepage
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 20000
+
+# Confirmar que homepage NÃO está visível
+- assertNotVisible:
+    id: "screen-homepage"
+
+- takeScreenshot: "46_logout_state_verify"
+
+# Re-login para não quebrar próximos testes
+- runFlow: ../utils/login.yaml

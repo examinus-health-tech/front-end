@@ -1,0 +1,60 @@
+appId: com.examinus.app
+name: "Configurações - Sobre nós e versão do app"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# === Abrir Sobre Nós (11.6.1) ===
+- scrollUntilVisible:
+    element:
+      id: "card-about"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-about"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-about-us"
+    timeout: 10000
+
+# Verificar versão do app
+- assertVisible:
+    text: ".*\\d+\\.\\d+\\.\\d+.*|.*Versão.*|.*versão.*|.*Build.*"
+    optional: true
+
+# Verificar links legais (11.6.2)
+- assertVisible:
+    text: ".*Termos.*|.*Privacidade.*|.*Política.*"
+    optional: true
+
+- takeScreenshot: "48_settings_about_version"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

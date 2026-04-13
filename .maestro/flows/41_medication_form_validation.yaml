@@ -1,0 +1,72 @@
+appId: com.examinus.app
+name: "Medicamentos - Validação de campos obrigatórios"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Medicamentos
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Abrir formulário de novo medicamento
+- scrollUntilVisible:
+    element:
+      id: "btn-add-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "btn-add-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-form"
+    timeout: 10000
+
+# === Tentar salvar sem preencher nada (7.2.10) ===
+- scrollUntilVisible:
+    element:
+      id: "btn-save-medication"
+    direction: DOWN
+    timeout: 5000
+
+- tapOn:
+    id: "btn-save-medication"
+
+# Deve permanecer no formulário (validação impediu)
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- assertVisible:
+    id: "screen-medication-form"
+
+- takeScreenshot: "41_medication_form_validation"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

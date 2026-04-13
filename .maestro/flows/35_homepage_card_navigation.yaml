@@ -1,0 +1,67 @@
+appId: com.examinus.app
+name: "Homepage - Navegação pelos cards de feature"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# === Card Medicamentos → Timeline ===
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+
+# === Tab Exames → Lista de exames ===
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+
+# === Tab Carteira → Health Wallet ===
+- tapOn:
+    id: "tab-wallet"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-health-wallet"
+    timeout: 10000
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+
+- takeScreenshot: "35_homepage_card_navigation"

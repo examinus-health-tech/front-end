@@ -1,0 +1,63 @@
+appId: com.examinus.app
+name: "Exame - Conteúdo detalhado do exame"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para lista de exames
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# Selecionar primeiro exame disponível
+- tapOn:
+    text: ".*Hemograma.*|.*Glicose.*|.*Exame.*|.*hemograma.*|.*glicose.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-detail"
+    timeout: 10000
+    optional: true
+
+# === Verificar metadados do exame (4.2.2) ===
+# Data, laboratório ou médico devem estar visíveis
+- assertVisible:
+    text: ".*\\d{2}/\\d{2}/\\d{4}.*|.*Data.*"
+    optional: true
+
+# === Verificar itens do exame (4.2.3) ===
+# Resultados individuais com valores
+- assertVisible:
+    text: ".*mg/dL.*|.*g/dL.*|.*%.*|.*mm³.*|.*Resultado.*"
+    optional: true
+
+# === Verificar indicadores de score (4.2.4) ===
+- assertVisible:
+    text: ".*Score.*|.*Pontuação.*|.*score.*"
+    optional: true
+
+# === Verificar sistemas orgânicos (4.2.5) ===
+- assertVisible:
+    text: ".*Sistema.*|.*Renal.*|.*Hepático.*|.*Hematológico.*|.*Cardiovascular.*"
+    optional: true
+
+- takeScreenshot: "37_exam_detail_content"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

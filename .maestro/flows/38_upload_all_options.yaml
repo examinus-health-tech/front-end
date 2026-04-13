@@ -1,0 +1,51 @@
+appId: com.examinus.app
+name: "Upload - Todas as opções disponíveis"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Abrir bottom sheet de upload via tab central
+- tapOn:
+    id: "tab-upload"
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# === Verificar todas as opções de upload (5.1.1) ===
+
+# Opção PDF
+- assertVisible:
+    id: "btn-upload-pdf"
+
+# Opção Imagem
+- assertVisible:
+    id: "btn-upload-image"
+
+# Opção Câmera (pode ser camera-trigger)
+- assertVisible:
+    id: "camera-trigger"
+    optional: true
+
+# Container de upload type
+- assertVisible:
+    id: "upload-type"
+    optional: true
+
+- takeScreenshot: "38_upload_all_options"
+
+# Fechar bottom sheet (tap fora)
+- tapOn:
+    point: "50%,10%"
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

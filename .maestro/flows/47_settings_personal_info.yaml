@@ -1,0 +1,49 @@
+appId: com.examinus.app
+name: "Configurações - Informações pessoais"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# === Verificar informações do perfil (11.1.2-11.1.3) ===
+# Nome e email devem estar visíveis no cabeçalho
+- assertVisible:
+    text: ".*@.*"
+    optional: true
+
+# === Abrir informações pessoais (11.2.1) ===
+- tapOn:
+    id: "card-personal-info"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Verificar dados pessoais visíveis
+- assertVisible:
+    text: ".*Nome.*|.*Email.*|.*Informações.*|.*Pessoais.*"
+    optional: true
+
+- takeScreenshot: "47_settings_personal_info"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

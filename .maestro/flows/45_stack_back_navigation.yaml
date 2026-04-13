@@ -1,0 +1,98 @@
+appId: com.examinus.app
+name: "Navegação - Botão voltar em telas de pilha"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# === Teste 1: Settings > Security > Back (12.2.1) ===
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- tapOn:
+    id: "card-security"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-security"
+    timeout: 10000
+
+# Voltar (btn-back ou back nativo do React Navigation)
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    point: "8%,7%"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# === Teste 2: Settings > About > Back ===
+- scrollUntilVisible:
+    element:
+      id: "card-about"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-about"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-about-us"
+    timeout: 10000
+
+# Voltar (btn-back ou back nativo)
+- tapOn:
+    id: "btn-back"
+    optional: true
+- tapOn:
+    point: "8%,7%"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# === Teste 3: Settings > Preferences > Back ===
+- tapOn:
+    id: "card-preferences"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-preferences"
+    timeout: 10000
+
+# Voltar (btn-back ou back nativo)
+- tapOn:
+    id: "btn-back"
+    optional: true
+- tapOn:
+    point: "8%,7%"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- takeScreenshot: "45_stack_back_navigation"
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

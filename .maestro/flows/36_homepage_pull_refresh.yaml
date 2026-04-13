@@ -1,0 +1,38 @@
+appId: com.examinus.app
+name: "Homepage - Pull to refresh"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Verificar que homepage carregou
+- assertVisible:
+    id: "screen-homepage"
+
+# Verificar saudação personalizada
+- assertVisible:
+    text: ".*Olá.*"
+
+# Pull to refresh (swipe para baixo na homepage)
+- swipe:
+    start: "50%,30%"
+    end: "50%,80%"
+    duration: 1000
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Verificar que homepage ainda está visível após refresh
+- assertVisible:
+    id: "screen-homepage"
+
+# Verificar que o refresh control existe
+- assertVisible:
+    id: "refresh-control"
+    optional: true
+
+# Verificar que os dados carregaram novamente
+- assertVisible:
+    text: ".*Olá.*"
+
+- takeScreenshot: "36_homepage_pull_refresh"

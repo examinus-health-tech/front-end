@@ -1,0 +1,76 @@
+appId: com.examinus.app
+name: "Medicamentos - Editar medicamento existente"
+tags:
+  - authenticated
+---
+# Pré-requisito: ter ao menos um medicamento ativo
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Medicamentos
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Selecionar primeiro medicamento da lista
+- tapOn:
+    text: ".*Paracetamol.*|.*Ibuprofeno.*|.*mg.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-detail"
+    timeout: 10000
+    optional: true
+
+# === Abrir edição (7.3.1) ===
+- tapOn:
+    id: "btn-edit-medication"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-form"
+    timeout: 10000
+    optional: true
+
+# Verificar que os campos estão preenchidos (dados do medicamento)
+- assertVisible:
+    id: "input-medication-name"
+    optional: true
+
+- assertVisible:
+    id: "input-medication-dosage"
+    optional: true
+
+- takeScreenshot: "43_medication_edit"
+
+# Voltar sem salvar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

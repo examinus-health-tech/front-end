@@ -1,0 +1,54 @@
+appId: com.examinus.app
+name: "Configurações - Fale Conosco"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# === Abrir Fale Conosco (11.7.1) ===
+- scrollUntilVisible:
+    element:
+      id: "card-contact"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-contact"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-contact-us"
+    timeout: 10000
+
+# Verificar que a tela carregou
+- assertVisible:
+    id: "screen-contact-us"
+
+- takeScreenshot: "50_settings_contact_form"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

@@ -447,7 +447,7 @@ export function Homepage() {
                   </Text>
                 </VStack>
 
-                <TouchableOpacity onPress={() => navigation.navigate('notifications')}>
+                <TouchableOpacity testID="btn-notifications" onPress={() => navigation.navigate('notifications')}>
                   <Box w={14} h={14} bg={'white'} borderRadius={14} alignItems={'center'} justifyContent={'center'}>
                     {unreadCount > 0 && (
                       <Box

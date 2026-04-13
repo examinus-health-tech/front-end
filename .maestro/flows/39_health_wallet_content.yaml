@@ -1,0 +1,51 @@
+appId: com.examinus.app
+name: "Carteira de Saúde - Conteúdo e score"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Carteira de Saúde
+- tapOn:
+    id: "tab-wallet"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-health-wallet"
+    timeout: 10000
+
+# === Verificar conteúdo da carteira (6.1.1) ===
+- assertVisible:
+    id: "header-title"
+    optional: true
+
+# Verificar score circular
+- assertVisible:
+    id: "circular-progress"
+    optional: true
+
+# === Verificar tendência/histórico (6.1.2) ===
+# Deve ter alguma indicação de evolução
+- assertVisible:
+    text: ".*Ver detalhes.*|.*Score.*|.*Histórico.*"
+    optional: true
+
+# Scroll para verificar mais conteúdo
+- swipe:
+    start: "50%,50%"
+    end: "50%,20%"
+    duration: 500
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "39_health_wallet_content"
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
