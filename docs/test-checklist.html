@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Examinus — Checklist de Testes Manuais</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --green: #3fb950;
+    --green-bg: rgba(63,185,80,.12);
+    --yellow: #d29922;
+    --yellow-bg: rgba(210,153,34,.12);
+    --red: #f85149;
+    --red-bg: rgba(248,81,73,.12);
+    --blue: #58a6ff;
+    --blue-bg: rgba(88,166,255,.12);
+    --purple: #bc8cff;
+    --ios: #007aff;
+    --android: #3ddc84;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); line-height: 1.5; }
+
+  .top-bar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 12px 24px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  .top-bar h1 { font-size: 18px; font-weight: 600; white-space: nowrap; }
+  .top-bar .logo { font-size: 24px; }
+
+  .progress-wrap {
+    flex: 1; min-width: 200px; display: flex; align-items: center; gap: 10px;
+  }
+  .progress-bar {
+    flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;
+  }
+  .progress-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width .3s; }
+  .progress-text { font-size: 13px; color: var(--text2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  .platform-toggle {
+    display: flex; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden;
+  }
+  .platform-toggle button {
+    background: transparent; border: none; color: var(--text2); padding: 6px 14px;
+    font-size: 13px; font-weight: 500; cursor: pointer; transition: all .2s;
+  }
+  .platform-toggle button.active { background: var(--blue-bg); color: var(--blue); }
+  .platform-toggle button:not(:last-child) { border-right: 1px solid var(--border); }
+
+  .actions { display: flex; gap: 8px; }
+  .actions button {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text2);
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all .2s;
+  }
+  .actions button:hover { color: var(--text); border-color: var(--text2); }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px 24px 80px; }
+
+  .section {
+    margin-bottom: 28px; border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden; background: var(--surface);
+  }
+  .section-header {
+    padding: 14px 18px; background: var(--surface2); cursor: pointer;
+    display: flex; align-items: center; justify-content: space-between;
+    user-select: none; border-bottom: 1px solid var(--border);
+  }
+  .section-header:hover { background: #1f2940; }
+  .section-header h2 { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .section-header .badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
+  }
+  .badge-done { background: var(--green-bg); color: var(--green); }
+  .badge-partial { background: var(--yellow-bg); color: var(--yellow); }
+  .badge-pending { background: var(--red-bg); color: var(--red); }
+  .section-header .chevron { transition: transform .2s; color: var(--text2); }
+  .section-header.collapsed .chevron { transform: rotate(-90deg); }
+
+  .section-body { padding: 0; }
+  .section-body.hidden { display: none; }
+
+  .test-row {
+    display: grid;
+    grid-template-columns: 44px 60px 1fr 1fr 80px 80px;
+    align-items: center;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    transition: background .15s;
+  }
+  .test-row:last-child { border-bottom: none; }
+  .test-row:hover { background: rgba(255,255,255,.02); }
+
+  .test-row .id { color: var(--text2); font-variant-numeric: tabular-nums; font-size: 12px; }
+  .test-row .scenario { font-weight: 500; }
+  .test-row .expected { color: var(--text2); font-size: 12px; }
+
+  .check-cell {
+    display: flex; align-items: center; justify-content: center;
+  }
+  .check-cell input[type="checkbox"] {
+    width: 18px; height: 18px; cursor: pointer; accent-color: var(--green);
+    border-radius: 3px;
+  }
+  .check-cell.ios input[type="checkbox"] { accent-color: var(--ios); }
+  .check-cell.android input[type="checkbox"] { accent-color: var(--android); }
+
+  .col-header {
+    display: grid;
+    grid-template-columns: 44px 60px 1fr 1fr 80px 80px;
+    padding: 8px 18px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px;
+    color: var(--text2); background: rgba(0,0,0,.2);
+    border-bottom: 1px solid var(--border);
+  }
+  .col-header .ios-label { color: var(--ios); text-align: center; }
+  .col-header .android-label { color: var(--android); text-align: center; }
+
+  .subsection-title {
+    padding: 10px 18px; font-size: 13px; font-weight: 600;
+    color: var(--purple); background: rgba(188,140,255,.06);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .summary-bar {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--surface); border-top: 1px solid var(--border);
+    padding: 10px 24px; display: flex; justify-content: center; gap: 32px;
+    font-size: 13px; z-index: 100;
+  }
+  .summary-bar .stat { display: flex; align-items: center; gap: 6px; }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  .filter-row {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .filter-row label { font-size: 12px; color: var(--text2); display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .filter-row input[type="checkbox"] { accent-color: var(--blue); }
+
+  @media (max-width: 768px) {
+    .test-row { grid-template-columns: 36px 50px 1fr 80px 80px; font-size: 12px; }
+    .test-row .expected { display: none; }
+    .col-header { grid-template-columns: 36px 50px 1fr 80px 80px; }
+    .col-header .exp-label { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <h1>Examinus — Testes Manuais</h1>
+  <div class="progress-wrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <span class="progress-text" id="progressText">0 / 0</span>
+  </div>
+  <div class="filter-row">
+    <label><input type="checkbox" id="filterPending" checked> Pendentes</label>
+    <label><input type="checkbox" id="filterDone" checked> Concluidos</label>
+  </div>
+  <div class="actions">
+    <button onclick="resetAll()" title="Limpar tudo">Resetar</button>
+    <button onclick="exportResults()" title="Exportar resultados">Exportar</button>
+  </div>
+</div>
+
+<div class="container" id="app"></div>
+
+<div class="summary-bar">
+  <div class="stat"><span class="stat-dot" style="background:var(--ios)"></span> iOS: <strong id="iosCount">0/0</strong></div>
+  <div class="stat"><span class="stat-dot" style="background:var(--android)"></span> Android: <strong id="androidCount">0/0</strong></div>
+  <div class="stat"><span class="stat-dot" style="background:var(--green)"></span> Ambos OK: <strong id="bothCount">0/0</strong></div>
+</div>
+
+<script>
+const DATA = [
+  {
+    id: "1", title: "Autenticacao", icon: "🔐",
+    subs: [
+      { title: "Tela de Boas-Vindas", tests: [
+        { id: "1.1.1", name: "Exibicao da splash screen", expected: "Splash aparece e transiciona para boas-vindas" },
+        { id: "1.1.2", name: "Carrossel de onboarding (3 telas)", expected: "Telas Simplify, Health, StayCalm em sequencia" },
+        { id: "1.1.3", name: "Botao Iniciar", expected: "Navega para tela de login" },
+      ]},
+      { title: "Login com Email/Senha", tests: [
+        { id: "1.2.1", name: "Login com credenciais validas", expected: "Login ok, navega para Homepage" },
+        { id: "1.2.2", name: "Login com email invalido", expected: "Erro de validacao no campo email" },
+        { id: "1.2.3", name: "Login com senha incorreta", expected: "Erro 'Credenciais invalidas'" },
+        { id: "1.2.4", name: "Login com campos vazios", expected: "Validacao nos campos obrigatorios" },
+        { id: "1.2.5", name: "Toggle visibilidade da senha", expected: "Alterna exibir/ocultar senha" },
+        { id: "1.2.6", name: "Persistencia de sessao (fechar e reabrir)", expected: "Usuario permanece logado" },
+      ]},
+      { title: "Login Social", tests: [
+        { id: "1.3.1", name: "Login com Google", expected: "Autentica via Google, redireciona logado" },
+        { id: "1.3.2", name: "Login com Apple (iOS only)", expected: "Autentica via Apple, redireciona logado", iosOnly: true },
+        { id: "1.3.3", name: "Cancelar login Google", expected: "Retorna ao login sem erros" },
+        { id: "1.3.4", name: "Cancelar login Apple", expected: "Retorna ao login sem erros", iosOnly: true },
+      ]},
+      { title: "Login Biometrico", tests: [
+        { id: "1.4.1", name: "Login com biometria (Face ID / Fingerprint)", expected: "Prompt biometrico, autenticacao ok" },
+        { id: "1.4.2", name: "Biometria falha — oferece alternativa", expected: "Opcao de digitar senha" },
+        { id: "1.4.3", name: "Biometria desativada no app", expected: "Tela de login normal aparece" },
+      ]},
+      { title: "Cadastro (Sign Up)", tests: [
+        { id: "1.5.1", name: "Cadastro com dados validos", expected: "Conta criada, navega para onboarding" },
+        { id: "1.5.2", name: "Cadastro com email ja existente", expected: "Erro 'Email ja em uso'" },
+        { id: "1.5.3", name: "Senha fraca (ex: 123)", expected: "Validacao de senha forte" },
+        { id: "1.5.4", name: "Senhas nao conferem", expected: "Erro 'Senhas nao conferem'" },
+        { id: "1.5.5", name: "Campos vazios", expected: "Validacao nos obrigatorios" },
+      ]},
+      { title: "Recuperacao de Senha", tests: [
+        { id: "1.6.1", name: "Solicitar recuperacao com email valido", expected: "Confirmacao de envio do codigo" },
+        { id: "1.6.2", name: "Email nao cadastrado", expected: "Erro ou aviso adequado" },
+        { id: "1.6.3", name: "Inserir codigo correto", expected: "Navega para tela de nova senha" },
+        { id: "1.6.4", name: "Inserir codigo incorreto", expected: "Erro 'Codigo invalido'" },
+        { id: "1.6.5", name: "Definir nova senha", expected: "Senha alterada, navega para login" },
+      ]},
+      { title: "Logout", tests: [
+        { id: "1.7.1", name: "Logout via Configuracoes > Sair", expected: "Sessao encerrada, vai para login" },
+        { id: "1.7.2", name: "Reabrir app apos logout", expected: "Exibe tela de login" },
+      ]},
+    ]
+  },
+  {
+    id: "2", title: "Onboarding (Primeiro Acesso)", icon: "👤",
+    subs: [
+      { title: "Fluxo de 8 Etapas", tests: [
+        { id: "2.1.1", name: "Selecao de genero", expected: "Opcao marcada, Proximo habilitado" },
+        { id: "2.1.2", name: "Inserir peso (kg)", expected: "Valor aceito, validacao de range" },
+        { id: "2.1.3", name: "Inserir altura (cm/m)", expected: "Conversao automatica funciona" },
+        { id: "2.1.4", name: "Inserir idade", expected: "Valor aceito (1-120)" },
+        { id: "2.1.5", name: "Nivel de atividade fisica", expected: "Opcao registrada" },
+        { id: "2.1.6", name: "Humor atual", expected: "Estado emocional registrado" },
+        { id: "2.1.7", name: "Habitos de vida", expected: "Opcoes marcadas" },
+        { id: "2.1.8", name: "Upload de exame inicial", expected: "Arquivo enviado e processado" },
+        { id: "2.1.9", name: "Pular upload de exame", expected: "Onboarding finalizado sem exame" },
+        { id: "2.1.10", name: "Botao Voltar preserva dados", expected: "Etapa anterior com dados preservados" },
+        { id: "2.1.11", name: "Barra de progresso atualiza", expected: "Indicador correto em cada etapa" },
+      ]},
+    ]
+  },
+  {
+    id: "3", title: "Homepage (Dashboard)", icon: "🏠",
+    subs: [
+      { title: "Dashboard", tests: [
+        { id: "3.1.1", name: "Carregamento inicial do dashboard", expected: "Cards e dados do usuario carregam" },
+        { id: "3.1.2", name: "Saudacao personalizada (bom dia/tarde/noite)", expected: "Nome + saudacao contextual" },
+        { id: "3.1.3", name: "Cards de resumo visiveis", expected: "Cards de exames, meds, fitness" },
+        { id: "3.1.4", name: "Pull to refresh", expected: "Dados atualizam, loading visivel" },
+        { id: "3.1.5", name: "Navegacao pelos cards de resumo", expected: "Cada card navega para tela correta" },
+        { id: "3.1.6", name: "Carrossel de noticias/dicas", expected: "Desliza com transicoes suaves" },
+        { id: "3.1.7", name: "Lembrete de medicamento na home", expected: "Card de lembrete quando ha med proximo" },
+      ]},
+    ]
+  },
+  {
+    id: "4", title: "Exames", icon: "🔬",
+    subs: [
+      { title: "Lista de Exames", tests: [
+        { id: "4.1.1", name: "Exibir lista ordenada por data", expected: "Lista carregada e ordenada" },
+        { id: "4.1.2", name: "Lista vazia (sem exames)", expected: "Mensagem + opcao de upload" },
+        { id: "4.1.3", name: "Busca/filtro de exames", expected: "Resultados filtrados corretamente" },
+        { id: "4.1.4", name: "Scroll com muitos exames", expected: "Scroll suave, sem travamento" },
+      ]},
+      { title: "Detalhe do Exame", tests: [
+        { id: "4.2.1", name: "Abrir detalhe de um exame", expected: "Todos os dados do exame exibidos" },
+        { id: "4.2.2", name: "Metadados (data, lab, medico)", expected: "Informacoes corretas" },
+        { id: "4.2.3", name: "Itens com valor e referencia", expected: "Nome, valor, referencia, cor" },
+        { id: "4.2.4", name: "Indicadores de cor (normal/atencao/alterado)", expected: "Verde, amarelo, vermelho corretos" },
+        { id: "4.2.5", name: "Breakdown por sistema organico", expected: "Scores por sistema exibidos" },
+        { id: "4.2.6", name: "Recomendacoes de saude", expected: "Sugestoes baseadas nos resultados" },
+      ]},
+      { title: "Exclusao", tests: [
+        { id: "4.3.1", name: "Deletar exame — pede confirmacao", expected: "Dialog de confirmacao aparece" },
+        { id: "4.3.2", name: "Confirmar exclusao", expected: "Exame removido, lista atualizada" },
+        { id: "4.3.3", name: "Cancelar exclusao", expected: "Exame permanece" },
+      ]},
+    ]
+  },
+  {
+    id: "5", title: "Upload de Exames", icon: "📤",
+    subs: [
+      { title: "Fluxo de Upload", tests: [
+        { id: "5.1.1", name: "Abrir bottom sheet de upload (aba central)", expected: "Opcoes de upload aparecem" },
+        { id: "5.1.2", name: "Upload de PDF", expected: "Arquivo enviado e processado" },
+        { id: "5.1.3", name: "Upload de imagem da galeria", expected: "Imagem enviada e processada" },
+        { id: "5.1.4", name: "Upload via camera", expected: "Foto capturada e enviada" },
+        { id: "5.1.5", name: "Entrada manual de dados", expected: "Formulario aparece" },
+        { id: "5.1.6", name: "Preencher entrada manual", expected: "Dados salvos, exame criado" },
+        { id: "5.1.7", name: "Arquivo invalido (nao e exame)", expected: "Erro apropriado" },
+        { id: "5.1.8", name: "Estados de progresso (loading/processando/sucesso)", expected: "Transicoes de estado corretas" },
+        { id: "5.1.9", name: "Score warning (resultado preocupante)", expected: "Alerta exibido ao usuario" },
+        { id: "5.1.10", name: "Cancelar upload em andamento", expected: "Upload interrompido, estado limpo" },
+      ]},
+    ]
+  },
+  {
+    id: "6", title: "Carteira de Saude", icon: "💳",
+    subs: [
+      { title: "Health Wallet", tests: [
+        { id: "6.1.1", name: "Exibir carteira com historico e scores", expected: "Dados carregados" },
+        { id: "6.1.2", name: "Graficos de tendencia de scores", expected: "Evolucao ao longo do tempo" },
+        { id: "6.1.3", name: "Breakdown por sistema organico", expected: "Score e historico por sistema" },
+        { id: "6.1.4", name: "Carteira vazia", expected: "Mensagem + sugestao de upload" },
+      ]},
+      { title: "Heart Score", tests: [
+        { id: "6.2.1", name: "Visualizar heart score cardiovascular", expected: "Score com detalhes" },
+        { id: "6.2.2", name: "Scores por sistema organico", expected: "Score individual e cor por sistema" },
+        { id: "6.2.3", name: "Analise detalhada de um sistema", expected: "Informacoes detalhadas" },
+      ]},
+    ]
+  },
+  {
+    id: "7", title: "Medicamentos", icon: "💊",
+    subs: [
+      { title: "Timeline", tests: [
+        { id: "7.1.1", name: "Exibir timeline de medicamentos ativos", expected: "Lista com horarios do dia" },
+        { id: "7.1.2", name: "Timeline vazia", expected: "Mensagem + botao adicionar" },
+        { id: "7.1.3", name: "Destaque do proximo horario", expected: "Card do proximo med destacado" },
+      ]},
+      { title: "Adicionar Medicamento", tests: [
+        { id: "7.2.1", name: "Preencher formulario completo", expected: "Campos aceitos e validados" },
+        { id: "7.2.2", name: "Selecao de forma (pilula, gotas, etc)", expected: "Icone correto por forma" },
+        { id: "7.2.3", name: "Frequencia diaria", expected: "Horarios habilitados" },
+        { id: "7.2.4", name: "Frequencia em dias especificos", expected: "Lembretes nos dias selecionados" },
+        { id: "7.2.5", name: "Frequencia por intervalo (a cada X horas)", expected: "Horarios auto-calculados" },
+        { id: "7.2.6", name: "Multiplos horarios por dia", expected: "Todos os horarios salvos" },
+        { id: "7.2.7", name: "Duracao e quantidade restante", expected: "Dados salvos" },
+        { id: "7.2.8", name: "Alerta de recarga configurado", expected: "Notificacao programada" },
+        { id: "7.2.9", name: "Salvar medicamento", expected: "Criado, aparece na timeline" },
+        { id: "7.2.10", name: "Validacao de campos obrigatorios", expected: "Mensagens de erro nos campos" },
+      ]},
+      { title: "Editar / Desativar", tests: [
+        { id: "7.3.1", name: "Abrir edicao com dados preenchidos", expected: "Formulario com dados atuais" },
+        { id: "7.3.2", name: "Alterar dados e salvar", expected: "Dados atualizados, notif reagendadas" },
+        { id: "7.3.3", name: "Desativar medicamento", expected: "Removido da timeline ativa" },
+      ]},
+      { title: "Registro de Dose", tests: [
+        { id: "7.4.1", name: "Marcar como tomado", expected: "Dose registrada com timestamp" },
+        { id: "7.4.2", name: "Pular dose", expected: "Dose registrada como pulada" },
+        { id: "7.4.3", name: "Dose perdida (horario passou)", expected: "Status muda para perdida" },
+        { id: "7.4.4", name: "Feedback visual apos registro", expected: "Card muda cor/icone" },
+      ]},
+      { title: "Aderencia", tests: [
+        { id: "7.5.1", name: "Porcentagem mensal de aderencia", expected: "% exibida corretamente" },
+        { id: "7.5.2", name: "Navegar entre meses", expected: "Breakdown tomado/pulado/perdido" },
+        { id: "7.5.3", name: "Aderencia 100%", expected: "Feedback positivo" },
+      ]},
+      { title: "Notificacoes de Medicamento", tests: [
+        { id: "7.6.1", name: "Receber lembrete no horario", expected: "Push notification no horario" },
+        { id: "7.6.2", name: "Multiplos lembretes (3 horarios)", expected: "3 notif distintas corretas" },
+        { id: "7.6.3", name: "Cancelar notif ao desativar med", expected: "Notif futuras canceladas" },
+      ]},
+    ]
+  },
+  {
+    id: "8", title: "Tracker / Fitness", icon: "🏃",
+    subs: [
+      { title: "Dashboard Fitness", tests: [
+        { id: "8.1.1", name: "Exibir cards de metricas", expected: "Passos, peso, calorias, etc visiveis" },
+        { id: "8.1.2", name: "Sync com HealthKit (iOS)", expected: "Dados importados e exibidos", iosOnly: true },
+        { id: "8.1.3", name: "Sync com Health Connect (Android)", expected: "Dados importados e exibidos", androidOnly: true },
+        { id: "8.1.4", name: "Sem permissao de saude", expected: "Funciona sem dados nativos, sem crash" },
+      ]},
+      { title: "Passos", tests: [
+        { id: "8.2.1", name: "Contagem do dia com progresso vs meta", expected: "Dados e barra corretos" },
+        { id: "8.2.2", name: "Editar meta de passos", expected: "Meta atualizada, progresso recalculado" },
+        { id: "8.2.3", name: "Historico de dias anteriores", expected: "Dados historicos exibidos" },
+      ]},
+      { title: "Peso", tests: [
+        { id: "8.3.1", name: "Registrar peso atual", expected: "Peso salvo com data" },
+        { id: "8.3.2", name: "Definir peso meta", expected: "Meta com progresso" },
+        { id: "8.3.3", name: "Grafico de evolucao", expected: "Tendencia ao longo do tempo" },
+      ]},
+      { title: "Calorias / Nutricao / Hidratacao / Sono", tests: [
+        { id: "8.4.1", name: "Visualizar calorias do dia", expected: "Consumidas/queimadas corretas" },
+        { id: "8.5.1", name: "Visualizar macros (proteina, carb, gordura)", expected: "Breakdown correto" },
+        { id: "8.6.1", name: "Registrar ingestao de agua", expected: "Quantidade registrada" },
+        { id: "8.6.2", name: "Meta de hidratacao vs consumo", expected: "Dados corretos" },
+        { id: "8.7.1", name: "Visualizar duracao e qualidade do sono", expected: "Dados exibidos" },
+        { id: "8.7.2", name: "Meta de sono vs dormido", expected: "Horas comparadas" },
+      ]},
+    ]
+  },
+  {
+    id: "9", title: "Saude Mental", icon: "🧠",
+    subs: [
+      { title: "Avaliacao DASS-21", tests: [
+        { id: "9.1.1", name: "Iniciar avaliacao (21 perguntas)", expected: "Formulario carregado" },
+        { id: "9.1.2", name: "Responder todas as perguntas (escala 0-3)", expected: "Selecoes registradas" },
+        { id: "9.1.3", name: "Navegacao entre perguntas (voltar/avancar)", expected: "Estado preservado" },
+        { id: "9.1.4", name: "Enviar incompleto", expected: "Erro indicando perguntas faltantes" },
+        { id: "9.1.5", name: "Enviar completo", expected: "Resultado calculado e exibido" },
+      ]},
+      { title: "Resultado", tests: [
+        { id: "9.2.1", name: "Scores: Depressao, Ansiedade, Estresse", expected: "3 scores exibidos" },
+        { id: "9.2.2", name: "Classificacao (Normal a Extremamente Severo)", expected: "Nivel correto por dominio" },
+        { id: "9.2.3", name: "Historico de avaliacoes anteriores", expected: "Lista com datas" },
+        { id: "9.2.4", name: "Recomendacoes baseadas no resultado", expected: "Sugestoes exibidas" },
+      ]},
+    ]
+  },
+  {
+    id: "10", title: "Notificacoes", icon: "🔔",
+    subs: [
+      { title: "Central de Notificacoes", tests: [
+        { id: "10.1.1", name: "Lista agrupada por periodo", expected: "Hoje, Ontem, Semana, Mes" },
+        { id: "10.1.2", name: "Lista vazia", expected: "Mensagem 'Nenhuma notificacao'" },
+        { id: "10.1.3", name: "Marcar como lida", expected: "Visual muda (lida)" },
+        { id: "10.1.4", name: "Deletar notificacao", expected: "Removida da lista" },
+        { id: "10.1.5", name: "Deep link de notificacao", expected: "Navega para tela correta" },
+      ]},
+      { title: "Push Notifications", tests: [
+        { id: "10.2.1", name: "Push com app em background", expected: "Notif aparece no sistema" },
+        { id: "10.2.2", name: "Push com app em foreground", expected: "Banner/toast no app" },
+        { id: "10.2.3", name: "Tocar na push — deep link", expected: "App abre na tela correta" },
+      ]},
+    ]
+  },
+  {
+    id: "11", title: "Configuracoes", icon: "⚙️",
+    subs: [
+      { title: "Menu Principal", tests: [
+        { id: "11.1.1", name: "Exibir menu de configuracoes", expected: "Opcoes visiveis" },
+        { id: "11.1.2", name: "Foto e nome do usuario", expected: "Dados corretos" },
+      ]},
+      { title: "Informacoes Pessoais", tests: [
+        { id: "11.2.1", name: "Visualizar dados pessoais", expected: "Nome, email, telefone" },
+        { id: "11.2.2", name: "Alterar foto de perfil", expected: "Nova foto enviada e exibida" },
+        { id: "11.2.3", name: "Editar informacoes", expected: "Dados atualizados" },
+      ]},
+      { title: "Seguranca", tests: [
+        { id: "11.3.1", name: "Alterar senha (atual + nova)", expected: "Senha alterada com sucesso" },
+        { id: "11.3.2", name: "Senha atual incorreta", expected: "Mensagem de erro" },
+        { id: "11.3.3", name: "Toggle biometria", expected: "Ativada/desativada" },
+        { id: "11.3.4", name: "Configurar 2FA (OTP)", expected: "Setup OTP exibido" },
+        { id: "11.3.5", name: "Verificar codigo OTP", expected: "2FA ativado" },
+      ]},
+      { title: "Notificacoes (Preferencias)", tests: [
+        { id: "11.4.1", name: "Toggles de categorias", expected: "Opcoes visiveis" },
+        { id: "11.4.2", name: "Desativar categoria", expected: "Notificacoes cessam" },
+        { id: "11.4.3", name: "Reativar categoria", expected: "Notificacoes retomam" },
+      ]},
+      { title: "Preferencias", tests: [
+        { id: "11.5.1", name: "Alterar idioma", expected: "Interface traduzida" },
+        { id: "11.5.2", name: "Alterar tema (escuro/claro)", expected: "Tema aplicado" },
+        { id: "11.5.3", name: "Unidades de medida", expected: "Valores refletem unidade" },
+      ]},
+      { title: "Sobre / Contato / Bonus", tests: [
+        { id: "11.6.1", name: "Versao do app correta", expected: "Versao e build corretos" },
+        { id: "11.6.2", name: "Links legais (Termos, Privacidade)", expected: "Links abrem corretamente" },
+        { id: "11.7.1", name: "Formulario de contato — enviar", expected: "Mensagem enviada com confirmacao" },
+        { id: "11.7.2", name: "Formulario de contato — campos vazios", expected: "Validacao" },
+        { id: "11.8.1", name: "Visualizar bonus/conquistas", expected: "Lista exibida" },
+        { id: "11.8.2", name: "Progresso de conquistas", expected: "Progresso correto" },
+      ]},
+      { title: "Exclusao de Conta", tests: [
+        { id: "11.9.1", name: "Solicitar exclusao — aviso de consequencias", expected: "Dialog com aviso" },
+        { id: "11.9.2", name: "Confirmar exclusao", expected: "Conta excluida, deslogado" },
+        { id: "11.9.3", name: "Cancelar exclusao", expected: "Conta mantida" },
+      ]},
+    ]
+  },
+  {
+    id: "12", title: "Navegacao e UX", icon: "🧭",
+    subs: [
+      { title: "Tab Bar", tests: [
+        { id: "12.1.1", name: "Navegar entre todas as 5 abas", expected: "Tela correta por aba" },
+        { id: "12.1.2", name: "Aba ativa com destaque visual", expected: "Cor/icone destacado" },
+        { id: "12.1.3", name: "Botao central abre upload", expected: "Bottom sheet aparece" },
+        { id: "12.1.4", name: "Tab bar some em tela fullscreen", expected: "Tab bar oculta" },
+        { id: "12.1.5", name: "Tab bar reaparece ao voltar", expected: "Tab bar visivel" },
+      ]},
+      { title: "Navegacao de Pilha", tests: [
+        { id: "12.2.1", name: "Botao voltar funciona", expected: "Retorna tela anterior" },
+        { id: "12.2.2", name: "Gesto swipe-back (iOS)", expected: "Volta com gesto", iosOnly: true },
+        { id: "12.2.3", name: "Botao voltar do Android", expected: "Volta ou fecha modal", androidOnly: true },
+      ]},
+      { title: "Loading e Erros", tests: [
+        { id: "12.3.1", name: "Loading durante chamada de API", expected: "Indicador visivel" },
+        { id: "12.3.2", name: "Erro de conexao (sem internet)", expected: "Mensagem amigavel" },
+        { id: "12.3.3", name: "Timeout de API", expected: "Mensagem de timeout" },
+        { id: "12.3.4", name: "Retry apos erro", expected: "Dados recarregados" },
+      ]},
+    ]
+  },
+  {
+    id: "13", title: "Integracao de Saude", icon: "❤️",
+    subs: [
+      { title: "HealthKit (iOS)", tests: [
+        { id: "13.1.1", name: "Solicitar permissao HealthKit", expected: "Dialog aparece", iosOnly: true },
+        { id: "13.1.2", name: "Conceder permissao", expected: "Dados sincronizam", iosOnly: true },
+        { id: "13.1.3", name: "Negar permissao", expected: "App funciona sem dados, sem crash", iosOnly: true },
+        { id: "13.1.4", name: "Sync de novos dados do Apple Saude", expected: "Reflete no app", iosOnly: true },
+      ]},
+      { title: "Health Connect (Android)", tests: [
+        { id: "13.2.1", name: "Solicitar permissao Health Connect", expected: "Dialog aparece", androidOnly: true },
+        { id: "13.2.2", name: "Conceder permissao", expected: "Dados sincronizam", androidOnly: true },
+        { id: "13.2.3", name: "Negar permissao", expected: "App funciona sem dados, sem crash", androidOnly: true },
+      ]},
+    ]
+  },
+  {
+    id: "14", title: "Seguranca e Sessao", icon: "🛡️",
+    subs: [
+      { title: "Tokens e Sessao", tests: [
+        { id: "14.1.1", name: "Token refresh automatico (transparente)", expected: "Sem deslogar usuario" },
+        { id: "14.1.2", name: "Refresh token expirado", expected: "Redireciona para login" },
+        { id: "14.1.3", name: "Fila de requests durante refresh", expected: "Todas retomam apos renovacao" },
+        { id: "14.1.4", name: "Tokens armazenados no SecureStore", expected: "Nao estao no AsyncStorage" },
+      ]},
+      { title: "Versao do App", tests: [
+        { id: "14.2.1", name: "App atualizado — sem bloqueio", expected: "Funciona normalmente" },
+        { id: "14.2.2", name: "Force update (versao antiga)", expected: "Tela de force update bloqueia" },
+      ]},
+    ]
+  },
+  {
+    id: "15", title: "Edge Cases", icon: "⚡",
+    subs: [
+      { title: "Cenarios de Borda", tests: [
+        { id: "15.1", name: "App em background 30+ min e voltar", expected: "Retoma sem crash, dados atualizados" },
+        { id: "15.2", name: "Memoria baixa (muitos apps abertos)", expected: "Nao crasha ao restaurar" },
+        { id: "15.3", name: "Texto grande (acessibilidade do sistema)", expected: "Textos nao cortados" },
+        { id: "15.4", name: "Sem internet durante operacao", expected: "Erro amigavel, dados intactos" },
+        { id: "15.5", name: "Duplo toque rapido em botoes", expected: "Acao executada apenas 1x" },
+        { id: "15.6", name: "Caracteres especiais em inputs", expected: "Aceita emojis, acentos" },
+        { id: "15.7", name: "Voltar durante carregamento de API", expected: "Sem tela presa" },
+        { id: "15.8", name: "Safe area / notch / dynamic island", expected: "Conteudo nao fica atras", iosOnly: true },
+        { id: "15.9", name: "Teclado nao sobrepoe campos", expected: "Input visivel com teclado aberto" },
+      ]},
+    ]
+  },
+];
+
+// IDs cobertos por Maestro E2E (92 flows, iOS + Android)
+const E2E_COVERED = [
+  // 1. Autenticação
+  "1.1.1","1.1.2","1.1.3",
+  "1.2.1","1.2.2","1.2.3","1.2.4","1.2.5",
+  "1.5.1","1.5.2","1.5.3","1.5.4","1.5.5",
+  "1.6.1","1.6.2","1.6.3","1.6.4","1.6.5",
+  "1.7.1","1.7.2",
+  // 2. Onboarding
+  "2.1.1","2.1.2","2.1.3","2.1.4","2.1.5","2.1.6","2.1.7",
+  // 3. Homepage
+  "3.1.1","3.1.2","3.1.3","3.1.4","3.1.5","3.1.6","3.1.7",
+  // 4. Exames
+  "4.1.1","4.1.2","4.1.3","4.1.4",
+  "4.2.1","4.2.2","4.2.3","4.2.4","4.2.5","4.2.6",
+  "4.3.1","4.3.2","4.3.3",
+  // 5. Upload
+  "5.1.1","5.1.2","5.1.3","5.1.4","5.1.5","5.1.6","5.1.7","5.1.8","5.1.9","5.1.10",
+  // 6. Carteira de Saúde
+  "6.1.1","6.1.2","6.1.3","6.1.4",
+  "6.2.1","6.2.2","6.2.3",
+  // 7. Medicamentos
+  "7.1.1","7.1.2","7.1.3",
+  "7.2.1","7.2.2","7.2.3","7.2.4","7.2.5","7.2.6","7.2.7","7.2.8","7.2.9","7.2.10",
+  "7.3.1","7.3.2","7.3.3",
+  "7.4.1","7.4.2","7.4.3","7.4.4",
+  "7.5.1","7.5.2","7.5.3",
+  // 8. Tracker / Fitness
+  "8.1.1",
+  "8.2.1","8.2.2","8.2.3",
+  "8.3.1","8.3.2","8.3.3",
+  "8.4.1","8.5.1",
+  "8.6.1","8.6.2",
+  "8.7.1","8.7.2",
+  // 9. Saúde Mental
+  "9.1.1","9.1.2","9.1.3","9.1.4","9.1.5",
+  "9.2.1","9.2.2","9.2.3","9.2.4",
+  // 10. Notificações
+  "10.1.1","10.1.2","10.1.3","10.1.4","10.1.5",
+  // 11. Configurações
+  "11.1.1","11.1.2",
+  "11.2.1",
+  "11.3.1","11.3.2","11.3.3","11.3.4","11.3.5",
+  "11.4.1","11.4.2","11.4.3",
+  "11.5.1","11.5.2","11.5.3",
+  "11.6.1","11.6.2",
+  "11.7.1","11.7.2",
+  "11.8.1","11.8.2",
+  "11.9.1","11.9.2","11.9.3",
+  // 12. Navegação e UX
+  "12.1.1","12.1.2","12.1.3","12.1.4","12.1.5",
+  "12.2.1",
+  "12.3.1","12.3.2","12.3.3","12.3.4",
+];
+
+// State — merge localStorage com E2E coverage
+const savedState = JSON.parse(localStorage.getItem('examinus_tests') || '{}');
+const e2eState = {};
+E2E_COVERED.forEach(id => {
+  e2eState[`${id}_ios`] = true;
+  e2eState[`${id}_android`] = true;
+});
+let state = { ...e2eState, ...savedState };
+
+function saveState() {
+  localStorage.setItem('examinus_tests', JSON.stringify(state));
+}
+
+function getKey(testId, platform) {
+  return `${testId}_${platform}`;
+}
+
+function isChecked(testId, platform) {
+  return !!state[getKey(testId, platform)];
+}
+
+function toggle(testId, platform) {
+  const k = getKey(testId, platform);
+  state[k] = !state[k];
+  saveState();
+  updateProgress();
+  updateSectionBadges();
+}
+
+function getAllTests() {
+  const tests = [];
+  DATA.forEach(s => s.subs.forEach(sub => sub.tests.forEach(t => tests.push(t))));
+  return tests;
+}
+
+function countChecked() {
+  const tests = getAllTests();
+  let iosTotal = 0, iosChecked = 0, androidTotal = 0, androidChecked = 0;
+  tests.forEach(t => {
+    if (!t.androidOnly) { iosTotal++; if (isChecked(t.id, 'ios')) iosChecked++; }
+    if (!t.iosOnly) { androidTotal++; if (isChecked(t.id, 'android')) androidChecked++; }
+  });
+  return { iosTotal, iosChecked, androidTotal, androidChecked, total: iosTotal + androidTotal, checked: iosChecked + androidChecked };
+}
+
+function updateProgress() {
+  const c = countChecked();
+  const pct = c.total ? Math.round(c.checked / c.total * 100) : 0;
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${c.checked} / ${c.total} (${pct}%)`;
+  document.getElementById('iosCount').textContent = `${c.iosChecked}/${c.iosTotal}`;
+  document.getElementById('androidCount').textContent = `${c.androidChecked}/${c.androidTotal}`;
+  const bothDone = getAllTests().filter(t => {
+    const needIos = !t.androidOnly;
+    const needAndroid = !t.iosOnly;
+    return (!needIos || isChecked(t.id,'ios')) && (!needAndroid || isChecked(t.id,'android'));
+  }).length;
+  document.getElementById('bothCount').textContent = `${bothDone}/${getAllTests().length}`;
+}
+
+function sectionStats(section) {
+  let total = 0, checked = 0;
+  section.subs.forEach(sub => sub.tests.forEach(t => {
+    if (!t.androidOnly) { total++; if (isChecked(t.id,'ios')) checked++; }
+    if (!t.iosOnly) { total++; if (isChecked(t.id,'android')) checked++; }
+  }));
+  return { total, checked };
+}
+
+function updateSectionBadges() {
+  DATA.forEach(section => {
+    const badge = document.getElementById(`badge-${section.id}`);
+    if (!badge) return;
+    const s = sectionStats(section);
+    if (s.checked === s.total) {
+      badge.className = 'badge badge-done';
+      badge.textContent = `${s.checked}/${s.total} ✓`;
+    } else if (s.checked > 0) {
+      badge.className = 'badge badge-partial';
+      badge.textContent = `${s.checked}/${s.total}`;
+    } else {
+      badge.className = 'badge badge-pending';
+      badge.textContent = `0/${s.total}`;
+    }
+  });
+}
+
+function render() {
+  const app = document.getElementById('app');
+  let html = '';
+
+  DATA.forEach(section => {
+    html += `<div class="section">`;
+    html += `<div class="section-header" onclick="toggleSection('${section.id}')" id="header-${section.id}">`;
+    html += `<h2>${section.title} <span class="badge badge-pending" id="badge-${section.id}">0/0</span></h2>`;
+    html += `<span class="chevron">▼</span>`;
+    html += `</div>`;
+    html += `<div class="section-body" id="body-${section.id}">`;
+    html += `<div class="col-header"><span></span><span>#</span><span>Cenario</span><span class="exp-label">Resultado Esperado</span><span class="ios-label"> iOS</span><span class="android-label"> Android</span></div>`;
+
+    section.subs.forEach(sub => {
+      html += `<div class="subsection-title">▸ ${sub.title}</div>`;
+      sub.tests.forEach(t => {
+        const iosDisabled = t.androidOnly ? 'disabled' : '';
+        const androidDisabled = t.iosOnly ? 'disabled' : '';
+        const iosCheck = isChecked(t.id, 'ios') ? 'checked' : '';
+        const androidCheck = isChecked(t.id, 'android') ? 'checked' : '';
+        const rowClass = (isChecked(t.id,'ios') || t.androidOnly) && (isChecked(t.id,'android') || t.iosOnly) ? 'style="opacity:.5"' : '';
+
+        html += `<div class="test-row" id="row-${t.id}" ${rowClass}>`;
+        html += `<span></span>`;
+        html += `<span class="id">${t.id}</span>`;
+        html += `<span class="scenario">${t.name}${t.iosOnly ? ' <small style="color:var(--ios)">(iOS)</small>' : ''}${t.androidOnly ? ' <small style="color:var(--android)">(Android)</small>' : ''}</span>`;
+        html += `<span class="expected">${t.expected}</span>`;
+        html += `<span class="check-cell ios"><input type="checkbox" ${iosCheck} ${iosDisabled} onchange="toggle('${t.id}','ios'); updateRow('${t.id}')"></span>`;
+        html += `<span class="check-cell android"><input type="checkbox" ${androidCheck} ${androidDisabled} onchange="toggle('${t.id}','android'); updateRow('${t.id}')"></span>`;
+        html += `</div>`;
+      });
+    });
+
+    html += `</div></div>`;
+  });
+
+  app.innerHTML = html;
+  updateProgress();
+  updateSectionBadges();
+}
+
+function updateRow(testId) {
+  const t = getAllTests().find(x => x.id === testId);
+  if (!t) return;
+  const row = document.getElementById(`row-${testId}`);
+  if (!row) return;
+  const bothDone = (isChecked(t.id,'ios') || t.androidOnly) && (isChecked(t.id,'android') || t.iosOnly);
+  row.style.opacity = bothDone ? '.5' : '1';
+}
+
+function toggleSection(id) {
+  const body = document.getElementById(`body-${id}`);
+  const header = document.getElementById(`header-${id}`);
+  body.classList.toggle('hidden');
+  header.classList.toggle('collapsed');
+}
+
+function resetAll() {
+  if (confirm('Tem certeza que deseja resetar TODOS os checks?')) {
+    state = {};
+    saveState();
+    render();
+  }
+}
+
+function exportResults() {
+  const c = countChecked();
+  let text = `EXAMINUS — Resultado dos Testes Manuais\n`;
+  text += `Data: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}\n`;
+  text += `Progresso: ${c.checked}/${c.total} (${Math.round(c.checked/c.total*100)}%)\n`;
+  text += `iOS: ${c.iosChecked}/${c.iosTotal} | Android: ${c.androidChecked}/${c.androidTotal}\n`;
+  text += `${'='.repeat(70)}\n\n`;
+
+  DATA.forEach(section => {
+    const s = sectionStats(section);
+    text += `${section.title} — ${s.checked}/${s.total}\n`;
+    section.subs.forEach(sub => {
+      text += `  ${sub.title}:\n`;
+      sub.tests.forEach(t => {
+        const ios = t.androidOnly ? '—' : (isChecked(t.id,'ios') ? '✓' : '✗');
+        const android = t.iosOnly ? '—' : (isChecked(t.id,'android') ? '✓' : '✗');
+        text += `    [iOS:${ios}] [Android:${android}] ${t.id} ${t.name}\n`;
+      });
+    });
+    text += '\n';
+  });
+
+  const blob = new Blob([text], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `examinus-testes-${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+}
+
+// Filters
+document.getElementById('filterPending').addEventListener('change', applyFilters);
+document.getElementById('filterDone').addEventListener('change', applyFilters);
+
+function applyFilters() {
+  const showPending = document.getElementById('filterPending').checked;
+  const showDone = document.getElementById('filterDone').checked;
+  getAllTests().forEach(t => {
+    const row = document.getElementById(`row-${t.id}`);
+    if (!row) return;
+    const bothDone = (isChecked(t.id,'ios') || t.androidOnly) && (isChecked(t.id,'android') || t.iosOnly);
+    if (bothDone && !showDone) row.style.display = 'none';
+    else if (!bothDone && !showPending) row.style.display = 'none';
+    else row.style.display = '';
+  });
+}
+
+render();
+// Persistir estado merged (E2E + localStorage) na primeira carga
+saveState();
+</script>
+</body>
+</html>
