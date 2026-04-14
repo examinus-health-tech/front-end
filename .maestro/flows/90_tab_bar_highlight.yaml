@@ -1,0 +1,56 @@
+appId: com.examinus.app
+name: "Navegação - Aba ativa com destaque visual"
+tags:
+  - authenticated
+---
+# Checklist: 12.1.2 — Aba ativa com destaque (cor/ícone destacado)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# === Verificar destaque na aba Home ===
+- assertVisible:
+    id: "tab-home"
+
+- takeScreenshot: "90_tab_highlight_home"
+
+# === Mudar para Exames e verificar destaque ===
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+- takeScreenshot: "90_tab_highlight_exams"
+
+# === Mudar para Carteira ===
+- tapOn:
+    id: "tab-wallet"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-health-wallet"
+    timeout: 10000
+
+- takeScreenshot: "90_tab_highlight_wallet"
+
+# === Mudar para Minha Conta ===
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- takeScreenshot: "90_tab_bar_highlight"
+
+# Voltar para Home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

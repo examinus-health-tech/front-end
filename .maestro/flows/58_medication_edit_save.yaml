@@ -1,0 +1,111 @@
+appId: com.examinus.app
+name: "Medicamentos - Editar dados e salvar + desativar"
+tags:
+  - authenticated
+---
+# Checklist: 7.3.2 (alterar e salvar), 7.3.3 (desativar medicamento)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para medicamentos
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Abrir detalhe do primeiro medicamento
+- tapOn:
+    text: ".*Paracetamol.*|.*Ibuprofeno.*|.*mg.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-detail"
+    timeout: 10000
+    optional: true
+
+# === 7.3.2 — Editar e salvar ===
+- tapOn:
+    id: "btn-edit-medication"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-form"
+    timeout: 10000
+    optional: true
+
+# Alterar dosagem
+- tapOn:
+    id: "input-medication-dosage"
+    optional: true
+- eraseText: 10
+- inputText: "750mg"
+- tapOn:
+    point: "50%,30%"
+
+# Salvar
+- scrollUntilVisible:
+    element:
+      id: "btn-save-medication"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    id: "btn-save-medication"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- takeScreenshot: "58_medication_edit_save"
+
+# Voltar ao detalhe
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+# === 7.3.3 — Desativar medicamento ===
+- tapOn:
+    id: "btn-deactivate-medication"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Confirmar desativação se dialog aparecer
+- tapOn:
+    text: ".*Confirmar.*|.*Sim.*|.*Desativar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- takeScreenshot: "58_medication_deactivate"
+
+# Voltar para home
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

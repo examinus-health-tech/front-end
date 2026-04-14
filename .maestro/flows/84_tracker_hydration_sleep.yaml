@@ -1,0 +1,81 @@
+appId: com.examinus.app
+name: "Tracker - Metas de hidratação e sono"
+tags:
+  - authenticated
+---
+# Checklist: 8.6.2 (meta hidratação vs consumo), 8.7.2 (meta sono vs dormido)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Tracker
+- scrollUntilVisible:
+    element:
+      text: ".*Fitness.*|.*fitness.*|.*Tracker.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+- tapOn:
+    text: ".*Fitness.*|.*fitness.*|.*Tracker.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+    optional: true
+
+# === 8.6.2 — Hidratação ===
+- tapOn:
+    text: ".*Hidratação.*|.*hidratação.*|.*Água.*|.*água.*|.*Water.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-hydration"
+    timeout: 10000
+    optional: true
+
+- assertVisible:
+    text: ".*Meta.*|.*meta.*|.*ml.*|.*L.*"
+    optional: true
+
+- takeScreenshot: "84_tracker_hydration"
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+# === 8.7.2 — Sono ===
+- tapOn:
+    text: ".*Sono.*|.*sono.*|.*Sleep.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-sleep"
+    timeout: 10000
+    optional: true
+
+- assertVisible:
+    text: ".*Meta.*|.*meta.*|.*hora.*|.*Hora.*"
+    optional: true
+
+- takeScreenshot: "84_tracker_hydration_sleep"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

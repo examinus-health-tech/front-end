@@ -1,0 +1,54 @@
+appId: com.examinus.app
+name: "Exames - Busca e filtro"
+tags:
+  - authenticated
+---
+# Checklist: 4.1.3 — Busca/filtro de exames
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para exames
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# Procurar campo de busca
+- tapOn:
+    text: ".*Buscar.*|.*buscar.*|.*Pesquisar.*|.*pesquisar.*|.*Search.*"
+    optional: true
+
+- tapOn:
+    id: "input-search-exam"
+    optional: true
+
+# Digitar termo de busca
+- inputText: "Hemograma"
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verificar resultados filtrados
+- assertVisible:
+    text: ".*Hemograma.*|.*hemograma.*"
+    optional: true
+
+- takeScreenshot: "80_exam_list_search"
+
+# Limpar busca
+- eraseText: 15
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Voltar
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

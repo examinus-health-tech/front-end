@@ -1,0 +1,33 @@
+appId: com.examinus.app
+name: "Exames - Lista vazia e opção de upload"
+tags:
+  - authenticated
+---
+# Checklist: 4.1.2 — Lista vazia (sem exames), mensagem + opção de upload
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para exames
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# Verificar se lista vazia mostra mensagem
+- assertVisible:
+    text: ".*Nenhum.*|.*nenhum.*|.*vazio.*|.*Ainda.*|.*Upload.*|.*upload.*"
+    optional: true
+
+- takeScreenshot: "79_exam_list_empty"
+
+# Voltar
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

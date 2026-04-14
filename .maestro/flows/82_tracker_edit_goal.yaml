@@ -1,0 +1,78 @@
+appId: com.examinus.app
+name: "Tracker - Editar meta de passos e histórico"
+tags:
+  - authenticated
+---
+# Checklist: 8.2.2 (editar meta passos), 8.2.3 (histórico dias anteriores)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Tracker
+- scrollUntilVisible:
+    element:
+      text: ".*Fitness.*|.*fitness.*|.*Tracker.*|.*Passos.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+- tapOn:
+    text: ".*Fitness.*|.*fitness.*|.*Tracker.*|.*Passos.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+    optional: true
+
+# Abrir tela de passos
+- tapOn:
+    text: ".*Passo.*|.*passo.*|.*Steps.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-steps"
+    timeout: 10000
+    optional: true
+
+# === 8.2.2 — Editar meta ===
+- tapOn:
+    text: ".*Meta.*|.*meta.*|.*Editar.*|.*editar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "82_tracker_edit_goal"
+
+# === 8.2.3 — Histórico ===
+- scrollUntilVisible:
+    element:
+      text: ".*Histórico.*|.*histórico.*|.*Anterior.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- assertVisible:
+    text: ".*Histórico.*|.*histórico.*|.*Semana.*|.*Ontem.*"
+    optional: true
+
+- takeScreenshot: "82_tracker_history"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

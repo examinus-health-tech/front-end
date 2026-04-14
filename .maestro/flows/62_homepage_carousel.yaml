@@ -1,0 +1,49 @@
+appId: com.examinus.app
+name: "Homepage - Carrossel de notícias/dicas"
+tags:
+  - authenticated
+---
+# Checklist: 3.1.6 — Carrossel de notícias/dicas com transições suaves
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Scroll até encontrar carrossel de dicas/notícias
+- scrollUntilVisible:
+    element:
+      text: ".*Dica.*|.*dica.*|.*Notícia.*|.*Sabia.*|.*sabia.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+# Swipe para ver próximo item do carrossel
+- swipe:
+    direction: LEFT
+    duration: 500
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "62_homepage_carousel_slide2"
+
+# Swipe para terceiro item
+- swipe:
+    direction: LEFT
+    duration: 500
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Swipe de volta
+- swipe:
+    direction: RIGHT
+    duration: 500
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "62_homepage_carousel"
+
+# Voltar ao topo
+- swipe:
+    direction: DOWN
+    duration: 500

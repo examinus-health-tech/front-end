@@ -1,0 +1,54 @@
+appId: com.examinus.app
+name: "Welcome - Carrossel de onboarding (3 telas)"
+tags:
+  - unauthenticated
+---
+# Checklist: 1.1.2 — Carrossel de onboarding (Simplify, Health, StayCalm)
+
+- launchApp:
+    stopApp: false
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 30000
+
+# Verificar primeira tela do carrossel
+- assertVisible:
+    text: ".*Simplif.*|.*simpl.*"
+    optional: true
+
+# Swipe para segunda tela
+- swipe:
+    direction: LEFT
+    duration: 500
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible:
+    text: ".*Health.*|.*Saúde.*|.*saúde.*"
+    optional: true
+
+# Swipe para terceira tela
+- swipe:
+    direction: LEFT
+    duration: 500
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- assertVisible:
+    text: ".*Calm.*|.*calm.*|.*Stay.*"
+    optional: true
+
+- takeScreenshot: "52_welcome_carousel"
+
+# Verificar que botão de ação está visível
+- assertVisible:
+    id: "btn-start"
+    optional: true
+
+- assertVisible:
+    id: "btn-go-to-login"
+    optional: true

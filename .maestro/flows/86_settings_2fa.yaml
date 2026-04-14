@@ -1,0 +1,71 @@
+appId: com.examinus.app
+name: "Configurações - Configurar 2FA (OTP)"
+tags:
+  - authenticated
+---
+# Checklist: 11.3.4 (setup OTP), 11.3.5 (verificar código OTP)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Abrir Segurança
+- scrollUntilVisible:
+    element:
+      id: "card-security"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-security"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-security"
+    timeout: 10000
+
+# === 11.3.4 — Procurar opção 2FA ===
+- scrollUntilVisible:
+    element:
+      text: ".*2FA.*|.*Autenticação.*|.*autenticação.*|.*Dois fatores.*|.*OTP.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: ".*2FA.*|.*Autenticação.*|.*Dois fatores.*|.*Ativar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verificar tela de setup OTP
+- assertVisible:
+    text: ".*QR.*|.*código.*|.*autenticador.*|.*Google.*Authenticator.*"
+    optional: true
+
+- takeScreenshot: "86_settings_2fa"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

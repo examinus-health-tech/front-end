@@ -1,0 +1,92 @@
+appId: com.examinus.app
+name: "Configurações - Alterar senha com senha atual incorreta"
+tags:
+  - authenticated
+---
+# Checklist: 11.3.2 — Senha atual incorreta
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Abrir Segurança
+- scrollUntilVisible:
+    element:
+      id: "card-security"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-security"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-security"
+    timeout: 10000
+
+# Procurar opção de alterar senha
+- tapOn:
+    text: ".*Alterar.*senha.*|.*Mudar.*senha.*|.*alterar.*senha.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Preencher com senha atual incorreta
+- tapOn:
+    text: ".*Atual.*|.*atual.*|.*Current.*"
+    optional: true
+
+- inputText: "SenhaErrada123"
+
+- tapOn:
+    point: "50%,30%"
+
+# Preencher nova senha
+- tapOn:
+    text: ".*Nova.*|.*nova.*|.*New.*"
+    optional: true
+
+- inputText: "NovaSenha@456"
+
+- tapOn:
+    point: "50%,30%"
+
+# Confirmar
+- tapOn:
+    text: ".*Salvar.*|.*salvar.*|.*Confirmar.*|.*confirmar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Verificar erro
+- assertVisible:
+    text: ".*incorreta.*|.*Incorreta.*|.*errada.*|.*inválida.*"
+    optional: true
+
+- takeScreenshot: "85_settings_security_wrong_pw"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

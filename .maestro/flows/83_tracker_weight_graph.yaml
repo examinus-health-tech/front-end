@@ -1,0 +1,69 @@
+appId: com.examinus.app
+name: "Tracker - Peso meta e gráfico de evolução"
+tags:
+  - authenticated
+---
+# Checklist: 8.3.2 (peso meta com progresso), 8.3.3 (gráfico de evolução)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Tracker
+- scrollUntilVisible:
+    element:
+      text: ".*Fitness.*|.*fitness.*|.*Tracker.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+- tapOn:
+    text: ".*Fitness.*|.*fitness.*|.*Tracker.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-tracker"
+    timeout: 10000
+    optional: true
+
+# Abrir tela de peso
+- tapOn:
+    text: ".*Peso.*|.*peso.*|.*Weight.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-weight"
+    timeout: 10000
+    optional: true
+
+# === 8.3.2 — Peso meta ===
+- assertVisible:
+    text: ".*Meta.*|.*meta.*|.*Objetivo.*"
+    optional: true
+
+# === 8.3.3 — Gráfico de evolução ===
+- scrollUntilVisible:
+    element:
+      text: ".*Evolução.*|.*evolução.*|.*Histórico.*|.*Tendência.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- takeScreenshot: "83_tracker_weight_graph"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

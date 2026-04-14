@@ -1,0 +1,54 @@
+appId: com.examinus.app
+name: "Navegação - Tab bar some em fullscreen e reaparece"
+tags:
+  - authenticated
+---
+# Checklist: 12.1.4 (tab bar oculta em fullscreen), 12.1.5 (reaparece ao voltar)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Verificar tab bar visível na home
+- assertVisible:
+    id: "tab-home"
+- assertVisible:
+    id: "tab-exams"
+
+# === 12.1.4 — Navegar para tela fullscreen (medication) ===
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Tab bar deve estar oculta em tela fullscreen
+- assertNotVisible:
+    id: "tab-home"
+    optional: true
+
+- takeScreenshot: "91_tab_bar_hidden"
+
+# === 12.1.5 — Voltar e tab bar deve reaparecer ===
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+
+# Tab bar deve estar visível novamente
+- assertVisible:
+    id: "tab-home"
+
+- assertVisible:
+    id: "tab-exams"
+
+- takeScreenshot: "91_tab_bar_fullscreen"

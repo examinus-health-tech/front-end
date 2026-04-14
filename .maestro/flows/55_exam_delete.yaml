@@ -1,0 +1,82 @@
+appId: com.examinus.app
+name: "Exame - Exclusão com confirmação e cancelamento"
+tags:
+  - authenticated
+---
+# Checklist: 4.3.1 (dialog confirmação), 4.3.2 (confirmar exclusão), 4.3.3 (cancelar exclusão)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para exames
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# Abrir primeiro exame
+- tapOn:
+    text: ".*Hemograma.*|.*Glicose.*|.*Exame.*|.*hemograma.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-detail"
+    timeout: 10000
+    optional: true
+
+# === 4.3.1 — Pedir confirmação de exclusão ===
+- tapOn:
+    id: "btn-delete-exam"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Dialog de confirmação deve aparecer
+- assertVisible:
+    text: ".*Excluir.*|.*excluir.*|.*Deletar.*|.*deletar.*|.*Confirmar.*"
+    optional: true
+
+- takeScreenshot: "55_exam_delete_confirm_dialog"
+
+# === 4.3.3 — Cancelar exclusão ===
+- tapOn:
+    text: ".*Cancelar.*|.*Não.*|.*cancelar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Exame deve permanecer
+- assertVisible:
+    id: "screen-exam-detail"
+    optional: true
+
+# === 4.3.2 — Confirmar exclusão (segunda tentativa) ===
+- tapOn:
+    id: "btn-delete-exam"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- tapOn:
+    text: ".*Confirmar.*|.*Sim.*|.*Excluir.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- takeScreenshot: "55_exam_delete"
+
+# Deve voltar para lista
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

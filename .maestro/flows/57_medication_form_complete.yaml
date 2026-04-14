@@ -1,0 +1,113 @@
+appId: com.examinus.app
+name: "Medicamentos - Formulário completo de novo medicamento"
+tags:
+  - authenticated
+---
+# Checklist: 7.2.1-7.2.9 (formulário completo, formas, frequência, horários, salvar)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para medicamentos
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Abrir formulário de novo medicamento
+- tapOn:
+    id: "btn-add-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-form"
+    timeout: 10000
+
+# === 7.2.1 — Preencher nome ===
+- tapOn:
+    id: "input-medication-name"
+- inputText: "Paracetamol Teste"
+- tapOn:
+    point: "50%,30%"
+
+# === 7.2.1 — Preencher dosagem ===
+- tapOn:
+    id: "input-medication-dosage"
+- inputText: "500mg"
+- tapOn:
+    point: "50%,30%"
+
+# === 7.2.2 — Seleção de forma (pílula, gotas, etc) ===
+- scrollUntilVisible:
+    element:
+      text: ".*Comprimido.*|.*Cápsula.*|.*Gotas.*|.*Forma.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+# Selecionar primeira forma disponível
+- tapOn:
+    text: ".*Comprimido.*|.*comprimido.*"
+    optional: true
+
+# === 7.2.3 — Frequência diária ===
+- scrollUntilVisible:
+    element:
+      text: ".*Frequência.*|.*frequência.*|.*Diária.*|.*diária.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: ".*Diária.*|.*diária.*|.*Todo dia.*|.*Todos os dias.*"
+    optional: true
+
+# === 7.2.6 — Horários ===
+- scrollUntilVisible:
+    element:
+      text: ".*Horário.*|.*horário.*|.*Hora.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- takeScreenshot: "57_medication_form_complete_filled"
+
+# === 7.2.9 — Salvar medicamento ===
+- scrollUntilVisible:
+    element:
+      id: "btn-save-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "btn-save-medication"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- takeScreenshot: "57_medication_form_complete"
+
+# Voltar para home
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

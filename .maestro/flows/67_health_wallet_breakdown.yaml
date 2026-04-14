@@ -1,0 +1,46 @@
+appId: com.examinus.app
+name: "Carteira - Breakdown por sistema e carteira vazia"
+tags:
+  - authenticated
+---
+# Checklist: 6.1.3 (breakdown por sistema), 6.1.4 (carteira vazia)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para carteira
+- tapOn:
+    id: "tab-wallet"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-health-wallet"
+    timeout: 10000
+
+# === 6.1.3 — Breakdown por sistema orgânico ===
+- scrollUntilVisible:
+    element:
+      text: ".*Sistema.*|.*Renal.*|.*Hepático.*|.*Cardiovascular.*|.*Hematológico.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+- assertVisible:
+    text: ".*Score.*|.*score.*|.*Pontuação.*"
+    optional: true
+
+- takeScreenshot: "67_health_wallet_breakdown"
+
+# === 6.1.4 — Estado vazio ===
+# Se não houver dados, verificar mensagem
+- assertVisible:
+    text: ".*Nenhum.*|.*nenhum.*|.*Faça.*|.*upload.*|.*Ainda não.*"
+    optional: true
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

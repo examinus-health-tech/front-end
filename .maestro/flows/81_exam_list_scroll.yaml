@@ -1,0 +1,72 @@
+appId: com.examinus.app
+name: "Exames - Scroll com muitos exames"
+tags:
+  - authenticated
+---
+# Checklist: 4.1.4 — Scroll suave, sem travamento
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para exames
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# Scroll para baixo várias vezes
+- swipe:
+    direction: UP
+    duration: 400
+
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- swipe:
+    direction: UP
+    duration: 400
+
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- swipe:
+    direction: UP
+    duration: 400
+
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- takeScreenshot: "81_exam_list_scroll_bottom"
+
+# Scroll de volta para o topo
+- swipe:
+    direction: DOWN
+    duration: 400
+
+- swipe:
+    direction: DOWN
+    duration: 400
+
+- swipe:
+    direction: DOWN
+    duration: 400
+
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Tela deve permanecer funcional
+- assertVisible:
+    id: "screen-exam-list"
+
+- takeScreenshot: "81_exam_list_scroll"
+
+# Voltar
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

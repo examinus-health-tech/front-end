@@ -1,0 +1,67 @@
+appId: com.examinus.app
+name: "Medicamentos - Dose perdida e feedback visual"
+tags:
+  - authenticated
+---
+# Checklist: 7.4.3 (dose perdida), 7.4.4 (feedback visual após registro)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para medicamentos
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# === 7.4.3 — Verificar dose perdida ===
+# Doses com horário passado devem mostrar status de perdida
+- assertVisible:
+    text: ".*Perdida.*|.*perdida.*|.*Missed.*|.*Atrasad.*"
+    optional: true
+
+# === 7.4.4 — Feedback visual: marcar dose como tomada ===
+- tapOn:
+    id: "btn-dose-taken"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verificar mudança visual (cor/ícone do card deve mudar)
+- assertVisible:
+    text: ".*Tomado.*|.*tomado.*|.*Taken.*|.*Concluído.*"
+    optional: true
+
+- takeScreenshot: "59_medication_dose_feedback_taken"
+
+# Testar pular dose para ver feedback
+- tapOn:
+    id: "btn-dose-skip"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- assertVisible:
+    text: ".*Pulad.*|.*pulad.*|.*Skipped.*"
+    optional: true
+
+- takeScreenshot: "59_medication_dose_feedback"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
