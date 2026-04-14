@@ -9,8 +9,6 @@ import {
   Box,
   FormControl,
   WarningOutlineIcon,
-  ScrollView,
-  KeyboardAvoidingView,
   Spinner,
   Center,
   VStack,
@@ -23,7 +21,7 @@ import { Input, LegalFooter } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
-import { TouchableOpacity, Platform } from 'react-native';
+import { TouchableOpacity, Platform, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 import { AppError } from '@utils/AppErrors';
 import { useState, useRef } from 'react';
@@ -231,6 +229,8 @@ export function SignUp() {
               render={({ field: { onChange, value } }) => (
                 <Input
                   testID="input-password"
+                  textContentType="none"
+                  autoComplete="off"
                   InputLeftElement={
                     <Flex ml={4} align="center" justify="center">
                       <Icon as={<KeyIcon solid color={!!errors.password?.message ? 'red' : 'black'} />} w="full" />
@@ -259,6 +259,8 @@ export function SignUp() {
               render={({ field: { onChange, value } }) => (
                 <Input
                   testID="input-confirm-password"
+                  textContentType="none"
+                  autoComplete="off"
                   InputLeftElement={
                     <Flex ml={4} align="center" justify="center">
                       <Icon
