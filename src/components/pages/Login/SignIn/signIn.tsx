@@ -1,4 +1,4 @@
-import { Divider, Flex, Text, VStack, Icon, HStack, Box, Spinner, Center, ScrollView, KeyboardAvoidingView } from 'native-base';
+import { Divider, Flex, Text, VStack, Icon, HStack, Box, Spinner, Center } from 'native-base';
 import * as yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
 
@@ -18,7 +18,7 @@ import { Input, LegalFooter } from '@components/molecules';
 import { Button } from '@components/atoms';
 import { useNavigation } from '@react-navigation/native';
 import { AuthNavigatorRoutesProps } from '@routes/auth.routes';
-import { TouchableOpacity, View, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
+import { TouchableOpacity, View, Platform, Keyboard, TouchableWithoutFeedback, ScrollView, KeyboardAvoidingView } from 'react-native';
 import { Controller, useForm } from 'react-hook-form';
 
 import { useAuth } from '../../../../hooks/useAuth';
@@ -232,12 +232,12 @@ export function SignIn() {
       )}
 
       <KeyboardAvoidingView
-        flex={1}
+        style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <ScrollView
-            flex={1}
+            style={{ flex: 1 }}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={{ flexGrow: 1 }}
             keyboardShouldPersistTaps="handled"
@@ -416,7 +416,7 @@ export function SignIn() {
           <Text fontSize={14} color="gray.400" fontWeight={600} letterSpacing={-0.14}>
             Não tem uma conta?{' '}
           </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('signUp')}>
+          <TouchableOpacity testID="btn-go-to-signup" onPress={() => navigation.navigate('signUp')}>
             <Text fontSize={14} color="purple.600" fontWeight={600} underline letterSpacing={-0.14}>
               Cadastre-se.
             </Text>

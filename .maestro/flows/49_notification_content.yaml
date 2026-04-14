@@ -1,0 +1,47 @@
+appId: com.examinus.app
+name: "Notificações - Lista e conteúdo"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para notificações via botão no header
+- tapOn:
+    id: "btn-notifications"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-notifications"
+    timeout: 10000
+
+# === Verificar tela de notificações (10.1.1) ===
+- assertVisible:
+    id: "screen-notifications"
+
+# === Verificar agrupamento temporal (10.1.2) ===
+# Deve ter algum grupo temporal ou mensagem de vazio
+- assertVisible:
+    text: ".*Hoje.*|.*Ontem.*|.*Semana.*|.*Mês.*|.*Nenhuma.*|.*notificação.*"
+    optional: true
+
+# Scroll para ver mais notificações
+- swipe:
+    start: "50%,50%"
+    end: "50%,20%"
+    duration: 500
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "49_notification_content"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

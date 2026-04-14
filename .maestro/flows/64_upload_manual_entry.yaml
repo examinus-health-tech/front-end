@@ -1,0 +1,67 @@
+appId: com.examinus.app
+name: "Upload - Entrada manual de dados"
+tags:
+  - authenticated
+---
+# Checklist: 5.1.5 (formulário manual aparece), 5.1.6 (preencher entrada manual)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Abrir upload via tab central
+- tapOn:
+    id: "tab-upload"
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verificar opções de upload
+- assertVisible:
+    id: "btn-upload-pdf"
+
+# === 5.1.5 — Entrada manual ===
+# Procurar opção de entrada manual
+- tapOn:
+    text: ".*Manual.*|.*manual.*|.*Digitar.*|.*digitar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verificar que formulário aparece
+- assertVisible:
+    id: "dateTimePicker"
+    optional: true
+
+- takeScreenshot: "64_upload_manual_entry"
+
+# === 5.1.6 — Preencher dados manuais ===
+- tapOn:
+    text: ".*Nome.*|.*Tipo.*"
+    optional: true
+
+- inputText: "Hemograma Completo"
+
+- tapOn:
+    point: "50%,30%"
+
+- takeScreenshot: "64_upload_manual_filled"
+
+# Fechar/voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    point: "50%,10%"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

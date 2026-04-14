@@ -1,0 +1,63 @@
+appId: com.examinus.app
+name: "Configurações - Progresso de conquistas/bonus"
+tags:
+  - authenticated
+---
+# Checklist: 11.8.2 — Progresso de conquistas
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Abrir Bonus/Conquistas
+- scrollUntilVisible:
+    element:
+      id: "card-bonus"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-bonus"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-bonus"
+    timeout: 10000
+
+# === 11.8.2 — Verificar progresso ===
+- scrollUntilVisible:
+    element:
+      text: ".*Progresso.*|.*progresso.*|.*%.*|.*Concluíd.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- assertVisible:
+    text: ".*Progresso.*|.*progresso.*|.*%.*|.*\\d.*de.*\\d.*"
+    optional: true
+
+- takeScreenshot: "74_settings_bonus_progress"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

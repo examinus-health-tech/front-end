@@ -1,0 +1,61 @@
+appId: com.examinus.app
+name: "Saúde Mental - Histórico e recomendações"
+tags:
+  - authenticated
+---
+# Checklist: 9.2.3 (histórico de avaliações), 9.2.4 (recomendações)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Saúde Mental
+- scrollUntilVisible:
+    element:
+      text: ".*Saúde Mental.*|.*saúde mental.*|.*Mental.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+- tapOn:
+    text: ".*Saúde Mental.*|.*saúde mental.*|.*Resultado.*|.*Histórico.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# === 9.2.3 — Histórico de avaliações ===
+- assertVisible:
+    text: ".*Histórico.*|.*histórico.*|.*Anterior.*|.*Data.*"
+    optional: true
+
+# === 9.2.4 — Recomendações ===
+- scrollUntilVisible:
+    element:
+      text: ".*Recomend.*|.*recomend.*|.*Sugest.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+- assertVisible:
+    text: ".*Recomend.*|.*recomend.*"
+    optional: true
+
+- takeScreenshot: "71_mental_health_history"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-mental-go-home"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+    optional: true

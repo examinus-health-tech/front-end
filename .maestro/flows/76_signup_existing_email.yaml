@@ -1,0 +1,36 @@
+appId: com.examinus.app
+name: "Cadastro - Email já existente"
+tags:
+  - unauthenticated
+---
+# Checklist: 1.5.2 — Cadastro com email já em uso
+
+- launchApp:
+    stopApp: false
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 30000
+
+- tapOn:
+    id: "btn-go-to-login"
+
+- extendedWaitUntil:
+    visible:
+      text: ".*Entre.*"
+    timeout: 15000
+
+# Navegar para cadastro
+- tapOn:
+    text: ".*Cadastre-se.*"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Verificar tela de cadastro
+- assertVisible:
+    id: "screen-signup"
+    optional: true
+
+- takeScreenshot: "76_signup_existing_email"

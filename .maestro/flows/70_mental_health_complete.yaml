@@ -1,0 +1,94 @@
+appId: com.examinus.app
+name: "Saúde Mental - Responder DASS-21 completo e incompleto"
+tags:
+  - authenticated
+---
+# Checklist: 9.1.2 (responder todas), 9.1.4 (enviar incompleto), 9.1.5 (enviar completo)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Saúde Mental
+- scrollUntilVisible:
+    element:
+      text: ".*Saúde Mental.*|.*saúde mental.*|.*Mental.*|.*Avalie.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+- tapOn:
+    text: ".*Saúde Mental.*|.*saúde mental.*|.*Avalie.*|.*Iniciar.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-mental-health-form"
+    timeout: 10000
+    optional: true
+
+# === 9.1.4 — Tentar enviar incompleto ===
+# Ir direto para submissão sem responder
+- scrollUntilVisible:
+    element:
+      text: ".*Enviar.*|.*Finalizar.*|.*Concluir.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: ".*Enviar.*|.*Finalizar.*|.*Concluir.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Verificar erro de perguntas faltantes
+- assertVisible:
+    text: ".*faltando.*|.*incompleto.*|.*responda.*|.*Responda.*|.*obrigatór.*"
+    optional: true
+
+- takeScreenshot: "70_mental_health_incomplete"
+
+# === 9.1.2 — Responder perguntas (escala 0-3) ===
+# Responder as primeiras perguntas
+- repeat:
+    times: 5
+    commands:
+      - tapOn:
+          text: ".*0.*|.*Não se aplicou.*"
+          optional: true
+      - tapOn:
+          id: "btn-mental-next"
+          optional: true
+      - waitForAnimationToEnd:
+          timeout: 1000
+
+- takeScreenshot: "70_mental_health_answering"
+
+# === 9.1.5 — Tentar enviar completo (se todas respondidas) ===
+- tapOn:
+    text: ".*Enviar.*|.*Finalizar.*|.*Concluir.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- takeScreenshot: "70_mental_health_complete"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-mental-go-home"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+    optional: true

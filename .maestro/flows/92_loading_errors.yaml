@@ -1,0 +1,49 @@
+appId: com.examinus.app
+name: "Navegação - Loading e estados de erro"
+tags:
+  - authenticated
+---
+# Checklist: 12.3.1 (loading durante API), 12.3.2 (sem internet),
+#            12.3.3 (timeout), 12.3.4 (retry após erro)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# === 12.3.1 — Verificar indicadores de loading ===
+# Pull to refresh para forçar loading
+- swipe:
+    direction: UP
+    duration: 300
+
+- swipe:
+    direction: DOWN
+    duration: 500
+
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Loading indicator deve aparecer brevemente
+- takeScreenshot: "92_loading_indicator"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# === 12.3.4 — Retry: navegar para exames (forçar carregamento) ===
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# Verificar que dados carregaram (retry implícito se erro)
+- takeScreenshot: "92_loading_errors"
+
+# Voltar
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

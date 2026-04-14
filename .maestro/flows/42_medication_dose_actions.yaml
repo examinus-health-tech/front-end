@@ -1,0 +1,53 @@
+appId: com.examinus.app
+name: "Medicamentos - Ações de dose (tomei/pular)"
+tags:
+  - authenticated
+---
+# Pré-requisito: ter medicamento ativo com dose agendada
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Medicamentos
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# === Verificar botões de ação de dose (7.4.1-7.4.2) ===
+
+# Botão "Tomei" (marcar como tomado)
+- assertVisible:
+    id: "btn-dose-taken"
+    optional: true
+
+# Botão "Pular" (pular dose)
+- assertVisible:
+    id: "btn-dose-skip"
+    optional: true
+
+# Se o botão de tomei estiver visível, testar a ação
+- tapOn:
+    id: "btn-dose-taken"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- takeScreenshot: "42_medication_dose_actions"
+
+# Voltar para home
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

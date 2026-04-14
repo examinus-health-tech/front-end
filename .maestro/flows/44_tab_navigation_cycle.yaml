@@ -1,0 +1,69 @@
+appId: com.examinus.app
+name: "Navegação - Ciclo completo de tabs"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# === Tab Home (12.1.1) ===
+- assertVisible:
+    id: "tab-home"
+- assertVisible:
+    id: "screen-homepage"
+
+# === Tab Exames ===
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# === Tab Upload (botão central) (12.1.3) ===
+- tapOn:
+    id: "tab-upload"
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Bottom sheet deve aparecer
+- assertVisible:
+    id: "btn-upload-pdf"
+    optional: true
+
+# Fechar bottom sheet
+- tapOn:
+    point: "50%,10%"
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# === Tab Carteira ===
+- tapOn:
+    id: "tab-wallet"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-health-wallet"
+    timeout: 10000
+
+# === Tab Minha Conta ===
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# === Voltar para Home (ciclo completo) ===
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+
+- takeScreenshot: "44_tab_navigation_cycle"

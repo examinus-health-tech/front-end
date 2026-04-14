@@ -129,7 +129,7 @@ describe('AboutUs', () => {
 
   it('renders the version text', () => {
     const { getByText } = render(<AboutUs />);
-    expect(getByText('Examinus v1.3.0')).toBeTruthy();
+    expect(getByText('Examinus v1.5.1')).toBeTruthy();
   });
 
   it('renders all cards', () => {

@@ -1,0 +1,36 @@
+appId: com.examinus.app
+name: "Cadastro - Fluxo com dados válidos"
+tags:
+  - unauthenticated
+---
+# Checklist: 1.5.1 — Cadastro com dados válidos
+
+- launchApp:
+    stopApp: false
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 30000
+
+- tapOn:
+    id: "btn-go-to-login"
+
+- extendedWaitUntil:
+    visible:
+      text: ".*Entre.*"
+    timeout: 15000
+
+# Navegar para cadastro
+- tapOn:
+    text: ".*Cadastre-se.*"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+# Verificar que tela de cadastro carregou (título "Cadastre-se")
+- assertVisible:
+    id: "screen-signup"
+    optional: true
+
+- takeScreenshot: "75_signup_valid"

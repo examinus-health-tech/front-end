@@ -1,0 +1,35 @@
+appId: com.examinus.app
+name: "Onboarding - Upload de exame e pular upload"
+tags:
+  - unauthenticated
+---
+# Checklist: 2.1.8 (upload exame inicial), 2.1.9 (pular upload)
+# NOTA: Este flow requer uma conta nova ou reset de onboarding
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Se o onboarding já foi concluído, este flow verifica apenas a existência
+# da opção de upload no fluxo. Em ambiente de teste com conta nova:
+
+# Verificar que a tela de upload aparece no final do onboarding
+- assertVisible:
+    text: ".*Upload.*|.*upload.*|.*Enviar.*|.*enviar.*|.*Exame.*"
+    optional: true
+
+# === 2.1.9 — Pular upload ===
+- tapOn:
+    text: ".*Pular.*|.*pular.*|.*Skip.*|.*Depois.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# === 2.1.8 — Upload de exame (alternativa) ===
+- tapOn:
+    text: ".*Enviar.*|.*Upload.*|.*Selecionar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- takeScreenshot: "60_onboarding_upload_skip"

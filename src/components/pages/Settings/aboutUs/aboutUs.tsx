@@ -162,7 +162,7 @@ export function AboutUs() {
         <VStack mb={12} space={3} alignItems={'center'}>
           <Image source={Logo} defaultSource={Logo} alt="Vetor" resizeMode="stretch" />
           <Text color="gray.900" fontSize={28} fontWeight={800} lineHeight={32} letterSpacing={-0.96}>
-            Examinus v1.3.0
+            Examinus v1.5.1
           </Text>
         </VStack>
 

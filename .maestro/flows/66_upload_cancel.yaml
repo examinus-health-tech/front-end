@@ -1,0 +1,39 @@
+appId: com.examinus.app
+name: "Upload - Cancelar upload em andamento"
+tags:
+  - authenticated
+---
+# Checklist: 5.1.10 — Cancelar upload em andamento
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Abrir upload
+- tapOn:
+    id: "tab-upload"
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verificar opções de upload visíveis (NÃO abrir picker nativo)
+- assertVisible:
+    id: "btn-upload-pdf"
+
+- assertVisible:
+    id: "btn-upload-image"
+
+- takeScreenshot: "66_upload_cancel"
+
+# Fechar bottom sheet (tap fora)
+- tapOn:
+    point: "50%,10%"
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

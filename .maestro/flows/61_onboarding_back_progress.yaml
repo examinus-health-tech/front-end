@@ -1,0 +1,43 @@
+appId: com.examinus.app
+name: "Onboarding - Botão voltar preserva dados e barra de progresso"
+tags:
+  - unauthenticated
+---
+# Checklist: 2.1.10 (voltar preserva dados), 2.1.11 (barra de progresso)
+# NOTA: Requer conta que ainda não completou onboarding
+
+# Se estiver no onboarding, verificar:
+
+# === 2.1.11 — Barra de progresso ===
+- assertVisible:
+    text: ".*Etapa.*|.*Passo.*|.*\\d.*de.*\\d.*"
+    optional: true
+
+# Avançar uma etapa
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# === 2.1.10 — Voltar e verificar dados preservados ===
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Dados da etapa anterior devem estar preservados
+- takeScreenshot: "61_onboarding_back_progress"
+
+# Avançar novamente para confirmar
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "61_onboarding_progress_bar"

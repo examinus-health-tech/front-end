@@ -1,0 +1,66 @@
+appId: com.examinus.app
+name: "Configurações - Unidades de medida"
+tags:
+  - authenticated
+---
+# Checklist: 11.5.3 — Alterar unidades de medida
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Abrir Preferências
+- scrollUntilVisible:
+    element:
+      id: "card-preferences"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-preferences"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-preferences"
+    timeout: 10000
+
+# Procurar opção de unidades
+- scrollUntilVisible:
+    element:
+      text: ".*Unidade.*|.*unidade.*|.*Medida.*|.*kg.*|.*lb.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: ".*Unidade.*|.*unidade.*|.*Medida.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "88_settings_units"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

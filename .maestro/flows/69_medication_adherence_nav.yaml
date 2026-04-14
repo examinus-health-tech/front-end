@@ -1,0 +1,73 @@
+appId: com.examinus.app
+name: "Medicamentos - Aderência: navegar meses e 100%"
+tags:
+  - authenticated
+---
+# Checklist: 7.5.2 (navegar entre meses), 7.5.3 (aderência 100%)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para medicamentos
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# Abrir histórico/aderência
+- tapOn:
+    id: "btn-medication-history"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-adherence"
+    timeout: 10000
+    optional: true
+
+# === 7.5.2 — Navegar entre meses ===
+# Mês anterior
+- tapOn:
+    text: ".*<.*|.*Anterior.*|.*anterior.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "69_adherence_prev_month"
+
+# Mês seguinte
+- tapOn:
+    text: ".*>.*|.*Próximo.*|.*próximo.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# === 7.5.3 — Verificar aderência (porcentagem) ===
+- assertVisible:
+    text: ".*%.*|.*Aderência.*|.*aderência.*"
+    optional: true
+
+- takeScreenshot: "69_medication_adherence_nav"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

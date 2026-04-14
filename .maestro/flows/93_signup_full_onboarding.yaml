@@ -1,0 +1,164 @@
+appId: com.examinus.app
+name: "Cadastro completo + Onboarding (fluxo do zero)"
+tags:
+  - unauthenticated
+  - onboarding
+---
+# Checklist: 1.5.1 (cadastro válido), 2.1.1-2.1.7 (onboarding completo)
+#
+# PRÉ-REQUISITO: App na tela de Welcome (deslogado)
+#
+# Rodar: maestro test -e TEST_EMAIL="teste.e2e.$(date +%s)@examinus.test" -e TEST_PASSWORD="Senha@Forte123" .maestro/flows/93_signup_full_onboarding.yaml
+
+- launchApp:
+    stopApp: false
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-welcome"
+    timeout: 30000
+
+# Welcome → Login
+- tapOn:
+    id: "btn-go-to-login"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-login"
+    timeout: 15000
+
+# Login → Signup
+- tapOn:
+    id: "btn-go-to-signup"
+
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- assertVisible:
+    id: "screen-signup"
+    optional: true
+
+# === CADASTRO via testIDs ===
+# Nome
+- tapOn:
+    id: "input-name"
+- inputText: "Teste E2E Maestro"
+- tapOn:
+    point: "50%,5%"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Email
+- tapOn:
+    id: "input-email"
+- inputText: ${TEST_EMAIL}
+- tapOn:
+    point: "50%,5%"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Senha
+- tapOn:
+    id: "input-password"
+- inputText: ${TEST_PASSWORD}
+- tapOn:
+    point: "50%,5%"
+- waitForAnimationToEnd:
+    timeout: 1500
+
+# Confirmar senha
+- tapOn:
+    id: "input-confirm-password"
+- inputText: ${TEST_PASSWORD}
+
+# Fechar teclado — tap no campo nome pra mover foco pra cima
+- tapOn:
+    id: "input-name"
+- waitForAnimationToEnd:
+    timeout: 1000
+
+# Tap fora do campo pra fechar teclado
+- tapOn:
+    point: "50%,8%"
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Scroll pra baixo pra ver checkbox e botão
+- scrollUntilVisible:
+    element:
+      id: "btn-signup"
+    direction: DOWN
+    timeout: 10000
+
+# Marcar checkbox dos termos
+- tapOn:
+    text: ".*Termos.*|.*termos.*|.*continuar.*"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 1000
+
+- takeScreenshot: "93_signup_filled"
+
+# Botão Cadastrar
+- tapOn:
+    id: "btn-signup"
+
+- waitForAnimationToEnd:
+    timeout: 15000
+
+- takeScreenshot: "93_after_signup"
+
+# === ONBOARDING (2.1.1-2.1.7) ===
+# Gênero
+- tapOn:
+    id: "btn-gender-male"
+    optional: true
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Idade
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Altura
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Peso
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Hábitos
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Humor
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Atividade física
+- tapOn:
+    id: "btn-onboarding-continue"
+    optional: true
+- waitForAnimationToEnd:
+    timeout: 5000
+
+- takeScreenshot: "93_signup_full_onboarding"

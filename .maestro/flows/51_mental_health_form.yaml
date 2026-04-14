@@ -1,0 +1,68 @@
+appId: com.examinus.app
+name: "Saúde Mental - Formulário DASS-21"
+tags:
+  - authenticated
+---
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Saúde Mental (via homepage card ou navegação direta)
+- scrollUntilVisible:
+    element:
+      text: ".*Saúde Mental.*|.*saúde mental.*|.*Mental.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: ".*Saúde Mental.*|.*saúde mental.*|.*Avalie.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-mental-health-form"
+    timeout: 10000
+    optional: true
+
+# === Verificar formulário DASS-21 (9.1.1) ===
+- assertVisible:
+    id: "screen-mental-health-form"
+    optional: true
+
+# Verificar botão de navegação
+- assertVisible:
+    id: "btn-mental-next"
+    optional: true
+
+# === Navegar entre perguntas (9.1.3) ===
+# Avançar para próxima pergunta
+- tapOn:
+    id: "btn-mental-next"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Voltar para pergunta anterior
+- tapOn:
+    id: "btn-mental-prev"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "51_mental_health_form"
+
+# Voltar para home
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
+    optional: true

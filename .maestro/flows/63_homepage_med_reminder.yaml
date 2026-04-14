@@ -1,0 +1,33 @@
+appId: com.examinus.app
+name: "Homepage - Lembrete de medicamento na home"
+tags:
+  - authenticated
+---
+# Checklist: 3.1.7 — Card de lembrete quando há med próximo
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Verificar card de lembrete de medicamento
+- scrollUntilVisible:
+    element:
+      text: ".*Medicament.*|.*Lembrete.*|.*lembrete.*|.*Próximo.*|.*Tomar.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+# Card de medicamento deve ser visível se houver med ativo
+- assertVisible:
+    id: "card-medication"
+    optional: true
+
+# Verificar informações do lembrete
+- assertVisible:
+    text: ".*\\d{2}:\\d{2}.*|.*hora.*|.*Hora.*"
+    optional: true
+
+- takeScreenshot: "63_homepage_med_reminder"
+
+# Scroll de volta ao topo
+- swipe:
+    direction: DOWN
+    duration: 500

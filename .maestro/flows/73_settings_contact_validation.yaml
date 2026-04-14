@@ -1,0 +1,71 @@
+appId: com.examinus.app
+name: "Configurações - Formulário de contato com campos vazios"
+tags:
+  - authenticated
+---
+# Checklist: 11.7.2 — Formulário de contato — campos vazios
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Abrir Fale Conosco
+- scrollUntilVisible:
+    element:
+      id: "card-contact"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-contact"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-contact-us"
+    timeout: 10000
+
+# === 11.7.2 — Tentar enviar com campos vazios ===
+- scrollUntilVisible:
+    element:
+      text: ".*Enviar.*|.*enviar.*"
+    direction: DOWN
+    timeout: 10000
+    optional: true
+
+- tapOn:
+    text: ".*Enviar.*|.*enviar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Verificar validação
+- assertVisible:
+    text: ".*obrigatório.*|.*Obrigatório.*|.*preencha.*|.*Preencha.*|.*Campo.*"
+    optional: true
+
+- takeScreenshot: "73_settings_contact_validation"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

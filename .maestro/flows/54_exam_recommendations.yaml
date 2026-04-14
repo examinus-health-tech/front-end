@@ -1,0 +1,56 @@
+appId: com.examinus.app
+name: "Exame - Recomendações de saúde no detalhe"
+tags:
+  - authenticated
+---
+# Checklist: 4.2.6 — Recomendações de saúde baseadas nos resultados
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para exames
+- tapOn:
+    id: "tab-exams"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-list"
+    timeout: 10000
+
+# Abrir primeiro exame
+- tapOn:
+    text: ".*Hemograma.*|.*Glicose.*|.*Exame.*|.*hemograma.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-exam-detail"
+    timeout: 10000
+    optional: true
+
+# Scroll até recomendações
+- scrollUntilVisible:
+    element:
+      text: ".*Recomend.*|.*recomend.*|.*Sugest.*|.*Dica.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+# Verificar seção de recomendações
+- assertVisible:
+    text: ".*Recomend.*|.*recomend.*"
+    optional: true
+
+- takeScreenshot: "54_exam_recommendations"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

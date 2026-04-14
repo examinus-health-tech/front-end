@@ -1,0 +1,84 @@
+appId: com.examinus.app
+name: "Notificações - Marcar como lida, deletar e deep link"
+tags:
+  - authenticated
+---
+# Checklist: 10.1.3 (marcar como lida), 10.1.4 (deletar), 10.1.5 (deep link)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Abrir notificações (sem swipe antes — pull-to-refresh interfere)
+- tapOn:
+    id: "btn-notifications"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-notifications"
+    timeout: 20000
+
+# Verificar que a tela carregou com notificações
+- assertVisible:
+    text: ".*Notificações.*"
+
+- takeScreenshot: "72_notification_list"
+
+# === 10.1.3 — Marcar como lida ===
+- swipe:
+    direction: LEFT
+    duration: 300
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- tapOn:
+    text: ".*Marcar.*|.*Lida.*|.*lida.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "72_notification_mark_read"
+
+# === 10.1.4 — Deletar notificação ===
+- swipe:
+    direction: LEFT
+    duration: 300
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- tapOn:
+    text: ".*Excluir.*|.*Deletar.*|.*Remover.*|.*excluir.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "72_notification_delete"
+
+# === 10.1.5 — Deep link (tocar em notificação) ===
+- tapOn:
+    text: ".*Score.*|.*exame.*|.*resultado.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+- takeScreenshot: "72_notification_actions"
+
+# Voltar para home
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

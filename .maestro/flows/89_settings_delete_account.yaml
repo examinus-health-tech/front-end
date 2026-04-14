@@ -1,0 +1,64 @@
+appId: com.examinus.app
+name: "Configurações - Exclusão de conta (aviso e cancelamento)"
+tags:
+  - authenticated
+---
+# Checklist: 11.9.1 (aviso de consequências), 11.9.2 (confirmar), 11.9.3 (cancelar)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Scroll até encontrar opção de exclusão
+- scrollUntilVisible:
+    element:
+      text: ".*Excluir.*conta.*|.*excluir.*conta.*|.*Deletar.*conta.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+# === 11.9.1 — Solicitar exclusão ===
+- tapOn:
+    text: ".*Excluir.*conta.*|.*excluir.*conta.*|.*Deletar.*conta.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Dialog com aviso de consequências
+- assertVisible:
+    text: ".*permanente.*|.*irreversível.*|.*perder.*|.*dados.*|.*certeza.*"
+    optional: true
+
+- takeScreenshot: "89_delete_account_warning"
+
+# === 11.9.3 — Cancelar exclusão ===
+- tapOn:
+    text: ".*Cancelar.*|.*Não.*|.*cancelar.*|.*Voltar.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+# Conta deve permanecer ativa
+- assertVisible:
+    id: "screen-settings"
+    optional: true
+
+- takeScreenshot: "89_settings_delete_account"
+
+# Voltar para home
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

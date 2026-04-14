@@ -1,0 +1,64 @@
+appId: com.examinus.app
+name: "Heart Score - Análise detalhada de um sistema"
+tags:
+  - authenticated
+---
+# Checklist: 6.2.3 — Análise detalhada de um sistema orgânico
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para carteira
+- tapOn:
+    id: "tab-wallet"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-health-wallet"
+    timeout: 10000
+
+# Abrir Heart Score
+- tapOn:
+    text: ".*Heart.*|.*Score.*|.*Cardio.*|.*score.*"
+    optional: true
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-heart-score"
+    timeout: 10000
+    optional: true
+
+# Scroll para encontrar sistemas
+- scrollUntilVisible:
+    element:
+      text: ".*Renal.*|.*Hepático.*|.*Cardiovascular.*|.*Hematológico.*"
+    direction: DOWN
+    timeout: 15000
+    optional: true
+
+# Tocar em um sistema para ver detalhes
+- tapOn:
+    text: ".*Renal.*|.*Hepático.*|.*Cardiovascular.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 3000
+
+# Verificar informações detalhadas
+- assertVisible:
+    text: ".*Detalh.*|.*detalh.*|.*Resultado.*|.*resultado.*|.*Análise.*"
+    optional: true
+
+- takeScreenshot: "68_heart_score_detail"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+    optional: true
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

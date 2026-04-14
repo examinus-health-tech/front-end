@@ -386,9 +386,7 @@ describe('SignIn', () => {
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
     const { findByTestId } = render(<SignIn />);
 
-    await waitFor(() => {
-      expect(findByTestId('icon-Fingerprint')).toBeTruthy();
-    });
+    expect(await findByTestId('icon-Fingerprint')).toBeTruthy();
 
     consoleSpy.mockRestore();
     mockBiometricIsAvailable = false;
@@ -617,9 +615,7 @@ describe('SignIn', () => {
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
     const { findByTestId } = render(<SignIn />);
 
-    await waitFor(() => {
-      expect(findByTestId('icon-FaceId')).toBeTruthy();
-    });
+    expect(await findByTestId('icon-FaceId')).toBeTruthy();
 
     consoleSpy.mockRestore();
     mockBiometricIsAvailable = false;

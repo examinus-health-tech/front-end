@@ -1,0 +1,70 @@
+appId: com.examinus.app
+name: "Configurações - Toggles de categorias de notificação"
+tags:
+  - authenticated
+---
+# Checklist: 11.4.2 (desativar categoria), 11.4.3 (reativar categoria)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para Minha Conta
+- tapOn:
+    id: "tab-account"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+# Abrir Notificações
+- scrollUntilVisible:
+    element:
+      id: "card-notifications"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-notifications"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-config-notifications"
+    timeout: 10000
+
+# === 11.4.2 — Desativar uma categoria ===
+# Tocar no primeiro toggle visível
+- tapOn:
+    text: ".*Medicamento.*|.*Exame.*|.*Lembrete.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "87_notification_toggle_off"
+
+# === 11.4.3 — Reativar categoria ===
+- tapOn:
+    text: ".*Medicamento.*|.*Exame.*|.*Lembrete.*"
+    optional: true
+
+- waitForAnimationToEnd:
+    timeout: 2000
+
+- takeScreenshot: "87_settings_notification_toggles"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-settings"
+    timeout: 10000
+
+- tapOn:
+    id: "tab-home"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000

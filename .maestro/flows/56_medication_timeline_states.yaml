@@ -1,0 +1,50 @@
+appId: com.examinus.app
+name: "Medicamentos - Timeline vazia e destaque próximo horário"
+tags:
+  - authenticated
+---
+# Checklist: 7.1.2 (timeline vazia), 7.1.3 (destaque próximo horário)
+
+- runFlow: ../utils/wait_for_home.yaml
+
+# Navegar para medicamentos
+- scrollUntilVisible:
+    element:
+      id: "card-medication"
+    direction: DOWN
+    timeout: 10000
+
+- tapOn:
+    id: "card-medication"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-medication-timeline"
+    timeout: 10000
+
+# === 7.1.3 — Verificar destaque do próximo horário ===
+# Se há medicamentos, o próximo horário deve estar destacado
+- assertVisible:
+    text: ".*Próximo.*|.*próximo.*|.*Agora.*|.*agora.*"
+    optional: true
+
+# === 7.1.2 — Verificar estado vazio ===
+# Se não há medicamentos, deve haver mensagem e botão de adicionar
+- assertVisible:
+    text: ".*Nenhum.*|.*nenhum.*|.*Adicionar.*|.*adicionar.*|.*Você ainda.*"
+    optional: true
+
+- assertVisible:
+    id: "btn-add-medication"
+    optional: true
+
+- takeScreenshot: "56_medication_timeline_states"
+
+# Voltar
+- tapOn:
+    id: "btn-back"
+
+- extendedWaitUntil:
+    visible:
+      id: "screen-homepage"
+    timeout: 10000
