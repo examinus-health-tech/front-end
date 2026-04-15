@@ -3,7 +3,8 @@ import { TouchableOpacity, useWindowDimensions, StatusBar, Platform } from 'reac
 import { CustomRefreshControl } from '@components/atoms';
 import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center, Avatar, useDisclose } from 'native-base';
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
-import Animated, { FadeInDown, FadeInRight } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInRight, useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, interpolate } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api } from 'src/services/api';
 import ContentLoader, { Rect, Circle } from 'react-content-loader/native';
 import { format } from 'date-fns';
@@ -111,6 +112,26 @@ export function Homepage() {
   const { user, getUserInfo, isLoading, updateUserPhoto } = useAuth();
   const { getHomeData, homeData, trackerData, isLoadingHomeContext, hasProcessingExams, fitnessEnabled, refreshFitnessData } = useHome();
   const { showTabBar } = useTabBar();
+
+  // Pulse animation para shadow do card em análise
+  const pulseValue = useSharedValue(0);
+  useEffect(() => {
+    if (hasProcessingExams) {
+      pulseValue.value = withRepeat(
+        withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.ease) }),
+        -1,
+        true,
+      );
+    }
+  }, [hasProcessingExams]);
+  const pulseCardStyle = useAnimatedStyle(() => {
+    'worklet';
+    return {
+      shadowOpacity: interpolate(pulseValue.value, [0, 1], [0.35, 0.55]),
+      shadowRadius: interpolate(pulseValue.value, [0, 1], [10, 20]),
+      elevation: interpolate(pulseValue.value, [0, 1], [4, 24]),
+    };
+  });
 
   // Calcula userWithoutData de forma síncrona (durante o render) para evitar flicker
   const userWithoutData = useMemo(() => {
@@ -475,12 +496,42 @@ export function Homepage() {
             </Animated.View>
 
             {/* Score X - animação 2 */}
-            <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(100) : undefined}>
+            <Animated.View
+              entering={!hasAnimated ? FadeInDown.duration(400).delay(100) : undefined}
+              style={hasProcessingExams ? [{ marginTop: 32, borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 2 } }, pulseCardStyle] : undefined}
+            >
               <TouchableOpacity
                 onPress={() => navigation.navigate(userWithoutData ? 'upload' : 'healthWallet')}
                 activeOpacity={0.7}
               >
-                <Box w="100%" h="auto" bg={'white'} px={4} py={5} mt={8} borderRadius={12} shadow={2}>
+                {/* Faixa superior "Score em análise" */}
+                {hasProcessingExams && (
+                  <Box borderTopLeftRadius={12} borderTopRightRadius={12} overflow="hidden">
+                    <LinearGradient
+                      colors={['#00856D', '#00A38B', '#0CC1AF']}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 0 }}
+                      style={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 34 }}
+                    >
+                      <Text fontSize={16} fontWeight={800} color="white" textAlign="center">
+                        Score em análise
+                      </Text>
+                    </LinearGradient>
+                  </Box>
+                )}
+                <Box
+                  w="100%"
+                  h="auto"
+                  bg={'white'}
+                  px={4}
+                  py={5}
+                  mt={hasProcessingExams ? -8 : 8}
+                  borderRadius={12}
+                  borderWidth={hasProcessingExams ? 1.5 : 0}
+                  borderTopWidth={0}
+                  borderColor="ciano.600"
+                  shadow={hasProcessingExams ? 0 : 2}
+                >
                   <VStack alignItems={'center'}>
                     <AnimatedCircularProgress
                       size={150}
@@ -568,24 +619,6 @@ export function Homepage() {
                       </VStack>
                     )}
 
-                    {hasProcessingExams && (
-                      <Box
-                        mt={3}
-                        px={4}
-                        py={3}
-                        bg="blue.50"
-                        borderRadius={8}
-                        borderWidth={1}
-                        borderColor="blue.200"
-                      >
-                        <Text fontSize={13} fontWeight={600} lineHeight={18} textAlign="center" color="blue.700">
-                          📋 Exame em análise
-                        </Text>
-                        <Text fontSize={12} fontWeight={500} lineHeight={16} mt={1} textAlign="center" color="blue.600">
-                          Seu exame está sendo processado. Em poucos minutos o resultado estará disponível. Você receberá uma notificação quando estiver pronto.
-                        </Text>
-                      </Box>
-                    )}
                   </VStack>
                 </Box>
               </TouchableOpacity>

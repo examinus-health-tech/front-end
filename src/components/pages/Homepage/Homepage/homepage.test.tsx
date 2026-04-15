@@ -62,6 +62,20 @@ jest.mock('react-native-reanimated', () => {
         delay: () => undefined,
       }),
     },
+    useSharedValue: (val: any) => ({ value: val }),
+    useAnimatedStyle: (fn: any) => ({}),
+    withRepeat: (val: any) => val,
+    withTiming: (val: any) => val,
+    Easing: { inOut: () => undefined, ease: undefined },
+    interpolate: () => 0,
+  };
+});
+
+// Mock expo-linear-gradient
+jest.mock('expo-linear-gradient', () => {
+  const RN = require('react-native');
+  return {
+    LinearGradient: ({ children, ...rest }: any) => <RN.View {...rest}>{children}</RN.View>,
   };
 });
 
