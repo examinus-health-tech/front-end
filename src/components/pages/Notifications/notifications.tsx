@@ -8,7 +8,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
 import { NotificationCard } from './components/NotificationCard/notificationCard';
-import { GearIcon, ChevronLeftIcon } from '@assets/icons';
+import { GearIcon, ChevronLeftIcon, TrashIcon } from '@assets/icons';
 
 import { api } from 'src/services/api';
 import { Notification } from 'src/@types/notifications';
@@ -126,6 +126,32 @@ export function Notifications() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [hasAnimated, setHasAnimated] = useState(false);
+
+  // Excluir todas as notificações de um grupo (marca como lidas e remove do estado)
+  const handleDeleteGroup = async (groupTitle: string) => {
+    const groupNotifs = notifications.filter(n => {
+      const date = new Date(n.createdAt);
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+      let title = 'Anteriores';
+      if (diffDays === 0) title = 'Hoje';
+      else if (diffDays === 1) title = 'Ontem';
+      else if (diffDays <= 7) title = 'Esta semana';
+      else if (diffDays <= 30) title = 'Este mês';
+      return title === groupTitle;
+    });
+
+    // Marcar todas como lidas no backend
+    try {
+      await Promise.all(
+        groupNotifs.filter(n => !n.readAt).map(n => api.put(`/notifications/${n.id}/read`))
+      );
+    } catch {}
+
+    // Remover do estado local
+    const groupIds = new Set(groupNotifs.map(n => n.id));
+    setNotifications(prev => prev.filter(n => !groupIds.has(n.id)));
+  };
 
   const ensureArray = (data: any): Notification[] => {
     if (Array.isArray(data)) {
@@ -330,9 +356,18 @@ export function Notifications() {
                           </Box>
                         )}
                       </HStack>
-                      <Text fontSize={14} fontWeight={600} letterSpacing={-0.14} color="gray.500">
-                        {group.notifications.length} Total
-                      </Text>
+                      <TouchableOpacity
+                        onPress={() => handleDeleteGroup(group.title)}
+                        activeOpacity={0.6}
+                        style={{ backgroundColor: '#FEE2E2', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6 }}
+                      >
+                        <HStack alignItems="center" space={2}>
+                          <TrashIcon size="16" color="#EF4444" />
+                          <Text fontSize={14} fontWeight={700} color="red.500">
+                            Excluir
+                          </Text>
+                        </HStack>
+                      </TouchableOpacity>
                     </HStack>
 
                     {/* Notificações do grupo */}

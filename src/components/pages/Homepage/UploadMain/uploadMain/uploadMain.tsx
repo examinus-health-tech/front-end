@@ -12,14 +12,34 @@ import { useUpload } from 'src/hooks/useUpload';
 import { useTabBar } from 'src/hooks/useTabBar';
 import { UploadError } from '../error/error';
 import { Loading } from '../loading/loading';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ScoreWarning } from '../ScoreWarning/scoreWarning';
+
+const MIN_LOADING_TIME = 25000; // Tempo mínimo da animação de loading (25s)
 
 export function UploadMain() {
   const { isOpen, onOpen, onClose } = useDisclose();
   const { isOpen: isCameraOpen, onOpen: onCameraOpen, onClose: onCameraClose } = useDisclose();
   const { isLoadingUploadContext, withError, withSuccess, setWithSuccess, handleUploadFile } = useUpload();
   const { hideTabBar, showTabBar } = useTabBar();
+
+  // Garantir tempo mínimo de loading pra animação completa
+  const [showLoading, setShowLoading] = useState(false);
+  const loadingStartTime = useRef<number>(0);
+
+  useEffect(() => {
+    if (isLoadingUploadContext && !showLoading) {
+      // Começou o loading
+      setShowLoading(true);
+      loadingStartTime.current = Date.now();
+    } else if (!isLoadingUploadContext && showLoading) {
+      // API terminou — esperar o tempo mínimo
+      const elapsed = Date.now() - loadingStartTime.current;
+      const remaining = Math.max(0, MIN_LOADING_TIME - elapsed);
+      const timer = setTimeout(() => setShowLoading(false), remaining);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoadingUploadContext]);
 
   function handleCameraOpen() {
     onClose(); // Fecha o BottomSheet
@@ -58,7 +78,7 @@ export function UploadMain() {
     }
   }, [isCameraOpen, isLoadingUploadContext, withSuccess]);
 
-  if (isLoadingUploadContext) {
+  if (showLoading || isLoadingUploadContext) {
     return <Loading />;
   } else if (withError) {
     return <UploadError />;

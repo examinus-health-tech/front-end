@@ -439,10 +439,9 @@ describe('GlobalUploadBottomSheet', () => {
   it('renders all three sections: actionsheet, camera, and modals', () => {
     mockIsBottomSheetOpen = true;
     mockIsLoadingUploadContext = true;
-    mockWithSuccess = true;
+    mockWithSuccess = false;
     const { getByTestId } = render(<GlobalUploadBottomSheet />);
     expect(getByTestId('actionsheet')).toBeTruthy();
     expect(getByTestId('loading-component')).toBeTruthy();
-    expect(getByTestId('score-warning')).toBeTruthy();
   });
 });

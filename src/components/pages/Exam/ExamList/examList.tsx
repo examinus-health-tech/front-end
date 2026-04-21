@@ -146,8 +146,16 @@ export function ExamList() {
       const timer = setTimeout(() => {
         StatusBar.setBarStyle('dark-content');
       }, 100);
-      return () => clearTimeout(timer);
-    }, [])
+      // Refresh automático ao receber foco (ex: após upload de exame)
+      // Delay de 1s pra dar tempo do backend processar
+      const refreshTimer = setTimeout(() => {
+        getExamList().catch(() => {});
+      }, 1000);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(refreshTimer);
+      };
+    }, [getExamList])
   );
 
   const [filteredExams, setFilteredExams] = useState<any[]>([]);

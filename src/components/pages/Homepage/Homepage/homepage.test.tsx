@@ -650,7 +650,7 @@ describe('Homepage', () => {
       mockHomeData.generalScoreActionRecommendation = null;
       const { getByText } = render(<Homepage />);
       await waitFor(() => {
-        expect(getByText(/Seu score de saúde tá mais ou menos/)).toBeTruthy();
+        expect(getByText(/Quase lá!/)).toBeTruthy();
       });
     });
 

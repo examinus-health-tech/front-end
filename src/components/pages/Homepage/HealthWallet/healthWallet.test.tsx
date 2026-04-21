@@ -50,6 +50,14 @@ jest.mock('react-native-circular-progress', () => ({
   },
 }));
 
+// Mock ScoreGauge
+jest.mock('@components/molecules/ScoreGauge/scoreGauge', () => {
+  const RN = require('react-native');
+  return {
+    ScoreGauge: ({ score, ...rest }: any) => <RN.View testID="score-gauge" {...rest} />,
+  };
+});
+
 // Mock navigation
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -251,17 +259,9 @@ describe('HealthWallet', () => {
     });
   });
 
-  it('renders circular progress indicator', () => {
+  it('renders score gauge', () => {
     const { getByTestId } = render(<HealthWallet />);
-    expect(getByTestId('circular-progress')).toBeTruthy();
-  });
-
-  it('renders user initials in avatar when no photo', () => {
-    const { toJSON } = render(<HealthWallet />);
-    // Initials are rendered as a plain string child of Avatar (View mock),
-    // so getByText cannot find it. Verify via the JSON tree.
-    const tree = JSON.stringify(toJSON());
-    expect(tree).toContain('JD');
+    expect(getByTestId('score-gauge')).toBeTruthy();
   });
 
   it('renders recommendation text', () => {

@@ -1,5 +1,5 @@
 import { Actionsheet, useDisclose, Modal, VStack, Text, Image, Box, HStack } from 'native-base';
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { StatusBar } from 'react-native';
 import { useUploadBottomSheet } from 'src/contexts/UploadBottomSheetContext';
 import { UploadType } from '@components/pages/Homepage/UploadMain/uploadType/uploadType';
@@ -23,6 +23,29 @@ export function GlobalUploadBottomSheet() {
   const { isLoadingUploadContext, withError, withSuccess, setWithError, setWithSuccess, handleUploadFile } = useUpload();
   const { hideTabBar, showTabBar } = useTabBar();
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+
+  // Tempo mínimo de loading pra animação completa
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
+  const loadingStartRef = useRef<number>(0);
+  const MIN_LOADING_MS = 25000;
+
+  useEffect(() => {
+    if (isLoadingUploadContext && !showLoadingModal) {
+      setShowLoadingModal(true);
+      loadingStartRef.current = Date.now();
+    } else if (!isLoadingUploadContext && showLoadingModal && !withSuccess && !withError) {
+      const elapsed = Date.now() - loadingStartRef.current;
+      const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+      const timer = setTimeout(() => setShowLoadingModal(false), remaining);
+      return () => clearTimeout(timer);
+    } else if (withSuccess || withError) {
+      // Se já tem resultado, respeitar o tempo mínimo antes de mostrar
+      const elapsed = Date.now() - loadingStartRef.current;
+      const remaining = Math.max(0, MIN_LOADING_MS - elapsed);
+      const timer = setTimeout(() => setShowLoadingModal(false), remaining);
+      return () => clearTimeout(timer);
+    }
+  }, [isLoadingUploadContext, withSuccess, withError]);
 
   function handleCameraOpen() {
     closeBottomSheet(); // Fecha o BottomSheet
@@ -124,14 +147,14 @@ export function GlobalUploadBottomSheet() {
       <UploadCamera isOpen={isCameraOpen} onClose={handleCameraClose} />
 
       {/* Telas de feedback - Modal full screen */}
-      <Modal isOpen={isLoadingUploadContext} size="full" _backdrop={{ bg: "gray.800" }}>
+      <Modal isOpen={showLoadingModal} size="full" _backdrop={{ bg: "gray.800" }}>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <Modal.Content bg="gray.800" width="100%" height="100%" maxWidth="100%" maxHeight="100%" margin={0} borderRadius={0}>
-          <Loading />
+          <Loading key={loadingStartRef.current} />
         </Modal.Content>
       </Modal>
 
-      <Modal isOpen={withSuccess} size="full">
+      <Modal isOpen={withSuccess && !showLoadingModal} size="full">
         <StatusBar barStyle="light-content" backgroundColor="#8A3FFC" />
         <Modal.Content bg="purple.500" width="100%" height="100%" maxWidth="100%" maxHeight="100%" margin={0} borderRadius={0}>
           <ScoreWarning onClose={handleSuccessClose} />

@@ -13,6 +13,7 @@ import {
   Badge,
   Avatar,
 } from 'native-base';
+import { ScoreGauge } from '@components/molecules/ScoreGauge/scoreGauge';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
@@ -231,45 +232,11 @@ export function HealthWallet() {
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(0) : undefined}>
               <Box w="100%" h="auto" bg={'white'} px={4} py={5} borderRadius={12} shadow={2}>
                 <VStack alignItems={'center'}>
-                  <AnimatedCircularProgress
-                    size={150}
-                    lineCap="round"
-                    width={18}
-                    fill={Math.round(homeData.generalScore / 10)}
-                    children={() => (
-                      <Avatar
-                        size="50px"
-                        mt={-4}
-                        bg="gray.300"
-                        source={
-                          user?.profilePhotoBase64 || user?.photoUrl
-                            ? { uri: user?.profilePhotoBase64 || user?.photoUrl }
-                            : undefined
-                        }
-                      >
-                        {!(user?.profilePhotoBase64 || user?.photoUrl) &&
-                          (user?.fullName ? (
-                            user.fullName
-                              .split(' ')
-                              .filter(Boolean)
-                              .map((name) => name[0])
-                              .join('')
-                              .substring(0, 2)
-                              .toUpperCase()
-                          ) : (
-                            <UserIcon color="#6B7280" size="24" />
-                          ))}
-                      </Avatar>
-                    )}
-                    rotation={270}
-                    tintColor={getColorByScore(homeData.generalScore)?.color ?? '#0CC1AF'}
-                    backgroundColor="#DCE1E8"
-                    arcSweepAngle={180}
-                  />
+                  <ScoreGauge score={homeData.generalScore || 0} size={200} />
 
                   <Text
-                    mt={-12}
-                    fontSize={40}
+                    mt={3}
+                    fontSize={42}
                     fontWeight={800}
                     letterSpacing={-1.44}
                     lineHeight={44}
@@ -278,7 +245,7 @@ export function HealthWallet() {
                     {Math.round(homeData.generalScore || 0)}
                   </Text>
 
-                  <Text mt={-2} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
+                  <Text mt={-1} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
                     Score X
                   </Text>
 

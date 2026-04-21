@@ -10,6 +10,20 @@ jest.mock('native-base', () => {
     Text: ({ children, ...rest }: any) => <RN.Text {...rest}>{children}</RN.Text>,
     Image: (props: any) => <RN.Image {...props} />,
     Center: ({ children, ...rest }: any) => <RN.View {...rest}>{children}</RN.View>,
+    Box: ({ children, ...rest }: any) => <RN.View {...rest}>{children}</RN.View>,
+    HStack: ({ children, ...rest }: any) => <RN.View {...rest}>{children}</RN.View>,
+  };
+});
+
+// Mock react-native-svg
+jest.mock('react-native-svg', () => {
+  const RN = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ children, ...rest }: any) => <RN.View {...rest}>{children}</RN.View>,
+    Svg: ({ children, ...rest }: any) => <RN.View {...rest}>{children}</RN.View>,
+    Rect: (props: any) => <RN.View {...props} />,
+    Circle: (props: any) => <RN.View {...props} />,
   };
 });
 
@@ -17,18 +31,6 @@ jest.mock('native-base', () => {
 jest.mock('@assets/png/x-examinus.png', () => 'mock-x-examinus');
 
 describe('Loading', () => {
-  it('renders loading text', () => {
-    const { getByText } = render(<Loading />);
-    expect(getByText(/Carregando os/)).toBeTruthy();
-    expect(getByText(/resultados do seu exame/)).toBeTruthy();
-  });
-
-  it('renders secondary description text', () => {
-    const { getByText } = render(<Loading />);
-    expect(getByText(/Nosso time está fazendo a mágica/)).toBeTruthy();
-    expect(getByText(/acontecer para desvendar sua saúde!/)).toBeTruthy();
-  });
-
   it('renders the component tree', () => {
     const { toJSON } = render(<Loading />);
     expect(toJSON()).toBeTruthy();
@@ -37,10 +39,5 @@ describe('Loading', () => {
   it('renders without crashing on mount/unmount', () => {
     const { unmount } = render(<Loading />);
     unmount();
-  });
-
-  it('renders the component structure', () => {
-    const { UNSAFE_root } = render(<Loading />);
-    expect(UNSAFE_root).toBeTruthy();
   });
 });

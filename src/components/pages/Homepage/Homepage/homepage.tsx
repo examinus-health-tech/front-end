@@ -5,6 +5,7 @@ import { VStack, Text, Box, HStack, ScrollView, View, Image, Badge, Center, Avat
 import { useNavigation, useFocusEffect, useIsFocused } from '@react-navigation/native';
 import Animated, { FadeInDown, FadeInRight, useSharedValue, useAnimatedStyle, withRepeat, withTiming, Easing, interpolate } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
+import { ScoreGauge } from '@components/molecules/ScoreGauge/scoreGauge';
 import { api } from 'src/services/api';
 import ContentLoader, { Rect, Circle } from 'react-content-loader/native';
 import { format } from 'date-fns';
@@ -73,14 +74,25 @@ import { ReviewBottomSheet } from '@components/molecules';
 const DISABLE_FITNESS_FEATURE = false;
 
 // Função helper para determinar o texto baseado no score
-function getScoreText(score: number): string {
+function getScoreTitle(score: number): string {
+  if (score <= 500) return 'Xiii, deu ruim!';
+  else if (score > 500 && score <= 800) return 'Quase lá!';
+  else return 'Tá mandando muito bem!';
+}
+
+function getScoreDescription(score: number): string {
   if (score <= 500) {
-    return 'Xiii, deu ruim! O seu score de saúde tá ruim. Você precisa dar uma olhada nisso. Procure um médico e atualize os seus exames periodicamente, a revisão precisa ser mais frequente!';
+    return 'O seu score de saúde tá ruim. Você precisa dar uma olhada nisso. Procure um médico e atualize os seus exames periodicamente, a revisão precisa ser mais frequente!';
   } else if (score > 500 && score <= 800) {
-    return 'Seu score de saúde tá mais ou menos. É hora de ajustar algumas coisinhas aí por dentro do seu corpo. Nada de pânico, mas bora dar uma atenção a mais pra não deixar isso virar um problemão.';
+    return 'É hora de ajustar algumas coisinhas aí por dentro do seu corpo. Nada de pânico, mas bora dar uma atenção a mais pra não deixar isso virar um problemão.';
   } else {
-    return 'Tá mandando muito bem! O seu score de saúde tá acima da média, e isso mostra que você tá cuidando bem do seu corpo. Parabéns e continue assim!';
+    return 'O seu score de saúde tá acima da média, e isso mostra que você tá cuidando bem do seu corpo. Parabéns e continue assim!';
   }
+}
+
+// Manter retrocompatibilidade
+function getScoreText(score: number): string {
+  return `${getScoreTitle(score)} ${getScoreDescription(score)}`;
 }
 
 // Função helper para obter cor baseada no score (alinhado com backend)
@@ -101,6 +113,7 @@ export function Homepage() {
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [hasAnimated, setHasAnimated] = useState<boolean>(false);
   const [dataLoadedForCurrentFocus, setDataLoadedForCurrentFocus] = useState<boolean>(false);
+
 
   const isFocused = useIsFocused();
   const [mentalHealthAssessment, setMentalHealthAssessment] = useState<MentalHealthAssessment | null>(null);
@@ -364,25 +377,31 @@ export function Homepage() {
     }
 
     return systems.map((system, index) => {
-      if (index <= 2) {
+      if (index <= 4) {
         const colorStyle = getColorByScore(system.organicSystemScore);
 
         return (
           <TouchableOpacity key={index} onPress={() => navigation.navigate('healthWallet')}>
             <Box bg={colorStyle.bgColor} rounded="2xl" w={144} h={144} shadow={4} px={4} py={3}>
               <VStack flex={1} justifyContent="space-between">
-                {/* Título no topo */}
                 <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                   {system.examOrganicSystemDescription}
                 </Text>
 
-                {/* Ícone centralizado */}
                 <Center>{renderIcon(system.examOrganicSystemDescription)}</Center>
 
-                {/* Risco embaixo */}
-                <Text color="white" fontSize={12} fontWeight={600} letterSpacing={-0.16} textTransform="uppercase">
-                  {colorStyle.title}
-                </Text>
+                {/* Badge/tag de status */}
+                <Box
+                  bg="rgba(255,255,255,0.25)"
+                  borderRadius={20}
+                  px={3}
+                  py={1}
+                  alignSelf="flex-start"
+                >
+                  <Text color="white" fontSize={11} fontWeight={700} letterSpacing={-0.11} textTransform="uppercase">
+                    {colorStyle.title}
+                  </Text>
+                </Box>
               </VStack>
             </Box>
           </TouchableOpacity>
@@ -391,6 +410,7 @@ export function Homepage() {
       return null;
     });
   }
+
 
   return (
     <View testID="screen-homepage" flex={1}>
@@ -447,11 +467,11 @@ export function Homepage() {
                 <VStack>
                   <HStack alignItems={'center'} mb={4}>
                     <CalendarIcon />
-                    <Text fontSize={12} fontWeight={600} letterSpacing={-0.12} color={'gray.400'} ml={2}>
+                    <Text fontSize={14} fontWeight={600} letterSpacing={-0.12} color={'gray.400'} ml={2}>
                       {`${weekday}, ${date}`}
                     </Text>
                   </HStack>
-                  <Text fontSize={30} fontWeight={800} letterSpacing={-1.2} lineHeight={38} color={'gray.900'} mb={2}>
+                  <Text fontSize={32} fontWeight={800} letterSpacing={-1.2} lineHeight={40} color={'gray.900'} mb={2}>
                     {`Olá, ${(() => {
                       // Se fullName contém @ (é email), usar o campo name
                       if (user?.fullName?.includes('@')) {
@@ -462,7 +482,7 @@ export function Homepage() {
                     })()}! 👋`}
                   </Text>
 
-                  <Text fontSize={14} fontWeight={500} letterSpacing={-0.14} color={'gray.500'}>
+                  <Text fontSize={16} fontWeight={500} letterSpacing={-0.14} color={'gray.500'}>
                     Hoje é um belo dia para{'\n'}
                     cuidar da sua saúde! :)
                   </Text>
@@ -533,57 +553,28 @@ export function Homepage() {
                   shadow={hasProcessingExams ? 0 : 2}
                 >
                   <VStack alignItems={'center'}>
-                    <AnimatedCircularProgress
-                      size={150}
-                      lineCap="round"
-                      width={18}
-                      fill={userWithoutData ? 0 : Math.round((homeData.generalScore || 0) / 10)}
-                      rotation={270}
-                      tintColor={userWithoutData ? '#D1D5DB' : getScoreColor(homeData.generalScore || 0)}
-                      backgroundColor="#DCE1E8"
-                      arcSweepAngle={180}
+                    <ScoreGauge score={homeData.generalScore || 0} size={200} delay={300} />
+
+                    <Animated.View
+                      entering={FadeInDown.duration(300).delay(500)}
                     >
-                      {() => (
-                        <Avatar
-                          size="50px"
-                          mt={-4}
-                          bg="gray.300"
-                          source={
-                            user?.profilePhotoBase64 || user?.photoUrl
-                              ? { uri: user?.profilePhotoBase64 || user?.photoUrl }
-                              : undefined
-                          }
+                      <VStack alignItems="center">
+                        <Text
+                          mt={3}
+                          fontSize={42}
+                          fontWeight={800}
+                          letterSpacing={-1.44}
+                          lineHeight={44}
+                          color={userWithoutData ? 'gray.900' : getScoreColor(homeData.generalScore || 0)}
                         >
-                          {!(user?.profilePhotoBase64 || user?.photoUrl) &&
-                            (user?.fullName ? (
-                              user.fullName
-                                .split(' ')
-                                .filter(Boolean)
-                                .map((name) => name[0])
-                                .join('')
-                                .substring(0, 2)
-                                .toUpperCase()
-                            ) : (
-                              <UserIcon color="#6B7280" size="24" />
-                            ))}
-                        </Avatar>
-                      )}
-                    </AnimatedCircularProgress>
+                          {homeData.generalScore ? Math.round(homeData.generalScore) : '?'}
+                        </Text>
 
-                    <Text
-                      mt={-12}
-                      fontSize={40}
-                      fontWeight={800}
-                      letterSpacing={-1.44}
-                      lineHeight={44}
-                      color={userWithoutData ? 'gray.900' : getScoreColor(homeData.generalScore || 0)}
-                    >
-                      {homeData.generalScore ? Math.round(homeData.generalScore) : '?'}
-                    </Text>
-
-                    <Text mt={-2} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
-                      Score X
-                    </Text>
+                        <Text mt={-1} fontSize={24} fontWeight={800} letterSpacing={-0.16}>
+                          Score X
+                        </Text>
+                      </VStack>
+                    </Animated.View>
 
                     {userWithoutData ? (
                       <VStack alignItems="center" mt={2}>
@@ -596,11 +587,21 @@ export function Homepage() {
                       </VStack>
                     ) : (
                       <VStack alignItems="center" mt={2}>
-                        <Text color="gray.600" fontSize={14} fontWeight={500} lineHeight={20} textAlign="center">
-                          {homeData.generalScoreActionRecommendation
-                            ?.replace('\r\n', '')
-                            ?.replace(/acimada/gi, 'acima da') ||
-                            getScoreText(homeData.generalScore || 0)}
+                        <Text color="gray.900" fontSize={16} fontWeight={800} lineHeight={22} textAlign="center">
+                          {getScoreTitle(homeData.generalScore || 0)}
+                        </Text>
+                        <Text color="gray.600" fontSize={14} fontWeight={500} lineHeight={20} textAlign="center" mt={1}>
+                          {(() => {
+                            const apiText = homeData.generalScoreActionRecommendation
+                              ?.replace('\r\n', '')
+                              ?.replace(/acimada/gi, 'acima da');
+                            if (apiText) {
+                              // Remover título duplicado do texto da API
+                              const title = getScoreTitle(homeData.generalScore || 0);
+                              return apiText.replace(title, '').replace(/^[\s!.,]+/, '').trim();
+                            }
+                            return getScoreDescription(homeData.generalScore || 0);
+                          })()}
                         </Text>
 
                         <Box
@@ -627,7 +628,7 @@ export function Homepage() {
             {/* Health Wallet - animação 3 */}
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(200) : undefined}>
               <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
-                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                <Text fontSize={18} fontWeight={800} letterSpacing={-0.18} color={'gray.900'}>
                   Carteira de Saúde
                 </Text>
 
@@ -764,7 +765,7 @@ export function Homepage() {
             {/* Saúde Mental - animação 3.5 */}
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(250) : undefined}>
               <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
-                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                <Text fontSize={18} fontWeight={800} letterSpacing={-0.18} color={'gray.900'}>
                   Saúde Mental
                 </Text>
 
@@ -884,7 +885,7 @@ export function Homepage() {
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(300) : undefined}>
               <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
                 <HStack alignItems="center" space={2}>
-                  <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                  <Text fontSize={18} fontWeight={800} letterSpacing={-0.18} color={'gray.900'}>
                     Medicamentos
                   </Text>
                 </HStack>
@@ -919,7 +920,7 @@ export function Homepage() {
             <Animated.View entering={!hasAnimated ? FadeInDown.duration(400).delay(350) : undefined}>
               <HStack mt={6} justifyContent={'space-between'} alignItems={'center'}>
                 <HStack alignItems={'center'} space={2}>
-                  <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                  <Text fontSize={18} fontWeight={800} letterSpacing={-0.18} color={'gray.900'}>
                     Rastreador Fitness
                   </Text>
                   {!fitnessEnabled && (
@@ -967,7 +968,7 @@ export function Homepage() {
               onLayout={() => !hasAnimated && setHasAnimated(true)}
             >
               <HStack mt={8} alignItems={'center'} space={2}>
-                <Text fontSize={16} fontWeight={800} letterSpacing={-0.16} color={'gray.900'}>
+                <Text fontSize={18} fontWeight={800} letterSpacing={-0.18} color={'gray.900'}>
                   Fale com o Doutor X
                 </Text>
                 <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>

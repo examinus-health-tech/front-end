@@ -68,6 +68,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('@assets/icons', () => ({
   GearIcon: (props: any) => 'GearIcon',
   ChevronLeftIcon: (props: any) => 'ChevronLeftIcon',
+  TrashIcon: (props: any) => 'TrashIcon',
 }));
 
 // Mock atoms
@@ -199,10 +200,10 @@ describe('Notifications', () => {
     });
   });
 
-  it('shows total count per group', async () => {
+  it('shows delete button per group', async () => {
     const { getAllByText } = render(<Notifications />);
     await waitFor(() => {
-      expect(getAllByText('1 Total').length).toBeGreaterThanOrEqual(1);
+      expect(getAllByText('Excluir').length).toBeGreaterThanOrEqual(1);
     });
   });
 
