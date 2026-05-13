@@ -95,13 +95,15 @@ function getScoreText(score: number): string {
   return `${getScoreTitle(score)} ${getScoreDescription(score)}`;
 }
 
-// Função helper para obter cor baseada no score (alinhado com backend)
+// Cor baseada no score, fronteiras alinhadas com os anchors do backend
+// (WeightColorEnum: Vermelho=200, Amarelo=500, Verde=1000)
+// Fronteiras em 350 (meio entre 200 e 500) e 750 (meio entre 500 e 1000)
 function getScoreColor(score: number): string {
-  if (score >= 0 && score <= 333) {
+  if (score >= 0 && score <= 350) {
     return '#FA4D5E'; // Vermelho - risco alto
-  } else if (score > 333 && score <= 666) {
+  } else if (score > 350 && score <= 750) {
     return '#F59E0B'; // Amarelo - atenção
-  } else if (score > 666 && score <= 1000) {
+  } else if (score > 750 && score <= 1000) {
     return '#0CC1AF'; // Verde - excelente
   }
   return '#F59E0B';
@@ -341,12 +343,13 @@ export function Homepage() {
       return null;
     }
 
+    // Fronteiras alinhadas com anchors do backend (200/500/1000) → 350 e 750
     const getColorByScore = (score: number) => {
-      if (score >= 0 && score <= 333) {
+      if (score >= 0 && score <= 350) {
         return { title: 'risco alto', bgColor: 'red.400' };
-      } else if (score > 333 && score <= 666) {
+      } else if (score > 350 && score <= 750) {
         return { title: 'normal', bgColor: 'yellow.500' };
-      } else if (score > 666 && score <= 1000) {
+      } else if (score > 750 && score <= 1000) {
         return { title: 'excelente', bgColor: 'ciano.400' };
       }
       return { title: 'normal', bgColor: 'yellow.500' };
@@ -648,18 +651,10 @@ export function Homepage() {
                           <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                             Hormônios
                           </Text>
-                          <Center>
+                          <Center flex={1}>
                             <Image source={Vector6} alt="Vetor" resizeMode="contain" size={12} />
                           </Center>
-                          <Text
-                            color="white"
-                            fontSize={12}
-                            fontWeight={600}
-                            letterSpacing={-0.16}
-                            textTransform="uppercase"
-                          >
-                            -
-                          </Text>
+                          {/* sem badge no estado vazio */}
                         </VStack>
                       </Box>
 
@@ -668,18 +663,10 @@ export function Homepage() {
                           <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                             Imunidade
                           </Text>
-                          <Center>
+                          <Center flex={1}>
                             <Image source={Vector7} alt="Vetor" resizeMode="contain" size={12} />
                           </Center>
-                          <Text
-                            color="white"
-                            fontSize={12}
-                            fontWeight={600}
-                            letterSpacing={-0.16}
-                            textTransform="uppercase"
-                          >
-                            -
-                          </Text>
+                          {/* sem badge no estado vazio */}
                         </VStack>
                       </Box>
 
@@ -688,18 +675,10 @@ export function Homepage() {
                           <Text color="white" fontSize={14} fontWeight={600} letterSpacing={-0.16}>
                             Coração
                           </Text>
-                          <Center>
+                          <Center flex={1}>
                             <Image source={Vector10} alt="Vetor" resizeMode="contain" size={12} />
                           </Center>
-                          <Text
-                            color="white"
-                            fontSize={12}
-                            fontWeight={600}
-                            letterSpacing={-0.16}
-                            textTransform="uppercase"
-                          >
-                            -
-                          </Text>
+                          {/* sem badge no estado vazio */}
                         </VStack>
                       </Box>
                     </HStack>

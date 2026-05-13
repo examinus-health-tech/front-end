@@ -618,6 +618,13 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
     color: '#1A202C',
+    // Fix de alinhamento vertical só no Android (no iOS o TextInput já centraliza)
+    ...Platform.select({
+      android: {
+        textAlignVertical: 'center' as const,
+        includeFontPadding: false,
+      },
+    }),
   },
   inputError: {
     borderColor: '#EF4444',

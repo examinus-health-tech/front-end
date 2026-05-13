@@ -80,8 +80,10 @@ export function HealthWallet() {
     }, [user?.profilePhotoBase64, updateUserPhoto]),
   );
 
+  // Fronteiras alinhadas com anchors do backend (WeightColorEnum: 200/500/1000)
+  // → 350 (meio entre 200 e 500) e 750 (meio entre 500 e 1000)
   const getColorByScore = (score: number) => {
-    if (score >= 0 && score <= 333) {
+    if (score >= 0 && score <= 350) {
       return {
         title: 'risco alto',
         bgColor: 'red.50',
@@ -92,7 +94,7 @@ export function HealthWallet() {
           </Text>
         ),
       };
-    } else if (score > 333 && score <= 666) {
+    } else if (score > 350 && score <= 750) {
       return {
         title: 'normal',
         bgColor: 'yellow.50',
@@ -104,7 +106,7 @@ export function HealthWallet() {
           </Text>
         ),
       };
-    } else if (score > 666 && score <= 1000) {
+    } else if (score > 750 && score <= 1000) {
       return {
         title: 'excelente',
         bgColor: 'green.50',
