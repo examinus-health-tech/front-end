@@ -1,5 +1,5 @@
 import { Center, Container, Flex, Image, Text, VStack, View } from 'native-base';
-import Animated, { useSharedValue, useAnimatedStyle } from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, FadeInRight, FadeInDown } from 'react-native-reanimated';
 
 // routes
 
@@ -151,7 +151,13 @@ export function OnboardingSteps() {
           })}
         />
 
-        {handleSteps()}
+        <Animated.View
+          key={step}
+          entering={FadeInRight.duration(350)}
+          style={{ flex: 1 }}
+        >
+          {handleSteps()}
+        </Animated.View>
       </VStack>
     );
   }

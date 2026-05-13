@@ -31,6 +31,16 @@ jest.mock('@assets/png/vector-5.png', () => 'Vector1');
 jest.mock('@assets/png/vector-6.png', () => 'Vector2');
 
 // ── component mocks ─────────────────────────────────────────────────
+jest.mock('@components/atoms', () => {
+  const RN = require('react-native');
+  return {
+    StaggeredStep: ({ children }: any) => <>{children}</>,
+    PressableScale: ({ children, onPress, testID, ...p }: any) => (
+      <RN.TouchableOpacity testID={testID} onPress={onPress} {...p}>{children}</RN.TouchableOpacity>
+    ),
+  };
+});
+
 jest.mock('@components/atoms/Button/button', () => {
   const RN = require('react-native');
   return {

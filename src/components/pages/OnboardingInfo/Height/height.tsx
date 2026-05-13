@@ -7,7 +7,7 @@ import { RulerPicker } from 'react-native-ruler-picker';
 import { ArrowIcon } from '@assets/icons';
 
 // components
-import { Button } from '@components/atoms';
+import { Button, StaggeredStep } from '@components/atoms';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useState } from 'react';
 
@@ -41,6 +41,7 @@ export function Height() {
 
   return (
     <VStack flex={1} mx={6} space={8}>
+      <StaggeredStep space={8}>
       <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual é a sua altura?
       </Text>
@@ -75,6 +76,7 @@ export function Height() {
           }}
         />
       </Center>
+      </StaggeredStep>
 
       <Button
         testID="btn-onboarding-continue"

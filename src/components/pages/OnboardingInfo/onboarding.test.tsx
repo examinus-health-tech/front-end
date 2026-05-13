@@ -19,11 +19,17 @@ jest.mock('native-base', () => {
 // ── react-native-reanimated mock ─────────────────────────────────────
 jest.mock('react-native-reanimated', () => {
   const RN = require('react-native');
+  const entering = { duration: () => entering, delay: () => entering };
   return {
     __esModule: true,
     default: { View: RN.View, createAnimatedComponent: (c: any) => c },
     useSharedValue: jest.fn(() => ({ value: 0 })),
     useAnimatedStyle: jest.fn(() => ({})),
+    FadeInRight: entering,
+    FadeInDown: entering,
+    FadeInUp: entering,
+    FadeInLeft: entering,
+    FadeIn: entering,
   };
 });
 

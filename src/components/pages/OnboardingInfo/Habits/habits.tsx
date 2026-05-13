@@ -9,6 +9,7 @@ import { ArrowIcon, NoDietIcon, BalancedDietIcon, VegetarianIcon, NoneOfTheseIco
 // components
 import { Button } from '@components/atoms';
 import { TouchableOpacity, Dimensions } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 import { useAuth } from 'src/hooks/useAuth';
 
@@ -47,6 +48,7 @@ export function Habits() {
         height: onboardingData.height,
         age: onboardingData.age,
         workoutLevel: onboardingData.physicalLevel,
+        humor: onboardingData.humor,
         eatingHabits: selectedHabit,
       };
 
@@ -78,9 +80,11 @@ export function Habits() {
 
   return (
     <VStack flex={1} mx={6}>
+      <Animated.View entering={FadeInDown.duration(400)}>
       <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Como são seus hábitos alimentares?
       </Text>
+      </Animated.View>
 
       <HStack flex={1} space={6} justifyContent="space-between">
         <TouchableOpacity onPress={() => setSelectedHabit('X')} style={{ flex: 1 }}>

@@ -113,20 +113,20 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
     {
       progress: 60,
       currentStep: 'physical',
-      nextStep: 'habits',
+      nextStep: 'humour',
       previousStep: 'age',
     },
-    // {
-    //   progress: 66,
-    //   currentStep: 'humour',
-    //   nextStep: 'habits',
-    //   previousStep: 'physical',
-    // },
+    {
+      progress: 66,
+      currentStep: 'humour',
+      nextStep: 'habits',
+      previousStep: 'physical',
+    },
     {
       progress: 72,
       currentStep: 'habits',
       nextStep: 'upload',
-      previousStep: 'physical',
+      previousStep: 'humour',
     },
     { progress: 84, currentStep: 'upload', previousStep: 'habits' },
     { currentStep: 'error', previousStep: 'upload' },
@@ -250,6 +250,10 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
         eatingHabits: payload.eatingHabits,
       });
 
+      // Backend espera MoodLevel como char (F=Feliz, N=Normal, T=Triste, A=Ansioso, D=Depressivo)
+      // Mobile guarda humor como 1-5 (definido no Humour/humour.tsx)
+      const MOOD_MAP: Record<number, string> = { 1: 'F', 2: 'N', 3: 'T', 4: 'A', 5: 'D' };
+
       // Normalizar payload - garantir que tanto workoutLevel quanto physicalLevel sejam enviados
       // Converter altura de metros para centímetros (backend espera cm)
       const normalizedPayload = {
@@ -259,6 +263,8 @@ export function OnboardingContextProvider({ children }: OnboardingContextProvide
         physicalLevel: payload.physicalLevel || payload.workoutLevel,
         // Converter altura: se está em metros (< 10), multiplicar por 100 para cm
         height: payload.height && payload.height < 10 ? payload.height * 100 : payload.height,
+        // Mapear humor (1-5) → MoodLevel ('F','N','T','A','D')
+        moodLevel: payload.humor ? MOOD_MAP[payload.humor] : undefined,
       };
 
       if (__DEV__) console.log('📤 [ONBOARDING] Payload normalizado:', normalizedPayload);
