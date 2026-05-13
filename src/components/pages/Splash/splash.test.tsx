@@ -59,9 +59,19 @@ describe('Splash', () => {
     expect(videoView).toBeTruthy();
   });
 
-  it('initializes the video player and calls play', () => {
+  it('plays video when status becomes readyToPlay', async () => {
+    mockAddListener.mockImplementation((event: string, callback: Function) => {
+      if (event === 'statusChange') {
+        setTimeout(() => callback({ status: 'readyToPlay' }), 0);
+      }
+      return { remove: jest.fn() };
+    });
+
     render(<Splash />);
-    expect(mockPlay).toHaveBeenCalled();
+
+    await waitFor(() => {
+      expect(mockPlay).toHaveBeenCalled();
+    });
   });
 
   it('sets up status change listener on the player', () => {
