@@ -10,7 +10,7 @@ import { ArrowIcon } from '@assets/icons';
 import Vector from '@assets/png/vector-8.png';
 
 // components
-import { Button } from '@components/atoms';
+import { Button, StaggeredStep } from '@components/atoms';
 import { HeaderProgress } from '@components/molecules';
 import { TouchableOpacity } from 'react-native';
 import { useOnboarding } from 'src/hooks/useOnboarding';
@@ -54,6 +54,7 @@ export function Physical() {
 
   return (
     <VStack flex={1} mx={6} space={4}>
+      <StaggeredStep space={4}>
       <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual é o seu nível de atividade física atual?
       </Text>
@@ -156,6 +157,7 @@ export function Physical() {
       </Center>
 
       <Image source={Vector} defaultSource={Vector} alt="Vetor" resizeMode="stretch" w={96} h={72} />
+      </StaggeredStep>
 
       <Button
         testID="btn-onboarding-continue"

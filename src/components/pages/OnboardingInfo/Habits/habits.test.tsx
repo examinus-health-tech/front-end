@@ -27,6 +27,7 @@ jest.mock('@assets/icons', () => ({
 jest.mock('@components/atoms', () => {
   const RN = require('react-native');
   return {
+    StaggeredStep: ({ children }: any) => <>{children}</>,
     Button: ({ title, onPress, isLoading, testID, ...p }: any) => (
       <RN.TouchableOpacity testID={testID || 'save-button'} onPress={onPress} {...p}>
         <RN.Text>{isLoading ? 'Loading...' : title}</RN.Text>

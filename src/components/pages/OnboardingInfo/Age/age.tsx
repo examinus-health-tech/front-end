@@ -14,7 +14,7 @@ import MaleAdult from '@assets/png/vector-26.png';
 import FameAdult from '@assets/png/vector-27.png';
 
 // components
-import { Button } from '@components/atoms';
+import { Button, StaggeredStep } from '@components/atoms';
 import { TouchableOpacity, Dimensions } from 'react-native';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 
@@ -126,6 +126,7 @@ export function Age() {
 
   return (
     <VStack flex={1} mx={6} space={8}>
+      <StaggeredStep space={8}>
       <Text color="gray.900" fontSize={32} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual é sua idade?
       </Text>
@@ -163,6 +164,7 @@ export function Age() {
           Eu tenho {selectedAge} anos
         </Text>
       </VStack>
+      </StaggeredStep>
 
       <Button
         testID="btn-onboarding-continue"

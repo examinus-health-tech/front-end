@@ -33,6 +33,7 @@ jest.mock('@assets/png/vector-27.png', () => 'FameAdult');
 jest.mock('@components/atoms', () => {
   const RN = require('react-native');
   return {
+    StaggeredStep: ({ children }: any) => <>{children}</>,
     Button: ({ title, onPress, testID, ...p }: any) => (
       <RN.TouchableOpacity testID={testID || 'continue-button'} onPress={onPress} {...p}>
         <RN.Text>{title}</RN.Text>

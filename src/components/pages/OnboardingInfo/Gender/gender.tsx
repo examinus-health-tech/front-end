@@ -11,6 +11,7 @@ import Vector2 from '@assets/png/vector-6.png';
 
 // components
 import { Button } from '@components/atoms/Button/button';
+import { StaggeredStep, PressableScale } from '@components/atoms';
 import { useOnboarding } from 'src/hooks/useOnboarding';
 
 export function Gender() {
@@ -39,6 +40,7 @@ export function Gender() {
 
   return (
     <VStack flex={1} space={8}>
+      <StaggeredStep flexChildIndex={2} space={8}>
       <Text color="gray.900" fontSize={32} mx={6} fontWeight={800} lineHeight={38} letterSpacing={-1.2} mt={4}>
         Qual seu Gênero?
       </Text>
@@ -50,7 +52,7 @@ export function Gender() {
 
       <ScrollView horizontal ref={scrollRef} mt={-16} pr={10} showsHorizontalScrollIndicator={false}>
         <HStack space={8} alignItems="center">
-          <TouchableOpacity
+          <PressableScale
             testID="btn-gender-female"
             onPress={() => {
               setGender('F');
@@ -100,9 +102,9 @@ export function Gender() {
                 h="90%"
               />
             </Box>
-          </TouchableOpacity>
+          </PressableScale>
 
-          <TouchableOpacity
+          <PressableScale
             testID="btn-gender-male"
             onPress={() => {
               setGender('M');
@@ -153,9 +155,10 @@ export function Gender() {
                 h="90%"
               />
             </Box>
-          </TouchableOpacity>
+          </PressableScale>
         </HStack>
       </ScrollView>
+      </StaggeredStep>
 
       <VStack mx={6}>
         <VStack position="absolute" bottom={-50} w="100%" space={2}>
