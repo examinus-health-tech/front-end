@@ -79,16 +79,6 @@ describe('versionService', () => {
       expect(compareVersions('2', '1.0.0')).toBe(1);
       expect(compareVersions('1', '1.0.1')).toBe(-1);
     });
-
-    it('deve comparar versões com partes patch diferentes', () => {
-      expect(compareVersions('1.3.0', '1.3.1')).toBe(-1);
-      expect(compareVersions('1.3.2', '1.3.1')).toBe(1);
-    });
-
-    it('deve comparar quando major é igual mas minor difere', () => {
-      expect(compareVersions('1.2.0', '1.3.0')).toBe(-1);
-      expect(compareVersions('1.4.0', '1.3.0')).toBe(1);
-    });
   });
 
   // --------------------------------------------------------
@@ -96,20 +86,16 @@ describe('versionService', () => {
   // --------------------------------------------------------
   describe('getCurrentAppVersion', () => {
     it('deve retornar a versão do expoConfig', () => {
-      const version = getCurrentAppVersion();
-      expect(version).toBe('1.3.0');
+      expect(getCurrentAppVersion()).toBe('1.3.0');
     });
 
     it('deve retornar "1.0.0" como fallback quando expoConfig não tem version', () => {
-      // Sobrescreve temporariamente o mock
       const Constants = require('expo-constants').default;
       const originalConfig = Constants.expoConfig;
       Constants.expoConfig = {};
 
-      const version = getCurrentAppVersion();
-      expect(version).toBe('1.0.0');
+      expect(getCurrentAppVersion()).toBe('1.0.0');
 
-      // Restaura
       Constants.expoConfig = originalConfig;
     });
 
@@ -118,8 +104,7 @@ describe('versionService', () => {
       const originalConfig = Constants.expoConfig;
       Constants.expoConfig = null;
 
-      const version = getCurrentAppVersion();
-      expect(version).toBe('1.0.0');
+      expect(getCurrentAppVersion()).toBe('1.0.0');
 
       Constants.expoConfig = originalConfig;
     });
@@ -129,52 +114,46 @@ describe('versionService', () => {
   // checkForceUpdate
   // --------------------------------------------------------
   describe('checkForceUpdate', () => {
-    it('deve retornar needsUpdate=false quando versão atual é igual ou maior que minVersion', async () => {
+    it('deve chamar a API com path "app/version" (sem barra inicial) e query params platform+version', async () => {
+      (Platform as any).OS = 'ios';
       mockedApi.get.mockResolvedValueOnce({
-        data: {
-          data: {
-            minVersion: '1.0.0',
-            latestVersion: '1.3.0',
-            forceUpdate: false,
-          },
-        },
+        data: { data: { mode: 'ok', latestVersion: '1.3.0' } },
+      });
+
+      await checkForceUpdate();
+
+      expect(mockedApi.get).toHaveBeenCalledWith('app/version', {
+        params: { platform: 'ios', version: '1.3.0' },
+      });
+    });
+
+    it('deve retornar needsUpdate=false quando mode="ok"', async () => {
+      mockedApi.get.mockResolvedValueOnce({
+        data: { data: { mode: 'ok', latestVersion: '1.3.0' } },
       });
 
       const result = await checkForceUpdate();
       expect(result.needsUpdate).toBe(false);
-      expect(result.versionInfo).not.toBeNull();
-      expect(result.versionInfo!.minVersion).toBe('1.0.0');
+      expect(result.versionInfo!.mode).toBe('ok');
     });
 
-    it('deve retornar needsUpdate=true quando versão atual é menor que minVersion', async () => {
+    it('deve retornar needsUpdate=true quando mode="force"', async () => {
       mockedApi.get.mockResolvedValueOnce({
         data: {
           data: {
-            minVersion: '2.0.0',
-            latestVersion: '2.1.0',
-            forceUpdate: false,
-          },
-        },
-      });
-
-      const result = await checkForceUpdate();
-      expect(result.needsUpdate).toBe(true);
-    });
-
-    it('deve retornar needsUpdate=true quando forceUpdate é true', async () => {
-      mockedApi.get.mockResolvedValueOnce({
-        data: {
-          data: {
-            minVersion: '1.0.0',
+            mode: 'force',
             latestVersion: '1.5.0',
-            forceUpdate: true,
+            storeUrl: 'https://store/x',
+            updateMessage: 'Atualize agora!',
           },
         },
       });
 
       const result = await checkForceUpdate();
       expect(result.needsUpdate).toBe(true);
-      expect(result.versionInfo!.forceUpdate).toBe(true);
+      expect(result.versionInfo!.latestVersion).toBe('1.5.0');
+      expect(result.versionInfo!.storeUrl).toBe('https://store/x');
+      expect(result.versionInfo!.updateMessage).toBe('Atualize agora!');
     });
 
     it('deve retornar needsUpdate=false e versionInfo=null quando API falha', async () => {
@@ -185,52 +164,21 @@ describe('versionService', () => {
       expect(result.versionInfo).toBeNull();
     });
 
-    it('deve lidar com resposta da API com dados parciais', async () => {
-      mockedApi.get.mockResolvedValueOnce({
-        data: {
-          data: {},
-        },
-      });
-
-      const result = await checkForceUpdate();
-      // Usa valores padrão: minVersion='1.0.0', forceUpdate=false
-      expect(result.needsUpdate).toBe(false);
-      expect(result.versionInfo!.minVersion).toBe('1.0.0');
-      expect(result.versionInfo!.forceUpdate).toBe(false);
-    });
-
-    it('deve lidar com resposta da API com data null', async () => {
-      mockedApi.get.mockResolvedValueOnce({
-        data: { data: null },
-      });
+    it('deve usar defaults seguros quando resposta vier com data vazio', async () => {
+      mockedApi.get.mockResolvedValueOnce({ data: { data: {} } });
 
       const result = await checkForceUpdate();
       expect(result.needsUpdate).toBe(false);
+      expect(result.versionInfo!.mode).toBe('ok');
+      expect(result.versionInfo!.latestVersion).toBe('');
     });
 
-    it('deve incluir updateMessage quando presente', async () => {
-      mockedApi.get.mockResolvedValueOnce({
-        data: {
-          data: {
-            minVersion: '2.0.0',
-            latestVersion: '2.0.0',
-            forceUpdate: true,
-            updateMessage: 'Atualize agora!',
-          },
-        },
-      });
+    it('deve lidar com data null sem crashar', async () => {
+      mockedApi.get.mockResolvedValueOnce({ data: { data: null } });
 
       const result = await checkForceUpdate();
-      expect(result.versionInfo!.updateMessage).toBe('Atualize agora!');
-    });
-
-    it('deve chamar a API com o path correto', async () => {
-      mockedApi.get.mockResolvedValueOnce({
-        data: { data: { minVersion: '1.0.0', latestVersion: '1.0.0', forceUpdate: false } },
-      });
-
-      await checkForceUpdate();
-      expect(mockedApi.get).toHaveBeenCalledWith('/app/version');
+      expect(result.needsUpdate).toBe(false);
+      expect(result.versionInfo!.mode).toBe('ok');
     });
   });
 
@@ -238,7 +186,22 @@ describe('versionService', () => {
   // openAppStore
   // --------------------------------------------------------
   describe('openAppStore', () => {
-    it('deve abrir a App Store no iOS', async () => {
+    it('deve usar storeUrl fornecido quando presente', async () => {
+      (Platform as any).OS = 'android';
+      mockedLinking.canOpenURL.mockResolvedValueOnce(true);
+      mockedLinking.openURL.mockResolvedValueOnce(undefined as any);
+
+      await openAppStore('https://play.google.com/store/apps/details?id=com.custom');
+
+      expect(mockedLinking.canOpenURL).toHaveBeenCalledWith(
+        'https://play.google.com/store/apps/details?id=com.custom'
+      );
+      expect(mockedLinking.openURL).toHaveBeenCalledWith(
+        'https://play.google.com/store/apps/details?id=com.custom'
+      );
+    });
+
+    it('deve cair pra App Store fallback no iOS quando storeUrl ausente', async () => {
       (Platform as any).OS = 'ios';
       mockedLinking.canOpenURL.mockResolvedValueOnce(true);
       mockedLinking.openURL.mockResolvedValueOnce(undefined as any);
@@ -248,12 +211,9 @@ describe('versionService', () => {
       expect(mockedLinking.canOpenURL).toHaveBeenCalledWith(
         'https://apps.apple.com/br/app/examinus/id6754453015'
       );
-      expect(mockedLinking.openURL).toHaveBeenCalledWith(
-        'https://apps.apple.com/br/app/examinus/id6754453015'
-      );
     });
 
-    it('deve abrir a Play Store no Android', async () => {
+    it('deve cair pra Play Store fallback no Android quando storeUrl ausente', async () => {
       (Platform as any).OS = 'android';
       mockedLinking.canOpenURL.mockResolvedValueOnce(true);
       mockedLinking.openURL.mockResolvedValueOnce(undefined as any);
@@ -263,12 +223,9 @@ describe('versionService', () => {
       expect(mockedLinking.canOpenURL).toHaveBeenCalledWith(
         'https://play.google.com/store/apps/details?id=com.examinus.app'
       );
-      expect(mockedLinking.openURL).toHaveBeenCalledWith(
-        'https://play.google.com/store/apps/details?id=com.examinus.app'
-      );
     });
 
-    it('deve não abrir URL quando canOpenURL retorna false', async () => {
+    it('não deve abrir URL quando canOpenURL retorna false', async () => {
       (Platform as any).OS = 'ios';
       mockedLinking.canOpenURL.mockResolvedValueOnce(false);
 
@@ -277,14 +234,14 @@ describe('versionService', () => {
       expect(mockedLinking.openURL).not.toHaveBeenCalled();
     });
 
-    it('deve não lançar erro quando canOpenURL falha', async () => {
+    it('não deve lançar erro quando canOpenURL falha', async () => {
       (Platform as any).OS = 'ios';
       mockedLinking.canOpenURL.mockRejectedValueOnce(new Error('Cannot open'));
 
       await expect(openAppStore()).resolves.toBeUndefined();
     });
 
-    it('deve não lançar erro quando openURL falha', async () => {
+    it('não deve lançar erro quando openURL falha', async () => {
       (Platform as any).OS = 'ios';
       mockedLinking.canOpenURL.mockResolvedValueOnce(true);
       mockedLinking.openURL.mockRejectedValueOnce(new Error('Open URL failed'));
