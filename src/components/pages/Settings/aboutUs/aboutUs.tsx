@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { Box, HStack, IScrollViewProps, Image, ScrollView, Text, VStack, View, StatusBar, useDisclose } from 'native-base';
 import { Linking, Alert } from 'react-native';
+import Constants from 'expo-constants';
 import { hasUserReviewed } from '@services/reviewService';
 import { ReviewBottomSheet } from '@molecules/ReviewBottomSheet';
 
@@ -162,7 +163,7 @@ export function AboutUs() {
         <VStack mb={12} space={3} alignItems={'center'}>
           <Image source={Logo} defaultSource={Logo} alt="Vetor" resizeMode="stretch" />
           <Text color="gray.900" fontSize={28} fontWeight={800} lineHeight={32} letterSpacing={-0.96}>
-            Examinus v1.5.1
+            Examinus v{Constants.expoConfig?.version ?? '?.?.?'}
           </Text>
         </VStack>
 

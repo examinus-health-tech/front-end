@@ -4,6 +4,11 @@ import { ContactUs } from './contactUs';
 
 const mockNavigate = jest.fn();
 
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: { expoConfig: { version: '9.9.9' } },
+}));
+
 jest.mock('native-base', () => {
   const RN = require('react-native');
   return {
@@ -64,7 +69,7 @@ describe('ContactUs', () => {
 
   it('renders the version text', () => {
     const { getByText } = render(<ContactUs />);
-    expect(getByText('Examinus v1.3.0')).toBeTruthy();
+    expect(getByText('Examinus v9.9.9')).toBeTruthy();
   });
 
   it('renders the contact email card', () => {
