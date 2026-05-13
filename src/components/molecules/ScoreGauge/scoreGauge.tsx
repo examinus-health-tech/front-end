@@ -8,19 +8,20 @@ interface ScoreGaugeProps {
   delay?: number;
 }
 
-// Cor suave interpolada (degradê entre regiões)
+// Cor suave interpolada — fronteiras alinhadas com os anchors do backend
+// (WeightColorEnum: Vermelho=200, Amarelo=500, Verde=1000)
+// Fronteiras = ponto médio entre anchors: 350 (vermelho↔amarelo) e 750 (amarelo↔verde)
 function getColorForPct(pct: number): string {
   const score = pct * 1000;
-  if (score <= 200) return '#FA4D5E';
-  if (score <= 333) {
-    // Transição vermelho → laranja
-    const t = (score - 200) / 133;
+  const FADE = 50; // largura da transição suave centrada na borda
+  if (score <= 350 - FADE) return '#FA4D5E';
+  if (score <= 350 + FADE) {
+    const t = (score - (350 - FADE)) / (2 * FADE);
     return lerpColor('#FA4D5E', '#F59E0B', t);
   }
-  if (score <= 500) return '#F59E0B';
-  if (score <= 666) {
-    // Transição amarelo → verde
-    const t = (score - 500) / 166;
+  if (score <= 750 - FADE) return '#F59E0B';
+  if (score <= 750 + FADE) {
+    const t = (score - (750 - FADE)) / (2 * FADE);
     return lerpColor('#F59E0B', '#0CC1AF', t);
   }
   return '#0CC1AF';
@@ -33,6 +34,17 @@ function lerpColor(a: string, b: string, t: number): string {
   const g = Math.round(ag + (bg - ag) * t);
   const bl = Math.round(ab + (bb - ab) * t);
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${bl.toString(16).padStart(2, '0')}`;
+}
+
+// Pre-blenda color com branco pra evitar dobrar opacidade quando uma shape sobrepõe outra
+function blendWithWhite(color: string, alpha: number): string {
+  const r = parseInt(color.slice(1, 3), 16);
+  const g = parseInt(color.slice(3, 5), 16);
+  const b = parseInt(color.slice(5, 7), 16);
+  const br = Math.round(r * alpha + 255 * (1 - alpha));
+  const bg = Math.round(g * alpha + 255 * (1 - alpha));
+  const bb = Math.round(b * alpha + 255 * (1 - alpha));
+  return `#${br.toString(16).padStart(2, '0')}${bg.toString(16).padStart(2, '0')}${bb.toString(16).padStart(2, '0')}`;
 }
 
 export function ScoreGauge({ score, size = 180, delay = 400 }: ScoreGaugeProps) {
@@ -61,10 +73,13 @@ export function ScoreGauge({ score, size = 180, delay = 400 }: ScoreGaugeProps) 
     return () => clearTimeout(timer);
   }, [fillPct]);
 
+  // Zonas alinhadas com backend: 0-350 vermelho, 350-750 amarelo, 750-1000 verde
+  // Em ângulo (180° = 0, 0° = 1000): score 350 → 117°, score 750 → 45°
+  const GAP = 2;
   const zones = [
-    { start: 180, end: 120, color: '#FA4D5E', opacity: 0.12 },
-    { start: 120, end: 60, color: '#F59E0B', opacity: 0.12 },
-    { start: 60, end: 0, color: '#0CC1AF', opacity: 0.12 },
+    { start: 180, end: 117 + GAP, color: '#FA4D5E', opacity: 0.12 },
+    { start: 117 - GAP, end: 45 + GAP, color: '#F59E0B', opacity: 0.12 },
+    { start: 45 - GAP, end: 0, color: '#0CC1AF', opacity: 0.12 },
   ];
 
   return (
@@ -127,7 +142,7 @@ function AnimatedGauge({ animValue, width, height, centerX, centerY, radius, str
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
-      {/* Regiões coloridas de fundo */}
+      {/* Regiões coloridas de fundo (gap entre zonas, junções flat) */}
       {zones.map((zone: any, i: number) => (
         <Path
           key={`zone-${i}`}
@@ -135,10 +150,22 @@ function AnimatedGauge({ animValue, width, height, centerX, centerY, radius, str
           stroke={zone.color}
           strokeWidth={strokeWidth}
           fill="none"
-          strokeLinecap={i === 0 || i === 2 ? 'round' : 'butt'}
+          strokeLinecap="butt"
           opacity={zone.opacity}
         />
       ))}
+
+      {/* Cap arredondado só no extremo externo — cor sólida (pré-blendada) pra não dobrar opacidade */}
+      {(() => {
+        const leftEnd = polarToCartesian(centerX, centerY, radius, 180);
+        const rightEnd = polarToCartesian(centerX, centerY, radius, 0);
+        return (
+          <>
+            <Circle cx={leftEnd.x} cy={leftEnd.y} r={strokeWidth / 2} fill={blendWithWhite(zones[0].color, zones[0].opacity)} />
+            <Circle cx={rightEnd.x} cy={rightEnd.y} r={strokeWidth / 2} fill={blendWithWhite(zones[2].color, zones[2].opacity)} />
+          </>
+        );
+      })()}
 
       {/* Progresso — cor degradê suave */}
       {pct > 0.01 && (
