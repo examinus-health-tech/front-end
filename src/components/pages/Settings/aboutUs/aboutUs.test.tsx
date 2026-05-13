@@ -7,6 +7,11 @@ const mockNavigate = jest.fn();
 const mockAsyncStorageGetItem = jest.fn();
 const mockAsyncStorageSetItem = jest.fn();
 
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: { expoConfig: { version: '9.9.9' } },
+}));
+
 jest.mock('native-base', () => {
   const RN = require('react-native');
   return {
@@ -129,7 +134,7 @@ describe('AboutUs', () => {
 
   it('renders the version text', () => {
     const { getByText } = render(<AboutUs />);
-    expect(getByText('Examinus v1.5.1')).toBeTruthy();
+    expect(getByText('Examinus v9.9.9')).toBeTruthy();
   });
 
   it('renders all cards', () => {

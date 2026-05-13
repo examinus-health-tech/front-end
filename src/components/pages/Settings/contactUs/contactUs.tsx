@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { Image, Text, VStack } from 'native-base';
+import Constants from 'expo-constants';
 
 // routes
 import { AppNavigatorRoutesProps } from '@routes/app.routes';
@@ -22,7 +23,7 @@ export function ContactUs() {
       <VStack mt={24} mb={16} space={3} alignItems={'center'}>
         <Image source={Logo} defaultSource={Logo} alt="Vetor" resizeMode="stretch" />
         <Text color="gray.900" fontSize={28} fontWeight={800} lineHeight={32} letterSpacing={-0.96}>
-          Examinus v1.3.0
+          Examinus v{Constants.expoConfig?.version ?? '?.?.?'}
         </Text>
       </VStack>
 
