@@ -17,37 +17,43 @@ export function Splash() {
   const player = useVideoPlayer(splash, (player) => {
     if (__DEV__) console.log('Video player initialized');
     player.loop = false;
-
-    // Configurações específicas para Android
+    // Autoplay com áudio é bloqueado no Android sem interação do usuário
     if (Platform.OS === 'android') {
-      player.muted = true; // Crítico para Android
-      // Aguardar um pouco antes de tocar
-      setTimeout(() => {
-        if (__DEV__) console.log('Starting video playback on Android');
-        player.play();
-      }, 1000);
-    } else {
-      player.play();
+      player.muted = true;
     }
   });
 
-  // Listener para status do player (substituindo onPlaybackStatusUpdate que não existe no expo-video)
   useEffect(() => {
     if (!player) return;
 
+    const playSafe = () => {
+      try {
+        player.play();
+      } catch (e) {
+        if (__DEV__) console.warn('Splash video play failed:', e);
+        setHasError(true);
+      }
+    };
+
     const statusSubscription = player.addListener('statusChange', (event) => {
       if (__DEV__) console.log(`Video status on ${Platform.OS}:`, event);
-      // O evento é do tipo StatusChangeEventPayload, verificamos a propriedade status
       const status = (event as any)?.status || event;
       if ((status === 'readyToPlay' || status === 'playing') && !isReady) {
         if (__DEV__) console.log('Video is ready!');
         setIsReady(true);
+        playSafe();
       }
       if (status === 'error') {
         if (__DEV__) console.error('Video error');
         setHasError(true);
       }
     });
+
+    // Caso o player já esteja pronto antes do listener anexar (cache, fast-path)
+    if ((player as any).status === 'readyToPlay' && !isReady) {
+      setIsReady(true);
+      playSafe();
+    }
 
     return () => {
       statusSubscription?.remove();
