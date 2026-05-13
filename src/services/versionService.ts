@@ -2,7 +2,8 @@ import { api } from './api';
 import Constants from 'expo-constants';
 import { Platform, Linking } from 'react-native';
 
-const FALLBACK_APP_STORE_URL = 'https://apps.apple.com/br/app/examinus/id6754453015';
+// itms-apps:// abre direto na App Store em device real; em simulador (sem App Store) falha cleanly
+const FALLBACK_APP_STORE_URL = 'itms-apps://apps.apple.com/app/id6754453015';
 const FALLBACK_PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.examinus.app';
 
 export type VersionMode = 'ok' | 'force';

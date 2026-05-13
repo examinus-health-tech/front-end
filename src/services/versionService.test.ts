@@ -201,7 +201,7 @@ describe('versionService', () => {
       );
     });
 
-    it('deve cair pra App Store fallback no iOS quando storeUrl ausente', async () => {
+    it('deve cair pra App Store fallback no iOS (itms-apps://) quando storeUrl ausente', async () => {
       (Platform as any).OS = 'ios';
       mockedLinking.canOpenURL.mockResolvedValueOnce(true);
       mockedLinking.openURL.mockResolvedValueOnce(undefined as any);
@@ -209,7 +209,7 @@ describe('versionService', () => {
       await openAppStore();
 
       expect(mockedLinking.canOpenURL).toHaveBeenCalledWith(
-        'https://apps.apple.com/br/app/examinus/id6754453015'
+        'itms-apps://apps.apple.com/app/id6754453015'
       );
     });
 
