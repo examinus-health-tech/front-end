@@ -2,29 +2,28 @@ import { api } from './api';
 import Constants from 'expo-constants';
 import { Platform, Linking } from 'react-native';
 
-// URLs das lojas de aplicativos
-const APP_STORE_URL = 'https://apps.apple.com/br/app/examinus/id6754453015';
-const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.examinus.app';
+// itms-apps:// abre direto na App Store em device real; em simulador (sem App Store) falha cleanly
+const FALLBACK_APP_STORE_URL = 'itms-apps://apps.apple.com/app/id6754453015';
+const FALLBACK_PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.examinus.app';
+
+export type VersionMode = 'ok' | 'force';
 
 export interface VersionInfo {
-  minVersion: string;
+  mode: VersionMode;
   latestVersion: string;
-  forceUpdate: boolean;
+  storeUrl?: string;
   updateMessage?: string;
 }
 
 /**
  * Compara duas versões semânticas (ex: "1.2.3")
- * Retorna:
- *  -1 se version1 < version2
- *   0 se version1 == version2
- *   1 se version1 > version2
+ * Retorna -1, 0 ou 1. Mantida como utilitária pública;
+ * a decisão de força agora é feita pelo backend via Mode.
  */
 export function compareVersions(version1: string, version2: string): number {
   const v1Parts = version1.split('.').map(Number);
   const v2Parts = version2.split('.').map(Number);
 
-  // Garantir que ambos tenham 3 partes (major.minor.patch)
   while (v1Parts.length < 3) v1Parts.push(0);
   while (v2Parts.length < 3) v2Parts.push(0);
 
@@ -36,39 +35,41 @@ export function compareVersions(version1: string, version2: string): number {
   return 0;
 }
 
-/**
- * Obtém a versão atual do app
- */
 export function getCurrentAppVersion(): string {
   return Constants.expoConfig?.version || '1.0.0';
 }
 
 /**
- * Verifica se o app precisa de atualização obrigatória
+ * Pergunta ao backend se a versão atual precisa atualizar.
+ * Política: backend decide com base em platform + version.
+ * Fail-open: qualquer erro de rede/parsing → needsUpdate=false.
  */
 export async function checkForceUpdate(): Promise<{
   needsUpdate: boolean;
   versionInfo: VersionInfo | null;
 }> {
   try {
-    const response = await api.get('/app/version');
+    const response = await api.get('app/version', {
+      params: {
+        platform: Platform.OS,
+        version: getCurrentAppVersion(),
+      },
+    });
+
+    const data = response.data?.data;
     const versionInfo: VersionInfo = {
-      minVersion: response.data?.data?.minVersion || '1.0.0',
-      latestVersion: response.data?.data?.latestVersion || '1.0.0',
-      forceUpdate: response.data?.data?.forceUpdate || false,
-      updateMessage: response.data?.data?.updateMessage,
+      mode: (data?.mode as VersionMode) ?? 'ok',
+      latestVersion: data?.latestVersion ?? '',
+      storeUrl: data?.storeUrl ?? undefined,
+      updateMessage: data?.updateMessage ?? undefined,
     };
 
-    const currentVersion = getCurrentAppVersion();
-    const needsUpdate = compareVersions(currentVersion, versionInfo.minVersion) < 0;
-
     return {
-      needsUpdate: needsUpdate || versionInfo.forceUpdate,
+      needsUpdate: versionInfo.mode === 'force',
       versionInfo,
     };
   } catch (error) {
     if (__DEV__) console.log('Erro ao verificar versão:', error);
-    // Em caso de erro, não bloquear o usuário
     return {
       needsUpdate: false,
       versionInfo: null,
@@ -77,15 +78,17 @@ export async function checkForceUpdate(): Promise<{
 }
 
 /**
- * Abre a loja de aplicativos correspondente à plataforma
+ * Abre a loja. Usa o storeUrl vindo do backend quando disponível;
+ * cai pra URL fixa por plataforma se não vier.
  */
-export async function openAppStore(): Promise<void> {
-  const storeUrl = Platform.OS === 'ios' ? APP_STORE_URL : PLAY_STORE_URL;
+export async function openAppStore(storeUrl?: string): Promise<void> {
+  const fallback = Platform.OS === 'ios' ? FALLBACK_APP_STORE_URL : FALLBACK_PLAY_STORE_URL;
+  const url = storeUrl || fallback;
 
   try {
-    const canOpen = await Linking.canOpenURL(storeUrl);
+    const canOpen = await Linking.canOpenURL(url);
     if (canOpen) {
-      await Linking.openURL(storeUrl);
+      await Linking.openURL(url);
     } else {
       if (__DEV__) console.log('Não foi possível abrir a loja de aplicativos');
     }

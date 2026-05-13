@@ -43,6 +43,7 @@ export function Routes() {
     return (
       <ForceUpdateScreen
         message={versionInfo.updateMessage}
+        storeUrl={versionInfo.storeUrl}
       />
     );
   }

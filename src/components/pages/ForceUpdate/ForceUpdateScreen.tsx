@@ -5,9 +5,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 interface Props {
   message?: string;
+  storeUrl?: string;
 }
 
-export function ForceUpdateScreen({ message }: Props) {
+export function ForceUpdateScreen({ message, storeUrl }: Props) {
   const storeName = Platform.OS === 'ios' ? 'App Store' : 'Play Store';
 
   return (
@@ -52,7 +53,7 @@ export function ForceUpdateScreen({ message }: Props) {
 
           {/* Botão */}
           <Pressable
-            onPress={openAppStore}
+            onPress={() => openAppStore(storeUrl)}
             bg="ciano.300"
             w="100%"
             py={5}
