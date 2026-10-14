@@ -396,16 +396,16 @@ export function Sleep() {
               </Text>
             </HStack>
             <VStack space={2}>
-              <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="purple.600">
+              <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="purple.600">
                 • Mantenha um horário regular para dormir e acordar
               </Text>
-              <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="purple.600">
+              <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="purple.600">
                 • Evite telas 1 hora antes de dormir
               </Text>
-              <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="purple.600">
+              <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="purple.600">
                 • Mantenha o quarto escuro e fresco
               </Text>
-              <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="purple.600">
+              <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="purple.600">
                 • Evite cafeína após as 14h
               </Text>
             </VStack>

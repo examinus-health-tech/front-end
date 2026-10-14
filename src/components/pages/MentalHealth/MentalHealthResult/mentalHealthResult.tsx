@@ -233,7 +233,7 @@ export function MentalHealthResult() {
                       <Text fontSize={14} fontWeight={700} color="red.700" mb={1}>
                         Atenção Importante
                       </Text>
-                      <Text fontSize={12} fontWeight={500} color="red.600" lineHeight={18}>
+                      <Text fontSize={14} fontWeight={500} color="red.600" lineHeight={18}>
                         Seus resultados indicam que você pode estar enfrentando dificuldades significativas.
                         Recomendamos fortemente que procure ajuda profissional.
                       </Text>
@@ -290,7 +290,7 @@ export function MentalHealthResult() {
                     <Text fontSize={12} fontWeight={700} color="blue.700" mb={1}>
                       Sobre o DASS-21
                     </Text>
-                    <Text fontSize={12} fontWeight={500} color="blue.600" lineHeight={16}>
+                    <Text fontSize={14} fontWeight={500} color="blue.600" lineHeight={18}>
                       O DASS-21 é um instrumento validado cientificamente para avaliação de sintomas de depressão,
                       ansiedade e estresse. Esta ferramenta não substitui uma avaliação profissional.
                     </Text>

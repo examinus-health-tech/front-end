@@ -480,7 +480,7 @@ export function Weight() {
                 Dica
               </Text>
             </HStack>
-            <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="ciano.600">
+            <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="ciano.600">
               Pese-se sempre no mesmo horário, preferencialmente pela manhã em jejum, para ter medições mais consistentes.
             </Text>
           </Box>

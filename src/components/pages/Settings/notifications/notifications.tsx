@@ -194,7 +194,7 @@ export function ConfigNotifications() {
 
           {!pushEnabled && (
             <Box bg="ciano.50" borderRadius={12} px={4} py={3} mt={2} mb={2} borderWidth={1} borderColor="ciano.200">
-              <Text fontSize={12} fontWeight={500} color="gray.600" lineHeight={16}>
+              <Text fontSize={14} fontWeight={500} color="gray.600" lineHeight={18}>
                 Ative as notificações para não perder lembretes de exames e medicamentos.
               </Text>
             </Box>

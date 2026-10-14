@@ -312,7 +312,7 @@ export function Steps() {
                 Sincronização Automática
               </Text>
             </HStack>
-            <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="ciano.600">
+            <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="ciano.600">
               Seus passos são sincronizados automaticamente do Apple Health ou do sensor do seu celular. Mantenha o
               celular no bolso para contagem precisa!
             </Text>

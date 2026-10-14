@@ -519,7 +519,7 @@ export function Hydration() {
                 Dica de Hidratação
               </Text>
             </HStack>
-            <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="blue.600">
+            <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="blue.600">
               Beber água regularmente ao longo do dia é mais eficaz do que beber grandes quantidades de uma vez. Tente
               manter uma garrafa de água sempre por perto!
             </Text>
