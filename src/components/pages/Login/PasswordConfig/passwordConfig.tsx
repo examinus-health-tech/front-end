@@ -227,7 +227,7 @@ export function PasswordConfig() {
               flex={1}
             >
               {upperCaseRule ? <CheckIcon size="24" /> : <CloseIcon color="#FA4D5E" size="24" />}
-              <Text color={upperCaseRule ? 'ciano.800' : 'red.800'} fontSize={12} fontWeight={500} ml={2}>
+              <Text color={upperCaseRule ? 'ciano.800' : 'red.800'} fontSize={14} fontWeight={500} ml={2}>
                 Incluir letra maiúscula
               </Text>
             </Box>
@@ -244,7 +244,7 @@ export function PasswordConfig() {
               flex={1}
             >
               {lowerCaseRule ? <CheckIcon size="24" /> : <CloseIcon color="#FA4D5E" size="24" />}
-              <Text color={lowerCaseRule ? 'ciano.800' : 'red.800'} fontSize={12} fontWeight={500} ml={2}>
+              <Text color={lowerCaseRule ? 'ciano.800' : 'red.800'} fontSize={14} fontWeight={500} ml={2}>
                 Incluir letra minúscula
               </Text>
             </Box>
@@ -263,7 +263,7 @@ export function PasswordConfig() {
               flex={1}
             >
               {numericRule ? <CheckIcon size="24" /> : <CloseIcon color="#FA4D5E" size="24" />}
-              <Text color={numericRule ? 'ciano.800' : 'red.800'} fontSize={12} fontWeight={500} ml={2}>
+              <Text color={numericRule ? 'ciano.800' : 'red.800'} fontSize={14} fontWeight={500} ml={2}>
                 Incluir números
               </Text>
             </Box>
@@ -280,7 +280,7 @@ export function PasswordConfig() {
               flex={1}
             >
               {lengthRule ? <CheckIcon size="24" /> : <CloseIcon color="#FA4D5E" size="24" />}
-              <Text color={lengthRule ? 'ciano.800' : 'red.800'} fontSize={12} fontWeight={500} ml={2}>
+              <Text color={lengthRule ? 'ciano.800' : 'red.800'} fontSize={14} fontWeight={500} ml={2}>
                 8 caracteres
               </Text>
             </Box>
@@ -299,7 +299,7 @@ export function PasswordConfig() {
               flex={1}
             >
               {specialRule ? <CheckIcon size="24" /> : <CloseIcon color="#FA4D5E" size="24" />}
-              <Text color={specialRule ? 'ciano.800' : 'red.800'} fontSize={12} fontWeight={500} ml={2}>
+              <Text color={specialRule ? 'ciano.800' : 'red.800'} fontSize={14} fontWeight={500} ml={2}>
                 Incluir Caracter Especial
               </Text>
             </Box>

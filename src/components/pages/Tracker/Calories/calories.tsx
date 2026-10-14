@@ -199,7 +199,7 @@ export function Calories() {
                 <Text fontFamily="Poligon" fontSize={14} fontWeight={600} color="gray.400" mt={3} textAlign="center">
                   Nenhuma atividade registrada hoje
                 </Text>
-                <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="gray.300" mt={1} textAlign="center">
+                <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="gray.300" mt={1} textAlign="center">
                   As atividades do Apple Health ou Google Fit aparecerão aqui
                 </Text>
               </Box>
@@ -214,7 +214,7 @@ export function Calories() {
                 Sobre as Atividades
               </Text>
             </HStack>
-            <Text fontFamily="Poligon" fontSize={12} fontWeight={500} color="gray.500">
+            <Text fontFamily="Poligon" fontSize={14} fontWeight={500} color="gray.500">
               As atividades são sincronizadas automaticamente do Apple Watch ou Samsung Health.
               Continue se exercitando para atingir sua meta diária!
             </Text>

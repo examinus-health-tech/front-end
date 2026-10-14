@@ -724,7 +724,7 @@ export function Homepage() {
                           <Text fontSize={14} fontWeight={700} color="white">
                             Você tem um voucher!
                           </Text>
-                          <Text fontSize={12} fontWeight={500} color="white" opacity={0.9}>
+                          <Text fontSize={14} fontWeight={500} color="white" opacity={0.9}>
                             Hemograma gratuito disponível
                           </Text>
                         </VStack>
@@ -846,10 +846,10 @@ export function Homepage() {
                         <HeadHealthIcon size="24" color="#8B5CF6" />
                       </Box>
                       <VStack flex={1}>
-                        <Text fontSize={14} fontWeight={700} color="gray.800">
+                        <Text fontSize={16} fontWeight={700} color="gray.800" letterSpacing={-0.16}>
                           Avalie sua saúde mental
                         </Text>
-                        <Text fontSize={12} fontWeight={400} color="gray.500" lineHeight={16}>
+                        <Text fontSize={14} fontWeight={500} color="gray.600" lineHeight={18}>
                           Responda ao questionário DASS-21 e descubra como você está.
                         </Text>
                       </VStack>
@@ -882,10 +882,10 @@ export function Homepage() {
                       <PillIcon size="24" color="#10B981" />
                     </Box>
                     <VStack flex={1}>
-                      <Text fontSize={14} fontWeight={700} color="gray.800">
+                      <Text fontSize={16} fontWeight={700} color="gray.800" letterSpacing={-0.16}>
                         Gerencie seus medicamentos
                       </Text>
-                      <Text fontSize={12} fontWeight={400} color="gray.500" lineHeight={16}>
+                      <Text fontSize={14} fontWeight={500} color="gray.600" lineHeight={18}>
                         Cadastre remédios, receba lembretes e acompanhe sua adesão.
                       </Text>
                     </VStack>

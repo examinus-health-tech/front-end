@@ -89,7 +89,7 @@ export function HealthWallet() {
         bgColor: 'red.50',
         color: '#FA4D5E',
         text: (
-          <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+          <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
             Você precisa se cuidar melhor.<Text color={'#FA4D5E'}> Clique aqui</Text> para saber como.
           </Text>
         ),
@@ -100,7 +100,7 @@ export function HealthWallet() {
         bgColor: 'yellow.50',
         color: '#F59E0B',
         text: (
-          <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+          <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
             Sua saúde está normal. Alguns indicadores podem melhorar.
             <Text color={'#F59E0B'}> Clique aqui</Text> para saber mais.
           </Text>
@@ -112,7 +112,7 @@ export function HealthWallet() {
         bgColor: 'green.50',
         color: '#0CC1AF',
         text: (
-          <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
+          <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
             Está excelente. Mantenha o bom score fazendo um
             <Text color={'#0CC1AF'}> check-up clicando aqui.</Text>
           </Text>
@@ -128,7 +128,7 @@ export function HealthWallet() {
     if (!systems || !Array.isArray(systems) || systems.length === 0) {
       return (
         <Flex align="center" mt={12}>
-          <Text fontSize={12} fontWeight={500} lineHeight={19.2} mt={3}>
+          <Text fontSize={14} fontWeight={500} lineHeight={19.2} mt={3}>
             Você não possui dados de exames.
           </Text>
         </Flex>
