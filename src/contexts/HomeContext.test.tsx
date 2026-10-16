@@ -322,6 +322,25 @@ describe('HomeContext', () => {
 
       expect(result.current.fitnessEnabled).toBe(false);
     });
+
+    it('fitnessStatusLoaded só vira true depois de ler a preferência', async () => {
+      let resolveRead: (v: boolean) => void = () => {};
+      mockIsFitnessEnabled.mockImplementationOnce(
+        () => new Promise<boolean>((resolve) => { resolveRead = resolve; }),
+      );
+
+      const { result } = renderHook(() => useHomeContext(), { wrapper });
+
+      // leitura ainda pendente: a UI não pode concluir "desabilitado"
+      expect(result.current.fitnessStatusLoaded).toBe(false);
+
+      await act(async () => {
+        resolveRead(true);
+      });
+
+      expect(result.current.fitnessStatusLoaded).toBe(true);
+      expect(result.current.fitnessEnabled).toBe(true);
+    });
   });
 
   describe('Reset de dados ao trocar usuario', () => {
@@ -377,7 +396,8 @@ describe('HomeContext', () => {
         await new Promise(resolve => setTimeout(resolve, 100));
       });
 
-      expect(setFitnessEnabledService).toHaveBeenCalledWith(false);
+      // preferência é por usuário
+      expect(setFitnessEnabledService).toHaveBeenCalledWith(false, 'user-123');
       expect(result.current.fitnessEnabled).toBe(false);
     });
   });

@@ -80,6 +80,10 @@ jest.mock('src/hooks/useHome', () => ({
   }),
 }));
 
+jest.mock('src/hooks/useAuth', () => ({
+  useAuth: () => ({ user: { userId: 'user-123' } }),
+}));
+
 jest.mock('@services/fitnessService', () => ({
   isFitnessEnabled: (...args: any[]) => mockIsFitnessEnabled(...args),
   setFitnessEnabled: (...args: any[]) => mockSetFitnessEnabled(...args),
@@ -164,7 +168,8 @@ describe('Preferences', () => {
     });
 
     await waitFor(() => {
-      expect(mockSetFitnessEnabled).toHaveBeenCalledWith(true);
+      // preferência gravada no escopo do usuário logado
+      expect(mockSetFitnessEnabled).toHaveBeenCalledWith(true, 'user-123');
       expect(mockShowSuccess).toHaveBeenCalledWith(
         expect.objectContaining({ title: 'Salvo' })
       );

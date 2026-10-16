@@ -146,12 +146,24 @@ export interface FitnessSyncDataRequestDTO {
   };
 }
 
+// A preferência é guardada POR USUÁRIO: assim sobrevive a logout/re-login do mesmo
+// usuário (inclusive logout automático por token/401) sem vazar para outra conta
+// no mesmo aparelho. Sem userId cai na chave global antiga.
+export function fitnessEnabledKey(userId?: string): string {
+  return userId ? `${FITNESS_ENABLED_KEY}:${userId}` : FITNESS_ENABLED_KEY;
+}
+
 /**
  * Verifica se o módulo fitness está habilitado
  */
-export async function isFitnessEnabled(): Promise<boolean> {
+export async function isFitnessEnabled(userId?: string): Promise<boolean> {
   try {
-    const enabled = await AsyncStorage.getItem(FITNESS_ENABLED_KEY);
+    let enabled = await AsyncStorage.getItem(fitnessEnabledKey(userId));
+    // Migração: valor gravado antes da chave por usuário. A chave global é apagada
+    // no signOut, então se ainda existe ela pertence ao usuário logado agora.
+    if (enabled === null && userId) {
+      enabled = await AsyncStorage.getItem(FITNESS_ENABLED_KEY);
+    }
     return enabled === 'true';
   } catch (error) {
     if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao verificar se fitness está habilitado:', error);
@@ -162,9 +174,9 @@ export async function isFitnessEnabled(): Promise<boolean> {
 /**
  * Habilita ou desabilita o módulo fitness
  */
-export async function setFitnessEnabled(enabled: boolean): Promise<void> {
+export async function setFitnessEnabled(enabled: boolean, userId?: string): Promise<void> {
   try {
-    await AsyncStorage.setItem(FITNESS_ENABLED_KEY, enabled.toString());
+    await AsyncStorage.setItem(fitnessEnabledKey(userId), enabled.toString());
     if (__DEV__) console.log(`[FITNESS_SERVICE] Fitness ${enabled ? 'habilitado' : 'desabilitado'}`);
   } catch (error) {
     if (__DEV__) console.error('[FITNESS_SERVICE] Erro ao salvar preferência de fitness:', error);
