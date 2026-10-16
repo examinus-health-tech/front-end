@@ -5,6 +5,7 @@ import { HeaderProgress, Props } from './headerProgress';
 jest.mock('native-base', () => {
   const RN = require('react-native');
   return {
+    Box: (props: any) => require("react").createElement(RN.View, props),
     HStack: (props: any) => require("react").createElement(RN.View, props),
     Text: (props: any) => require("react").createElement(RN.Text, props),
     VStack: (props: any) => require("react").createElement(RN.View, props),

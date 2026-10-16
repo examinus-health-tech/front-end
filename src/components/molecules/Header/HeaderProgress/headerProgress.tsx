@@ -44,7 +44,7 @@ export function HeaderProgress({ progressValue, jumpTo, withBackButton }: Props)
       )}
 
       {!!progressValue && (
-        <Box flex={1} h={2} bg="gray.100" borderRadius={4} overflow="hidden">
+        <Box testID="progress-bar" flex={1} h={2} bg="gray.100" borderRadius={4} overflow="hidden">
           <Animated.View
             style={[
               { height: '100%', backgroundColor: '#111827', borderRadius: 4 },
