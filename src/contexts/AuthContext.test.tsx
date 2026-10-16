@@ -1945,6 +1945,27 @@ describe('AuthContext', () => {
       jest.useFakeTimers();
     });
 
+    it('NÃO apaga as preferências por usuário no logout (tracker habilitado / banner fechado)', async () => {
+      jest.useRealTimers();
+
+      const { result } = renderHook(() => useAuthContext(), { wrapper });
+
+      await waitFor(() => {
+        expect(result.current.isAuthReady).toBe(true);
+      });
+
+      await act(async () => {
+        await result.current.signOut();
+      });
+
+      // Logout automático (token/401) + re-login não pode "desabilitar" o tracker
+      const removedKeys: string[] = (AsyncStorage.multiRemove as jest.Mock).mock.calls.flatMap((c) => c[0]);
+      expect(removedKeys.some((k) => k.startsWith('@examinus:fitness_enabled:'))).toBe(false);
+      expect(removedKeys.some((k) => k.startsWith('@examinus:dismissed_banners:'))).toBe(false);
+
+      jest.useFakeTimers();
+    });
+
     it('deve continuar o logout mesmo se OneSignal falhar', async () => {
       jest.useRealTimers();
 

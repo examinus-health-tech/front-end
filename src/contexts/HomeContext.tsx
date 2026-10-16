@@ -101,6 +101,10 @@ export type HomeContextDataProps = {
   setCurrentSystem: (val: specificSystemProps) => void;
   clearHomeData: () => void;
   fitnessEnabled: boolean;
+  // true só depois que a preferência foi lida do storage. Enquanto false, a UI não
+  // deve concluir "desabilitado" (senão o banner "Habilite o Rastreador" pisca no boot
+  // mesmo com o tracker habilitado).
+  fitnessStatusLoaded: boolean;
   refreshFitnessData: () => Promise<void>;
 };
 
@@ -118,6 +122,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   const [isLoadingHomeContext, setIsLoading] = useState<boolean>(false);
   const [hasProcessingExams, setHasProcessingExams] = useState<boolean>(false);
   const [fitnessEnabled, setFitnessEnabled] = useState<boolean>(false);
+  const [fitnessStatusLoaded, setFitnessStatusLoaded] = useState<boolean>(false);
 
   const { user } = useAuth();
   const appState = useRef(AppState.currentState);
@@ -158,6 +163,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
     setTrackerData({} as trackerProps);
     setCurrentSystem(null);
     setFitnessEnabled(false);
+    setFitnessStatusLoaded(false);
 
     // Se tem usuário logado, busca os dados novos
     if (user?.userId) {
@@ -167,8 +173,9 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
 
   async function checkFitnessEnabled() {
     try {
-      const enabled = await isFitnessEnabled();
+      const enabled = await isFitnessEnabled(user?.userId);
       setFitnessEnabled(enabled);
+      setFitnessStatusLoaded(true);
       if (enabled) {
         // Sincroniza metas do backend para cache local
         syncGoalsFromBackend().catch(err => {
@@ -179,8 +186,9 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
     } catch (error) {
       if (__DEV__) console.error('❌ [HomeContext] Erro ao verificar fitness, desabilitando:', error);
       // Se der erro, desabilita o fitness para evitar crash loop
-      await setFitnessEnabledService(false);
+      await setFitnessEnabledService(false, user?.userId);
       setFitnessEnabled(false);
+      setFitnessStatusLoaded(true);
     }
   }
 
@@ -459,12 +467,13 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
   }
 
   const refreshFitnessData = useCallback(async () => {
-    const enabled = await isFitnessEnabled();
+    const enabled = await isFitnessEnabled(user?.userId);
     setFitnessEnabled(enabled);
+    setFitnessStatusLoaded(true);
     // Sempre buscar dados do backend independente do status de fitness nativo
     // Isso garante que dados manuais (hidratação, nutrição) sejam sempre atualizados
     await fetchFitnessData();
-  }, []);
+  }, [user?.userId]);
 
   async function getHomeData() {
     setIsLoading(true);
@@ -532,6 +541,7 @@ export function HomeContextProvider({ children }: HomeContextProviderProps) {
         setCurrentSystem,
         clearHomeData,
         fitnessEnabled,
+        fitnessStatusLoaded,
         refreshFitnessData,
       }}
     >

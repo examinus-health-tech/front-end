@@ -1,6 +1,5 @@
 import { StatusBar, BackHandler, LogBox } from 'react-native';
 import { useFonts } from 'expo-font';
-import { NativeBaseProvider } from 'native-base';
 import { useState, useEffect } from 'react';
 import * as Font from 'expo-font';
 import * as Updates from 'expo-updates';
@@ -38,7 +37,8 @@ if (!BackHandler.removeEventListener) {
   };
 }
 
-import { THEME } from './src/theme';
+import { FontScaleProvider, loadStoredFontScale } from './src/contexts/FontScaleContext';
+import { ScaledNativeBaseProvider } from './src/theme/ScaledNativeBaseProvider';
 import { Routes } from '@routes/index';
 import { AuthProvider } from '@contexts/AuthContext';
 import { OnboardingContextProvider } from '@contexts/OnboardingContext';
@@ -61,6 +61,12 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [splashVideoFinish, setSplashVideoFinish] = useState<boolean>(false);
   const [additionalFontsLoaded, setAdditionalFontsLoaded] = useState<boolean>(false);
+  // Escala de fonte salva: carregada antes de esconder o splash para não "pular" de tamanho
+  const [initialFontScale, setInitialFontScale] = useState<number | null>(null);
+
+  useEffect(() => {
+    loadStoredFontScale().then(setInitialFontScale);
+  }, []);
 
   useEffect(() => {
     const onClick = async (event: any) => {
@@ -277,12 +283,12 @@ export default function App() {
 
   // Hide splash screen when ready and fonts are loaded
   useEffect(() => {
-    if (ready && fontsLoaded) {
+    if (ready && fontsLoaded && initialFontScale !== null) {
       SplashScreen.hideAsync();
     }
-  }, [ready, fontsLoaded]);
+  }, [ready, fontsLoaded, initialFontScale]);
 
-  if (!ready || !fontsLoaded) {
+  if (!ready || !fontsLoaded || initialFontScale === null) {
     return;
   }
 
@@ -296,7 +302,8 @@ export default function App() {
           console.log('✅ [Navigation] Navigation ready');
         }}
       >
-      <NativeBaseProvider theme={THEME}>
+      <FontScaleProvider initialScale={initialFontScale}>
+      <ScaledNativeBaseProvider>
         <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
 
         <AuthProvider>
@@ -316,7 +323,8 @@ export default function App() {
             </UploadContextProvider>
           </OnboardingContextProvider>
         </AuthProvider>
-      </NativeBaseProvider>
+      </ScaledNativeBaseProvider>
+      </FontScaleProvider>
       </NavigationContainer>
     </ErrorBoundary>
   );

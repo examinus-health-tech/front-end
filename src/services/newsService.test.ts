@@ -214,8 +214,8 @@ describe('newsService', () => {
       expect(news).toEqual([]);
     });
 
-    it('deve limitar a 20 itens no máximo', async () => {
-      const manyItems = Array.from({ length: 25 }, (_, i) => `
+    it('deve limitar a 100 itens no máximo', async () => {
+      const manyItems = Array.from({ length: 120 }, (_, i) => `
         <item>
           <title>Notícia ${i}</title>
           <description>Descrição ${i}</description>
@@ -231,7 +231,7 @@ describe('newsService', () => {
       });
 
       const news = await newsService.fetchHealthNews();
-      expect(news.length).toBeLessThanOrEqual(20);
+      expect(news.length).toBe(100);
     });
 
     it('deve ignorar itens sem título ou link', async () => {
@@ -281,20 +281,41 @@ describe('newsService', () => {
       expect(filtered.some(n => n.title.includes('Anemia') || n.description.includes('sangue'))).toBe(true);
     });
 
-    it('deve retornar notícias limpas quando o sistema não tem keywords', () => {
-      const filtered = newsService.filterNewsBySystem(sampleNews, 'sistema_desconhecido');
-      // Deve excluir a notícia de golpe
-      expect(filtered.some(n => n.title.includes('Golpe'))).toBe(false);
-      expect(filtered.length).toBeLessThanOrEqual(10);
+    it('sistema desconhecido retorna vazio (nada de notícia genérica)', () => {
+      expect(newsService.filterNewsBySystem(sampleNews, 'sistema_desconhecido')).toEqual([]);
     });
 
-    it('deve retornar primeiras 5 notícias limpas quando nenhuma combina com o sistema', () => {
+    it('sem notícia sobre o sistema retorna vazio (antes caía em 5 notícias genéricas)', () => {
       const newsWithNoMatch: import('./newsService').NewsItem[] = [
         { id: '1', title: 'Clima quente esta semana', description: 'Previsão do tempo', link: 'http://a', pubDate: '' },
         { id: '2', title: 'Tecnologia avança', description: 'Novos gadgets', link: 'http://b', pubDate: '' },
       ];
-      const filtered = newsService.filterNewsBySystem(newsWithNoMatch, 'rins');
-      expect(filtered.length).toBeLessThanOrEqual(5);
+      expect(newsService.filterNewsBySystem(newsWithNoMatch, 'rins')).toEqual([]);
+    });
+
+    it('menção ao tema só na descrição não conta (ex.: câncer gástrico citando sangue)', () => {
+      const news: import('./newsService').NewsItem[] = [
+        { id: '1', title: 'Câncer gástrico é uma doença silenciosa', description: 'Pode causar anemia e sangue nas fezes', link: 'http://a', pubDate: '' },
+      ];
+      expect(newsService.filterNewsBySystem(news, 'sangue')).toEqual([]);
+    });
+
+    it('"rim" não casa dentro de outra palavra (primeiro, crime)', () => {
+      const news: import('./newsService').NewsItem[] = [
+        { id: '1', title: 'Primeiro estudo sobre sono em idosos', description: '', link: 'http://a', pubDate: '' },
+        { id: '2', title: 'Pedra nos rins: como prevenir', description: '', link: 'http://b', pubDate: '' },
+      ];
+      const filtered = newsService.filterNewsBySystem(news, 'rins');
+      expect(filtered.map(n => n.id)).toEqual(['2']);
+    });
+
+    it('Hormônios e Tireoide têm palavras-chave e o nome do sistema ignora acento', () => {
+      const news: import('./newsService').NewsItem[] = [
+        { id: '1', title: 'Hipotireoidismo: sintomas comuns', description: '', link: 'http://a', pubDate: '' },
+        { id: '2', title: 'Menopausa e reposição hormonal', description: '', link: 'http://b', pubDate: '' },
+      ];
+      expect(newsService.filterNewsBySystem(news, 'Tireóide').map(n => n.id)).toEqual(['1']);
+      expect(newsService.filterNewsBySystem(news, 'Hormônios').map(n => n.id)).toEqual(['2']);
     });
 
     it('deve excluir notícias com palavras-chave proibidas', () => {
@@ -307,6 +328,26 @@ describe('newsService', () => {
       expect(filtered.some(n => n.title.includes('Político'))).toBe(false);
       expect(filtered.some(n => n.title.includes('Bitcoin'))).toBe(false);
       expect(filtered.some(n => n.title.includes('sangue'))).toBe(true);
+    });
+  });
+
+  // --------------------------------------------------------
+  // matchesKeyword / normalizeText
+  // --------------------------------------------------------
+  describe('matchesKeyword', () => {
+    it('casa palavra inteira sem diferenciar acento e caixa', () => {
+      expect(newsService.matchesKeyword('Saúde do CORAÇÃO', 'coracao')).toBe(true);
+      expect(newsService.matchesKeyword('Pressão arterial alta', 'pressão arterial')).toBe(true);
+      expect(newsService.matchesKeyword('Controle do pré-diabetes', 'pré-diabetes')).toBe(true);
+    });
+
+    it('não casa pedaço de palavra', () => {
+      expect(newsService.matchesKeyword('O primeiro passo', 'rim')).toBe(false);
+      expect(newsService.matchesKeyword('Ferrovia nova', 'ferro')).toBe(false);
+    });
+
+    it('normalizeText remove acentos e põe em minúsculas', () => {
+      expect(newsService.normalizeText('Tireóide')).toBe('tireoide');
     });
   });
 

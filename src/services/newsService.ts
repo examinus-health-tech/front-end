@@ -19,17 +19,40 @@ const RSS_URLS = {
   geral: 'https://g1.globo.com/rss/g1/bemestar/',
 };
 
-// Palavras-chave para filtrar notícias por sistema orgânico
+// O feed é genérico (todos os temas de saúde); lemos o máximo que ele oferece para
+// aumentar a chance de achar notícias realmente sobre cada sistema orgânico.
+const MAX_RSS_ITEMS = 100;
+
+// Palavras-chave por sistema orgânico. Chaves sem acento (ver normalizeText) para casar
+// com o nome que vem do backend ("Tireóide", "Pâncreas"...). Inclui plural/feminino
+// porque a busca é por palavra inteira.
 const SYSTEM_KEYWORDS: Record<string, string[]> = {
-  coração: ['coração', 'cardíaco', 'cardiovascular', 'infarto', 'pressão arterial', 'hipertensão', 'arritmia', 'AVC', 'colesterol', 'triglicérides', 'artéria', 'coronária'],
-  fígado: ['fígado', 'hepático', 'hepatite', 'cirrose', 'fígado gorduroso', 'esteatose', 'enzimas hepáticas', 'TGO', 'TGP', 'bilirrubina'],
-  rins: ['rim', 'renal', 'diálise', 'transplante renal', 'insuficiência renal', 'nefrologia', 'creatinina', 'ureia', 'filtração'],
-  sangue: ['sangue', 'hemoglobina', 'anemia', 'leucemia', 'doação de sangue', 'transfusão', 'hematologia', 'hemograma', 'plaqueta', 'leucócito', 'glóbulos', 'ferro', 'ferritina', 'vitamina B12', 'ácido fólico'],
-  intestino: ['intestino', 'intestinal', 'digestivo', 'gastro', 'colonoscopia', 'probiótico', 'flora intestinal', 'microbioma', 'constipação', 'diarreia'],
-  pâncreas: ['pâncreas', 'diabetes', 'glicemia', 'insulina', 'diabético', 'açúcar no sangue', 'hemoglobina glicada', 'pré-diabetes'],
-  imunidade: ['imunidade', 'imunológico', 'vacina', 'anticorpo', 'imunização', 'defesa', 'sistema imune', 'gripe', 'resfriado', 'infecção', 'vírus', 'bactéria', 'vitamina C', 'vitamina D', 'zinco', 'própolis'],
-  urina: ['urinário', 'urina', 'bexiga', 'próstata', 'infecção urinária', 'urologia', 'cistite', 'urocultura'],
+  coracao: ['coração', 'cardíaco', 'cardíaca', 'cardiovascular', 'cardiovasculares', 'infarto', 'pressão arterial', 'pressão alta', 'hipertensão', 'arritmia', 'AVC', 'colesterol', 'triglicérides', 'artéria', 'artérias', 'coronária', 'cardiologista'],
+  figado: ['fígado', 'hepático', 'hepática', 'hepatite', 'hepatites', 'cirrose', 'esteatose', 'TGO', 'TGP', 'bilirrubina'],
+  rins: ['rim', 'rins', 'renal', 'renais', 'diálise', 'nefrologia', 'nefrologista', 'creatinina', 'ureia', 'cálculo renal', 'pedra nos rins'],
+  sangue: ['sangue', 'sanguíneo', 'sanguínea', 'hemoglobina', 'anemia', 'leucemia', 'transfusão', 'hematologia', 'hemograma', 'plaqueta', 'plaquetas', 'leucócitos', 'glóbulos', 'ferro', 'ferritina', 'vitamina B12', 'ácido fólico', 'hemocentro'],
+  intestino: ['intestino', 'intestinal', 'intestinais', 'digestão', 'colonoscopia', 'probiótico', 'probióticos', 'microbiota', 'microbioma', 'constipação', 'prisão de ventre', 'diarreia', 'colorretal'],
+  pancreas: ['pâncreas', 'pancreatite', 'diabetes', 'diabético', 'diabética', 'glicemia', 'glicose', 'insulina', 'pré-diabetes', 'hemoglobina glicada'],
+  imunidade: ['imunidade', 'imunológico', 'imunológica', 'vacina', 'vacinas', 'vacinação', 'anticorpo', 'anticorpos', 'imunização', 'sistema imune', 'gripe', 'resfriado', 'vitamina C', 'vitamina D', 'zinco'],
+  urina: ['urina', 'urinário', 'urinária', 'bexiga', 'próstata', 'infecção urinária', 'urologia', 'urologista', 'cistite', 'incontinência urinária'],
+  hormonios: ['hormônio', 'hormônios', 'hormonal', 'hormonais', 'menopausa', 'climatério', 'testosterona', 'estrogênio', 'cortisol', 'endocrinologia', 'endocrinologista', 'reposição hormonal'],
+  tireoide: ['tireoide', 'tireóide', 'tiroide', 'hipotireoidismo', 'hipertireoidismo', 'TSH', 'T4', 'iodo'],
 };
+
+// Minúsculas e sem acento: "Tireóide" → "tireoide"
+export function normalizeText(text: string): string {
+  return text.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+}
+
+function escapeRegex(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Palavra/expressão inteira, sem diferenciar acento — evita "rim" casar com "primeiro"
+export function matchesKeyword(text: string, keyword: string): boolean {
+  const pattern = new RegExp(`(^|[^a-z0-9])${escapeRegex(normalizeText(keyword))}($|[^a-z0-9])`);
+  return pattern.test(normalizeText(text));
+}
 
 // Palavras-chave para EXCLUIR notícias (golpes, política, etc)
 const EXCLUDED_KEYWORDS: string[] = [
@@ -128,7 +151,7 @@ function parseRssXml(xml: string): NewsItem[] {
   let match;
   let index = 0;
 
-  while ((match = itemRegex.exec(xml)) !== null && index < 20) {
+  while ((match = itemRegex.exec(xml)) !== null && index < MAX_RSS_ITEMS) {
     const itemXml = match[1];
 
     const title = cleanHtml(extractTagContent(itemXml, 'title'));
@@ -214,31 +237,20 @@ function filterOutExcludedNews(news: NewsItem[]): NewsItem[] {
 }
 
 /**
- * Filtra notícias por sistema orgânico
+ * Filtra notícias por sistema orgânico.
+ *
+ * Só aceita notícias cujo TÍTULO fala do sistema (palavra inteira, sem acento). Citar o
+ * tema só na descrição não basta: "Câncer gástrico…" mencionava sangue como sintoma e
+ * aparecia em "Dicas para Sangue". Sem match → lista vazia (nada de notícia genérica);
+ * a tela completa com dicas curadas (src/data/organTips.ts).
  */
 export function filterNewsBySystem(news: NewsItem[], system: string): NewsItem[] {
-  // Primeiro remove notícias não relacionadas à saúde
-  const cleanNews = filterOutExcludedNews(news);
+  const keywords = SYSTEM_KEYWORDS[normalizeText(system)];
+  if (!keywords || keywords.length === 0) return [];
 
-  const systemLower = system.toLowerCase();
-  const keywords = SYSTEM_KEYWORDS[systemLower];
-
-  if (!keywords || keywords.length === 0) {
-    // Se não há keywords para o sistema, retorna notícias limpas
-    return cleanNews.slice(0, 10);
-  }
-
-  const filtered = cleanNews.filter(item => {
-    const searchText = `${item.title} ${item.description}`.toLowerCase();
-    return keywords.some(keyword => searchText.includes(keyword.toLowerCase()));
-  });
-
-  // Se não encontrou notícias específicas, retorna as 5 primeiras limpas
-  if (filtered.length === 0) {
-    return cleanNews.slice(0, 5);
-  }
-
-  return filtered;
+  return filterOutExcludedNews(news).filter(item =>
+    keywords.some(keyword => matchesKeyword(item.title, keyword)),
+  );
 }
 
 /**

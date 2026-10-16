@@ -16,9 +16,24 @@ type FeatureBannerProps = {
   actionColor?: string;
   dismissible?: boolean;
   onDismiss?: () => void;
+  userId?: string; // escopo do dismiss: sobrevive ao logout/re-login do mesmo usuário
 };
 
 const DISMISSED_BANNERS_KEY = '@examinus:dismissed_banners';
+
+export function dismissedBannersKey(userId?: string): string {
+  return userId ? `${DISMISSED_BANNERS_KEY}:${userId}` : DISMISSED_BANNERS_KEY;
+}
+
+async function readDismissedList(userId?: string): Promise<string[]> {
+  let raw = await AsyncStorage.getItem(dismissedBannersKey(userId));
+  // Migração: lista gravada antes do escopo por usuário (a global é apagada no
+  // signOut, então se existe pertence ao usuário logado agora).
+  if (raw === null && userId) {
+    raw = await AsyncStorage.getItem(DISMISSED_BANNERS_KEY);
+  }
+  return raw ? JSON.parse(raw) : [];
+}
 
 export function FeatureBanner({
   id,
@@ -32,17 +47,17 @@ export function FeatureBanner({
   actionColor = 'ciano.600',
   dismissible = true,
   onDismiss,
+  userId,
 }: FeatureBannerProps) {
   const [isDismissed, setIsDismissed] = useState(true); // Começa escondido até verificar
 
   useEffect(() => {
     checkIfDismissed();
-  }, []);
+  }, [id, userId]);
 
   const checkIfDismissed = async () => {
     try {
-      const dismissed = await AsyncStorage.getItem(DISMISSED_BANNERS_KEY);
-      const dismissedList = dismissed ? JSON.parse(dismissed) : [];
+      const dismissedList = await readDismissedList(userId);
       setIsDismissed(dismissedList.includes(id));
     } catch (error) {
       setIsDismissed(false);
@@ -51,11 +66,10 @@ export function FeatureBanner({
 
   const handleDismiss = async () => {
     try {
-      const dismissed = await AsyncStorage.getItem(DISMISSED_BANNERS_KEY);
-      const dismissedList = dismissed ? JSON.parse(dismissed) : [];
+      const dismissedList = await readDismissedList(userId);
       if (!dismissedList.includes(id)) {
         dismissedList.push(id);
-        await AsyncStorage.setItem(DISMISSED_BANNERS_KEY, JSON.stringify(dismissedList));
+        await AsyncStorage.setItem(dismissedBannersKey(userId), JSON.stringify(dismissedList));
       }
       setIsDismissed(true);
       onDismiss?.();

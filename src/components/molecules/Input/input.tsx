@@ -10,6 +10,7 @@ import {
   Box,
 } from 'native-base';
 import { TextInput, Platform, View } from 'react-native';
+import { useFontScale } from 'src/hooks/useFontScale';
 
 export type Props = {
   leftIcon?: JSX.Element;
@@ -47,6 +48,9 @@ export function Input({
   testID,
   ...rest
 }: Props) {
+  // TextInput é RN puro (não passa pelo tema do NativeBase): escala manual
+  const { scaleFont } = useFontScale();
+
   return (
     <VStack w={wContainer}>
       <Text color="gray.900" fontSize={15} fontWeight={800} letterSpacing={-0.14} mb={2}>
@@ -95,7 +99,7 @@ export function Input({
               paddingLeft: leftIcon || InputLeftElement ? 48 : 18,
               paddingRight: rightIcon || InputRightElement ? 48 : 16,
               backgroundColor: 'white',
-              fontSize: 15,
+              fontSize: scaleFont(15),
               fontFamily: 'Poligon-Medium',
               color: '#1F2937',
             }}

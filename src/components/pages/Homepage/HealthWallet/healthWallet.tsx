@@ -101,7 +101,9 @@ export function HealthWallet() {
         color: '#F59E0B',
         text: (
           <Text color={'gray.400'} fontSize={14} fontWeight={600} letterSpacing={-0.12}>
-            Sua saúde está normal. Alguns indicadores podem melhorar.
+            {/* "Sua saúde está normal" foi removido: o badge NORMAL já diz isso e o texto
+                extra quebrava em 3 linhas, deixando o card fora do padrão dos demais */}
+            Alguns indicadores podem melhorar.
             <Text color={'#F59E0B'}> Clique aqui</Text> para saber mais.
           </Text>
         ),
@@ -120,6 +122,14 @@ export function HealthWallet() {
       };
     }
   };
+
+  // Navega para heartScore quando um sistema é selecionado.
+  // (hook no TOPO do componente — nunca dentro de renderSystems, que tem early-return)
+  useEffect(() => {
+    if (currentSystem?.nivel && currentSystem?.sistema) {
+      navigation.navigate('heartScore');
+    }
+  }, [currentSystem]);
 
   function renderSystems() {
     const systems = homeData.medicalExamOrganicSystemsScore;
@@ -158,68 +168,69 @@ export function HealthWallet() {
       );
     }
 
-    useEffect(() => {
-      if (currentSystem?.nivel && currentSystem?.sistema) {
-        navigation.navigate('heartScore');
-      }
-    }, [currentSystem]);
+    // Layout original (box grande do ícone à esquerda, centralizada) com o badge na
+    // linha do título: a descrição usa a largura toda e não varia conforme o tamanho
+    // do badge, então todos os cards quebram no mesmo ritmo.
+    return (
+      <VStack mt={4} space={3}>
+        {systems.map((system) => {
+          const colorInfo = getColorByScore(system.organicSystemScore);
+          return (
+            <TouchableOpacity
+              key={system.examOrganicSystemDescription}
+              testID={`card-system-${system.examOrganicSystemDescription}`}
+              accessibilityRole="button"
+              activeOpacity={0.8}
+              onPress={() =>
+                setCurrentSystem({
+                  sistema: system.examOrganicSystemDescription,
+                  nivel: colorInfo?.title,
+                })
+              }
+            >
+              {/* Recuo de 12 igual à esquerda e à direita; box do ícone quadrada (64)
+                  centralizada na vertical. */}
+              <HStack bg={'white'} p={3} shadow={1} borderRadius={16} alignItems={'center'}>
+                <Box
+                  bg={colorInfo?.bgColor}
+                  w={16}
+                  h={16}
+                  borderRadius={10}
+                  alignItems={'center'}
+                  justifyContent={'center'}
+                >
+                  {renderIcon(system.examOrganicSystemDescription, system.organicSystemScore)}
+                </Box>
 
-    return systems.map((system) => (
-      <TouchableOpacity
-        onPress={() =>
-          setCurrentSystem({
-            sistema: system.examOrganicSystemDescription,
-            nivel: getColorByScore(system.organicSystemScore)?.title,
-          })
-        }
-      >
-        <Box
-          mt={4}
-          bg={'white'}
-          w={'100%'}
-          p={2}
-          shadow={1}
-          borderRadius={16}
-          flexDir={'row'}
-          alignItems={'center'}
-          justifyContent={'space-between'}
-        >
-          <Box
-            bg={getColorByScore(system.organicSystemScore)?.bgColor}
-            w={20}
-            h={20}
-            borderRadius={10}
-            alignItems={'center'}
-            justifyContent={'center'}
-          >
-            {renderIcon(system.examOrganicSystemDescription, system.organicSystemScore)}
-          </Box>
+                <VStack flex={1} ml={4}>
+                  <HStack alignItems={'flex-start'} justifyContent={'space-between'}>
+                    <Text flexShrink={1} fontSize={20} fontWeight={800} letterSpacing={-0.16}>
+                      {system.examOrganicSystemDescription}
+                    </Text>
 
-          <VStack flex={1} ml={4} mr={3}>
-            <Text fontSize={20} fontWeight={800} letterSpacing={-0.16}>
-              {system.examOrganicSystemDescription}
-            </Text>
+                    <Badge
+                      bg={colorInfo?.bgColor}
+                      borderRadius={6}
+                      ml={2}
+                      mt={1}
+                      _text={{
+                        textTransform: 'uppercase',
+                        color: colorInfo?.color,
+                        fontSize: 10,
+                      }}
+                    >
+                      {colorInfo?.title}
+                    </Badge>
+                  </HStack>
 
-            <Text color={'gray.400'} fontSize={12} fontWeight={600} letterSpacing={-0.12}>
-              {getColorByScore(system.organicSystemScore)?.text}
-            </Text>
-          </VStack>
-
-          <Badge
-            bg={getColorByScore(system.organicSystemScore)?.bgColor}
-            borderRadius={6}
-            ml={2}
-            _text={{
-              textTransform: 'uppercase',
-              color: getColorByScore(system.organicSystemScore)?.color,
-              fontSize: 10,
-            }}
-          >
-            {getColorByScore(system.organicSystemScore)?.title}
-          </Badge>
-        </Box>
-      </TouchableOpacity>
-    ));
+                  <Box mt={1}>{colorInfo?.text}</Box>
+                </VStack>
+              </HStack>
+            </TouchableOpacity>
+          );
+        })}
+      </VStack>
+    );
   }
 
   return (

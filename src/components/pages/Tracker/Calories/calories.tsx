@@ -14,7 +14,6 @@ import {
   WalkingIcon,
   BarbellIcon,
   BedIcon,
-  BicycleIcon,
   HeartIcon,
 } from '@assets/icons';
 
@@ -29,7 +28,8 @@ import { getActivities, FitnessActivity } from 'src/services/fitnessService';
 const activityTypeConfig: Record<number, { name: string; icon: React.ReactNode; variant: 'green' | 'yellow' | 'purple' | 'blue' | 'red' }> = {
   0: { name: 'Caminhada', icon: <WalkingIcon size="20" color="#0CC1AF" />, variant: 'green' },
   1: { name: 'Corrida', icon: <WalkingIcon size="20" color="#F59E0B" />, variant: 'yellow' },
-  2: { name: 'Ciclismo', icon: <BicycleIcon size="20" color="#8B5CF6" />, variant: 'purple' },
+  // BicycleIcon não existe em @assets/icons (era undefined → crash ao renderizar ciclismo)
+  2: { name: 'Ciclismo', icon: <FireIcon size="20" color="#8B5CF6" />, variant: 'purple' },
   3: { name: 'Musculação', icon: <BarbellIcon size="20" color="#EF4444" />, variant: 'red' },
   4: { name: 'Natação', icon: <HeartIcon size="20" color="#3B82F6" />, variant: 'blue' },
   5: { name: 'Yoga', icon: <HeartIcon size="20" color="#0CC1AF" />, variant: 'green' },

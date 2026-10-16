@@ -41,6 +41,7 @@ import {
   setStepsGoal,
   getStepsGoal,
   FITNESS_ENABLED_KEY,
+  fitnessEnabledKey,
   WEIGHT_GOAL_KEY,
   CALORIES_GOAL_KEY,
   HYDRATION_GOAL_KEY,
@@ -104,6 +105,47 @@ describe('fitnessService', () => {
       const result = await isFitnessEnabled();
 
       expect(result).toBe(false);
+    });
+  });
+
+  // ============================================================
+  // Preferência por usuário (sobrevive a logout/re-login)
+  // ============================================================
+
+  describe('fitness habilitado por usuário', () => {
+    it('grava na chave do usuário', async () => {
+      await setFitnessEnabled(true, 'user-1');
+
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(`${FITNESS_ENABLED_KEY}:user-1`, 'true');
+    });
+
+    it('lê da chave do usuário', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) =>
+        key === `${FITNESS_ENABLED_KEY}:user-1` ? 'true' : null,
+      );
+
+      await expect(isFitnessEnabled('user-1')).resolves.toBe(true);
+    });
+
+    it('migra o valor global antigo quando a chave do usuário não existe', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) =>
+        key === FITNESS_ENABLED_KEY ? 'true' : null,
+      );
+
+      await expect(isFitnessEnabled('user-1')).resolves.toBe(true);
+    });
+
+    it('a escolha do usuário prevalece sobre o valor global', async () => {
+      (AsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) =>
+        key === `${FITNESS_ENABLED_KEY}:user-1` ? 'false' : 'true',
+      );
+
+      await expect(isFitnessEnabled('user-1')).resolves.toBe(false);
+    });
+
+    it('fitnessEnabledKey sem usuário usa a chave global', () => {
+      expect(fitnessEnabledKey()).toBe(FITNESS_ENABLED_KEY);
+      expect(fitnessEnabledKey('abc')).toBe(`${FITNESS_ENABLED_KEY}:abc`);
     });
   });
 

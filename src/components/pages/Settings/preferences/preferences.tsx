@@ -11,6 +11,7 @@ import { Header } from '../components/header/header';
 import { Card } from '../components/card/card';
 import { useCustomToast } from 'src/hooks/useCustomToast';
 import { useHome } from 'src/hooks/useHome';
+import { useAuth } from 'src/hooks/useAuth';
 
 // services
 import { isFitnessEnabled, setFitnessEnabled } from '@services/fitnessService';
@@ -25,6 +26,7 @@ export function Preferences() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
   const { showSuccess, showError } = useCustomToast();
   const { refreshFitnessData } = useHome();
+  const { user } = useAuth();
 
   // Estado do toggle de fitness
   const [fitnessTrackerEnabled, setFitnessTrackerEnabled] = useState(false);
@@ -38,7 +40,7 @@ export function Preferences() {
   async function loadPreferences() {
     try {
       setIsLoading(true);
-      const enabled = await isFitnessEnabled();
+      const enabled = await isFitnessEnabled(user?.userId);
       setFitnessTrackerEnabled(enabled);
       if (__DEV__) console.log('[PREFERENCES] Fitness tracker habilitado:', enabled);
     } catch (error) {
@@ -52,7 +54,7 @@ export function Preferences() {
   const handleFitnessToggle = useCallback(async (value: boolean) => {
     try {
       setFitnessTrackerEnabled(value);
-      await setFitnessEnabled(value);
+      await setFitnessEnabled(value, user?.userId);
 
       // Atualiza o contexto global para refletir a mudança imediatamente
       await refreshFitnessData();
@@ -75,7 +77,7 @@ export function Preferences() {
         description: 'Não foi possível salvar a preferência.',
       });
     }
-  }, [showSuccess, showError, refreshFitnessData]);
+  }, [showSuccess, showError, refreshFitnessData, user?.userId]);
 
   return (
     <View testID="screen-preferences" flex={1}>

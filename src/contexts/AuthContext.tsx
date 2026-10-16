@@ -97,6 +97,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         '@examinus:auth-token',
         '@examinus:user',
         // Fitness e metas
+        // (fitness_enabled e dismissed_banners abaixo são as chaves globais antigas;
+        // as por usuário `...:<userId>` são preservadas de propósito para o mesmo
+        // usuário não perder a escolha num re-login — inclusive logout automático)
         '@examinus:fitness_enabled',
         '@examinus:weight_goal',
         '@examinus:weight_goal_type',
@@ -1503,6 +1506,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
         '@examinus:lastSeenVersion',
         '@examinus:dismissed_banners',
         '@examinus:notification_prefs',
+        // Preferências por usuário (o signOut preserva; deletar conta remove)
+        `@examinus:fitness_enabled:${user.userId}`,
+        `@examinus:dismissed_banners:${user.userId}`,
         // Biometria (diferente do signOut, deletar conta remove tudo)
         '@examinus:biometric_token',
         '@examinus:biometric_enabled',

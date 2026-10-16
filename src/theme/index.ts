@@ -1,6 +1,7 @@
 import { extendTheme } from 'native-base';
+import { buildFontSizes, buildLineHeights } from './fontScale';
 
-export const THEME = extendTheme({
+const BASE_THEME = {
   colors: {
     selectionColor: '#FFFFFF',
     white: '#FFFFFF',
@@ -143,13 +144,6 @@ export const THEME = extendTheme({
     body: 'Poligon',
     mono: 'Poligon',
   },
-  fontSizes: {
-    xs: 12,
-    sm: 14,
-    md: 16,
-    lg: 18,
-    xl: 20,
-  },
   sizes: {
     11: 52,
     12: 56,
@@ -159,4 +153,16 @@ export const THEME = extendTheme({
     44: 176,
     68: 272,
   },
-});
+};
+
+// fontSizes/lineHeights são gerados com chaves numéricas escaladas (ver fontScale.ts):
+// é assim que a preferência "Tamanho da fonte" alcança todos os textos NativeBase.
+export function buildTheme(fontScale = 1) {
+  return extendTheme({
+    ...BASE_THEME,
+    fontSizes: buildFontSizes(fontScale),
+    lineHeights: buildLineHeights(fontScale),
+  });
+}
+
+export const THEME = buildTheme(1);

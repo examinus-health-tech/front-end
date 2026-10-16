@@ -125,7 +125,9 @@ export function Homepage() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
 
   const { user, getUserInfo, isLoading, updateUserPhoto } = useAuth();
-  const { getHomeData, homeData, trackerData, isLoadingHomeContext, hasProcessingExams, fitnessEnabled, refreshFitnessData } = useHome();
+  const { getHomeData, homeData, trackerData, isLoadingHomeContext, hasProcessingExams, fitnessEnabled, fitnessStatusLoaded, refreshFitnessData } = useHome();
+  // Só conclui "desabilitado" depois de ler a preferência (evita o banner piscar no boot)
+  const showFitnessDisabled = fitnessStatusLoaded && !fitnessEnabled;
   const { showTabBar } = useTabBar();
 
   // Pulse animation para shadow do card em análise
@@ -902,7 +904,7 @@ export function Homepage() {
                   <Text fontSize={18} fontWeight={800} letterSpacing={-0.18} color={'gray.900'}>
                     Rastreador Fitness
                   </Text>
-                  {!fitnessEnabled && (
+                  {showFitnessDisabled && (
                     <Badge bg="gray.400" borderRadius={6} _text={{ color: 'white', fontSize: 10 }}>
                       DESABILITADO
                     </Badge>
@@ -914,17 +916,18 @@ export function Homepage() {
                 </TouchableOpacity>
               </HStack>
 
-              {!fitnessEnabled && !DISABLE_FITNESS_FEATURE && (
+              {showFitnessDisabled && !DISABLE_FITNESS_FEATURE && (
                 <Box mt={4}>
                   <FeatureBanner
                     id="fitness-tracker-enable"
+                    userId={user?.userId}
                     icon={<BarbellIcon size="24" color="#0CC1AF" />}
                     title="Habilite o Rastreador Fitness"
                     description="Acompanhe suas calorias, passos, sono e hidratação conectando com o Apple Health ou Health Connect."
                     actionText="Habilitar agora"
                     onAction={async () => {
                       try {
-                        await setFitnessEnabled(true);
+                        await setFitnessEnabled(true, user?.userId);
                         await refreshFitnessData();
                       } catch (error) {
                         if (__DEV__) console.warn('⚠️ [HOMEPAGE] Erro ao habilitar fitness:', error);

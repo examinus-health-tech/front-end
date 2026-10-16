@@ -267,6 +267,7 @@ const mockUpdateUserPhoto = jest.fn();
 let mockIsLoadingHomeContext = false;
 let mockIsLoading = false;
 let mockFitnessEnabled = true;
+let mockFitnessStatusLoaded = true;
 let mockHomeData: any = {
   generalScore: 750,
   generalScoreActionRecommendation: 'Tudo certo',
@@ -321,6 +322,7 @@ jest.mock('src/hooks/useHome', () => ({
     trackerData: mockTrackerData,
     isLoadingHomeContext: mockIsLoadingHomeContext,
     fitnessEnabled: mockFitnessEnabled,
+    fitnessStatusLoaded: mockFitnessStatusLoaded,
     refreshFitnessData: mockRefreshFitnessData,
   }),
 }));
@@ -337,6 +339,7 @@ describe('Homepage', () => {
     mockIsLoading = false;
     mockIsLoadingHomeContext = false;
     mockFitnessEnabled = true;
+    mockFitnessStatusLoaded = true;
     mockHomeData = {
       generalScore: 750,
       generalScoreActionRecommendation: 'Tudo certo',
@@ -585,6 +588,35 @@ describe('Homepage', () => {
       const { queryByText } = render(<Homepage />);
       await waitFor(() => {
         expect(queryByText('DESABILITADO')).toBeNull();
+      });
+    });
+
+    it('não mostra banner nem DESABILITADO enquanto a preferência não foi lida (boot)', async () => {
+      // fitnessEnabled ainda no valor inicial (false) antes da leitura do storage
+      mockFitnessEnabled = false;
+      mockFitnessStatusLoaded = false;
+      const { queryByText, queryByTestId } = render(<Homepage />);
+      await waitFor(() => {
+        expect(queryByText('DESABILITADO')).toBeNull();
+      });
+      expect(queryByTestId('feature-banner-fitness-tracker-enable')).toBeNull();
+    });
+
+    it('mostra o banner de habilitar quando a preferência foi lida e está desabilitada', async () => {
+      mockFitnessEnabled = false;
+      mockFitnessStatusLoaded = true;
+      const { getByTestId } = render(<Homepage />);
+      await waitFor(() => {
+        expect(getByTestId('feature-banner-fitness-tracker-enable')).toBeTruthy();
+      });
+    });
+
+    it('não mostra o banner de habilitar quando o tracker está habilitado', async () => {
+      mockFitnessEnabled = true;
+      mockFitnessStatusLoaded = true;
+      const { queryByTestId } = render(<Homepage />);
+      await waitFor(() => {
+        expect(queryByTestId('feature-banner-fitness-tracker-enable')).toBeNull();
       });
     });
   });

@@ -197,6 +197,59 @@ describe('FeatureBanner', () => {
   });
 });
 
+describe('FeatureBanner — dismiss por usuário', () => {
+  const props = {
+    id: 'fitness-tracker-enable',
+    icon: React.createElement(require('react-native').View, { testID: 'banner-icon' }),
+    title: 'Habilite',
+    description: 'Descricao',
+    actionText: 'Habilitar',
+    onAction: jest.fn(),
+    userId: 'user-1',
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (AsyncStorage.setItem as jest.Mock).mockResolvedValue(undefined);
+  });
+
+  it('grava o dismiss na chave do usuário', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockResolvedValue(null);
+    const { getByTestId } = render(<FeatureBanner {...props} />);
+    await waitFor(() => expect(getByTestId('close-icon')).toBeTruthy());
+
+    await act(async () => {
+      const closeButton = getByTestId('close-icon').parent;
+      if (closeButton) fireEvent.press(closeButton);
+    });
+
+    await waitFor(() => {
+      expect(AsyncStorage.setItem).toHaveBeenCalledWith(
+        `${DISMISSED_BANNERS_KEY}:user-1`,
+        JSON.stringify(['fitness-tracker-enable']),
+      );
+    });
+  });
+
+  it('continua escondido após re-login do mesmo usuário (lista na chave do usuário)', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) =>
+      key === `${DISMISSED_BANNERS_KEY}:user-1` ? JSON.stringify(['fitness-tracker-enable']) : null,
+    );
+    const { toJSON } = render(<FeatureBanner {...props} />);
+    await waitFor(() => expect(AsyncStorage.getItem).toHaveBeenCalled());
+    expect(toJSON()).toBeNull();
+  });
+
+  it('migra a lista global antiga quando a do usuário não existe', async () => {
+    (AsyncStorage.getItem as jest.Mock).mockImplementation(async (key: string) =>
+      key === DISMISSED_BANNERS_KEY ? JSON.stringify(['fitness-tracker-enable']) : null,
+    );
+    const { toJSON } = render(<FeatureBanner {...props} />);
+    await waitFor(() => expect(AsyncStorage.getItem).toHaveBeenCalledWith(DISMISSED_BANNERS_KEY));
+    expect(toJSON()).toBeNull();
+  });
+});
+
 describe('resetDismissedBanners', () => {
   it('removes the dismissed banners key from AsyncStorage', async () => {
     await resetDismissedBanners();

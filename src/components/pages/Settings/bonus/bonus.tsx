@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import { TouchableOpacity, Share, Clipboard, TextInput, StyleSheet, View, ScrollView as RNScrollView, LayoutChangeEvent, Dimensions } from 'react-native';
+import { useFontScale } from 'src/hooks/useFontScale';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   VStack,
@@ -60,6 +61,7 @@ export function Bonus() {
   const stickyHeaderY = useRef(0);
 
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const { scaleFont } = useFontScale();
   const { user } = useAuth();
 
   useFocusEffect(
@@ -403,7 +405,7 @@ export function Bonus() {
             <HStack style={styles.searchWrapper} space={2} alignItems="center">
               <SearchIcon size="16" color="#9CA3AF" />
               <TextInput
-                style={styles.searchInput}
+                style={[styles.searchInput, { fontSize: scaleFont(14) }]}
                 placeholder="Buscar por nome, bairro, cidade ou CEP..."
                 placeholderTextColor="#9CA3AF"
                 value={searchQuery}

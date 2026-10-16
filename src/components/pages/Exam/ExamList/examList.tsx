@@ -14,6 +14,7 @@ import { ChevronRightIcon, FilterIcon, FlaskIcon, MoreIcon, RotateRightIcon, Tra
 // components
 import { HeaderTitle } from '@components/molecules';
 import { useWindowDimensions, Keyboard, Pressable, StatusBar, StyleSheet } from 'react-native';
+import { useFontScale } from 'src/hooks/useFontScale';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CustomRefreshControl } from '@components/atoms';
 import { Button } from '@components/atoms';
@@ -115,6 +116,7 @@ export function ExamList() {
   const scrollRef = useRef<IScrollViewProps>(null);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const { scaleFont } = useFontScale();
   const { showExtractionError, showAnalysisError, showExamProcessing, showFiltersApplied, showFiltersCleared, showError, showSuccess, showInfo } = useCustomToast();
   const { user } = useAuth();
   const { getExamList, examData, setExamSelected, deleteExam, reprocessExam } = useExam();
@@ -685,7 +687,7 @@ export function ExamList() {
                         maxLength={10}
                         style={{
                           flex: 1,
-                          fontSize: 15,
+                          fontSize: scaleFont(15),
                           color: '#1F2937',
                           fontFamily: 'Poligon-Medium',
                         }}
@@ -724,7 +726,7 @@ export function ExamList() {
                         maxLength={10}
                         style={{
                           flex: 1,
-                          fontSize: 15,
+                          fontSize: scaleFont(15),
                           color: '#1F2937',
                           fontFamily: 'Poligon-Medium',
                         }}

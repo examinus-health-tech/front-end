@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Keyboard } from 'react-native';
+import { useFontScale } from 'src/hooks/useFontScale';
 import { VStack, Box, Text, HStack, Input, Pressable, Skeleton } from 'native-base';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -92,6 +93,7 @@ export function Nutrition() {
   const [isLoadingChart, setIsLoadingChart] = useState(true);
   const [chartData, setChartData] = useState<WeightDataPoint[]>([]);
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  const { scaleFont } = useFontScale();
   const { trackerData, refreshFitnessData } = useHome();
   const { hideTabBar, showTabBar } = useTabBar();
   const insets = useSafeAreaInsets();
@@ -634,7 +636,7 @@ export function Nutrition() {
                 style={{
                   flex: 1,
                   fontFamily: 'Poligon',
-                  fontSize: 16,
+                  fontSize: scaleFont(16),
                   color: '#111827',
                 }}
                 placeholderTextColor="#9CA3AF"
