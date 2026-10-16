@@ -37,6 +37,7 @@ jest.mock('native-base', () => {
 jest.mock('@assets/icons', () => ({
   ChevronRightSmIcon: (props: any) => require('react').createElement(require('react-native').View, { ...props, testID: 'chevron-right' }),
   DocumentIcon: (props: any) => require('react').createElement(require('react-native').View, { ...props, testID: 'document-icon' }),
+  LightBulbIcon: (props: any) => require('react').createElement(require('react-native').View, { ...props, testID: 'lightbulb-icon' }),
 }));
 
 jest.mock('src/services/newsService', () => ({
@@ -206,6 +207,53 @@ describe('NewsCarousel', () => {
     const { getByText } = render(<NewsCarousel />);
     await waitFor(() => {
       expect(getByText('Nenhuma notícia disponível')).toBeTruthy();
+    });
+  });
+
+  describe('com sistema orgânico (notícias temáticas + dicas curadas)', () => {
+    it('mostra as dicas curadas do sistema mesmo sem notícias temáticas', async () => {
+      mockFetchNewsForSystem.mockResolvedValue([]);
+      const { getByTestId, getByText } = render(<NewsCarousel system="Sangue" />);
+      await waitFor(() => {
+        expect(getByTestId('tip-card-sangue-anemia')).toBeTruthy();
+      });
+      expect(getByText('Doar sangue salva vidas')).toBeTruthy();
+      expect(getByTestId('tip-card-sangue-doacao')).toBeTruthy();
+    });
+
+    it('notícias temáticas aparecem antes das dicas', async () => {
+      mockFetchNewsForSystem.mockResolvedValue([
+        { id: 'n1', title: 'Anemia atinge milhões', description: '', link: 'https://g1.globo.com/x', pubDate: '' },
+      ]);
+      const { getAllByText, getByText } = render(<NewsCarousel system="Sangue" />);
+      await waitFor(() => expect(getByText('Anemia atinge milhões')).toBeTruthy());
+      const titles = getAllByText(/Anemia atinge milhões|Anemia: sinais de alerta/).map((n) => n.props.children);
+      expect(titles).toEqual(['Anemia atinge milhões', 'Anemia: sinais de alerta']);
+    });
+
+    it('não mostra o selo fixo "G1 Bem Estar" (cada dica mostra a própria fonte)', async () => {
+      mockFetchNewsForSystem.mockResolvedValue([]);
+      const { queryByText, getAllByText } = render(<NewsCarousel system="Sangue" />);
+      await waitFor(() => expect(getAllByText('BVS · Ministério da Saúde').length).toBeGreaterThan(0));
+      expect(queryByText('G1 Bem Estar')).toBeNull();
+    });
+
+    it('se o feed falhar, as dicas continuam aparecendo', async () => {
+      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      mockFetchNewsForSystem.mockRejectedValue(new Error('offline'));
+      const { getByTestId } = render(<NewsCarousel system="Tireóide" />);
+      await waitFor(() => {
+        expect(getByTestId('tip-card-tireoide-hipo')).toBeTruthy();
+      });
+      consoleSpy.mockRestore();
+    });
+
+    it('sistema sem dicas e sem notícias mostra estado vazio de dicas', async () => {
+      mockFetchNewsForSystem.mockResolvedValue([]);
+      const { getByText } = render(<NewsCarousel system="Baço" />);
+      await waitFor(() => {
+        expect(getByText('Nenhuma dica disponível')).toBeTruthy();
+      });
     });
   });
 });
