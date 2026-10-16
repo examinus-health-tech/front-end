@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Text as RNText, TouchableOpacity } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import {
@@ -52,6 +52,7 @@ import { getUserPersonalData } from '@services/userService';
 
 // Cor da Labi
 const LABI_PURPLE = '#7B2E8E';
+const FONT_SIZE_GLYPH = 'Aa';
 
 export function MyAccount() {
   const { isOpen: isSignOutOpen, onOpen: onSignOutOpen, onClose: onSignOutClose } = useDisclose();
@@ -283,6 +284,19 @@ export function MyAccount() {
               </Text>
 
               <VStack mt={4} space={3}>
+                <Card
+                  testID="card-font-size"
+                  title="Tamanho da fonte"
+                  variant="primary"
+                  action="chevron"
+                  goTo={() => navigation.navigate('fontSize')}
+                  icon={
+                    // ícone tipográfico: tamanho fixo (ícones não acompanham a escala de fonte)
+                    <RNText allowFontScaling={false} style={{ fontFamily: 'PoligonBold', fontSize: 20, color: '#3D4966' }}>
+                      {FONT_SIZE_GLYPH}
+                    </RNText>
+                  }
+                />
                 <Card
                   title="Idioma"
                   variant="primary"

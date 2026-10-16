@@ -2,7 +2,7 @@ import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-na
 
 import { Homepage, HealthWallet, HeartScore, UploadMain } from '@components/pages/Homepage';
 import { MentalHealthForm, MentalHealthResult } from '@components/pages/MentalHealth';
-import { AboutUs, Bonus, ConfigNotifications, ContactUs, Info, MyAccount, Preferences, Security, SmartGoals } from '@components/pages/Settings';
+import { AboutUs, Bonus, ConfigNotifications, ContactUs, FontSize, Info, MyAccount, Preferences, Security, SmartGoals } from '@components/pages/Settings';
 
 import { ExamList, Exam } from '@components/pages/Exam';
 
@@ -67,6 +67,7 @@ export type AppRoutes = {
   onboardingSteps: undefined;
   workingInProgress: undefined;
   preferences: undefined;
+  fontSize: undefined;
   steps: undefined;
   hydration: undefined;
   mentalHealthForm: undefined;
@@ -419,6 +420,7 @@ function AppRoutesContent() {
       {/* <Screen name="myAccount" component={MyAccount} /> */}
       <Screen name="configNotifications" component={ConfigNotifications} />
       <Screen name="preferences" component={Preferences} />
+      <Screen name="fontSize" component={FontSize} />
       <Screen name="smartGoals" component={SmartGoals} />
       <Screen name="info" component={Info} />
       <Screen name="security" component={Security} />

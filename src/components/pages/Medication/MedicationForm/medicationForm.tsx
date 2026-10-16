@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { TouchableOpacity, StatusBar, Platform, Modal, Pressable, TextInput, StyleSheet } from 'react-native';
+import { useFontScale } from 'src/hooks/useFontScale';
 import { VStack, Text, Box, HStack, ScrollView, View } from 'native-base';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -31,6 +32,10 @@ const FORM_OPTIONS = Object.values(MedicationFormEnum)
 
 export function MedicationForm() {
   const navigation = useNavigation<AppNavigatorRoutesProps>();
+  // TextInputs RN puro (StyleSheet) não passam pelo tema: escala manual
+  const { scaleFont } = useFontScale();
+  const inputFontStyle = { fontSize: scaleFont(16) };
+  const textAreaFontStyle = { fontSize: scaleFont(15) };
   const route = useRoute<RouteProp<AppRoutes, 'medicationForm'>>();
   const { addMedication, editMedication, medications } = useMedication();
 
@@ -184,7 +189,7 @@ export function MedicationForm() {
               onChangeText={(v) => { setName(v); if (errors.name) setErrors(e => ({ ...e, name: undefined })); }}
               placeholder="Ex: Losartana"
               placeholderTextColor="#A0AEC0"
-              style={[styles.input, errors.name ? styles.inputError : null]}
+              style={[styles.input, inputFontStyle, errors.name ? styles.inputError : null]}
             />
             {errors.name && (
               <Text fontSize={13} fontWeight={500} color="red.500" mt={1}>{errors.name}</Text>
@@ -202,7 +207,7 @@ export function MedicationForm() {
               onChangeText={(v) => { setDosage(v); if (errors.dosage) setErrors(e => ({ ...e, dosage: undefined })); }}
               placeholder="Ex: 50mg"
               placeholderTextColor="#A0AEC0"
-              style={[styles.input, errors.dosage ? styles.inputError : null]}
+              style={[styles.input, inputFontStyle, errors.dosage ? styles.inputError : null]}
             />
             {errors.dosage && (
               <Text fontSize={13} fontWeight={500} color="red.500" mt={1}>{errors.dosage}</Text>
@@ -387,7 +392,7 @@ export function MedicationForm() {
                         placeholder="8"
                         placeholderTextColor="#A0AEC0"
                         keyboardType="number-pad"
-                        style={styles.input}
+                        style={[styles.input, inputFontStyle]}
                       />
                     </VStack>
                     <VStack flex={1}>
@@ -400,7 +405,7 @@ export function MedicationForm() {
                         placeholder="7"
                         placeholderTextColor="#A0AEC0"
                         keyboardType="number-pad"
-                        style={styles.input}
+                        style={[styles.input, inputFontStyle]}
                       />
                     </VStack>
                   </HStack>
@@ -522,7 +527,7 @@ export function MedicationForm() {
               multiline
               numberOfLines={3}
               textAlignVertical="top"
-              style={styles.textArea}
+              style={[styles.textArea, textAreaFontStyle]}
             />
           </Box>
         </VStack>
